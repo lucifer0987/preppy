@@ -27,15 +27,37 @@ const arg = (flag: string) => {
   return i > -1 ? process.argv[i + 1] : undefined
 }
 
+/** Shown when the command is run with no file, which is the usual first try. */
+function usage() {
+  console.error(`
+Check a Preppy paper before publishing it.
+
+  npm run check <paper.pdf>          a paper exported to PDF
+  npm run check <paper.json>         the JSON on its own, before exporting
+
+Options
+  --images <dir>   folder holding the images the paper references
+  --json           machine-readable output
+
+Try one of these:
+  npm run check format/sample.pdf      a complete worked paper
+  npm run check format/template.json   the fill-in skeleton
+
+The format is documented in format/README.md.
+Exit codes: 0 publishable, 1 blocking errors, 2 bad usage.
+`)
+}
+
 async function main() {
   const imagesDir = arg('--images')
   const file = process.argv.slice(2).find((a) => !a.startsWith('--') && a !== imagesDir)
   if (!file) {
-    console.error('usage: npm run check -- <paper.pdf|paper.json> [--images <dir>] [--json]')
+    usage()
     process.exit(2)
   }
   if (!existsSync(file)) {
-    console.error(`No such file: ${file}`)
+    console.error(`\nNo such file: ${file}\n`)
+    usage()
     process.exit(2)
   }
 
