@@ -253,9 +253,10 @@ html{scroll-behavior:smooth}
 
 <main>
 <header class="mast">
-  <p class="eyebrow"><b>Product Requirements</b><i class="dot"></i>Draft v1.2<i class="dot"></i>25 Sep 2026<i class="dot"></i>For build</p>
+  <p class="eyebrow"><b>Product Requirements</b><i class="dot"></i>v2.0<i class="dot"></i>Phases 1 and 2 shipped<i class="dot"></i>Record, not forecast</p>
   <h1>Preppy</h1>
   <p class="lede">A closed-cohort daily mock-test platform for IBPS Specialist Officer (IT) aspirants. Every night at 10 PM a 55-question paper unlocks, scored on the real marking scheme, ranked on a leaderboard that <em>never resets</em>.</p>
+  <p class="lede" style="margin-top:14px;font-size:17px">Phases 1 and 2 are built. This document now records <strong>what exists and why</strong>, including the decisions that changed during the build. For how it is put together and how to run it, see the <a href="docs/architecture.html">engineering reference</a>.</p>
   <dl class="meta">
     <div><dt>Owner</dt><dd>Gaurav Kumar</dd></div>
     <div><dt>Target exams</dt><dd>IBPS SO IT Officer<br>RRB Officer Scale II (IT)</dd></div>
@@ -286,7 +287,7 @@ html{scroll-behavior:smooth}
 </table></div>
 <div class="good">
   <h4>Net effect</h4>
-  <p><strong>Tables 12 → 8 · cron jobs 2 → 1 · logged event types 11 (v1.0) → 3 (v1.1) → 0 (v1.2, counters only).</strong></p>
+  <p><strong>Tables 12 → 8, then 9 when rate limiting moved into the database · cron jobs 2 → 1 · logged event types 11 (v1.0) → 3 (v1.1) → 0 (v1.2, counters only).</strong></p>
   <p>Every one of these cuts removes a thing that could break, go stale, or need invalidating. The read-time leaderboard in particular means a rescore has no cache to fix.</p>
 </div>
 <p><strong>Open questions closed in v1.2:</strong> the question bank lives in the database (Q7) · a sixth member starts from zero (Q8) · admin gets a dry-run mode (Q9) · students see nothing about each other except the leaderboard (Q10).</p>
@@ -815,19 +816,40 @@ html{scroll-behavior:smooth}
 
 <!-- 15 -->
 <section id="s15"><div class="col">
-<h2><i>15</i>Release plan</h2>
-<h3>Phase 0 — Foundation <span class="pill p2">Week 1</span></h3>
-<p>Supabase project and the eight tables · RLS deny-all · Supabase Auth with the synthetic-email mapping · seed script for 5 students + 1 admin · Next.js project, Tailwind, Kahoot tokens · admin shell and role gating · Asia/Kolkata time handling.</p>
-<h3>Phase 1 — MVP <span class="pill p0">P0</span> <span class="pill p2">Weeks 2–4</span></h3>
-<p>Paper validator and preview · <strong>dry run</strong> · publish and schedule · the one cron job · clock-derived test status · test engine with sectional timers, palette, one-way navigation and Next Section · <code>was_visited</code> tracking · full-screen with two counters · server-authoritative timer with resume · scoring · results with absolute rank · read-time leaderboard with tie-breaks · archive with full review · three-panel dashboard · rescore · question-bank JSON export · device gate.</p>
-<div class="fr"><p><b class="id">EXIT</b>A paper is uploaded, dry-run, published, taken by all 5 students, scored, ranked, and reviewable the next morning — with <strong>zero manual database intervention</strong>, for five consecutive nights.</p></div>
-<h3>Phase 2 — Polish <span class="pill p1">P1</span> <span class="pill p2">Weeks 5–6</span></h3>
-<p>Kahoot motion layer, confetti and podium · streaks · Last-30 filter · "questions I got wrong" and "questions I never reached" · pacing verdict · per-item % correct for the admin · bulk user CSV · sound toggle.</p>
-<h3>Phase 3 — Expansion <span class="pill p2">P2</span></h3>
-<p>Computer Awareness and General Awareness as toggleable sections · disciplines beyond CSE · a second exam track · practice mode over the archive · PWA · percentiles if the cohort exceeds 30.</p>
+<h2><i>15</i>What shipped</h2>
+
+<p>Phases 1 and 2 are complete. This is what exists, rather than what was planned.</p>
+
+<div class="tw"><table>
+<tr><th>Phase</th><th>Delivered</th></tr>
+<tr><td><strong>0</strong><br>Foundation</td><td>Supabase project and the schema &middot; RLS deny-all on every table &middot; Supabase Auth with the synthetic-email mapping &middot; seed script &middot; Next.js, Tailwind, Kahoot tokens &middot; admin shell and role gating &middot; Asia/Kolkata time handling</td></tr>
+<tr><td><strong>1</strong><br>The product</td><td>Paper validator and preview &middot; dry run &middot; publish and schedule &middot; the one nightly job &middot; clock-derived test status &middot; the test engine with sectional timers, palette, one-way navigation and Next Section &middot; <code>was_visited</code> tracking &middot; full screen with two counters &middot; server-authoritative timer with resume &middot; scoring &middot; results with absolute rank &middot; read-time leaderboard with tie-breaks &middot; archive with full review &middot; the three-panel dashboard &middot; rescore &middot; question-bank export &middot; device gate</td></tr>
+<tr><td><strong>2</strong><br>Polish and the gaps</td><td>Kahoot motion layer, confetti and podium &middot; streaks &middot; Last-30 filter &middot; the two archive filters &middot; pacing verdict &middot; per-item percent correct &middot; bulk user CSV &middot; sound toggle &mdash; plus two requirements the spec stated and the build had not yet honoured: <strong>must-change-password on first login</strong> and <strong>one attempt open in one place</strong></td></tr>
+</table></div>
+
+<h3>Things the build added that this document did not ask for</h3>
+<p>Each of these came out of the work rather than the plan, and each is load-bearing enough to belong in the spec now.</p>
+
+<div class="tw"><table>
+<tr><th>Mechanism</th><th>Why it exists</th></tr>
+<tr><td><strong>Optimistic locking on the answer key</strong><br><code>key_version</code> on <code>tests</code> and <code>attempts</code></td><td>An answer key corrected while somebody is mid-paper would otherwise let their submission bank against the old key. A submission carrying a stale version is detected and rescored instead</td></tr>
+<tr><td><strong>Rate limits counted in the database</strong><br>a ninth table plus three functions</td><td>Counting in server memory does not work on a serverless host: every instance keeps its own tally, so the limit is however many instances are running</td></tr>
+<tr><td><strong>Explicit session revocation</strong><br><code>revoke_user_sessions</code></td><td>FR-6.1.4 asked for one attempt in one place. Reaching into the auth schema to end the other sessions needs elevated rights, so it is a function rather than a query</td></tr>
+<tr><td><strong>Paged reads</strong><br><code>selectAll</code></td><td>PostgREST caps a response at 1,000 rows, and a capped response looks exactly like a complete one. The leaderboard would have started losing attempts silently as the history grew</td></tr>
+<tr><td><strong>Private image storage</strong><br>plus an app route that checks permission</td><td>A diagram for a DI set is part of the question. Served straight from Storage it would leak the paper before 10 PM</td></tr>
+<tr><td><strong>The schema tested as SQL</strong><br><code>tests/schema.test.ts</code> on in-process Postgres</td><td>The functions that must be atomic are the ones a type system cannot check. They are now exercised as SQL rather than trusted</td></tr>
+<tr><td><strong>Two builds</strong><br><code>build:local</code> and <code>build:prod</code></td><td>Production gates on typecheck and the full suite and ships no source maps; local keeps them so a stack trace is worth reading</td></tr>
+</table></div>
+
+<h3>Phase 3, if it happens</h3>
+<p>Computer Awareness and General Awareness as toggleable sections &middot; disciplines beyond CSE &middot; a second exam track with its own pattern &middot; practice mode over the archive, leaderboard-excluded &middot; a PWA and offline archive reading &middot; percentiles if the cohort ever exceeds 30.</p>
+
+<div class="good">
+  <h4>The one thing still unproven</h4>
+  <p>The schema and its functions are exercised against real Postgres, and 263 tests cover the pure logic. What has never run is the layer that talks to Supabase over the network: the queries in <code>lib/repo/</code>, signing in, and reading an image out of Storage. The engineering reference has a ten-minute walkthrough that exercises nearly all of it.</p>
+</div>
 </div></section>
 
-<!-- 16 -->
 <section id="s16"><div class="col">
 <h2><i>16</i>Open questions</h2>
 <div class="good">
