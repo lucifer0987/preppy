@@ -1,4 +1,4 @@
-import { PATTERN, type OptionLabel, type Paper, type SectionCode } from './types'
+import type { OptionLabel, Paper, SectionCode } from './types'
 
 /**
  * Scoring (PRD section 3.2) and the not-reached / skipped split (FR-3.4).
@@ -108,7 +108,10 @@ export function scoreBounds(paper: Paper): { max: number; min: number } {
  * questions is a speed problem, and the fixes are different.
  */
 export function pacingVerdict(section: SectionScore): string | null {
-  const total = PATTERN[section.code].questions
+  // Derived from the section's own counts rather than the default pattern, so
+  // a paper that overrides its question count still gets sensible thresholds.
+  const total = section.correct + section.wrong + section.skipped + section.notReached
+  if (total === 0) return null
   if (section.notReached >= Math.max(3, Math.ceil(total * 0.2))) {
     return `You never reached ${section.notReached} question${section.notReached === 1 ? '' : 's'}. That is a speed problem, not a knowledge problem.`
   }

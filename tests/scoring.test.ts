@@ -163,7 +163,16 @@ describe('the pacing verdict', () => {
   })
 
   it('stays quiet when neither is notable', () => {
-    expect(pacingVerdict({ ...base, skipped: 1, notReached: 1 })).toBeNull()
+    expect(pacingVerdict({ ...base, skipped: 1, notReached: 1, correct: 13 })).toBeNull()
+  })
+
+  it('says nothing about a section with no questions at all', () => {
+    expect(pacingVerdict({ ...base, skipped: 0, notReached: 0 })).toBeNull()
+  })
+
+  it('scales its thresholds to the section, not to the default pattern', () => {
+    // A 4-question section: 3 not reached is most of it, and still notable.
+    expect(pacingVerdict({ ...base, correct: 1, skipped: 0, notReached: 3 })).toMatch(/speed problem/)
   })
 
   it('prefers the speed reading when both are high', () => {

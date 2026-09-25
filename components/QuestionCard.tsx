@@ -1,4 +1,12 @@
 import { OPTION_LABELS, type OptionLabel, type PaperQuestion } from '../lib/types'
+
+/**
+ * A question as the live test engine has it: no answer, no solution. Making
+ * the key optional in the type means a component cannot accidentally render
+ * something the server never sent (FR-13.1).
+ */
+export type RenderableQuestion =
+  Omit<PaperQuestion, 'answer' | 'solution'> & { answer?: OptionLabel; solution?: string }
 import { OptionShape } from './OptionShape'
 
 /**
@@ -16,7 +24,7 @@ export function QuestionCard({
   disabled = true,
   onSelect,
 }: {
-  question: PaperQuestion
+  question: RenderableQuestion
   selected?: OptionLabel | null
   /** Show which option is correct. Never true during a live attempt. */
   reveal?: boolean
@@ -24,6 +32,8 @@ export function QuestionCard({
   onSelect?: (label: OptionLabel) => void
 }) {
   const present = OPTION_LABELS.filter((l) => question.options[l] !== undefined)
+  // Revealing without a key would silently mark every option wrong.
+  const canReveal = reveal && question.answer !== undefined
 
   return (
     <div>
@@ -34,8 +44,8 @@ export function QuestionCard({
 
       <ul className="mt-5 grid gap-2.5 sm:grid-cols-2">
         {present.map((label) => {
-          const isCorrect = reveal && question.answer === label
-          const isWrongPick = reveal && selected === label && question.answer !== label
+          const isCorrect = canReveal && question.answer === label
+          const isWrongPick = canReveal && selected === label && question.answer !== label
           const isSelected = selected === label
 
           return (
@@ -66,7 +76,7 @@ export function QuestionCard({
         })}
       </ul>
 
-      {reveal && (
+      {canReveal && (
         <div className="mt-4 rounded-2xl bg-black/[0.04] p-4 text-sm">
           <p><span className="font-bold">Answer:</span> {question.answer}</p>
           {question.solution && <p className="mt-1 text-ink-soft">{question.solution}</p>}

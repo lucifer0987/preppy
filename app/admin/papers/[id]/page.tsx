@@ -84,6 +84,16 @@ export default async function PaperPreview(
             This date has already passed, so it can no longer be scheduled.
           </p>
         )}
+        <p className="basis-full text-xs text-ink-soft">
+          A dry run uses the real engine and the real timers. It is never counted and never
+          reaches the leaderboard (FR-5.2).
+        </p>
+        <Link
+          href={`/test/start?test=${id}`}
+          className="rounded-2xl border-2 border-play-green px-6 py-3 font-bold text-play-green transition hover:bg-play-green/10"
+        >
+          Dry run
+        </Link>
         <form action={deleteAction} className="ml-auto">
           <input type="hidden" name="id" value={id} />
           <button className="text-sm font-bold text-notanswered underline">Delete this paper</button>
