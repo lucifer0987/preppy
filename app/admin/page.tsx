@@ -14,7 +14,10 @@ import { formatIstDate, istDate } from '../../lib/time'
  */
 export const dynamic = 'force-dynamic'
 
-export default async function AdminHome() {
+export default async function AdminHome({
+  searchParams,
+}: { searchParams: Promise<Record<string, string>> }) {
+  const { password } = await searchParams
   const today = istDate()
   const { data: tonight } = await db()
     .from('tests').select('id, date, title, status').eq('date', today).maybeSingle()
@@ -25,6 +28,12 @@ export default async function AdminHome() {
 
   return (
     <>
+      {password === 'changed' && (
+        <p className="mb-4 rounded-2xl bg-answered px-5 py-4 font-semibold text-white">
+          Password changed.
+        </p>
+      )}
+
       <section
         className={`rounded-3xl p-6 ${scheduled ? 'bg-answered text-white' : 'bg-notanswered text-white'}`}
       >

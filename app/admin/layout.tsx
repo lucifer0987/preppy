@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { currentUser } from '../../lib/auth'
+import { requireAdmin } from '../../lib/guard'
 import { logoutAction } from '../login/actions'
 
 /**
@@ -16,9 +15,7 @@ import { logoutAction } from '../login/actions'
 export const dynamic = 'force-dynamic'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const user = await currentUser()
-  if (!user) redirect('/login')
-  if (user.role !== 'admin') redirect('/dashboard')
+  const user = await requireAdmin()
 
   return (
     <div className="min-h-dvh">

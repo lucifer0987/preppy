@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { currentUser } from '../../../lib/auth'
+import { requireUser } from '../../../lib/guard'
 import { db } from '../../../lib/supabase/admin'
 import { loadAttempt } from '../../../lib/repo/attempts'
 import { TestEngine } from '../../../components/TestEngine'
@@ -9,8 +9,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function TestPage({ params }: { params: Promise<{ attemptId: string }> }) {
   const { attemptId } = await params
-  const user = await currentUser()
-  if (!user) redirect('/login')
+  const user = await requireUser()
 
   const { data: owner } = await db()
     .from('attempts').select('user_id, state').eq('id', attemptId).maybeSingle()

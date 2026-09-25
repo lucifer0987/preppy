@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { currentUser } from '../../../lib/auth'
 import { listUsers } from '../../../lib/repo/users'
 import { CreateUserForm, ResetPasswordForm } from './UserForms'
+import { BulkImport } from './BulkImport'
 import { toggleActiveAction } from './actions'
 
 export const dynamic = 'force-dynamic'
@@ -19,6 +20,7 @@ export default async function UsersPage() {
       </p>
 
       <CreateUserForm />
+      <BulkImport />
 
       <div className="mt-8 overflow-x-auto rounded-3xl bg-white p-5">
         <table className="w-full border-collapse text-sm">

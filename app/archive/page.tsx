@@ -1,6 +1,5 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
-import { currentUser } from '../../lib/auth'
+import { requireUser } from '../../lib/guard'
 import { getArchive } from '../../lib/repo/leaderboard'
 import { formatIstDate } from '../../lib/time'
 
@@ -12,8 +11,7 @@ export const dynamic = 'force-dynamic'
  * about anyone else (FR-5.3).
  */
 export default async function ArchivePage() {
-  const user = await currentUser()
-  if (!user) redirect('/login')
+  const user = await requireUser()
   const rows = await getArchive(user.id)
 
   return (

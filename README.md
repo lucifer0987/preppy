@@ -3,9 +3,10 @@
 Daily exam-simulation platform for IBPS Specialist Officer (IT) aspirants.
 See [PRD.md](PRD.md) for the full specification.
 
-**Status:** Phase 1 complete. Ingestion, the test engine, results, the
+**Status:** Phases 1 and 2 complete. Ingestion, the test engine, results, the
 leaderboard, the archive, rescore, user management, the nightly job, the
-question-bank export, the Kahoot motion layer and the attempts table all work.
+question-bank export, the Kahoot motion layer, the attempts table, bulk CSV
+import, the sound toggle and self-service password change all work.
 
 Nothing has been run against a live database yet — see *Known limit* below.
 
@@ -59,6 +60,10 @@ Exit `0` publishable, `1` blocking errors, `2` bad usage.
 | `lib/repo/finalise.ts` | The one nightly job: score anything left open |
 | `vercel.json` | Schedules that job at 00:05 IST (18:35 UTC) |
 | `components/motion.ts` | The one place that answers "may this animate?" |
+| `components/sound.ts` | Synthesised tones; off by default, never mid-section |
+| `lib/username.ts` | Pure username rules, free of any server-only import |
+| `lib/csv.ts` | Bulk-import parsing, pure and tested |
+| `lib/guard.ts` | Page guards, including the must-change-password gate |
 | `components/TestEngine.tsx` | The live test: palette, timers, full-screen |
 | `app/` | Home, login, dashboard, test, archive, leaderboard, admin |
 

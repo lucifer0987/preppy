@@ -1,6 +1,5 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
-import { currentUser } from '../../lib/auth'
+import { requireUser } from '../../lib/guard'
 import { db } from '../../lib/supabase/admin'
 import { findAttempt } from '../../lib/repo/attempts'
 import { logoutAction } from '../login/actions'
@@ -8,6 +7,7 @@ import {
   canStartAttempt, formatIstDate, formatIstTime, istDate, liveTestDate, nextOpenAt, WINDOW,
 } from '../../lib/time'
 import { Countdown } from '../../components/Countdown'
+import { SoundToggle } from '../../components/SoundToggle'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,9 +15,11 @@ export const dynamic = 'force-dynamic'
  * Three panels: tonight's paper, the archive, the leaderboard (PRD 6.3).
  * The archive and leaderboard arrive in the next slices.
  */
-export default async function Dashboard() {
-  const user = await currentUser()
-  if (!user) redirect('/login')
+export default async function Dashboard({
+  searchParams,
+}: { searchParams: Promise<Record<string, string>> }) {
+  const user = await requireUser()
+  const { password } = await searchParams
 
   const live = liveTestDate()
   const today = istDate()
@@ -35,19 +37,23 @@ export default async function Dashboard() {
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-ink-soft">Preppy</p>
           <h1 className="text-3xl font-black tracking-tight">Hello, {user.displayName}</h1>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
+          <SoundToggle compact />
           {user.role === 'admin' && (
             <Link href="/admin" className="text-sm font-bold text-play-purple underline">Admin</Link>
           )}
+          <Link href="/change-password" className="text-sm font-bold text-ink-soft underline">
+            Password
+          </Link>
           <form action={logoutAction}>
             <button className="text-sm font-bold text-ink-soft underline">Log out</button>
           </form>
         </div>
       </header>
 
-      {user.mustChangePassword && (
-        <p className="mt-6 rounded-2xl bg-play-yellow/15 px-5 py-4 text-sm font-semibold">
-          Your admin set this password. Changing it is coming in the next phase.
+      {password === 'changed' && (
+        <p className="mt-6 rounded-2xl bg-answered px-5 py-4 font-semibold text-white">
+          Password changed.
         </p>
       )}
 

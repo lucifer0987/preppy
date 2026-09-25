@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { currentUser } from '../../../lib/auth'
+import { requireUser } from '../../../lib/guard'
 import { db } from '../../../lib/supabase/admin'
 import { PATTERN, SECTION_CODES, SECTION_NAMES, TOTAL_MINUTES, TOTAL_QUESTIONS } from '../../../lib/types'
 import { formatIstDate, formatIstTime, WINDOW } from '../../../lib/time'
@@ -16,8 +16,7 @@ export const dynamic = 'force-dynamic'
  * full-screen policy does and does not do.
  */
 export default async function StartPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
-  const user = await currentUser()
-  if (!user) redirect('/login')
+  const user = await requireUser()
 
   const { test: testId } = await searchParams
   if (!testId) redirect('/dashboard')

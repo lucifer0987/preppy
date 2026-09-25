@@ -1,6 +1,5 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
-import { currentUser } from '../../lib/auth'
+import { requireUser } from '../../lib/guard'
 import { getLeaderboard } from '../../lib/repo/leaderboard'
 import { LeaderboardTable } from '../../components/LeaderboardTable'
 
@@ -9,8 +8,7 @@ export const dynamic = 'force-dynamic'
 export default async function LeaderboardPage({
   searchParams,
 }: { searchParams: Promise<Record<string, string>> }) {
-  const user = await currentUser()
-  if (!user) redirect('/login')
+  const user = await requireUser()
 
   const { window: win } = await searchParams
   const lastN = win === '30' ? 30 : win === '7' ? 7 : undefined

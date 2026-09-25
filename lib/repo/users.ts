@@ -1,7 +1,7 @@
 import 'server-only'
 import { randomBytes } from 'node:crypto'
 import { db } from '../supabase/admin'
-import { USERNAME_PATTERN, normaliseUsername, usernameToEmail } from '../auth'
+import { USERNAME_PATTERN, normaliseUsername, usernameToEmail } from '../username'
 
 /**
  * Accounts (PRD 6.9.3). Created only by an admin; there is no sign-up.

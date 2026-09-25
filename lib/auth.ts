@@ -2,6 +2,7 @@ import 'server-only'
 import { db } from './supabase/admin'
 import { isConfigured } from './env'
 import { authClient } from './supabase/session'
+import { USERNAME_PATTERN, normaliseUsername, usernameToEmail } from './username'
 
 /**
  * Authentication (PRD section 6.1).
@@ -13,8 +14,9 @@ import { authClient } from './supabase/session'
  * custom crypto is written anywhere in this codebase.
  */
 
-export const USERNAME_DOMAIN = 'preppy.local'
-export const USERNAME_PATTERN = /^[a-z0-9_]{3,20}$/
+export {
+  USERNAME_DOMAIN, USERNAME_PATTERN, normaliseUsername, usernameToEmail, emailToUsername,
+} from './username'
 
 export type Role = 'student' | 'admin'
 
@@ -25,18 +27,6 @@ export interface CurrentUser {
   role: Role
   isActive: boolean
   mustChangePassword: boolean
-}
-
-export function normaliseUsername(input: string): string {
-  return input.trim().toLowerCase()
-}
-
-export function usernameToEmail(username: string): string {
-  return `${normaliseUsername(username)}@${USERNAME_DOMAIN}`
-}
-
-export function emailToUsername(email: string): string {
-  return email.replace(new RegExp(`@${USERNAME_DOMAIN}$`), '')
 }
 
 /** The signed-in user's profile, or null. */

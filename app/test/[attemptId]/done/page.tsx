@@ -1,12 +1,14 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { currentUser } from '../../../../lib/auth'
+import { requireUser } from '../../../../lib/guard'
 import { db } from '../../../../lib/supabase/admin'
 import { SECTION_NAMES, TOTAL_QUESTIONS, type SectionCode } from '../../../../lib/types'
 import { pacingVerdict, type SectionScore } from '../../../../lib/scoring'
 import { answersUnlocked, formatIstDate } from '../../../../lib/time'
 import { Celebration, type CelebrationLevel } from '../../../../components/Celebration'
 import { CountUp } from '../../../../components/CountUp'
+import { ResultSound } from '../../../../components/ResultSound'
+import { SoundToggle } from '../../../../components/SoundToggle'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,8 +21,7 @@ export const dynamic = 'force-dynamic'
  */
 export default async function DonePage({ params }: { params: Promise<{ attemptId: string }> }) {
   const { attemptId } = await params
-  const user = await currentUser()
-  if (!user) redirect('/login')
+  const user = await requireUser()
 
   const { data: attempt } = await db()
     .from('attempts')
@@ -56,10 +57,14 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
       <Celebration level={celebration} />
+      <ResultSound tune={celebration === 'none' ? null : celebration === 'personal-best' ? 'personal-best' : 'result'} />
 
-      <p className="text-xs font-bold uppercase tracking-[0.2em] text-ink-soft">
-        {test.title ?? 'Daily mock'} &middot; {formatIstDate(test.date)}
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-ink-soft">
+          {test.title ?? 'Daily mock'} &middot; {formatIstDate(test.date)}
+        </p>
+        <SoundToggle compact />
+      </div>
 
       {test.rescored_at && (
         <p className="mt-4 rounded-2xl bg-play-yellow/20 px-5 py-4 text-sm font-semibold">

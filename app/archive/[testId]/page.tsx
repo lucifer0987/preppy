@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { notFound, redirect } from 'next/navigation'
-import { currentUser } from '../../../lib/auth'
+import { notFound } from 'next/navigation'
+import { requireUser } from '../../../lib/guard'
 import { db } from '../../../lib/supabase/admin'
 import { getPaperById } from '../../../lib/repo/papers'
 import { QuestionCard } from '../../../components/QuestionCard'
@@ -23,8 +23,7 @@ export default async function ArchiveDetail({
 }: { params: Promise<{ testId: string }>; searchParams: Promise<Record<string, string>> }) {
   const { testId } = await params
   const { filter } = await searchParams
-  const user = await currentUser()
-  if (!user) redirect('/login')
+  const user = await requireUser()
 
   const record = await getPaperById(testId)
   if (!record) notFound()

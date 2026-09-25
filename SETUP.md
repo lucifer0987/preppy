@@ -78,6 +78,12 @@ This creates six accounts: `admin` plus `student1` through `student5`. It
 prints each password **once**. Copy them now and hand them out — there is no
 email to send them to, and no way to recover them later.
 
+Everyone is made to choose their own password the first time they log in.
+Until they do, nothing else in the app is reachable.
+
+To add people later, use **People** in the admin console — one at a time, or
+several at once by pasting a CSV.
+
 To set fresh passwords at any time:
 
 ```bash
@@ -131,6 +137,9 @@ Log in as `admin` to reach the admin page, or as any student for the dashboard.
 - Past papers, with answers and solutions from midnight, filterable to the
   ones you got wrong or never reached
 - The leaderboard, with All time, Last 7 and Last 30
+- Confetti on a personal best, an animated podium, and streak badges
+- A sound toggle, off by default, which never plays during a section
+- Changing their own password
 
 **For you**
 
@@ -139,13 +148,14 @@ Log in as `admin` to reach the admin page, or as any student for the dashboard.
 - Dry run any paper in the real engine; it never counts
 - Correct an answer key after the fact, which rescores every attempt
 - A flag on any question under 10% correct, which is usually a wrong key
-- Create people, reset passwords, deactivate
+- Create people one at a time or in bulk from a CSV, reset passwords, deactivate
+- An attempts table with scores, durations and the two integrity counters
 - Export the whole question bank as JSON
 
 ## What is left
 
-The Kahoot motion layer — confetti, the podium animation, streak badges — and
-an attempts table showing every attempt with its integrity counters.
+Nothing in Phase 1 or Phase 2. Phase 3 is other sections, other disciplines, a
+second exam track and practice mode.
 
 Paper ingestion also works from the command line, without the app running:
 

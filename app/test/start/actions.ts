@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { currentUser } from '../../../lib/auth'
+import { authClient } from '../../../lib/supabase/session'
 import { db } from '../../../lib/supabase/admin'
 import { findAttempt, startAttempt } from '../../../lib/repo/attempts'
 import { canStartAttempt, istDate } from '../../../lib/time'
@@ -36,5 +37,16 @@ export async function beginAction(formData: FormData) {
   if (existing && !isDryRun) redirect(`/test/${existing.id}/done`)
 
   const attemptId = await startAttempt(testId, user.id, isDryRun)
+
+  // FR-6.1.4: an attempt may only be open in one place. Signing the account
+  // out everywhere else is done after the attempt exists, so a failure here
+  // cannot cost someone a paper they have already started.
+  try {
+    const supabase = await authClient()
+    await supabase.auth.signOut({ scope: 'others' })
+  } catch {
+    // Best effort. Never block a live attempt on session housekeeping.
+  }
+
   redirect(`/test/${attemptId}`)
 }
