@@ -1,7 +1,7 @@
 # Preppy
 
 Daily exam-simulation platform for IBPS Specialist Officer (IT) aspirants.
-See [prd.html](prd.html) for the full specification.
+Full documentation is in **[docs/](docs/)**.
 
 **Status:** Phases 1 and 2 complete. Ingestion, the test engine, results, the
 leaderboard, the archive, rescore, user management, the nightly job, the
@@ -12,14 +12,19 @@ Nothing has been run against a live database yet — see *Known limit* below.
 
 ## Documentation
 
-**[docs/architecture.html](docs/architecture.html)** is the full reference: how
-the system is built, and step-by-step local and production setup written for
-someone who does not write web code. Open it in a browser.
+Everything is in **[docs/](docs/)**:
+
+| | |
+|---|---|
+| **[docs/architecture.html](docs/architecture.html)** | How it is built, in diagrams, then setup step by step. Open in a browser |
+| **[docs/prd.html](docs/prd.html)** | What was decided and what shipped |
+| **[docs/setup.md](docs/setup.md)** | The setup commands, as a checklist |
 
 ## Getting started
 
-New here? **[SETUP.md](SETUP.md)** walks through Supabase, the schema, the keys
-and the seed, in order.
+New here? Open **[docs/architecture.html](docs/architecture.html)** and follow
+section 13. It walks through Supabase, the schema, the keys and the seed, and
+says how to tell each step worked.
 
 ```bash
 npm install
@@ -89,4 +94,4 @@ npm test
 
 **No database has been exercised.** Every query typechecks and the pure logic
 around it is covered by 232 tests, but nothing here has run against a live
-Postgres. Follow SETUP.md, then take one paper end to end before relying on it.
+Postgres. Follow docs/architecture.html section 17 before relying on it.

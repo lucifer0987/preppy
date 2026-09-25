@@ -51,7 +51,7 @@ async function main() {
     console.error(
       'Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.\n' +
       'Put them in .env.local, then run:  npm run seed\n' +
-      'See SETUP.md.',
+      'See docs/setup.md.',
     )
     process.exit(2)
   }

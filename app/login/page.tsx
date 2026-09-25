@@ -20,7 +20,7 @@ export default async function LoginPage({
         <h1 className="text-2xl font-black">Not configured yet</h1>
         <p className="mt-3 text-ink-soft">
           Supabase credentials are missing, so there is nothing to log in to. Follow{' '}
-          <code className="rounded bg-white px-1.5 py-0.5">SETUP.md</code> to create the project and
+          <code className="rounded bg-white px-1.5 py-0.5">docs/setup.md</code> to create the project and
           fill in <code className="rounded bg-white px-1.5 py-0.5">.env.local</code>.
         </p>
         <Link href="/" className="mt-6 font-bold text-play-purple underline">Back</Link>
