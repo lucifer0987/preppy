@@ -54,8 +54,12 @@ export async function extractPdfText(data: Uint8Array): Promise<ExtractResult> {
   }
   await doc.destroy()
 
+  const documentChars = charsPerPage.reduce((a, b) => a + b, 0)
   charsPerPage.forEach((n, i) => {
-    if (n < SCAN_CHARS_PER_PAGE) {
+    // The final page routinely holds only the tail of the document (a closing
+    // brace, a footer), so a short last page is not evidence of a scan.
+    const isTail = i === charsPerPage.length - 1 && documentChars > SCAN_CHARS_PER_PAGE * 2
+    if (n < SCAN_CHARS_PER_PAGE && !isTail) {
       issues.push({
         severity: 'warning',
         path: null,

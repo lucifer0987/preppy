@@ -20,9 +20,19 @@ Exit `0` publishable, `1` blocking errors, `2` bad usage.
 | `template.pdf` | The same, rendered |
 | `sample.json` | A complete worked paper: DI table, seating puzzle, RC passage |
 | `sample.pdf` | The same, rendered — this is exactly what a real upload looks like |
+| `paper-002.json` | A second complete paper: DI table, floor puzzle, RC passage. **Copy this one** |
+| `paper-002.pdf` | The same, rendered |
 | `schema.json` | JSON Schema. Point your editor at it for live validation while you type |
 
-Start from `template.json`. Overwrite the placeholders, export to PDF, check it.
+Two ways in:
+
+- **Copy `paper-002.json`** and swap the content question by question. Everything
+  is already in place — the numbering, the bands, a table, a puzzle, a passage.
+  This is the quicker route and the one to prefer.
+- **Start from `template.json`** if you would rather fill a blank skeleton. The
+  55 questions are numbered correctly; overwrite the placeholder text.
+
+Either way: export to PDF, then run the checker on it.
 
 ---
 

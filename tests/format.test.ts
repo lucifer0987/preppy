@@ -7,6 +7,7 @@ import { PATTERN, SECTION_CODES } from '../lib/types.js'
 
 const sampleJson = readFileSync('format/sample.json', 'utf8')
 const templateJson = readFileSync('format/template.json', 'utf8')
+const paper002Json = readFileSync('format/paper-002.json', 'utf8')
 const schema = JSON.parse(readFileSync('format/schema.json', 'utf8'))
 
 const ok = (src: string, opts = {}) => {
@@ -32,10 +33,26 @@ describe('the shipped format kit', () => {
     expect(r.errors, r.errors.map((e) => `${e.path}: ${e.message}`).join('\n')).toHaveLength(0)
   })
 
-  it('both agree with schema.json', () => {
+  it('paper-002.json is publishable', () => {
+    const r = ok(paper002Json)
+    expect(r.errors, r.errors.map((e) => `${e.path}: ${e.message}`).join('\n')).toHaveLength(0)
+    expect(r.paper!.sections.flatMap((s) => s.questions)).toHaveLength(55)
+  })
+
+  it('every answer key names an option that exists, in both real papers', () => {
+    for (const src of [sampleJson, paper002Json]) {
+      for (const s of ok(src).paper!.sections) {
+        for (const q of s.questions) {
+          expect(Object.keys(q.options), `Q${q.number}`).toContain(q.answer)
+        }
+      }
+    }
+  })
+
+  it('all three agree with schema.json', () => {
     const ajv = new (Ajv as any)({ allErrors: true, strict: false })
     const validate = ajv.compile(schema)
-    for (const src of [sampleJson, templateJson]) {
+    for (const src of [sampleJson, templateJson, paper002Json]) {
       expect(validate(JSON.parse(src)), JSON.stringify(validate.errors)).toBe(true)
     }
   })

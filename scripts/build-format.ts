@@ -92,6 +92,8 @@ async function main() {
     `Preppy - Daily Mock 001 - 26 September 2026 (${TOTAL_QUESTIONS} questions, ${TOTAL_MINUTES} minutes)`)
   await renderJsonToPdf('format/template.json', 'format/template.pdf',
     'Preppy - paper template - fill in and export to PDF')
+  await renderJsonToPdf('format/paper-002.json', 'format/paper-002.pdf',
+    'Preppy - Daily Mock 002 - 27 September 2026 (55 questions, 45 minutes)')
 }
 
 main().catch((e) => { console.error(e); process.exit(1) })

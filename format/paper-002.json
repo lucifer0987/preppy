@@ -1,0 +1,918 @@
+{
+  "format": "preppy-paper",
+  "version": 1,
+  "date": "2026-09-27",
+  "title": "Daily Mock 002",
+  "sections": [
+    {
+      "code": "QUANT",
+      "durationMinutes": 12,
+      "marksCorrect": 1,
+      "marksNegative": 0.25,
+      "directions": [
+        {
+          "from": 6,
+          "to": 10,
+          "text": "Study the following table carefully and answer the questions that follow.\nThe table shows the number of items sold (in thousands) by four shops over three months.",
+          "table": {
+            "headers": [
+              "Month",
+              "Shop A",
+              "Shop B",
+              "Shop C",
+              "Shop D"
+            ],
+            "rows": [
+              [
+                "April",
+                "8",
+                "12",
+                "6",
+                "14"
+              ],
+              [
+                "May",
+                "10",
+                "15",
+                "9",
+                "16"
+              ],
+              [
+                "June",
+                "14",
+                "18",
+                "12",
+                "18"
+              ]
+            ]
+          }
+        }
+      ],
+      "questions": [
+        {
+          "number": 1,
+          "text": "A shopkeeper sells an article at a loss of 12%. Had he sold it for Rs 92 more, he would have gained 8%. The cost price of the article is:",
+          "options": {
+            "A": "Rs 400",
+            "B": "Rs 450",
+            "C": "Rs 460",
+            "D": "Rs 480",
+            "E": "None of these"
+          },
+          "answer": "C",
+          "solution": "Selling at a 12% loss gives 0.88C; an 8% gain gives 1.08C. The difference 0.20C = 92, so C = Rs 460.",
+          "tag": "Profit-Loss",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 2,
+          "text": "The compound interest on Rs 8,000 at 10% per annum for 2 years, compounded annually, is:",
+          "options": {
+            "A": "Rs 1,600",
+            "B": "Rs 1,680",
+            "C": "Rs 1,720",
+            "D": "Rs 1,760",
+            "E": "None of these"
+          },
+          "answer": "B",
+          "solution": "Amount = 8000 x 1.1 x 1.1 = 9,680. CI = 9,680 - 8,000 = Rs 1,680.",
+          "tag": "Compound-Interest",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 3,
+          "text": "If the ratio of two numbers is 3:5 and their LCM is 120, the smaller number is:",
+          "options": {
+            "A": "15",
+            "B": "24",
+            "C": "30",
+            "D": "40",
+            "E": "None of these"
+          },
+          "answer": "B",
+          "solution": "Let the numbers be 3x and 5x. Their LCM is 15x = 120, so x = 8 and the numbers are 24 and 40.",
+          "tag": "Ratio-LCM",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 4,
+          "text": "A can do a piece of work in 20 days and B can do the same work in 30 days. Working together, they will finish it in:",
+          "options": {
+            "A": "10 days",
+            "B": "12 days",
+            "C": "15 days",
+            "D": "18 days",
+            "E": "None of these"
+          },
+          "answer": "B",
+          "solution": "One day's work = 1/20 + 1/30 = 5/60 = 1/12, so together they take 12 days.",
+          "tag": "Time-Work",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 5,
+          "text": "The area of a rectangle is 240 square metres and its length is 20 metres. Its perimeter is:",
+          "options": {
+            "A": "56 m",
+            "B": "60 m",
+            "C": "64 m",
+            "D": "68 m",
+            "E": "None of these"
+          },
+          "answer": "C",
+          "solution": "Breadth = 240/20 = 12 m. Perimeter = 2(20 + 12) = 64 m.",
+          "tag": "Mensuration",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 6,
+          "text": "The total number of items sold by Shop B over the three months is:",
+          "options": {
+            "A": "40,000",
+            "B": "42,000",
+            "C": "45,000",
+            "D": "48,000",
+            "E": "None of these"
+          },
+          "answer": "C",
+          "solution": "(12 + 15 + 18) thousand = 45 thousand = 45,000 items.",
+          "tag": "Data-Interpretation",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 7,
+          "text": "The percentage increase in Shop C's sales from April to June is:",
+          "options": {
+            "A": "50%",
+            "B": "75%",
+            "C": "100%",
+            "D": "120%",
+            "E": "None of these"
+          },
+          "answer": "C",
+          "solution": "Sales rose from 6 to 12 thousand, an increase of 6 on 6, which is 100%.",
+          "tag": "Data-Interpretation",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 8,
+          "text": "In May, Shop A's sales are what percent of the total sales of all four shops that month?",
+          "options": {
+            "A": "18%",
+            "B": "20%",
+            "C": "22%",
+            "D": "25%",
+            "E": "None of these"
+          },
+          "answer": "B",
+          "solution": "May total = 10 + 15 + 9 + 16 = 50 thousand. Shop A sold 10, and 10/50 x 100 = 20%.",
+          "tag": "Data-Interpretation",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 9,
+          "text": "The ratio of Shop D's total sales to Shop A's total sales over the three months is:",
+          "options": {
+            "A": "2:3",
+            "B": "3:2",
+            "C": "4:3",
+            "D": "5:4",
+            "E": "None of these"
+          },
+          "answer": "B",
+          "solution": "Shop D = 14 + 16 + 18 = 48. Shop A = 8 + 10 + 14 = 32. The ratio 48:32 reduces to 3:2.",
+          "tag": "Data-Interpretation",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 10,
+          "text": "The average monthly sales of Shop C over the three months is:",
+          "options": {
+            "A": "8,000",
+            "B": "9,000",
+            "C": "10,000",
+            "D": "12,000",
+            "E": "None of these"
+          },
+          "answer": "B",
+          "solution": "(6 + 9 + 12)/3 = 9 thousand = 9,000 items.",
+          "tag": "Data-Interpretation",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 11,
+          "text": "What approximate value should come in place of the question mark? 39.98% of 649.87 + 24.96% of 800.12 = ?",
+          "options": {
+            "A": "420",
+            "B": "440",
+            "C": "460",
+            "D": "480",
+            "E": "500"
+          },
+          "answer": "C",
+          "solution": "Approximately 40% of 650 = 260 and 25% of 800 = 200. The sum is about 460.",
+          "tag": "Approximation",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 12,
+          "text": "Find the next term in the series: 5, 11, 23, 47, 95, ?",
+          "options": {
+            "A": "180",
+            "B": "185",
+            "C": "191",
+            "D": "195",
+            "E": "None of these"
+          },
+          "answer": "C",
+          "solution": "Each term is the previous term doubled plus one: 95 x 2 + 1 = 191.",
+          "tag": "Number-Series",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 13,
+          "text": "A sum of Rs 15,000 is divided between A and B in the ratio 2:3. B's share exceeds A's share by:",
+          "options": {
+            "A": "Rs 2,000",
+            "B": "Rs 2,500",
+            "C": "Rs 3,000",
+            "D": "Rs 3,500",
+            "E": "None of these"
+          },
+          "answer": "C",
+          "solution": "A gets 6,000 and B gets 9,000, a difference of Rs 3,000.",
+          "tag": "Ratio-Proportion",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 14,
+          "text": "A man's speed with the current is 15 km/h and the speed of the current is 2.5 km/h. His speed against the current is:",
+          "options": {
+            "A": "8.5 km/h",
+            "B": "9 km/h",
+            "C": "10 km/h",
+            "D": "12.5 km/h",
+            "E": "None of these"
+          },
+          "answer": "C",
+          "solution": "Speed in still water = 15 - 2.5 = 12.5 km/h. Against the current = 12.5 - 2.5 = 10 km/h.",
+          "tag": "Boats-Streams",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 15,
+          "text": "If 20% of a number is 45, then 35% of the same number is:",
+          "options": {
+            "A": "68.75",
+            "B": "72.50",
+            "C": "78.75",
+            "D": "81.25",
+            "E": "None of these"
+          },
+          "answer": "C",
+          "solution": "The number is 45 x 100/20 = 225, and 35% of 225 is 78.75.",
+          "tag": "Percentage",
+          "difficulty": "Easy"
+        }
+      ]
+    },
+    {
+      "code": "REASONING",
+      "durationMinutes": 12,
+      "marksCorrect": 1,
+      "marksNegative": 0.25,
+      "directions": [
+        {
+          "from": 21,
+          "to": 25,
+          "text": "Study the following information carefully and answer the questions that follow.\n\nSix people - P, Q, R, S, T and U - live on six different floors of a building. The lowest floor is numbered 1 and the topmost floor is numbered 6.\nR lives on the topmost floor.\nP lives on an even-numbered floor.\nU lives immediately below P.\nQ lives immediately above S.\nT lives above S.\nExactly three people live between S and T."
+        }
+      ],
+      "questions": [
+        {
+          "number": 16,
+          "text": "In a certain code, FLOWER is written as EKNVDQ. How is GARDEN written in that code?",
+          "options": {
+            "A": "FZQCDM",
+            "B": "FZQDCM",
+            "C": "HBSEFO",
+            "D": "FAQCDM",
+            "E": "None of these"
+          },
+          "answer": "A",
+          "solution": "Each letter moves one step backward, so GARDEN becomes FZQCDM.",
+          "tag": "Coding-Decoding",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 17,
+          "text": "If 'P x Q' means 'P is the father of Q', 'P + Q' means 'P is the sister of Q', and 'P - Q' means 'P is the mother of Q', which expression shows that M is the grandmother of N?",
+          "options": {
+            "A": "M - X x N",
+            "B": "M x X - N",
+            "C": "M + X - N",
+            "D": "M x X x N",
+            "E": "None of these"
+          },
+          "answer": "A",
+          "solution": "M - X makes M the mother of X, and X x N makes X the father of N, so M is N's grandmother.",
+          "tag": "Blood-Relations",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 18,
+          "text": "How many pairs of letters are there in the word STRANGE which have as many letters between them in the word as in the English alphabet?",
+          "options": {
+            "A": "One",
+            "B": "Two",
+            "C": "Three",
+            "D": "Four",
+            "E": "None of these"
+          },
+          "answer": "A",
+          "solution": "Only S and T qualify: they are adjacent in the word and adjacent in the alphabet.",
+          "tag": "Alphabet-Test",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 19,
+          "text": "Statements: Some books are pens. All pens are pencils. Conclusions: I. Some books are pencils. II. All pencils are pens.",
+          "options": {
+            "A": "Only conclusion I follows",
+            "B": "Only conclusion II follows",
+            "C": "Both conclusions follow",
+            "D": "Neither conclusion follows",
+            "E": "Either I or II follows"
+          },
+          "answer": "A",
+          "solution": "Books that are pens must be pencils, so I follows. Nothing forces all pencils to be pens.",
+          "tag": "Syllogism",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 20,
+          "text": "A is 3 years older than B, and B is twice as old as C. If the sum of their ages is 38 years, how old is B?",
+          "options": {
+            "A": "12 years",
+            "B": "14 years",
+            "C": "16 years",
+            "D": "18 years",
+            "E": "None of these"
+          },
+          "answer": "B",
+          "solution": "Let C = x. Then B = 2x and A = 2x + 3. So 5x + 3 = 38, x = 7 and B = 14 years.",
+          "tag": "Ages",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 21,
+          "text": "Who lives on the lowest floor?",
+          "options": {
+            "A": "S",
+            "B": "Q",
+            "C": "U",
+            "D": "T",
+            "E": "P"
+          },
+          "answer": "A",
+          "solution": "The arrangement from floor 1 upward is S, Q, U, P, T, R.",
+          "tag": "Floor-Puzzle",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 22,
+          "text": "Who lives immediately above U?",
+          "options": {
+            "A": "P",
+            "B": "Q",
+            "C": "T",
+            "D": "R",
+            "E": "S"
+          },
+          "answer": "A",
+          "solution": "U is on the third floor and P is on the fourth.",
+          "tag": "Floor-Puzzle",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 23,
+          "text": "How many people live between P and R?",
+          "options": {
+            "A": "One",
+            "B": "Two",
+            "C": "Three",
+            "D": "Four",
+            "E": "None"
+          },
+          "answer": "A",
+          "solution": "P is on the fourth floor and R on the sixth, so only T on the fifth lies between them.",
+          "tag": "Floor-Puzzle",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 24,
+          "text": "On which floor does T live?",
+          "options": {
+            "A": "Third",
+            "B": "Fourth",
+            "C": "Fifth",
+            "D": "Sixth",
+            "E": "Second"
+          },
+          "answer": "C",
+          "solution": "T lives on the fifth floor.",
+          "tag": "Floor-Puzzle",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 25,
+          "text": "Which of the following statements is correct?",
+          "options": {
+            "A": "Q lives on the second floor",
+            "B": "U lives on the fourth floor",
+            "C": "T lives immediately above R",
+            "D": "P lives on the third floor",
+            "E": "S lives on the second floor"
+          },
+          "answer": "A",
+          "solution": "In the arrangement S, Q, U, P, T, R from the bottom up, Q is on the second floor.",
+          "tag": "Floor-Puzzle",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 26,
+          "text": "In a class of 45 students, Priya ranks 18th from the top. What is her rank from the bottom?",
+          "options": {
+            "A": "27th",
+            "B": "28th",
+            "C": "29th",
+            "D": "26th",
+            "E": "None of these"
+          },
+          "answer": "B",
+          "solution": "45 - 18 + 1 = 28.",
+          "tag": "Order-Ranking",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 27,
+          "text": "If water is called food, food is called tree, tree is called sky, and sky is called well, then where do birds live?",
+          "options": {
+            "A": "Food",
+            "B": "Tree",
+            "C": "Sky",
+            "D": "Well",
+            "E": "Water"
+          },
+          "answer": "C",
+          "solution": "Birds live in trees, and a tree is called sky in this language.",
+          "tag": "Substitution",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 28,
+          "text": "Statements: A is greater than or equal to B, B is greater than C, and D is less than or equal to C. Conclusions: I. A is greater than D. II. B is greater than D.",
+          "options": {
+            "A": "Only conclusion I follows",
+            "B": "Only conclusion II follows",
+            "C": "Both conclusions follow",
+            "D": "Neither conclusion follows",
+            "E": "Either I or II follows"
+          },
+          "answer": "C",
+          "solution": "Chaining gives A at least B, B above C, and C at least D, so both A and B exceed D.",
+          "tag": "Inequality",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 29,
+          "text": "A clock shows 3:30. What is the angle between the hour hand and the minute hand?",
+          "options": {
+            "A": "60 degrees",
+            "B": "65 degrees",
+            "C": "70 degrees",
+            "D": "75 degrees",
+            "E": "None of these"
+          },
+          "answer": "D",
+          "solution": "The hour hand is at 105 degrees and the minute hand at 180 degrees, a gap of 75 degrees.",
+          "tag": "Clocks",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 30,
+          "text": "Which one does not belong with the others?",
+          "options": {
+            "A": "Mango",
+            "B": "Apple",
+            "C": "Banana",
+            "D": "Potato",
+            "E": "Orange"
+          },
+          "answer": "D",
+          "solution": "All the others are fruits; a potato is a vegetable.",
+          "tag": "Classification",
+          "difficulty": "Easy"
+        }
+      ]
+    },
+    {
+      "code": "ENGLISH",
+      "durationMinutes": 9,
+      "marksCorrect": 1,
+      "marksNegative": 0.25,
+      "directions": [
+        {
+          "from": 31,
+          "to": 35,
+          "text": "Read the following passage carefully and answer the questions given below it.\n\nFor much of the twentieth century, Indian cities grew outward faster than they built the means to move people across the distance. Road width became the default measure of transport policy, and the flyover the default remedy for congestion, on the assumption that traffic behaves like water and will flow freely once the channel is widened.\n\nTraffic does not behave like water. Wider roads reliably attract the very journeys they were built to relieve, a pattern transport economists call induced demand, and the relief they offer is measured in months rather than decades. Cities that have escaped this trap did so by inverting the question: instead of asking how many vehicles a corridor can carry, they asked how many people it can move. A single bus lane, properly enforced, outperforms four lanes of cars by that measure, and a metro line outperforms both.\n\nThe obstacle is rarely technical. It is that the costs of reallocating road space are immediate, visible and borne by a vocal minority, while the benefits are gradual, diffuse and accrue to people who do not yet know they will use the service. Political systems are poorly built for that asymmetry, which is why the cities that manage it tend to be those where a single administration survives long enough to be judged on the result."
+        }
+      ],
+      "questions": [
+        {
+          "number": 31,
+          "text": "According to the passage, the assumption underlying decades of Indian transport policy was that:",
+          "options": {
+            "A": "Public transport is cheaper than private vehicles",
+            "B": "Traffic will flow freely once road capacity is increased",
+            "C": "Flyovers are more durable than surface roads",
+            "D": "Cities should grow upward rather than outward",
+            "E": "Buses are more efficient than metro lines"
+          },
+          "answer": "B",
+          "solution": "The first paragraph says policy assumed traffic behaves like water and will flow freely once the channel is widened.",
+          "tag": "Reading-Comprehension",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 32,
+          "text": "The term induced demand, as used in the passage, refers to:",
+          "options": {
+            "A": "Demand created by advertising campaigns",
+            "B": "New journeys attracted by the added road capacity itself",
+            "C": "Seasonal variation in commuter numbers",
+            "D": "Demand for wider footpaths",
+            "E": "Government subsidies for vehicle purchases"
+          },
+          "answer": "B",
+          "solution": "The passage defines it as wider roads attracting the very journeys they were built to relieve.",
+          "tag": "Vocabulary-In-Context",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 33,
+          "text": "The author suggests that cities which escaped the trap did so by:",
+          "options": {
+            "A": "Banning private vehicles from city centres",
+            "B": "Measuring how many people a corridor moves rather than how many vehicles",
+            "C": "Building more flyovers at key junctions",
+            "D": "Relocating industry to the outskirts",
+            "E": "Raising fuel taxes sharply"
+          },
+          "answer": "B",
+          "solution": "The second paragraph describes inverting the question from vehicles carried to people moved.",
+          "tag": "Reading-Comprehension",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 34,
+          "text": "According to the passage, the main obstacle to reallocating road space is:",
+          "options": {
+            "A": "The engineering difficulty of redesigning corridors",
+            "B": "A shortage of public funds",
+            "C": "An asymmetry between immediate visible costs and gradual diffuse benefits",
+            "D": "Opposition from transport economists",
+            "E": "The absence of reliable traffic data"
+          },
+          "answer": "C",
+          "solution": "The final paragraph states the obstacle is rarely technical and describes exactly this asymmetry.",
+          "tag": "Reading-Comprehension",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 35,
+          "text": "Choose the word most nearly SIMILAR in meaning to diffuse as used in the passage.",
+          "options": {
+            "A": "Concentrated",
+            "B": "Spread out",
+            "C": "Hostile",
+            "D": "Immediate",
+            "E": "Costly"
+          },
+          "answer": "B",
+          "solution": "Diffuse here means spread thinly across many people.",
+          "tag": "Synonyms",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 36,
+          "text": "Select the part of the sentence that contains an error. Each of the candidates (A) have submitted (B) their application forms (C) before the deadline (D). No error (E)",
+          "options": {
+            "A": "A",
+            "B": "B",
+            "C": "C",
+            "D": "D",
+            "E": "E"
+          },
+          "answer": "B",
+          "solution": "Each of the candidates is singular, so the verb should be has submitted.",
+          "tag": "Subject-Verb-Agreement",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 37,
+          "text": "Fill in the blank: The minister, along with his advisers, ___ expected to arrive shortly.",
+          "options": {
+            "A": "are",
+            "B": "is",
+            "C": "were",
+            "D": "have been",
+            "E": "being"
+          },
+          "answer": "B",
+          "solution": "A phrase introduced by along with does not change the number of the subject, which is singular.",
+          "tag": "Subject-Verb-Agreement",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 38,
+          "text": "Choose the word most nearly OPPOSITE in meaning to PRUDENT.",
+          "options": {
+            "A": "Cautious",
+            "B": "Reckless",
+            "C": "Thrifty",
+            "D": "Sensible",
+            "E": "Alert"
+          },
+          "answer": "B",
+          "solution": "Prudent means careful and sensible, so reckless is its opposite.",
+          "tag": "Antonyms",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 39,
+          "text": "Choose the correctly spelt word.",
+          "options": {
+            "A": "Occurence",
+            "B": "Occurrence",
+            "C": "Occurrance",
+            "D": "Ocurrence",
+            "E": "Occurrense"
+          },
+          "answer": "B",
+          "solution": "The correct spelling is occurrence, with a double r and a double c.",
+          "tag": "Spelling",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 40,
+          "text": "Rearrange the parts to form a meaningful sentence: (P) the new policy (Q) will come into effect (R) announced last week (S) from the first of April",
+          "options": {
+            "A": "PQRS",
+            "B": "PRQS",
+            "C": "QPRS",
+            "D": "RPQS",
+            "E": "SPQR"
+          },
+          "answer": "B",
+          "solution": "The new policy announced last week will come into effect from the first of April.",
+          "tag": "Sentence-Rearrangement",
+          "difficulty": "Medium"
+        }
+      ]
+    },
+    {
+      "code": "PK",
+      "durationMinutes": 12,
+      "marksCorrect": 1,
+      "marksNegative": 0.25,
+      "questions": [
+        {
+          "number": 41,
+          "text": "Which of the following is a non-linear data structure?",
+          "options": {
+            "A": "Array",
+            "B": "Stack",
+            "C": "Queue",
+            "D": "Tree",
+            "E": "Linked list"
+          },
+          "answer": "D",
+          "solution": "A tree branches, so its elements are not arranged in a single sequence.",
+          "tag": "Data-Structures",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 42,
+          "text": "In a DBMS, a view is:",
+          "options": {
+            "A": "A physical copy of a table stored on disk",
+            "B": "A virtual table derived from one or more base tables",
+            "C": "An index on a frequently queried column",
+            "D": "A backup of the database",
+            "E": "A stored procedure"
+          },
+          "answer": "B",
+          "solution": "A view stores only the query; its rows are produced from the base tables when it is used.",
+          "tag": "DBMS-Views",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 43,
+          "text": "Which layer of the TCP/IP model corresponds to the session, presentation and application layers of the OSI model?",
+          "options": {
+            "A": "Network access",
+            "B": "Internet",
+            "C": "Transport",
+            "D": "Application",
+            "E": "Physical"
+          },
+          "answer": "D",
+          "solution": "TCP/IP folds the top three OSI layers into a single application layer.",
+          "tag": "Networking-Models",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 44,
+          "text": "The average-case time complexity of Merge Sort is:",
+          "options": {
+            "A": "O(n)",
+            "B": "O(n log n)",
+            "C": "O(n squared)",
+            "D": "O(log n)",
+            "E": "O(1)"
+          },
+          "answer": "B",
+          "solution": "Merge Sort always divides the input in half and merges in linear time, giving O(n log n) in every case.",
+          "tag": "Algorithms",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 45,
+          "text": "A deadlock requires all of the following conditions EXCEPT:",
+          "options": {
+            "A": "Mutual exclusion",
+            "B": "Hold and wait",
+            "C": "No preemption",
+            "D": "Circular wait",
+            "E": "Round-robin scheduling"
+          },
+          "answer": "E",
+          "solution": "The four Coffman conditions are mutual exclusion, hold and wait, no preemption and circular wait.",
+          "tag": "OS-Deadlock",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 46,
+          "text": "Which SQL command removes all rows from a table but keeps its structure, and cannot be rolled back in most systems?",
+          "options": {
+            "A": "DELETE",
+            "B": "DROP",
+            "C": "TRUNCATE",
+            "D": "ALTER",
+            "E": "UPDATE"
+          },
+          "answer": "C",
+          "solution": "TRUNCATE deallocates the pages rather than logging each row, so it is fast and usually not recoverable.",
+          "tag": "SQL",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 47,
+          "text": "How many bits are there in an IPv4 address?",
+          "options": {
+            "A": "16",
+            "B": "32",
+            "C": "64",
+            "D": "128",
+            "E": "256"
+          },
+          "answer": "B",
+          "solution": "IPv4 uses 32 bits, written as four octets.",
+          "tag": "Networking-Addressing",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 48,
+          "text": "Which of the following is a greedy algorithm?",
+          "options": {
+            "A": "Merge Sort",
+            "B": "Quick Sort",
+            "C": "Dijkstra's shortest path algorithm",
+            "D": "Binary search",
+            "E": "Depth-first search"
+          },
+          "answer": "C",
+          "solution": "Dijkstra repeatedly commits to the nearest unvisited vertex without reconsidering earlier choices.",
+          "tag": "Algorithms",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 49,
+          "text": "In object-oriented programming, a constructor is called when:",
+          "options": {
+            "A": "The program terminates",
+            "B": "An object is created",
+            "C": "A method is overridden",
+            "D": "Memory is freed",
+            "E": "A class is inherited"
+          },
+          "answer": "B",
+          "solution": "A constructor initialises an object at the moment it is created.",
+          "tag": "OOP",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 50,
+          "text": "Virtual memory allows:",
+          "options": {
+            "A": "Multiple users to share a single CPU",
+            "B": "A program larger than physical memory to be executed",
+            "C": "Faster disk access than RAM",
+            "D": "Permanent storage of running processes",
+            "E": "Encryption of memory contents"
+          },
+          "answer": "B",
+          "solution": "Only the active pages need to be resident, so the address space can exceed physical RAM.",
+          "tag": "OS-Memory",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 51,
+          "text": "Which normal form requires that every determinant be a candidate key?",
+          "options": {
+            "A": "1NF",
+            "B": "2NF",
+            "C": "3NF",
+            "D": "BCNF",
+            "E": "5NF"
+          },
+          "answer": "D",
+          "solution": "Boyce-Codd normal form is the stricter form of 3NF that imposes this condition.",
+          "tag": "DBMS-Normalisation",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 52,
+          "text": "The output of the lexical analysis phase of a compiler is:",
+          "options": {
+            "A": "A parse tree",
+            "B": "A stream of tokens",
+            "C": "Machine code",
+            "D": "The symbol table only",
+            "E": "Intermediate code"
+          },
+          "answer": "B",
+          "solution": "The lexer groups characters into tokens, which the parser then consumes.",
+          "tag": "Compilers",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 53,
+          "text": "Which of the following protocols is connectionless?",
+          "options": {
+            "A": "TCP",
+            "B": "UDP",
+            "C": "FTP",
+            "D": "SMTP",
+            "E": "HTTP"
+          },
+          "answer": "B",
+          "solution": "UDP sends datagrams without establishing or maintaining a connection.",
+          "tag": "Networking-Protocols",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 54,
+          "text": "In a max-heap containing n elements, the largest element is found at:",
+          "options": {
+            "A": "The last leaf",
+            "B": "The root",
+            "C": "Any internal node",
+            "D": "The middle index",
+            "E": "The leftmost leaf"
+          },
+          "answer": "B",
+          "solution": "The max-heap property guarantees every parent is at least as large as its children, so the maximum is at the root.",
+          "tag": "Data-Structures",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 55,
+          "text": "Which type of testing examines the internal structure and logic of the code?",
+          "options": {
+            "A": "Black-box testing",
+            "B": "White-box testing",
+            "C": "Acceptance testing",
+            "D": "Alpha testing",
+            "E": "Beta testing"
+          },
+          "answer": "B",
+          "solution": "White-box testing is written with knowledge of the implementation.",
+          "tag": "Software-Engineering",
+          "difficulty": "Easy"
+        }
+      ]
+    }
+  ]
+}
