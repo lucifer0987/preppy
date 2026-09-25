@@ -1,6 +1,7 @@
 import Link from 'next/link'
-import { currentUser } from '../../../lib/auth'
+import { requireAdmin } from '../../../lib/guard'
 import { listUsers } from '../../../lib/repo/users'
+import { formatIstDate, istDate } from '../../../lib/time'
 import { CreateUserForm, ResetPasswordForm } from './UserForms'
 import { BulkImport } from './BulkImport'
 import { toggleActiveAction } from './actions'
@@ -8,7 +9,7 @@ import { toggleActiveAction } from './actions'
 export const dynamic = 'force-dynamic'
 
 export default async function UsersPage() {
-  const me = await currentUser()
+  const me = await requireAdmin()
   const users = await listUsers()
 
   return (
@@ -50,10 +51,15 @@ export default async function UsersPage() {
                   )}
                 </td>
                 <td className="py-3 px-2 text-right tabular-nums">
-                  {u.role === 'admin' ? '—' : u.attemptCount}
+                  {u.role === 'admin' ? '—' : (
+                    <Link href={`/admin/attempts?user=${u.id}`} className="font-bold text-play-purple underline"
+                          aria-label={`${u.attemptCount} papers: see ${u.displayName}'s attempts`}>
+                      {u.attemptCount}
+                    </Link>
+                  )}
                 </td>
                 <td className="py-3 pr-3 text-ink-soft">
-                  {u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('en-IN') : 'never'}
+                  {u.lastLoginAt ? formatIstDate(istDate(new Date(u.lastLoginAt))) : 'never'}
                 </td>
                 <td className="py-3 pr-3">
                   {u.isActive
@@ -68,7 +74,7 @@ export default async function UsersPage() {
                 <td className="py-3">
                   <div className="flex flex-col items-end gap-1">
                     <ResetPasswordForm userId={u.id} username={u.username} />
-                    {u.id !== me?.id && (
+                    {u.id !== me.id && (
                       <form action={toggleActiveAction}>
                         <input type="hidden" name="userId" value={u.id} />
                         <input type="hidden" name="isActive" value={String(!u.isActive)} />

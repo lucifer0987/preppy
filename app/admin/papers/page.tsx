@@ -1,10 +1,12 @@
 import Link from 'next/link'
 import { listPapers } from '../../../lib/repo/papers'
 import { formatIstDate, istDate, windowState } from '../../../lib/time'
+import { requireAdmin } from '../../../lib/guard'
 
 export const dynamic = 'force-dynamic'
 
 export default async function PapersPage() {
+  await requireAdmin()
   const papers = await listPapers()
   const today = istDate()
 

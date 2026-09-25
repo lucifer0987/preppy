@@ -8,10 +8,9 @@ import type { Issue } from '../../../../lib/types'
  */
 export interface UploadState {
   issues: Issue[]
-  repairs: { kind: string; count: number; detail?: string }[]
   fileName: string | null
   /** Set when nothing could be read at all. */
   fatal: string | null
 }
 
-export const emptyUpload: UploadState = { issues: [], repairs: [], fileName: null, fatal: null }
+export const emptyUpload: UploadState = { issues: [], fileName: null, fatal: null }

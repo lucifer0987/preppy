@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
-  addDays, answersUnlocked, attemptDeadline, canStartAttempt, formatIstDate,
+  addDays, answersUnlockAt, answersUnlocked, attemptDeadline, hardStopAt, canStartAttempt, formatIstDate,
   formatIstTime, istDate, istInstant, liveTestDate, nextOpenAt, windowState,
+  boardIncludesAt, latestBoardDate, onBoard,
 } from '../lib/time'
 
 /** An instant expressed in IST civil time, for readable tests. */
@@ -41,18 +42,34 @@ describe('the window', () => {
     expect(canStartAttempt(D, ist(D, 23, 15))).toBe(false)
   })
 
-  it('closes after the 23:59 hard stop', () => {
+  it('keeps running attempts going until midnight, then closes', () => {
     expect(windowState(D, ist(D, 23, 58))).toBe('ENTRY_CLOSED')
-    expect(windowState(D, ist(D, 23, 59))).toBe('CLOSED')
+    expect(windowState(D, ist(D, 23, 59))).toBe('ENTRY_CLOSED')
+    expect(windowState(D, ist('2026-09-27', 0, 0))).toBe('CLOSED')
   })
 })
 
-describe('the 44-minute tail (FR-4.1)', () => {
-  it('gives the last possible entrant their full 45 minutes', () => {
+describe('the 45-minute tail (FR-4.1)', () => {
+  it('puts the hard stop at midnight at the end of the paper date', () => {
+    expect(hardStopAt(D).getTime()).toBe(ist('2026-09-27', 0, 0).getTime())
+    expect(hardStopAt(D).getTime()).toBe(answersUnlockAt(D).getTime())
+  })
+
+  it('gives the 23:14 entrant their full 45 minutes', () => {
     const start = ist(D, 23, 14)
     expect(attemptDeadline(D, start).getTime() - start.getTime()).toBe(45 * 60_000)
-    // 23:14 + 45 minutes lands exactly on the 23:59 hard stop.
-    expect(attemptDeadline(D, start).getTime()).toBe(ist(D, 23, 59).getTime())
+  })
+
+  it('gives the 23:14:30 entrant their full 45 minutes too', () => {
+    const start = new Date(ist(D, 23, 14).getTime() + 30_000)
+    expect(canStartAttempt(D, start)).toBe(true)
+    expect(attemptDeadline(D, start).getTime() - start.getTime()).toBe(45 * 60_000)
+  })
+
+  it('gives the very last possible entrant their full 45 minutes', () => {
+    const start = new Date(ist(D, 23, 15).getTime() - 1)
+    expect(canStartAttempt(D, start)).toBe(true)
+    expect(attemptDeadline(D, start).getTime() - start.getTime()).toBe(45 * 60_000)
   })
 
   it('gives an early entrant their full 45 minutes too', () => {
@@ -63,7 +80,7 @@ describe('the 44-minute tail (FR-4.1)', () => {
   it('never lets an attempt run past the hard stop', () => {
     // Should not be reachable via canStartAttempt, but the clamp must hold.
     const start = ist(D, 23, 50)
-    expect(attemptDeadline(D, start).getTime()).toBe(ist(D, 23, 59).getTime())
+    expect(attemptDeadline(D, start).getTime()).toBe(ist('2026-09-27', 0, 0).getTime())
   })
 })
 
@@ -77,8 +94,12 @@ describe('which paper is live', () => {
     expect(liveTestDate(ist(D, 23, 30))).toBe(D)
   })
 
-  it('is nothing again after the hard stop, even before midnight', () => {
-    expect(liveTestDate(ist(D, 23, 59))).toBeNull()
+  it('is still tonight in the last minute before midnight', () => {
+    expect(liveTestDate(ist(D, 23, 59))).toBe(D)
+  })
+
+  it('is nothing from midnight', () => {
+    expect(liveTestDate(ist('2026-09-27', 0, 0))).toBeNull()
   })
 
   it('is nothing in the small hours', () => {
@@ -125,6 +146,27 @@ describe('date helpers', () => {
     expect(formatIstDate(D)).toBe('26 September 2026')
     expect(formatIstTime(22, 0)).toBe('10:00 PM')
     expect(formatIstTime(23, 15)).toBe('11:15 PM')
+    expect(formatIstTime(24, 0)).toBe('12:00 AM')
     expect(formatIstTime(0, 5)).toBe('12:05 AM')
+    expect(formatIstTime(0, 5)).toBe('12:05 AM')
+  })
+})
+
+describe('the leaderboard refresh at 00:01', () => {
+  it('takes in a paper at 00:01 the morning after, not at midnight', () => {
+    expect(onBoard('2026-09-26', istInstant('2026-09-27', 0, 0))).toBe(false)
+    expect(onBoard('2026-09-26', istInstant('2026-09-27', 0, 1))).toBe(true)
+    expect(boardIncludesAt('2026-09-26').toISOString()).toBe('2026-09-26T18:31:00.000Z')
+  })
+
+  it('keeps tonight off the board while it runs', () => {
+    expect(onBoard('2026-09-26', istInstant('2026-09-26', 22, 30))).toBe(false)
+    expect(latestBoardDate(istInstant('2026-09-26', 22, 30))).toBe('2026-09-25')
+  })
+
+  it('moves the latest paper on at 00:01, not before', () => {
+    expect(latestBoardDate(istInstant('2026-09-27', 0, 0))).toBe('2026-09-25')
+    expect(latestBoardDate(istInstant('2026-09-27', 0, 1))).toBe('2026-09-26')
+    expect(latestBoardDate(istInstant('2026-09-27', 21, 0))).toBe('2026-09-26')
   })
 })

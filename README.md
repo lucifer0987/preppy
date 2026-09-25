@@ -1,7 +1,7 @@
 # Preppy
 
 Daily exam-simulation platform for IBPS Specialist Officer (IT) aspirants.
-See [PRD.md](PRD.md) for the full specification.
+See [prd.html](prd.html) for the full specification.
 
 **Status:** Phases 1 and 2 complete. Ingestion, the test engine, results, the
 leaderboard, the archive, rescore, user management, the nightly job, the
@@ -9,6 +9,12 @@ question-bank export, the Kahoot motion layer, the attempts table, bulk CSV
 import, the sound toggle and self-service password change all work.
 
 Nothing has been run against a live database yet — see *Known limit* below.
+
+## Documentation
+
+**[docs/architecture.html](docs/architecture.html)** is the full reference: how
+the system is built, and step-by-step local and production setup written for
+someone who does not write web code. Open it in a browser.
 
 ## Getting started
 
@@ -19,17 +25,17 @@ and the seed, in order.
 npm install
 npm run dev          # http://localhost:3000
 npm run seed         # create 5 students + 1 admin
-npm test             # 60 tests
+npm test
 ```
 
 ## The paper format
 
-One paper per night, as a single JSON object, delivered as a PDF.
+One paper per night, as a single JSON file.
 The format is fixed — see **[format/README.md](format/README.md)**.
 
 ```bash
 npm install
-npm run check -- format/sample.pdf     # check a paper
+npm run check -- format/sample.json    # check a paper
 ```
 
 Exit `0` publishable, `1` blocking errors, `2` bad usage.
@@ -38,16 +44,18 @@ Exit `0` publishable, `1` blocking errors, `2` bad usage.
 |---|---|
 | `format/README.md` | The format spec, written for whoever makes the papers |
 | `format/schema.json` | JSON Schema — point your editor at it for live validation |
-| `format/template.json` / `.pdf` | Fill-in skeleton, all 55 questions numbered correctly |
-| `format/sample.json` / `.pdf` | A worked paper: DI table, seating puzzle, RC passage |
+| `format/template.json` | Fill-in skeleton, all 55 questions numbered correctly |
+| `format/sample.json` | A worked paper: DI table, seating puzzle, RC passage |
 | `lib/types.ts` | The pattern constants and paper shapes |
-| `lib/json-repair.ts` | Repairs what a PDF text layer does to JSON |
+| `lib/json-error.ts` | Turns a JSON parse failure into a line and column |
+| `lib/images.ts` / `lib/repo/images.ts` | Paper image rules, and their private Storage bucket |
+| `app/api/images/` | Serves an image only to someone allowed to see its paper |
+| `lib/password.ts` | Generated passwords, shared by the seed and the admin console |
+| `lib/rate-limit.ts` / `lib/repo/rate-limit.ts` | Rate limits on login, answer saves and uploads, counted in the database |
 | `lib/paper.ts` | Validation: blocking errors vs warnings, each with a path |
-| `lib/extract.ts` | PDF text extraction with line reconstruction |
 | `scripts/parse.ts` | The checker CLI |
-| `scripts/build-format.ts` | Regenerates the template and the sample PDFs |
-| `scripts/roundtrip.ts` | Proves a paper survives PDF export unchanged |
-| `supabase/schema.sql` | Eight tables, RLS deny-all on every one |
+| `scripts/build-format.ts` | Regenerates the template |
+| `supabase/schema.sql` | Eight tables plus `rate_limits`, RLS deny-all on every one, and the functions that make multi-step writes all or nothing |
 | `supabase/seed.ts` | Creates the cohort and prints passwords once |
 | `lib/time.ts` | The IST clock: window state derived on read, never stored |
 | `lib/auth.ts` | Username+password over Supabase Auth, synthetic-email mapping |
@@ -56,6 +64,8 @@ Exit `0` publishable, `1` blocking errors, `2` bad usage.
 | `lib/scoring.ts` | +1 / −0.25 / 0, and not-reached vs skipped |
 | `lib/leaderboard.ts` | Cumulative ranking with tie-breaks and streaks. Pure |
 | `lib/repo/` | The thin IO layer over Supabase |
+| `scripts/check-bundle.ts` | Runs after `next build`: fails it if the service-role key reaches the browser (risk R7) |
+| `tests/schema.test.ts` | Runs `schema.sql` on a real Postgres (PGlite) and exercises every function and guard |
 | `lib/repo/rescore.ts` | Correcting a key and rescoring every attempt |
 | `lib/repo/finalise.ts` | The one nightly job: score anything left open |
 | `vercel.json` | Schedules that job at 00:05 IST (18:35 UTC) |
@@ -70,33 +80,13 @@ Exit `0` publishable, `1` blocking errors, `2` bad usage.
 ## Commands
 
 ```bash
-npm run check -- <paper.pdf|paper.json>   # validate; add --images <dir> or --json
-npm run build:format                      # regenerate format/template.* and sample.pdf
-npm test                                  # 36 tests
-npx tsx scripts/roundtrip.ts format/sample.json format/sample.pdf
+npm run check -- <paper.json>   # validate; add --images <dir> or --json
+npm run build:format            # regenerate format/template.json
+npm test
 ```
-
-## Why JSON-in-a-PDF needs a repair layer
-
-JSON was not designed to survive a word processor. Four things reliably damage
-it on the way through a PDF, and `lib/json-repair.ts` fixes all four, reporting
-what it had to do rather than changing the paper silently:
-
-- Word and Google Docs autocorrect `"` into `“` and `”`, which breaks JSON outright.
-- Long string values wrap across lines; JSON forbids a raw newline in a string.
-- Page headers, footers and page numbers land outside the JSON object.
-- Autocorrect turns `-0.25` into a Unicode minus.
-
-`format/sample.pdf` needs **75 wrapped-string repairs** before it will parse.
-It still round-trips with all **570 fields identical** to `format/sample.json`.
 
 ## Known limits
 
 **No database has been exercised.** Every query typechecks and the pure logic
-around it is covered by 134 tests, but nothing here has run against a live
+around it is covered by 232 tests, but nothing here has run against a live
 Postgres. Follow SETUP.md, then take one paper end to end before relying on it.
-
-**`format/sample.pdf` is rendered by a library**, so it extracts a little more
-cleanly than a Word or Google Docs export. The pipeline is proven end to end
-against it, but the format is not proven against a real export until one is run
-through `npm run check`.

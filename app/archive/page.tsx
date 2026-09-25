@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { requireUser } from '../../lib/guard'
 import { getArchive } from '../../lib/repo/leaderboard'
 import { formatIstDate } from '../../lib/time'
+import { ordinal } from '../../lib/leaderboard'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,7 +13,13 @@ export const dynamic = 'force-dynamic'
  */
 export default async function ArchivePage() {
   const user = await requireUser()
-  const rows = await getArchive(user.id)
+  let rows: Awaited<ReturnType<typeof getArchive>> = []
+  let failure: string | null = null
+  try {
+    rows = await getArchive(user.id)
+  } catch (e) {
+    failure = (e as Error).message
+  }
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
@@ -22,7 +29,11 @@ export default async function ArchivePage() {
         Every paper that has closed, with answers and solutions. Open one whether or not you sat it.
       </p>
 
-      {rows.length === 0 ? (
+      {failure ? (
+        <p role="alert" className="mt-8 rounded-3xl bg-notanswered p-6 font-semibold text-white">
+          Past papers could not be loaded just now. Try again in a moment. ({failure})
+        </p>
+      ) : rows.length === 0 ? (
         <p className="mt-8 rounded-3xl border-2 border-dashed border-black/15 p-8 text-center text-ink-soft">
           No papers have closed yet. They appear here from midnight on the night they run.
         </p>
@@ -39,10 +50,17 @@ export default async function ArchivePage() {
                 <span className="ml-auto flex items-center gap-3 text-sm tabular-nums">
                   {r.attemptId ? (
                     <>
-                      <span className="font-bold">{r.score?.toFixed(2)}</span>
-                      <span className="rounded-full bg-play-purple px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-white">
-                        {ordinal(r.rank!)} of {r.cohortSize}
+                      <span className="rounded-full bg-answered px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-white">
+                        Attempted
                       </span>
+                      <span className="font-bold">{r.score?.toFixed(2)}</span>
+                      {r.rank !== null ? (
+                        <span className="rounded-full bg-play-purple px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-white">
+                          {ordinal(r.rank)} of {r.cohortSize}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-ink-soft">rank at 12:01 AM</span>
+                      )}
                     </>
                   ) : (
                     <span className="rounded-full bg-black/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-ink-soft">
@@ -57,10 +75,4 @@ export default async function ArchivePage() {
       )}
     </main>
   )
-}
-
-function ordinal(n: number): string {
-  const s = ['th', 'st', 'nd', 'rd']
-  const v = n % 100
-  return n + (s[(v - 20) % 10] ?? s[v] ?? s[0]!)
 }

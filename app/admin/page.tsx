@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { db } from '../../lib/supabase/admin'
-import { formatIstDate, istDate } from '../../lib/time'
+import { WINDOW, formatIstDate, formatIstTime, istDate, windowState } from '../../lib/time'
+import { requireAdmin } from '../../lib/guard'
+import { FinaliseButton } from './FinaliseButton'
 
 /**
  * Admin home (PRD section 6.9).
@@ -17,6 +19,7 @@ export const dynamic = 'force-dynamic'
 export default async function AdminHome({
   searchParams,
 }: { searchParams: Promise<Record<string, string>> }) {
+  await requireAdmin()
   const { password } = await searchParams
   const today = istDate()
   const { data: tonight } = await db()
@@ -24,7 +27,8 @@ export default async function AdminHome({
   const { count: userCount } = await db()
     .from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student')
 
-  const scheduled = tonight?.status === 'SCHEDULED'
+  const status = tonightStatus(tonight?.status as string | undefined, windowState(today))
+  const good = status.tone === 'good'
 
   return (
     <>
@@ -35,17 +39,20 @@ export default async function AdminHome({
       )}
 
       <section
-        className={`rounded-3xl p-6 ${scheduled ? 'bg-answered text-white' : 'bg-notanswered text-white'}`}
+        className={`rounded-3xl p-6 ${good ? 'bg-answered text-white' : 'bg-notanswered text-white'}`}
       >
         <h1 className="text-xs font-bold uppercase tracking-[0.2em] text-white/70">
           Tonight &middot; {formatIstDate(today)}
         </h1>
-        <p className="mt-2 text-3xl font-black">{scheduled ? 'Scheduled' : 'Not scheduled'}</p>
+        <p className="mt-2 text-3xl font-black">{status.headline}</p>
         <p className="mt-1 text-white/80">
-          {scheduled
-            ? tonight?.title ?? 'Paper ready to go.'
-            : 'No paper will unlock tonight. Upload one before 10 PM.'}
+          {tonight?.title ? `${tonight.title}. ` : ''}{status.detail}
         </p>
+        {tonight && (
+          <Link href={`/admin/papers/${tonight.id}`} className="mt-3 inline-block text-sm font-bold underline">
+            {tonight.status === 'DRAFT' ? 'Preview and schedule it' : 'Open the paper'}
+          </Link>
+        )}
       </section>
 
       <dl className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -76,17 +83,42 @@ export default async function AdminHome({
         </a>
       </div>
 
-      <section className="mt-8 space-y-3">
-        <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-ink-soft">Later</h2>
-        <div className="rounded-2xl border-2 border-dashed border-black/10 px-5 py-4">
-          <p className="font-bold">Phase 2 and beyond</p>
-          <p className="text-sm text-ink-soft">
-            More sections, other disciplines, a second exam track, practice mode over the archive.
-          </p>
+      <section className="mt-8 rounded-2xl bg-white px-5 py-4">
+        <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-ink-soft">Nightly job</h2>
+        <div className="mt-2">
+          <FinaliseButton />
         </div>
       </section>
+
     </>
   )
+}
+
+/**
+ * What the banner says about today's paper. A draft is not "nothing": it is
+ * one click from going live, and saying "upload one" would send the admin to
+ * redo work already done.
+ */
+function tonightStatus(
+  status: string | undefined,
+  state: ReturnType<typeof windowState>,
+): { headline: string; detail: string; tone: 'good' | 'bad' } {
+  if (!status) {
+    return state === 'BEFORE_OPEN'
+      ? { headline: 'Not scheduled', detail: 'No paper will unlock tonight. Upload one before 10 PM.', tone: 'bad' }
+      : { headline: 'No paper tonight', detail: 'Nothing ran tonight. Streaks are not broken by it.', tone: 'bad' }
+  }
+  if (status === 'DRAFT') {
+    return state === 'BEFORE_OPEN'
+      ? { headline: 'Draft awaiting schedule', detail: 'Tonight\'s paper is uploaded but will not unlock until you schedule it before 10 PM.', tone: 'bad' }
+      : { headline: 'Draft, never scheduled', detail: 'Tonight\'s paper stayed a draft, so nothing unlocked.', tone: 'bad' }
+  }
+  switch (state) {
+    case 'BEFORE_OPEN': return { headline: 'Scheduled', detail: 'Paper ready to go.', tone: 'good' }
+    case 'OPEN': return { headline: 'Live now', detail: `Open until ${formatIstTime(WINDOW.entryCloseHour, WINDOW.entryCloseMinute)}.`, tone: 'good' }
+    case 'ENTRY_CLOSED': return { headline: 'Finishing', detail: `Entry has closed; running attempts end by ${formatIstTime(WINDOW.hardStopHour, WINDOW.hardStopMinute)}.`, tone: 'good' }
+    case 'CLOSED': return { headline: 'Finished', detail: 'Tonight\'s paper has run.', tone: 'good' }
+  }
 }
 
 async function Published() {

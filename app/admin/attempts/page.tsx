@@ -1,23 +1,41 @@
 import Link from 'next/link'
-import { getAttemptsByTest } from '../../../lib/repo/attempt-admin'
+import { getAttemptsByTest, isCounted } from '../../../lib/repo/attempt-admin'
+import { requireAdmin } from '../../../lib/guard'
 import { formatIstDate } from '../../../lib/time'
-import { voidAttemptAction } from './actions'
+import { deleteDryRunAction, voidAttemptAction } from './actions'
+import { ConfirmButton } from './ConfirmButton'
+import { db } from '../../../lib/supabase/admin'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AttemptsPage({
   searchParams,
 }: { searchParams: Promise<Record<string, string>> }) {
-  const { test } = await searchParams
-  const groups = await getAttemptsByTest(test)
+  await requireAdmin()
+  const { test, user, error, done } = await searchParams
+  const groups = await getAttemptsByTest({ testId: test, userId: user })
+  const { data: person } = user
+    ? await db().from('profiles').select('display_name, username').eq('id', user).maybeSingle()
+    : { data: null }
+  const back = `/admin/attempts${user ? `?user=${user}` : test ? `?test=${test}` : ''}`
 
   return (
     <>
       <Link href="/admin" className="text-sm font-bold text-play-purple">&larr; Admin</Link>
-      <h1 className="mt-4 text-3xl font-black tracking-tight">Attempts</h1>
+      <h1 className="mt-4 text-3xl font-black tracking-tight">
+        {person ? `${person.display_name}'s attempts` : 'Attempts'}
+      </h1>
       <p className="mt-1 text-ink-soft">
         Score, duration and the two integrity counters. Nothing else is recorded.
+        {(user || test) && <> <Link href="/admin/attempts" className="font-bold text-play-purple underline">Show everyone</Link></>}
       </p>
+
+      {error && <p role="alert" className="mt-4 rounded-2xl bg-notanswered px-5 py-3 font-semibold text-white">{error}</p>}
+      {done && (
+        <p className="mt-4 rounded-2xl bg-answered px-5 py-3 font-semibold text-white">
+          {done === 'voided' ? 'Voided. It no longer counts on the leaderboard.' : 'Dry run deleted.'}
+        </p>
+      )}
 
       {groups.length === 0 ? (
         <p className="mt-8 rounded-3xl border-2 border-dashed border-black/15 p-8 text-center text-ink-soft">
@@ -29,7 +47,7 @@ export default async function AttemptsPage({
             <h2 className="text-lg font-black">
               {formatIstDate(group.date)}
               <span className="ml-2 text-sm font-semibold text-ink-soft">
-                {group.title ?? 'Daily mock'} &middot; {group.attempts.filter((a) => !a.isDryRun).length} counted
+                {group.title ?? 'Daily mock'} &middot; {group.attempts.filter(isCounted).length} counted
               </span>
             </h2>
 
@@ -55,7 +73,7 @@ export default async function AttemptsPage({
                     return (
                       <tr key={a.id} className={`border-t border-black/10 ${a.state === 'VOIDED' ? 'opacity-50' : ''}`}>
                         <td className="py-2.5 pr-3">
-                          <span className="font-semibold">{a.displayName}</span>
+                          <Link href={`/admin/attempts?user=${a.userId}`} className="font-semibold hover:underline">{a.displayName}</Link>
                           {a.isDryRun && (
                             <span className="ml-2 rounded-full bg-black/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-ink-soft">
                               dry run
@@ -79,11 +97,13 @@ export default async function AttemptsPage({
                         </td>
                         <td className="py-2.5 pr-3 text-ink-soft">{describe(a.state)}</td>
                         <td className="py-2.5 text-right">
-                          {a.state !== 'VOIDED' && !a.isDryRun && (
-                            <form action={voidAttemptAction}>
-                              <input type="hidden" name="attemptId" value={a.id} />
-                              <button className="text-xs font-bold text-notanswered underline">Void</button>
-                            </form>
+                          {isCounted(a) && (
+                            <ConfirmButton action={voidAttemptAction} fields={{ attemptId: a.id, back }}
+                                           label="Void" confirm="Take it off the leaderboard for good?" />
+                          )}
+                          {a.isDryRun && a.state !== 'IN_PROGRESS' && (
+                            <ConfirmButton action={deleteDryRunAction} fields={{ attemptId: a.id, back }}
+                                           label="Delete" confirm="Delete this dry run?" />
                           )}
                         </td>
                       </tr>

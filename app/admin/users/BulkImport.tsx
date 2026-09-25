@@ -4,7 +4,7 @@ import { useActionState, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { bulkCreateAction } from './actions'
 import { emptyBulk } from './state'
-import { credentialsToCsv } from '../../../lib/csv'
+import { MAX_BULK_ROWS, credentialsToCsv } from '../../../lib/csv'
 
 const SAMPLE = `username,display_name,role
 student6,Student Six,student
@@ -32,7 +32,7 @@ export function BulkImport() {
       </div>
       <p className="mt-1 text-sm text-ink-soft">
         One row per person: <code className="rounded bg-black/5 px-1.5 py-0.5">username,display name,role</code>.
-        The role is optional and defaults to student. A header row is fine.
+        The role is optional and defaults to student. A header row is fine. Up to {MAX_BULK_ROWS} at a time.
       </p>
 
       <form action={action} className="mt-3">
@@ -59,6 +59,21 @@ export function BulkImport() {
             {state.problems.map((p) => (
               <li key={`${p.line}-${p.raw}`}>
                 <span className="font-mono text-ink-soft">line {p.line}:</span> {p.message}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {state.warnings.length > 0 && (
+        <div className="mt-3 rounded-2xl bg-black/5 p-4">
+          <p className="text-xs font-bold uppercase tracking-widest text-ink-soft">
+            Imported, but check {state.warnings.length === 1 ? 'this row' : 'these rows'}
+          </p>
+          <ul className="mt-2 space-y-1 text-sm">
+            {state.warnings.map((w) => (
+              <li key={`${w.line}-${w.raw}`}>
+                <span className="font-mono text-ink-soft">line {w.line}:</span> {w.message}
               </li>
             ))}
           </ul>

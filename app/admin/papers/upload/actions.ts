@@ -1,21 +1,33 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { extractPdfText } from '../../../../lib/extract'
 import { readPaper, summarise } from '../../../../lib/paper'
-import { savePaper } from '../../../../lib/repo/papers'
-import type { Issue } from '../../../../lib/types'
-import { currentUser } from '../../../../lib/auth'
+import { savePaper, scheduledDates } from '../../../../lib/repo/papers'
+import { deletePaperImages, savePaperImages, type ImageUpload } from '../../../../lib/repo/images'
+import { IMAGE_NAME_PATTERN, MAX_IMAGE_BYTES, imageType } from '../../../../lib/images'
+import { istDate } from '../../../../lib/time'
+import { actionAdmin } from '../../../../lib/guard'
+import { LIMITS } from '../../../../lib/rate-limit'
+import { hit } from '../../../../lib/repo/rate-limit'
 
 import { emptyUpload, type UploadState } from './state'
 
 /** The framework limit in next.config.ts sits above this on purpose, so this
- *  check is what an oversized upload actually hits. */
+ *  check is what an oversized upload actually hits. It covers the paper and
+ *  its images together, since they arrive in one request. */
 const MAX_BYTES = 10 * 1024 * 1024
 
+/** Browsers disagree on what a .json file is: some send nothing, some text/plain. */
+const ACCEPTED_TYPES = ['application/json', 'text/json', 'text/plain', '']
+
 export async function uploadAction(_prev: UploadState, formData: FormData): Promise<UploadState> {
-  const admin = await currentUser()
-  if (!admin || admin.role !== 'admin') return { ...emptyUpload, fatal: 'Not authorised.' }
+  const admin = await actionAdmin()
+  if (!admin) return { ...emptyUpload, fatal: 'Not authorised.' }
+  // PRD 13: uploads are rate limited as well as size- and type-checked.
+  const wait = await hit(`upload:${admin.id}`, LIMITS.upload)
+  if (wait > 0) {
+    return { ...emptyUpload, fatal: `That is a lot of uploads in a short time. Try again in ${Math.ceil(wait / 60)} minute(s).` }
+  }
 
   const file = formData.get('paper')
   if (!(file instanceof File) || file.size === 0) {
@@ -25,42 +37,77 @@ export async function uploadAction(_prev: UploadState, formData: FormData): Prom
     return { ...emptyUpload, fatal: `That file is ${(file.size / 1e6).toFixed(1)} MB. The limit is 10 MB.` }
   }
 
-  const isPdf = file.name.toLowerCase().endsWith('.pdf')
-  const isJson = file.name.toLowerCase().endsWith('.json')
-  if (!isPdf && !isJson) {
-    return { ...emptyUpload, fatal: 'Upload a .pdf, or a .json if you have not exported it yet.' }
+  if (!file.name.toLowerCase().endsWith('.json')) {
+    return { ...emptyUpload, fatal: 'Upload the paper as a .json file.' }
+  }
+  // PRD section 13: uploads are restricted by MIME type as well as name.
+  const type = file.type.split(';')[0]!.trim().toLowerCase()
+  if (!ACCEPTED_TYPES.includes(type)) {
+    return { ...emptyUpload, fileName: file.name, fatal: `That file is ${file.type}, not JSON. Upload the paper as a .json file.` }
+  }
+
+  // Images travel with the paper (FR-6.9.1). Each is checked by name, type
+  // and size; the validator then confirms every reference has a file.
+  const images: ImageUpload[] = []
+  let total = file.size
+  for (const img of formData.getAll('images')) {
+    if (!(img instanceof File) || img.size === 0) continue
+    const type = imageType(img.name)
+    if (!IMAGE_NAME_PATTERN.test(img.name) || !type) {
+      return { ...emptyUpload, fileName: file.name, fatal: `"${img.name}" is not a usable image. Use a plain file name ending in .png, .jpg, .webp or .gif.` }
+    }
+    if (img.type && img.type !== type) {
+      return { ...emptyUpload, fileName: file.name, fatal: `"${img.name}" is ${img.type}, which does not match its extension.` }
+    }
+    if (img.size > MAX_IMAGE_BYTES) {
+      return { ...emptyUpload, fileName: file.name, fatal: `"${img.name}" is ${(img.size / 1e6).toFixed(1)} MB. Each image must be under 2 MB.` }
+    }
+    total += img.size
+    images.push({ name: img.name, type, bytes: await img.arrayBuffer() })
+  }
+  if (total > MAX_BYTES) {
+    return { ...emptyUpload, fileName: file.name, fatal: `The paper and its images come to ${(total / 1e6).toFixed(1)} MB. The limit is 10 MB.` }
   }
 
   let text: string
-  const extractIssues: Issue[] = []
   try {
-    if (isPdf) {
-      const res = await extractPdfText(new Uint8Array(await file.arrayBuffer()))
-      text = res.text
-      extractIssues.push(...res.issues)
-    } else {
-      text = await file.text()
-    }
+    text = await file.text()
   } catch (e) {
     return { ...emptyUpload, fileName: file.name, fatal: `Could not read the file: ${(e as Error).message}` }
   }
 
-  const { paper, issues, repairs } = readPaper(text)
-  const all = [...extractIssues, ...issues]
-  const { publishable } = summarise(all)
+  let takenDates: string[]
+  try {
+    takenDates = await scheduledDates()
+  } catch (e) {
+    return { ...emptyUpload, fileName: file.name, fatal: (e as Error).message }
+  }
+
+  const { paper, issues } = readPaper(text, { takenDates, today: istDate(), availableImages: images.map((i) => i.name) })
+  const { publishable } = summarise(issues)
 
   if (!publishable || !paper) {
-    return { issues: all, repairs, fileName: file.name, fatal: null }
+    return { issues, fileName: file.name, fatal: null }
   }
 
   // Saved as a DRAFT. It reaches SCHEDULED only by an explicit second action
   // taken after the preview screen (FR-6.9.1).
   let saved
   try {
-    saved = await savePaper(paper, null)
+    saved = await savePaper(paper)
   } catch (e) {
-    return { issues: all, repairs, fileName: file.name, fatal: (e as Error).message }
+    return { issues, fileName: file.name, fatal: (e as Error).message }
   }
+
+  try {
+    await savePaperImages(saved.id, images)
+  } catch (e) {
+    return {
+      issues, fileName: file.name,
+      fatal: `The paper was saved as a draft, but its images were not: ${(e as Error).message} Upload it again to replace the draft.`,
+    }
+  }
+  if (saved.replacedId) await deletePaperImages(saved.replacedId)
 
   redirect(`/admin/papers/${saved.id}?new=1${saved.replacedDraft ? '&replaced=1' : ''}`)
 }

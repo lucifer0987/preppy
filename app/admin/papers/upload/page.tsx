@@ -1,9 +1,11 @@
 import Link from 'next/link'
 import { UploadForm } from './UploadForm'
+import { requireAdmin } from '../../../../lib/guard'
 
 export const dynamic = 'force-dynamic'
 
-export default function UploadPage() {
+export default async function UploadPage() {
+  await requireAdmin()
   return (
     <>
       <Link href="/admin/papers" className="text-sm font-bold text-play-purple">&larr; Papers</Link>

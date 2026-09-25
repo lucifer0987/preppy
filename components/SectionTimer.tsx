@@ -5,34 +5,43 @@ import { useEffect, useRef, useState } from 'react'
 /**
  * The section countdown.
  *
- * Display only. The server issues `initialSec` and owns the real clock
- * (FR-6.4.7); this just ticks it down and calls `onExpire` when it reaches
- * zero, at which point the server is asked what is actually true. It also
- * re-syncs whenever the tab becomes visible again, so a throttled background
- * timer cannot drift into showing time that does not exist.
+ * Display only. The server owns the real clock (FR-6.4.7) and issues a
+ * deadline plus its own "now"; this counts down to the deadline, corrected for
+ * however far the browser's clock is from the server's, and calls `onExpire`
+ * when it reaches zero, at which point the server is asked what is actually
+ * true. Counting to an instant rather than decrementing a number means a
+ * throttled background tab cannot drift, and any new reading from the server
+ * — a save, a resync, a new section — simply replaces the old one.
+ *
+ * It also asks for a resync whenever the tab becomes visible again.
  */
 export function SectionTimer({
-  initialSec, onExpire, onResync,
+  deadlineMs, serverNowMs, onExpire, onResync,
 }: {
-  initialSec: number
+  deadlineMs: number
+  serverNowMs: number
   onExpire: () => void
   onResync: () => void
 }) {
-  const [remaining, setRemaining] = useState(initialSec)
-  const fired = useRef(false)
+  // First render uses the server's own difference, so SSR and hydration agree.
+  const [remaining, setRemaining] = useState(() => secondsLeft(deadlineMs, serverNowMs))
+  const onExpireRef = useRef(onExpire)
+  useEffect(() => { onExpireRef.current = onExpire }, [onExpire])
 
-  useEffect(() => { setRemaining(initialSec); fired.current = false }, [initialSec])
-
+  // Every new reading restarts the countdown and re-arms expiry, even when the
+  // allowance is identical to the last section's.
   useEffect(() => {
-    const id = setInterval(() => {
-      setRemaining((r) => {
-        const next = r - 1
-        if (next <= 0 && !fired.current) { fired.current = true; onExpire() }
-        return Math.max(0, next)
-      })
-    }, 1000)
+    const skew = serverNowMs - Date.now()
+    let fired = false
+    const tick = () => {
+      const left = secondsLeft(deadlineMs, Date.now() + skew)
+      setRemaining(left)
+      if (left <= 0 && !fired) { fired = true; onExpireRef.current() }
+    }
+    tick()
+    const id = setInterval(tick, 500)
     return () => clearInterval(id)
-  }, [onExpire])
+  }, [deadlineMs, serverNowMs])
 
   useEffect(() => {
     const onVisible = () => { if (document.visibilityState === 'visible') onResync() }
@@ -57,4 +66,8 @@ export function SectionTimer({
       {String(mm).padStart(2, '0')}:{String(ss).padStart(2, '0')}
     </span>
   )
+}
+
+function secondsLeft(deadlineMs: number, nowMs: number): number {
+  return Math.max(0, Math.ceil((deadlineMs - nowMs) / 1000))
 }

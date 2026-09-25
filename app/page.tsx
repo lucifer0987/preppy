@@ -19,8 +19,9 @@ import { WINDOW, formatIstTime, nextOpenAt } from '../lib/time'
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
-  if (isConfigured() && (await currentUser())) redirect('/dashboard')
+  if (isConfigured() && (await currentUser())?.isActive) redirect('/dashboard')
 
+  const now = new Date()
   const opensAt = formatIstTime(WINDOW.openHour, WINDOW.openMinute)
   const entryCloses = formatIstTime(WINDOW.entryCloseHour, WINDOW.entryCloseMinute)
 
@@ -40,7 +41,7 @@ export default async function Home() {
             Next paper unlocks in
           </h2>
           <div className="mt-3">
-            <Countdown targetIso={nextOpenAt().toISOString()} />
+            <Countdown targetIso={nextOpenAt(now).toISOString()} nowIso={now.toISOString()} />
           </div>
           <p className="mt-4 text-sm text-white/70">
             Opens {opensAt}. Last entry {entryCloses}, so everyone gets the full {TOTAL_MINUTES} minutes.

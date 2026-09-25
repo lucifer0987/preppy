@@ -4,6 +4,6 @@ node_modules/
 !.env.example
 .DS_Store
 *.log
-.next/
 next-env.d.ts
 tsconfig.tsbuildinfo
+supabase/.temp/

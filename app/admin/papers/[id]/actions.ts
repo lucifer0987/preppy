@@ -2,36 +2,56 @@
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { currentUser } from '../../../../lib/auth'
-import { deletePaper, schedulePaper, unschedulePaper } from '../../../../lib/repo/papers'
+import { actionAdmin } from '../../../../lib/guard'
+import {
+  deletePaper, schedulePaper, unschedulePaper, updateQuestionContent,
+} from '../../../../lib/repo/papers'
 import { correctAnswerKey } from '../../../../lib/repo/rescore'
-import type { OptionLabel } from '../../../../lib/types'
+import { OPTION_LABELS, type OptionLabel } from '../../../../lib/types'
+import type { EditState } from './edit-state'
 
-async function requireAdmin() {
-  const admin = await currentUser()
-  if (!admin || admin.role !== 'admin') throw new Error('Not authorised.')
-  return admin
+/**
+ * The repository re-checks every state rule (window, attempts, status), so a
+ * stale page or a hand-built request cannot do what the buttons would not
+ * offer. A refusal comes back to the page as ?error=, not as a crash.
+ */
+async function run(id: string, work: () => Promise<void>, onSuccess: string) {
+  let failure: string | null = null
+  try {
+    await work()
+  } catch (e) {
+    failure = (e as Error).message
+  }
+  revalidatePath('/admin')
+  revalidatePath('/admin/papers')
+  // redirect() throws, so it stays outside the try.
+  if (failure) redirect(`/admin/papers/${id}?error=${encodeURIComponent(failure)}`)
+  redirect(onSuccess)
 }
 
 export async function scheduleAction(formData: FormData) {
-  const admin = await requireAdmin()
-  await schedulePaper(String(formData.get('id')), admin.id)
-  revalidatePath('/admin')
-  redirect(`/admin/papers/${formData.get('id')}?scheduled=1`)
+  const admin = await actionAdmin()
+  if (!admin) redirect('/login')
+  const id = String(formData.get('id'))
+  // The preview cannot be skipped (FR-6.9.1): the form sits after the last
+  // question and must say it was read.
+  if (formData.get('reviewed') !== 'yes') {
+    redirect(`/admin/papers/${id}?error=${encodeURIComponent('Tick the box to confirm you have read the paper through.')}`)
+  }
+  const date = String(formData.get('date') ?? '') || undefined
+  await run(id, () => schedulePaper(id, admin.id, date), `/admin/papers/${id}?scheduled=1`)
 }
 
 export async function unscheduleAction(formData: FormData) {
-  await requireAdmin()
-  await unschedulePaper(String(formData.get('id')))
-  revalidatePath('/admin')
-  redirect(`/admin/papers/${formData.get('id')}`)
+  if (!(await actionAdmin())) redirect('/login')
+  const id = String(formData.get('id'))
+  await run(id, () => unschedulePaper(id), `/admin/papers/${id}`)
 }
 
 export async function deleteAction(formData: FormData) {
-  await requireAdmin()
-  await deletePaper(String(formData.get('id')))
-  revalidatePath('/admin')
-  redirect('/admin/papers')
+  if (!(await actionAdmin())) redirect('/login')
+  const id = String(formData.get('id'))
+  await run(id, () => deletePaper(id), '/admin/papers')
 }
 
 /**
@@ -39,16 +59,50 @@ export async function deleteAction(formData: FormData) {
  * leaderboard is computed on read, so there is nothing else to invalidate.
  */
 export async function correctKeyAction(formData: FormData) {
-  await requireAdmin()
+  if (!(await actionAdmin())) redirect('/login')
   const testId = String(formData.get('testId'))
   const questionId = String(formData.get('questionId'))
   const answer = String(formData.get('answer')) as OptionLabel
 
-  const report = await correctAnswerKey(testId, questionId, answer)
+  let report
+  try {
+    report = await correctAnswerKey(testId, questionId, answer)
+  } catch (e) {
+    redirect(`/admin/papers/${testId}?error=${encodeURIComponent((e as Error).message)}`)
+  }
   revalidatePath(`/admin/papers/${testId}`)
   revalidatePath('/leaderboard')
   redirect(
     `/admin/papers/${testId}?rescored=${report.questionNumber}` +
     `&from=${report.from}&to=${report.to}&changed=${report.changed.length}&of=${report.attemptsRescored}`,
   )
+}
+
+/**
+ * Correcting a question's wording, options or solution after publication.
+ * Scores do not depend on any of these, so nothing is rescored.
+ */
+export async function editQuestionAction(_prev: EditState, formData: FormData): Promise<EditState> {
+  if (!(await actionAdmin())) return { issues: [], fatal: 'Not authorised.', saved: false }
+  const testId = String(formData.get('testId'))
+  const questionId = String(formData.get('questionId'))
+
+  try {
+    const result = await updateQuestionContent(testId, questionId, {
+      text: String(formData.get('text') ?? ''),
+      options: Object.fromEntries(
+        OPTION_LABELS.filter((l) => formData.has(`option-${l}`))
+          .map((l) => [l, String(formData.get(`option-${l}`))]),
+      ),
+      solution: String(formData.get('solution') ?? ''),
+    })
+    const saved = !result.issues.some((i) => i.severity === 'error')
+    if (saved) {
+      revalidatePath(`/admin/papers/${testId}`)
+      revalidatePath(`/archive/${testId}`)
+    }
+    return { issues: result.issues, fatal: null, saved }
+  } catch (e) {
+    return { issues: [], fatal: (e as Error).message, saved: false }
+  }
 }

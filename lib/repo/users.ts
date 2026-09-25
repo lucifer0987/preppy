@@ -1,6 +1,7 @@
 import 'server-only'
-import { randomBytes } from 'node:crypto'
 import { db } from '../supabase/admin'
+import { generatePassword } from '../password'
+import { revokeSessions } from '../auth'
 import { USERNAME_PATTERN, normaliseUsername, usernameToEmail } from '../username'
 
 /**
@@ -21,12 +22,7 @@ export interface UserRow {
   attemptCount: number
 }
 
-const WORDS = ['quant', 'rank', 'score', 'timer', 'paper', 'streak', 'mock', 'logic', 'pace', 'solve']
-
-export function generatePassword(): string {
-  const pick = () => WORDS[randomBytes(1)[0]! % WORDS.length]
-  return `${pick()}-${pick()}-${randomBytes(2).toString('hex')}`
-}
+export { generatePassword } from '../password'
 
 export async function listUsers(): Promise<UserRow[]> {
   const client = db()
@@ -35,8 +31,9 @@ export async function listUsers(): Promise<UserRow[]> {
     .select('id, username, display_name, role, is_active, must_change_password, last_login_at')
     .order('role').order('username')
 
+  // Papers that count: finished and not voided, as on the leaderboard.
   const { data: attempts } = await client
-    .from('attempts').select('user_id').eq('is_dry_run', false)
+    .from('attempts').select('user_id').eq('is_dry_run', false).in('state', ['SUBMITTED', 'AUTO_SUBMITTED'])
 
   const counts = new Map<string, number>()
   for (const a of attempts ?? []) {
@@ -95,12 +92,40 @@ export async function resetPassword(userId: string): Promise<{ username: string;
   const { error } = await client.auth.admin.updateUserById(userId, { password })
   if (error) throw new Error(`Could not reset the password: ${error.message}`)
 
-  await client.from('profiles').update({ must_change_password: true }).eq('id', userId)
+  const { error: flagError } = await client.from('profiles').update({ must_change_password: true }).eq('id', userId)
+  if (flagError) throw new Error(`The password was reset, but could not be marked for change: ${flagError.message}`)
+
+  // A reset is often because someone else knows the old password, so every
+  // session on the account ends now, on every device.
+  try {
+    await revokeSessions(userId)
+  } catch (e) {
+    throw new Error(`The password was reset to ${password}, but devices already signed in were not signed out: ${(e as Error).message}`)
+  }
   return { username: profile.username as string, password }
 }
 
-/** Deactivation keeps every attempt and every leaderboard entry intact. */
+/**
+ * Deactivation keeps every attempt and every leaderboard entry intact. The
+ * flag alone stops every page and action (lib/guard.ts) and any new login
+ * (lib/auth.ts signIn); ending the account's sessions as well signs it out
+ * everywhere at once.
+ *
+ * Sessions are left alone while the student has an attempt running, because
+ * PRD 11 lets a student deactivated mid-window finish and score it; the flag
+ * still blocks everything else. Reactivating needs nothing more than the flag:
+ * the student simply logs in again.
+ */
 export async function setActive(userId: string, isActive: boolean): Promise<void> {
-  const { error } = await db().from('profiles').update({ is_active: isActive }).eq('id', userId)
+  const client = db()
+  const { error } = await client.from('profiles').update({ is_active: isActive }).eq('id', userId)
   if (error) throw new Error(`Could not update the account: ${error.message}`)
+  if (isActive) return
+
+  const { count, error: countError } = await client
+    .from('attempts').select('id', { count: 'exact', head: true })
+    .eq('user_id', userId).eq('state', 'IN_PROGRESS')
+  if (countError) throw new Error(`Deactivated, but could not check for a running test: ${countError.message}`)
+  if (count) return
+  await revokeSessions(userId)
 }

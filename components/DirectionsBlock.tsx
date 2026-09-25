@@ -1,4 +1,5 @@
 import type { PaperDirections } from '../lib/types'
+import { PaperImages } from './PaperImages'
 
 /**
  * Shared material for a run of questions: a passage, a table, a puzzle.
@@ -6,7 +7,7 @@ import type { PaperDirections } from '../lib/types'
  * Pinned above the question and scrollable on its own, so a long reading
  * passage never pushes the options off the screen (FR-6.4.10).
  */
-export function DirectionsBlock({ block }: { block: PaperDirections }) {
+export function DirectionsBlock({ block, testId }: { block: PaperDirections; testId?: string }) {
   return (
     <aside
       className="mb-4 max-h-64 overflow-y-auto rounded-2xl border-2 border-black/10 bg-white p-4"
@@ -19,6 +20,8 @@ export function DirectionsBlock({ block }: { block: PaperDirections }) {
       {block.text.split('\n').filter((l) => l.trim() !== '').map((line, i) => (
         <p key={i} className="mb-2 text-sm leading-relaxed last:mb-0">{line}</p>
       ))}
+
+      {testId && <PaperImages testId={testId} names={block.images} />}
 
       {block.table && (
         <div className="mt-3 overflow-x-auto">

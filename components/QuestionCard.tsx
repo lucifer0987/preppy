@@ -8,6 +8,7 @@ import { OPTION_LABELS, type OptionLabel, type PaperQuestion } from '../lib/type
 export type RenderableQuestion =
   Omit<PaperQuestion, 'answer' | 'solution'> & { answer?: OptionLabel; solution?: string }
 import { OptionShape } from './OptionShape'
+import { PaperImages } from './PaperImages'
 
 /**
  * One question with its option cards.
@@ -19,12 +20,15 @@ import { OptionShape } from './OptionShape'
  */
 export function QuestionCard({
   question,
+  testId,
   selected = null,
   reveal = false,
   disabled = true,
   onSelect,
 }: {
   question: RenderableQuestion
+  /** Needed to show the question's images. */
+  testId?: string
   selected?: OptionLabel | null
   /** Show which option is correct. Never true during a live attempt. */
   reveal?: boolean
@@ -41,6 +45,7 @@ export function QuestionCard({
         <span className="mr-2 font-mono text-sm text-ink-soft">Q{question.number}.</span>
         {question.text}
       </p>
+      {testId && <PaperImages testId={testId} names={question.images} />}
 
       <ul className="mt-5 grid gap-2.5 sm:grid-cols-2">
         {present.map((label) => {

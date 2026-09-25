@@ -27,9 +27,8 @@
     ]
   },
   "include": [
-    "lib",
-    "scripts",
-    "tests",
+    "**/*.ts",
+    "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],

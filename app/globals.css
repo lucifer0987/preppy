@@ -29,7 +29,8 @@
   --color-ink-soft: #4e4463;
   --color-paper: #f5f3fa;
 
-  --font-display: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
 }
 
 :root { color-scheme: light; }
@@ -44,6 +45,17 @@ body {
   outline: 3px solid var(--color-play-purple);
   outline-offset: 2px;
   border-radius: 4px;
+}
+/* A purple ring vanishes on the purple and red surfaces, so it turns white there. */
+:where(.bg-play-purple, .bg-play-purple-deep, .bg-notanswered, .bg-answered) :focus-visible {
+  outline-color: #fff;
+}
+
+/* FR-6.5.7: printing a test prints a note, not the paper. Friction, not security. */
+.exam-print-note { display: none; }
+@media print {
+  .exam-screen > :not(.exam-print-note) { display: none !important; }
+  .exam-print-note { display: block; padding: 2rem; font-weight: 700; }
 }
 
 @media (prefers-reduced-motion: reduce) {

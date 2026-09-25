@@ -121,4 +121,66 @@ export function pacingVerdict(section: SectionScore): string | null {
   return null
 }
 
+/**
+ * Time used in one section, from the server's own stamps (PRD 6.6). Capped at
+ * the section's allowance, so a late stamp can never read as more time than
+ * the student had. Null when the section was never opened or never closed.
+ */
+export function sectionTimeUsed(
+  startedAt: Date | null, endedAt: Date | null, durationSec: number,
+): number | null {
+  if (!startedAt || !endedAt) return null
+  const used = Math.round((endedAt.getTime() - startedAt.getTime()) / 1000)
+  return Math.min(durationSec, Math.max(0, used))
+}
+
+export interface QuestionTime {
+  questionNumber: number
+  timeSpentSec: number
+}
+
+/**
+ * The questions that cost the most time, per section (PRD 6.6: "slowest three
+ * questions per section"). Only questions the student actually spent time on
+ * are candidates; ties go to the lower question number so the list is stable.
+ */
+export function slowestQuestions(
+  paper: Paper, times: QuestionTime[], perSection = 3,
+): { code: SectionCode; questions: QuestionTime[] }[] {
+  return paper.sections.map((section) => {
+    const numbers = new Set(section.questions.map((q) => q.number))
+    const questions = times
+      .filter((t) => numbers.has(t.questionNumber) && t.timeSpentSec > 0)
+      .sort((a, b) => b.timeSpentSec - a.timeSpentSec || a.questionNumber - b.questionNumber)
+      .slice(0, perSection)
+    return { code: section.code, questions }
+  })
+}
+
+/**
+ * FR-6.9.4: any item below 10% correct is flagged for key review.
+ *
+ * With a cohort of five, 10% means nobody got it right. One wrong answer is one
+ * student's mistake; two students independently landing on something other
+ * than the key is worth the admin's glance. Any higher and a bad key on a
+ * question only two or three people reached would never flag.
+ */
+export const ITEM_FLAG_MIN_ANSWERED = 2
+export const ITEM_FLAG_BELOW_PCT = 10
+
+export interface ItemTally {
+  answered: number
+  correct: number
+}
+
+export function itemVerdict(t: ItemTally): { correctPct: number | null; suspicious: boolean } {
+  const correctPct = t.answered === 0 ? null : Math.round((t.correct / t.answered) * 100)
+  return {
+    correctPct,
+    suspicious: correctPct !== null
+      && (t.correct / t.answered) * 100 < ITEM_FLAG_BELOW_PCT
+      && t.answered >= ITEM_FLAG_MIN_ANSWERED,
+  }
+}
+
 const round2 = (n: number) => Math.round(n * 100) / 100

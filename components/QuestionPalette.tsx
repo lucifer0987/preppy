@@ -8,6 +8,10 @@ import type { OptionLabel } from '../lib/types'
  * Shows only the current section: there is no route back to a finished one
  * (FR-6.4.2). At section end the grey cells become "not reached" and the red
  * ones "skipped", which is the distinction the result page reports.
+ *
+ * Each state has its own shape as well as its own colour, so status is never
+ * carried by colour alone (PRD 8). The shapes are the ones the real IBPS exam
+ * interface uses, so a student reads them without learning anything new.
  */
 export type PaletteState = 'not-visited' | 'not-answered' | 'answered' | 'marked' | 'answered-marked'
 
@@ -19,12 +23,18 @@ export function paletteState(
   return visited ? 'not-answered' : 'not-visited'
 }
 
-const STYLE: Record<PaletteState, string> = {
-  'not-visited': 'bg-notvisited text-ink',
-  'not-answered': 'bg-notanswered text-white',
-  answered: 'bg-answered text-white',
-  marked: 'bg-marked text-white',
-  'answered-marked': 'bg-marked text-white',
+const SHAPE: Record<PaletteState, { className: string; clipPath?: string }> = {
+  'not-visited': { className: 'rounded-md bg-notvisited text-ink' },
+  'not-answered': {
+    className: 'bg-notanswered text-white pb-1',
+    clipPath: 'polygon(0 0, 100% 0, 100% 62%, 50% 100%, 0 62%)',
+  },
+  answered: {
+    className: 'bg-answered text-white pt-1',
+    clipPath: 'polygon(50% 0, 100% 38%, 100% 100%, 0 100%, 0 38%)',
+  },
+  marked: { className: 'rounded-full bg-marked text-white' },
+  'answered-marked': { className: 'rounded-full bg-marked text-white' },
 }
 
 const LABEL: Record<PaletteState, string> = {
@@ -33,6 +43,25 @@ const LABEL: Record<PaletteState, string> = {
   answered: 'answered',
   marked: 'marked for review',
   'answered-marked': 'answered and marked for review',
+}
+
+/** What each state becomes when the section ends (FR-6.4.4). */
+const AT_END: Partial<Record<PaletteState, string>> = {
+  'not-answered': 'counts as skipped',
+  'not-visited': 'counts as not reached',
+  marked: 'counts as skipped',
+}
+
+function Cell({ state, children }: { state: PaletteState; children?: React.ReactNode }) {
+  const shape = SHAPE[state]
+  return (
+    <span
+      className={`relative flex h-full w-full items-center justify-center ${shape.className}`}
+      style={shape.clipPath ? { clipPath: shape.clipPath } : undefined}
+    >
+      {children}
+    </span>
+  )
 }
 
 export function QuestionPalette({
@@ -55,27 +84,38 @@ export function QuestionPalette({
             aria-current={number === current ? 'true' : undefined}
             aria-label={`Question ${number}, ${LABEL[state]}`}
             className={[
-              'relative aspect-square rounded-lg text-xs font-black tabular-nums transition',
-              STYLE[state],
-              number === current ? 'ring-2 ring-ink ring-offset-2' : 'hover:opacity-80',
+              // The ring sits on the button, outside the clipped shape, so the
+              // current question is marked whatever its shape.
+              'relative aspect-square rounded-lg p-0.5 text-xs font-black tabular-nums transition',
+              number === current ? 'ring-2 ring-ink ring-offset-1' : 'hover:opacity-80',
             ].join(' ')}
           >
-            {number}
+            <Cell state={state}>{number}</Cell>
             {state === 'answered-marked' && (
               <span
                 aria-hidden="true"
-                className="absolute right-0.5 bottom-0.5 h-2 w-2 rounded-full border border-white bg-answered"
-              />
+                className="absolute -right-0.5 -bottom-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full border border-white bg-answered text-[8px] leading-none text-white"
+              >
+                ✓
+              </span>
             )}
           </button>
         ))}
       </div>
 
-      <ul className="mt-4 space-y-1.5">
+      <ul className="mt-4 space-y-1.5" aria-label="Palette legend">
         {(['answered', 'not-answered', 'marked', 'answered-marked', 'not-visited'] as PaletteState[]).map((s) => (
           <li key={s} className="flex items-center gap-2 text-[11px] text-ink-soft">
-            <span aria-hidden="true" className={`h-3 w-3 shrink-0 rounded ${STYLE[s].split(' ')[0]}`} />
-            <span className="capitalize">{LABEL[s]}</span>
+            <span aria-hidden="true" className="relative h-4 w-4 shrink-0">
+              <Cell state={s} />
+              {s === 'answered-marked' && (
+                <span className="absolute -right-1 -bottom-1 h-2 w-2 rounded-full border border-white bg-answered" />
+              )}
+            </span>
+            <span>
+              <span className="capitalize">{LABEL[s]}</span>
+              {AT_END[s] && <span className="text-ink-soft/80"> &rarr; {AT_END[s]}</span>}
+            </span>
           </li>
         ))}
       </ul>

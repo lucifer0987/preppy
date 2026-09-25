@@ -1,11 +1,12 @@
 import 'server-only'
 import { db } from '../supabase/admin'
 import { submitAttempt } from './attempts'
-import { hardStopAt, istDate } from '../time'
+import { attemptHardStop } from '../attempt'
 
 /**
  * The nightly job (FR-10.2). It does one thing: score any attempt still open
- * past its paper's hard stop.
+ * past its hard stop — the paper's for a counted attempt, its own 45 minutes
+ * for a dry run, which may be of any paper on any day.
  *
  * Everything else the PRD once wanted a job for is derived on read instead —
  * unlocking at 22:00, closing entry at 23:15, opening the archive at midnight,
@@ -23,27 +24,28 @@ export interface FinaliseReport {
 
 export async function finaliseOverdueAttempts(now = new Date()): Promise<FinaliseReport> {
   const client = db()
-  const today = istDate(now)
 
-  // Anything still open on a paper dated today or earlier is a candidate; the
-  // hard stop below decides. Future papers cannot have attempts yet.
+  // Every open attempt is a candidate; its hard stop decides. There are only
+  // ever a handful, and a date filter would miss dry runs of future papers.
   const { data: attempts, error } = await client
     .from('attempts')
-    // tests!inner makes the date filter apply to the attempt row. Without the
-    // inner join PostgREST filters the embedded object instead, leaving the
-    // parent row in the result with a null embed.
-    .select('id, tests!inner(date)')
+    .select('id, is_dry_run, started_at, tests!inner(date, sections(duration_sec))')
     .eq('state', 'IN_PROGRESS')
-    .lte('tests.date', today)
 
   if (error) throw new Error(`Could not list open attempts: ${error.message}`)
 
   const report: FinaliseReport = { scanned: (attempts ?? []).length, finalised: [], failed: [] }
 
   for (const a of attempts ?? []) {
-    const date = (a.tests as unknown as { date: string } | null)?.date
-    if (!date) continue
-    if (now.getTime() < hardStopAt(date).getTime()) continue // still legitimately running
+    const test = a.tests as unknown as { date: string; sections: { duration_sec: number }[] } | null
+    if (!test) continue
+    const hardStop = attemptHardStop({
+      isDryRun: a.is_dry_run as boolean,
+      testDate: test.date,
+      startedAt: new Date(a.started_at as string),
+      sections: test.sections.map((s) => ({ durationSec: s.duration_sec })),
+    })
+    if (now.getTime() < hardStop.getTime()) continue // still legitimately running
 
     try {
       await submitAttempt(a.id as string, 'AUTO_SUBMITTED')

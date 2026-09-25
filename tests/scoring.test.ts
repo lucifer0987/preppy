@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { readPaper } from '../lib/paper'
-import { pacingVerdict, scoreAttempt, scoreBounds, type ResponseInput } from '../lib/scoring'
+import {
+  itemVerdict, pacingVerdict, scoreAttempt, scoreBounds, sectionTimeUsed, slowestQuestions,
+  type ResponseInput,
+} from '../lib/scoring'
 import type { OptionLabel, Paper } from '../lib/types'
 
 const paper = (() => {
@@ -177,5 +180,68 @@ describe('the pacing verdict', () => {
 
   it('prefers the speed reading when both are high', () => {
     expect(pacingVerdict({ ...base, skipped: 6, notReached: 6 })).toMatch(/speed problem/)
+  })
+})
+
+describe('time used per section', () => {
+  const at = (sec: number) => new Date(Date.UTC(2026, 8, 25, 16, 30) + sec * 1000)
+
+  it('is the gap between the server stamps', () => {
+    expect(sectionTimeUsed(at(0), at(431), 720)).toBe(431)
+  })
+
+  it('never exceeds the allowance, however late the closing stamp', () => {
+    expect(sectionTimeUsed(at(0), at(900), 720)).toBe(720)
+  })
+
+  it('is unknown for a section never opened or never closed', () => {
+    expect(sectionTimeUsed(null, at(10), 720)).toBeNull()
+    expect(sectionTimeUsed(at(0), null, 720)).toBeNull()
+  })
+})
+
+describe('slowest questions per section', () => {
+  it('lists the three slowest in each section, slowest first', () => {
+    const quant = paper.sections[0]!.questions.map((q) => q.number)
+    const times = quant.map((n, i) => ({ questionNumber: n, timeSpentSec: i * 10 }))
+    const result = slowestQuestions(paper, times)
+    expect(result).toHaveLength(paper.sections.length)
+    expect(result[0]!.questions.map((q) => q.questionNumber)).toEqual(quant.slice(-3).reverse())
+    // Nothing recorded for the other sections, so nothing to show.
+    expect(result[1]!.questions).toEqual([])
+  })
+
+  it('ignores questions with no time on them and breaks ties by number', () => {
+    const [a, b, c] = paper.sections[0]!.questions.map((q) => q.number)
+    const result = slowestQuestions(paper, [
+      { questionNumber: c!, timeSpentSec: 30 },
+      { questionNumber: a!, timeSpentSec: 30 },
+      { questionNumber: b!, timeSpentSec: 0 },
+    ])
+    expect(result[0]!.questions.map((q) => q.questionNumber)).toEqual([a, c])
+  })
+})
+
+describe('item flagging (FR-6.9.4)', () => {
+  it('flags an item nobody in a small cohort got right', () => {
+    expect(itemVerdict({ answered: 2, correct: 0 })).toEqual({ correctPct: 0, suspicious: true })
+    expect(itemVerdict({ answered: 5, correct: 0 }).suspicious).toBe(true)
+  })
+
+  it('does not flag one student\'s single wrong answer', () => {
+    expect(itemVerdict({ answered: 1, correct: 0 }).suspicious).toBe(false)
+  })
+
+  it('does not flag an item someone in five got right', () => {
+    expect(itemVerdict({ answered: 5, correct: 1 })).toEqual({ correctPct: 20, suspicious: false })
+  })
+
+  it('flags below 10% on a larger sample, and not at it', () => {
+    expect(itemVerdict({ answered: 11, correct: 1 }).suspicious).toBe(true)
+    expect(itemVerdict({ answered: 10, correct: 1 }).suspicious).toBe(false)
+  })
+
+  it('has no percentage when nobody answered', () => {
+    expect(itemVerdict({ answered: 0, correct: 0 })).toEqual({ correctPct: null, suspicious: false })
   })
 })

@@ -35,6 +35,8 @@ export interface LeaderboardRow {
   accuracyPct: number | null
   bestScore: number
   currentStreak: number
+  /** The longest run of consecutive papers sat, ever (PRD 6.8). */
+  longestStreak: number
 }
 
 export interface LeaderboardOptions {
@@ -43,9 +45,10 @@ export interface LeaderboardOptions {
 }
 
 /**
- * @param records   one row per counted attempt. Dry runs must already be
- *                  excluded, which excludes the admin by construction (FR-5.2).
- * @param testDates every paper that has run, ascending. Needed for streaks:
+ * @param records   one row per counted attempt on a paper the board includes
+ *                  (lib/time.ts onBoard). Dry runs must already be excluded,
+ *                  which excludes the admin by construction (FR-5.2).
+ * @param testDates every paper on the board, ascending. Needed for streaks:
  *                  a night with no paper must not break one.
  */
 export function buildLeaderboard(
@@ -57,12 +60,25 @@ export function buildLeaderboard(
   const inScope = options.lastN ? dates.slice(-options.lastN) : dates
   const scoped = records.filter((r) => inScope.includes(r.testDate))
 
-  const current = aggregate(scoped, inScope)
+  // A streak is about turning up night after night, so it always runs over
+  // every paper that has run, whatever window the board is showing. Inside
+  // "Last 7" it would otherwise be capped at 7.
+  const attendance = new Map<string, Set<string>>()
+  for (const r of records) {
+    const set = attendance.get(r.userId)
+    if (set) set.add(r.testDate)
+    else attendance.set(r.userId, new Set([r.testDate]))
+  }
+  const streaksOf = (userId: string) => streaks(attendance.get(userId) ?? new Set(), dates)
 
-  // Movement compares against the board as it stood before the latest paper.
-  const previousDates = inScope.slice(0, -1)
+  const current = aggregate(scoped, streaksOf)
+
+  // Movement compares against the same view as it stood before the latest
+  // paper: for "Last 30", the 30 papers that ended one paper earlier.
+  const earlier = dates.slice(0, -1)
+  const previousDates = options.lastN ? earlier.slice(-options.lastN) : earlier
   const previous = previousDates.length
-    ? aggregate(records.filter((r) => previousDates.includes(r.testDate)), previousDates)
+    ? aggregate(records.filter((r) => previousDates.includes(r.testDate)), streaksOf)
     : []
   const previousRank = new Map(previous.map((r) => [r.userId, r.rank]))
 
@@ -72,7 +88,43 @@ export function buildLeaderboard(
   }))
 }
 
-function aggregate(records: AttemptRecord[], dates: string[]): Omit<LeaderboardRow, 'movement'>[] {
+/**
+ * Where one student stood on the all-time board just before a paper and just
+ * after it (PRD 6.6, "leaderboard delta"). Null on either side means they
+ * were not on the board at that point: before their first paper, or for an
+ * attempt that does not count.
+ */
+export function rankDelta(
+  records: AttemptRecord[], userId: string, testDate: string,
+): { before: number | null; after: number | null; of: number } {
+  const rankAt = (keep: (d: string) => boolean) => {
+    const board = aggregate(records.filter((r) => keep(r.testDate)), () => ({ current: 0, longest: 0 }))
+    return { rank: board.find((r) => r.userId === userId)?.rank ?? null, size: board.length }
+  }
+  const after = rankAt((d) => d <= testDate)
+  return { before: rankAt((d) => d < testDate).rank, after: after.rank, of: after.size }
+}
+
+/**
+ * "2nd of 5" for a single paper (PRD 6.6). Rank on one paper is its score
+ * alone (FR-3.3), and equal scores share a place. Null when this student has
+ * no counted attempt on the paper.
+ */
+export function paperRank(
+  records: AttemptRecord[], userId: string, testDate: string,
+): { rank: number; of: number } | null {
+  const cohort = records.filter((r) => r.testDate === testDate)
+  const mine = cohort.find((r) => r.userId === userId)
+  if (!mine) return null
+  return {
+    rank: cohort.filter((r) => r.totalScore > mine.totalScore).length + 1,
+    of: cohort.length,
+  }
+}
+
+function aggregate(
+  records: AttemptRecord[], streaksOf: (userId: string) => { current: number; longest: number },
+): Omit<LeaderboardRow, 'movement'>[] {
   const byUser = new Map<string, AttemptRecord[]>()
   for (const r of records) {
     const list = byUser.get(r.userId)
@@ -96,7 +148,8 @@ function aggregate(records: AttemptRecord[], dates: string[]): Omit<LeaderboardR
       avgScore: round2(totalPoints / attempts.length),
       accuracyPct: attempted === 0 ? null : round2((correct / attempted) * 100),
       bestScore: round2(Math.max(...attempts.map((r) => r.totalScore))),
-      currentStreak: streak(new Set(attempts.map((r) => r.testDate)), dates),
+      currentStreak: streaksOf(userId).current,
+      longestStreak: streaksOf(userId).longest,
       cumulativeTimeSec: attempts.reduce((a, r) => a + r.timeSpentSec, 0),
       firstAttemptDate: first,
     }
@@ -124,18 +177,28 @@ function aggregate(records: AttemptRecord[], dates: string[]): Omit<LeaderboardR
 }
 
 /**
- * Consecutive papers attempted, counting back from the most recent one.
+ * Consecutive papers attempted: the current run, counting back from the most
+ * recent paper on the board, and the longest run ever.
  *
  * Only papers that actually ran are considered, so a night the admin skipped
- * never breaks anyone's streak (PRD section 11).
+ * never breaks anyone's streak (PRD section 11). Tonight's paper is not on the
+ * board until 00:01, so it cannot break one either while it is still open.
  */
-function streak(attemptedDates: Set<string>, dates: string[]): number {
-  let count = 0
-  for (let i = dates.length - 1; i >= 0; i--) {
-    if (attemptedDates.has(dates[i]!)) count++
-    else break
+export function streaks(attemptedDates: Set<string>, dates: string[]): { current: number; longest: number } {
+  let longest = 0
+  let run = 0
+  for (const d of dates) {
+    run = attemptedDates.has(d) ? run + 1 : 0
+    longest = Math.max(longest, run)
   }
-  return count
+  return { current: run, longest }
 }
 
 const round2 = (n: number) => Math.round(n * 100) / 100
+
+/** 1st, 2nd, 3rd, 4th, 11th, 12th, 13th, 21st — for "2nd of 5". */
+export function ordinal(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd']
+  const v = n % 100
+  return n + (s[(v - 20) % 10] ?? s[v] ?? s[0]!)
+}

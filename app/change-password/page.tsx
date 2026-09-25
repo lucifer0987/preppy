@@ -17,7 +17,7 @@ export default async function ChangePasswordPage() {
       <p className="mt-2 text-ink-soft">
         {forced
           ? 'Your admin set the one you just used. Pick your own before you go any further.'
-          : 'You will stay signed in on this device.'}
+          : 'You will stay signed in on this device. Every other device is signed out.'}
       </p>
 
       <ChangePasswordForm />

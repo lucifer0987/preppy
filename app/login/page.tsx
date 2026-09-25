@@ -10,7 +10,10 @@ import { LoginForm } from './LoginForm'
  */
 export const dynamic = 'force-dynamic'
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: { searchParams: Promise<Record<string, string>> }) {
+  const { signedOut } = await searchParams
   if (!isConfigured()) {
     return (
       <main className="mx-auto flex min-h-dvh max-w-xl flex-col justify-center px-6">
@@ -25,13 +28,19 @@ export default async function LoginPage() {
     )
   }
 
-  if (await currentUser()) redirect('/dashboard')
+  if ((await currentUser())?.isActive) redirect('/dashboard')
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-6 py-16">
       <Link href="/" className="text-sm font-bold text-play-purple">&larr; Preppy</Link>
       <h1 className="mt-6 text-4xl font-black tracking-tight">Log in</h1>
       <p className="mt-2 text-ink-soft">Username and password. Nothing else.</p>
+      {signedOut && (
+        <p role="status" className="mt-4 rounded-xl bg-play-yellow/20 px-4 py-3 text-sm font-semibold">
+          You were signed out here because your account opened the test on another device. A test
+          runs in one place at a time; carry on there, or log in again to continue here.
+        </p>
+      )}
       <LoginForm />
       <p className="mt-8 border-t border-black/10 pt-4 text-sm text-ink-soft">
         Forgotten your password? There is no email on file to send a reset to, so ask your admin to

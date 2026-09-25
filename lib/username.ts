@@ -5,7 +5,7 @@
  * login form both need them and neither should have to drag the Supabase
  * clients along to ask whether a name is valid.
  */
-export const USERNAME_DOMAIN = 'preppy.local'
+const USERNAME_DOMAIN = 'preppy.local'
 export const USERNAME_PATTERN = /^[a-z0-9_]{3,20}$/
 
 export function normaliseUsername(input: string): string {
@@ -18,8 +18,4 @@ export function normaliseUsername(input: string): string {
  */
 export function usernameToEmail(username: string): string {
   return `${normaliseUsername(username)}@${USERNAME_DOMAIN}`
-}
-
-export function emailToUsername(email: string): string {
-  return email.replace(new RegExp(`@${USERNAME_DOMAIN}$`), '')
 }

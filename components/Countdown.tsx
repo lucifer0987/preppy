@@ -1,29 +1,56 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 /**
- * Counts down to the next unlock.
+ * Counts down to a server-chosen instant: the next unlock, the entry cut-off,
+ * the end of a running section.
  *
  * The target instant is computed on the server and passed in, so a wrong clock
  * on the viewer's machine shifts only this display and never anything that
  * decides a score (FR-6.4.7 keeps the real timer server-authoritative).
  *
- * Server and client necessarily render different second values, because time
- * passes between the two. `suppressHydrationWarning` accepts that instead of
- * hiding the countdown behind a placeholder; the first tick, a second later,
- * corrects any drift.
+ * `nowIso` is the server's clock at render. The first render counts from it,
+ * so server and client produce identical markup and hydrate cleanly; after
+ * that the client ticks on its own clock, corrected by the skew measured at
+ * mount, so a fast or slow laptop still reaches zero when the server does.
+ *
+ * At zero the page is refreshed once, so the dashboard flips to the entry card
+ * at 22:00 (or to "Entry closed" at 23:15) without anyone reloading. The
+ * refresh waits a second past zero so the server is sure to agree the moment
+ * has come; if it still does not, it renders a fresh target and this counts
+ * down again rather than sitting at 00:00:00.
  */
-export function Countdown({ targetIso }: { targetIso: string }) {
+export function Countdown({
+  targetIso, nowIso, label = 'Next paper unlocks in',
+}: { targetIso: string; nowIso?: string; label?: string }) {
+  const router = useRouter()
   const target = new Date(targetIso).getTime()
-  const [remaining, setRemaining] = useState(() => target - Date.now())
+  const serverNow = nowIso ? new Date(nowIso).getTime() : null
+  const [remaining, setRemaining] = useState(() => target - (serverNow ?? Date.now()))
 
   useEffect(() => {
-    const tick = () => setRemaining(target - Date.now())
+    // Server minus client. The delay between render and mount makes this run
+    // a moment late, never early, which is the safe side for the refresh.
+    const skew = serverNow === null ? 0 : serverNow - Date.now()
+    // Only a countdown seen crossing zero refreshes, so a target that is
+    // already past on arrival cannot set off a refresh loop.
+    let armed = false
+    let refreshed = false
+    const tick = () => {
+      const left = target - (Date.now() + skew)
+      setRemaining(left)
+      if (left > 0) armed = true
+      if (armed && left <= -1000 && !refreshed) {
+        refreshed = true
+        router.refresh()
+      }
+    }
     tick()
     const id = setInterval(tick, 1000)
     return () => clearInterval(id)
-  }, [target])
+  }, [target, serverNow, router])
 
   const clamped = Math.max(0, remaining)
   const hours = Math.floor(clamped / 3_600_000)
@@ -37,7 +64,10 @@ export function Countdown({ targetIso }: { targetIso: string }) {
       // A timer that announced every second would make the page unusable with
       // a screen reader, so the label carries the information once instead.
       aria-live="off"
-      aria-label={`Next paper unlocks in ${hours} hours ${minutes} minutes`}
+      aria-label={`${label} ${hours} hours ${minutes} minutes`}
+      // Only reached when a caller omits nowIso: the server's Date.now() and
+      // the browser's then differ, and the first tick corrects it.
+      suppressHydrationWarning
     >
       <Cell value={hours} label="hrs" />
       <Cell value={minutes} label="min" />

@@ -22,11 +22,14 @@ export default async function ArchiveDetail({
   params, searchParams,
 }: { params: Promise<{ testId: string }>; searchParams: Promise<Record<string, string>> }) {
   const { testId } = await params
-  const { filter } = await searchParams
+  const { filter, section: sectionFilter } = await searchParams
   const user = await requireUser()
 
+  // Only published papers are reviewable. A draft is the admin's work in
+  // progress, and one dated in the past would otherwise open to anyone who
+  // had its id.
   const record = await getPaperById(testId)
-  if (!record) notFound()
+  if (!record || record.status !== 'SCHEDULED') notFound()
   const { paper } = record
 
   if (!answersUnlocked(paper.date)) {
@@ -48,15 +51,19 @@ export default async function ArchiveDetail({
     .from('attempts').select('id').eq('test_id', testId).eq('user_id', user.id)
     .eq('is_dry_run', false).in('state', ['SUBMITTED', 'AUTO_SUBMITTED']).maybeSingle()
 
-  const mine = new Map<number, { selected: OptionLabel | null; visited: boolean }>()
+  const mine = new Map<number, { selected: OptionLabel | null; visited: boolean; timeSpentSec: number }>()
   if (attempt) {
-    const { data: rows } = await db()
-      .from('responses').select('selected_option, was_visited, questions(number)')
+    const { data: rows, error } = await db()
+      .from('responses').select('selected_option, was_visited, time_spent_sec, questions(number)')
       .eq('attempt_id', attempt.id)
+    // Showing "you never reached this" on every question because the read
+    // failed would be worse than no page.
+    if (error) throw new Error(`Could not load your answers: ${error.message}`)
     for (const r of rows ?? []) {
       mine.set((r.questions as unknown as { number: number }).number, {
         selected: (r.selected_option as OptionLabel | null) ?? null,
         visited: r.was_visited as boolean,
+        timeSpentSec: (r.time_spent_sec as number) ?? 0,
       })
     }
   }
@@ -75,24 +82,23 @@ export default async function ArchiveDetail({
       <h1 className="mt-4 text-3xl font-black tracking-tight">{paper.title ?? 'Daily mock'}</h1>
       <p className="mt-1 text-ink-soft">{formatIstDate(paper.date)}</p>
 
+      <nav className="mt-5 flex flex-wrap gap-2" aria-label="Filter by section">
+        {[['All sections', undefined] as const, ...paper.sections.map((s) => [SECTION_NAMES[s.code as SectionCode], s.code] as const)].map(
+          ([label, value]) => (
+            <FilterLink key={label} label={label}
+                        href={hrefFor(testId, { filter, section: value })}
+                        active={(value ?? undefined) === sectionFilter} />
+          ),
+        )}
+      </nav>
       {attempt && (
-        <nav className="mt-5 flex flex-wrap gap-2" aria-label="Filter">
-          {[['Everything', undefined], ['I got these wrong', 'wrong'], ['I never reached these', 'missed']].map(
-            ([label, value]) => {
-              const active = (value ?? undefined) === filter || (!value && !filter)
-              return (
-                <Link
-                  key={label as string}
-                  href={value ? `/archive/${testId}?filter=${value}` : `/archive/${testId}`}
-                  className={[
-                    'rounded-full px-4 py-2 text-sm font-bold transition',
-                    active ? 'bg-play-purple text-white' : 'bg-white text-ink-soft hover:bg-black/5',
-                  ].join(' ')}
-                >
-                  {label as string}
-                </Link>
-              )
-            },
+        <nav className="mt-2 flex flex-wrap gap-2" aria-label="Filter by your answers">
+          {([['Everything', undefined], ['I got these wrong', 'wrong'], ['I never reached these', 'missed']] as const).map(
+            ([label, value]) => (
+              <FilterLink key={label} label={label}
+                          href={hrefFor(testId, { filter: value, section: sectionFilter })}
+                          active={(value ?? undefined) === filter} />
+            ),
           )}
         </nav>
       )}
@@ -104,7 +110,7 @@ export default async function ArchiveDetail({
         </p>
       )}
 
-      {paper.sections.map((section) => {
+      {paper.sections.filter((s) => !sectionFilter || s.code === sectionFilter).map((section) => {
         const visible = section.questions.filter((q) => keep(q.number, q.answer))
         if (!visible.length) return null
         return (
@@ -118,16 +124,21 @@ export default async function ArchiveDetail({
                 const r = mine.get(question.number)
                 return (
                   <li key={question.number} className="rounded-3xl bg-white p-5">
-                    {block && <DirectionsBlock block={block} />}
+                    {block && <DirectionsBlock block={block} testId={testId} />}
                     {attempt && (
-                      <p className="mb-3 text-[11px] font-bold uppercase tracking-widest text-ink-soft">
-                        {!r || !r.visited ? 'You never reached this'
-                          : r.selected === null ? 'You saw this and skipped it'
-                          : r.selected === question.answer ? 'You got this right'
-                          : 'You got this wrong'}
+                      <p className="mb-3 flex flex-wrap gap-x-3 text-[11px] font-bold uppercase tracking-widest text-ink-soft">
+                        <span>
+                          {!r || !r.visited ? 'You never reached this'
+                            : r.selected === null ? 'You saw this and skipped it'
+                            : r.selected === question.answer ? 'You got this right'
+                            : 'You got this wrong'}
+                        </span>
+                        {r && r.visited && r.timeSpentSec > 0 && (
+                          <span className="tabular-nums">Your time {clock(r.timeSpentSec)}</span>
+                        )}
                       </p>
                     )}
-                    <QuestionCard question={question} selected={r?.selected ?? null} reveal disabled />
+                    <QuestionCard question={question} testId={testId} selected={r?.selected ?? null} reveal disabled />
                   </li>
                 )
               })}
@@ -137,4 +148,33 @@ export default async function ArchiveDetail({
       })}
     </main>
   )
+}
+
+function hrefFor(testId: string, q: { filter?: string; section?: string }): string {
+  const params = new URLSearchParams()
+  if (q.section) params.set('section', q.section)
+  if (q.filter) params.set('filter', q.filter)
+  const qs = params.toString()
+  return qs ? `/archive/${testId}?${qs}` : `/archive/${testId}`
+}
+
+function FilterLink({ label, href, active }: { label: string; href: string; active: boolean }) {
+  return (
+    <Link
+      href={href}
+      aria-current={active ? 'page' : undefined}
+      className={[
+        'rounded-full px-4 py-2 text-sm font-bold transition',
+        active ? 'bg-play-purple text-white' : 'bg-white text-ink-soft hover:bg-black/5',
+      ].join(' ')}
+    >
+      {label}
+    </Link>
+  )
+}
+
+/** Seconds as m:ss. */
+function clock(sec: number): string {
+  const s = Math.round(sec)
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 }

@@ -15,8 +15,10 @@ export const emptyUserAction: UserActionState = { error: null, credential: null 
 export interface BulkState {
   error: string | null
   problems: { line: number; message: string; raw: string }[]
+  /** Rows that were imported but had something odd about them. */
+  warnings: { line: number; message: string; raw: string }[]
   created: { username: string; password: string }[]
   failed: { username: string; message: string }[]
 }
 
-export const emptyBulk: BulkState = { error: null, problems: [], created: [], failed: [] }
+export const emptyBulk: BulkState = { error: null, problems: [], warnings: [], created: [], failed: [] }

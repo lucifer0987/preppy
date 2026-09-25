@@ -1,24 +1,25 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { play, setSoundEnabled, soundEnabled } from './sound'
+import { useState, useTransition } from 'react'
+import { play } from './sound'
+import { setSoundAction } from '../app/sound'
 
 /**
- * Reads localStorage after mount, so the server and the first client render
- * agree and there is no hydration mismatch.
+ * The sound switch. The setting belongs to the person (PRD 8.3), so it comes
+ * from the server and is saved there; if saving fails the switch flips back.
  */
-export function SoundToggle({ compact = false }: { compact?: boolean }) {
-  const [on, setOn] = useState<boolean | null>(null)
-
-  useEffect(() => { setOn(soundEnabled()) }, [])
-  if (on === null) return null
+export function SoundToggle({ initial, compact = false }: { initial: boolean; compact?: boolean }) {
+  const [on, setOn] = useState(initial)
+  const [, startTransition] = useTransition()
 
   const toggle = () => {
     const next = !on
     setOn(next)
-    setSoundEnabled(next)
     // Confirm the change audibly, which is also the gesture that unlocks audio.
     if (next) void play('click')
+    startTransition(async () => {
+      try { await setSoundAction(next) } catch { setOn(!next) }
+    })
   }
 
   return (
@@ -32,7 +33,7 @@ export function SoundToggle({ compact = false }: { compact?: boolean }) {
         on ? 'bg-play-purple text-white' : 'bg-black/5 text-ink-soft hover:bg-black/10',
       ].join(' ')}
     >
-      <span aria-hidden="true">{on ? '♪' : '♪'}</span>
+      <span aria-hidden="true">{on ? '♪' : '∅'}</span>
       Sound {on ? 'on' : 'off'}
     </button>
   )

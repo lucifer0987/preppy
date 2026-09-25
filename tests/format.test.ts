@@ -1,13 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import Ajv from 'ajv/dist/2020.js'
-import { readPaper, summarise } from '../lib/paper'
-import { repairJson } from '../lib/json-repair'
+import { FIELDS, readPaper, readQuestion, summarise } from '../lib/paper'
 import { PATTERN, SECTION_CODES } from '../lib/types'
 
 const sampleJson = readFileSync('format/sample.json', 'utf8')
 const templateJson = readFileSync('format/template.json', 'utf8')
-const paper002Json = readFileSync('format/paper-002.json', 'utf8')
 const schema = JSON.parse(readFileSync('format/schema.json', 'utf8'))
 
 const ok = (src: string, opts = {}) => {
@@ -28,32 +26,70 @@ describe('the shipped format kit', () => {
     expect(r.paper!.sections.flatMap((s) => s.questions)).toHaveLength(55)
   })
 
-  it('template.json is publishable, so a filled-in copy starts valid', () => {
+  it('template.json is refused only for its placeholder text, so a filled-in copy starts valid', () => {
     const r = ok(templateJson)
-    expect(r.errors, r.errors.map((e) => `${e.path}: ${e.message}`).join('\n')).toHaveLength(0)
+    expect(r.publishable).toBe(false)
+    const other = r.errors.filter((e) => e.code !== 'PLACEHOLDER_TEXT')
+    expect(other, other.map((e) => `${e.path}: ${e.message}`).join('\n')).toHaveLength(0)
+    // Every question, the directions block and the title are flagged.
+    expect(r.errors.filter((e) => /questions\[\d+\]$/.test(e.path ?? ''))).toHaveLength(55)
+    expect(r.errors.map((e) => e.path)).toContain('title')
+    expect(r.errors.map((e) => e.path)).toContain('sections[0].directions[0]')
   })
 
-  it('paper-002.json is publishable', () => {
-    const r = ok(paper002Json)
-    expect(r.errors, r.errors.map((e) => `${e.path}: ${e.message}`).join('\n')).toHaveLength(0)
-    expect(r.paper!.sections.flatMap((s) => s.questions)).toHaveLength(55)
+  it('does not mistake real text beginning "Replace" for a placeholder', () => {
+    const r = ok(mutate((p) => {
+      p.sections[2].questions[0].text = 'Replace with the correct phrase: he do not like it.'
+    }))
+    expect(r.codes).not.toContain('PLACEHOLDER_TEXT')
   })
 
-  it('every answer key names an option that exists, in both real papers', () => {
-    for (const src of [sampleJson, paper002Json]) {
-      for (const s of ok(src).paper!.sections) {
-        for (const q of s.questions) {
-          expect(Object.keys(q.options), `Q${q.number}`).toContain(q.answer)
-        }
+  it('every answer key names an option that exists', () => {
+    for (const s of ok(sampleJson).paper!.sections) {
+      for (const q of s.questions) {
+        expect(Object.keys(q.options), `Q${q.number}`).toContain(q.answer)
       }
     }
   })
 
-  it('all three agree with schema.json', () => {
+  it('both agree with schema.json', () => {
     const ajv = new (Ajv as any)({ allErrors: true, strict: false })
     const validate = ajv.compile(schema)
-    for (const src of [sampleJson, templateJson, paper002Json]) {
+    for (const src of [sampleJson, templateJson]) {
       expect(validate(JSON.parse(src)), JSON.stringify(validate.errors)).toBe(true)
+    }
+  })
+
+  it('lists the same fields as schema.json at every level', () => {
+    const props = (o: any) => Object.keys(o.properties).sort()
+    expect([...FIELDS.document].sort()).toEqual(props(schema))
+    expect([...FIELDS.section].sort()).toEqual(props(schema.$defs.section))
+    expect([...FIELDS.directions].sort()).toEqual(props(schema.$defs.directions))
+    expect([...FIELDS.table].sort()).toEqual(props(schema.$defs.table))
+    expect([...FIELDS.question].sort()).toEqual(props(schema.$defs.question))
+  })
+
+  it('refuses whatever schema.json refuses', () => {
+    const ajv = new (Ajv as any)({ allErrors: true, strict: false })
+    const validate = ajv.compile(schema)
+    const cases: [string, (p: any) => void][] = [
+      ['unknown top-level key', (p) => { p.titel = 'x' }],
+      ['unknown section key', (p) => { p.sections[0].direction = p.sections[0].directions; delete p.sections[0].directions }],
+      ['unknown directions key', (p) => { p.sections[0].directions[0].note = 'x' }],
+      ['unknown table key', (p) => { p.sections[0].directions[0].table.caption = 'x' }],
+      ['unknown question key', (p) => { p.sections[0].questions[0].answr = 'A' }],
+      ['sections out of order', (p) => { p.sections.reverse() }],
+      ['empty table headers', (p) => { p.sections[0].directions[0].table = { headers: [], rows: [] } }],
+      ['empty difficulty', (p) => { p.sections[0].questions[0].difficulty = '' }],
+      ['text that is only spaces', (p) => { p.sections[0].questions[0].text = '             ' }],
+      ['short text padded with spaces', (p) => { p.sections[0].questions[0].text = '   short   ' }],
+      ['blank directions text', (p) => { p.sections[0].directions[0].text = '   ' }],
+      ['blank option', (p) => { p.sections[0].questions[0].options.A = ' ' }],
+    ]
+    for (const [name, fn] of cases) {
+      const src = mutate(fn)
+      expect(validate(JSON.parse(src)), `schema should refuse: ${name}`).toBe(false)
+      expect(ok(src).publishable, `validator should refuse: ${name}`).toBe(false)
     }
   })
 
@@ -77,52 +113,17 @@ describe('the shipped format kit', () => {
   })
 })
 
-describe('repairing what a PDF does to JSON', () => {
-  it('straightens curly quotes', () => {
-    const r = repairJson('{“format”: “preppy-paper”}')
-    expect(JSON.parse(r.json)).toEqual({ format: 'preppy-paper' })
-    expect(r.repairs.find((x) => x.kind === 'curly-double-quotes')?.count).toBe(4)
+describe('reading the file', () => {
+  it('accepts a UTF-8 byte order mark, which some editors write', () => {
+    expect(ok('\uFEFF' + sampleJson).publishable).toBe(true)
   })
 
-  it('rejoins a string split across lines', () => {
-    const r = repairJson('{"text": "first half\n  second half"}')
-    expect(JSON.parse(r.json).text).toBe('first half second half')
-    expect(r.repairs.find((x) => x.kind === 'wrapped-strings')?.count).toBe(1)
-  })
-
-  it('drops page headers and footers', () => {
-    const r = repairJson('Daily Mock 001   page 1\n{"a": 1}\npage 1 of 3')
-    expect(JSON.parse(r.json)).toEqual({ a: 1 })
-    expect(r.repairs.some((x) => x.kind === 'page-furniture')).toBe(true)
-  })
-
-  it('converts a Unicode minus back to a hyphen', () => {
-    const r = repairJson('{"marksNegative": −0.25}')
-    expect(JSON.parse(r.json).marksNegative).toBe(-0.25)
-  })
-
-  it('removes trailing commas', () => {
-    const r = repairJson('{"a": 1, "b": [1, 2,],}')
-    expect(JSON.parse(r.json)).toEqual({ a: 1, b: [1, 2] })
-  })
-
-  it('leaves an escaped quote inside a string alone', () => {
-    const r = repairJson('{"text": "she said \\"go\\" loudly"}')
-    expect(JSON.parse(r.json).text).toBe('she said "go" loudly')
-  })
-
-  it('handles every damage type at once', () => {
-    const damaged = [
-      'Preppy Daily Mock    page 1',
-      '{',
-      '  “format”: “preppy-paper”,',
-      '  “n”: −0.25,',
-      '  “text”: “A train 150 m long',
-      'crosses a pole.”,',
-      '}',
-    ].join('\n')
-    const r = repairJson(damaged)
-    expect(JSON.parse(r.json)).toEqual({ format: 'preppy-paper', n: -0.25, text: 'A train 150 m long crosses a pole.' })
+  it('parses strictly: curly quotes and trailing commas are errors, not repaired', () => {
+    for (const src of ['{“format”: “preppy-paper”}', '{"format": "preppy-paper",}']) {
+      const r = ok(src)
+      expect(r.codes).toContain('JSON_INVALID')
+      expect(r.issues[0]!.message).toMatch(/line \d+, column \d+/)
+    }
   })
 })
 
@@ -149,6 +150,13 @@ describe('blocking errors', () => {
 
   it('rejects a malformed date', () => {
     expect(ok(mutate((p) => { p.date = '26/09/2026' })).codes).toContain('DATE_MALFORMED')
+  })
+
+  it('rejects a date that does not exist on the calendar', () => {
+    for (const d of ['2026-02-31', '2026-13-01', '2026-04-31', '2027-02-29']) {
+      expect(ok(mutate((p) => { p.date = d })).codes, d).toContain('DATE_INVALID')
+    }
+    expect(ok(mutate((p) => { p.date = '2028-02-29' })).codes).not.toContain('DATE_INVALID')
   })
 
   it('rejects a date that already has a paper', () => {
@@ -218,6 +226,20 @@ describe('blocking errors', () => {
     expect(ok(mutate((p) => { p.sections[0].directions[0].table.rows[0].push('extra') })).codes).toContain('TABLE_ROW_WIDTH')
   })
 
+  it('rejects sections that add up to more than the 45-minute window', () => {
+    const r = ok(mutate((p) => { p.sections[3].durationMinutes = 20 }))
+    expect(r.codes).toContain('DURATION_TOTAL')
+    // Shorter is fine: nobody is cut short by the hard stop.
+    expect(ok(mutate((p) => { p.sections[3].durationMinutes = 10 })).codes).not.toContain('DURATION_TOTAL')
+  })
+
+  it('warns, without blocking, about a date that has passed', () => {
+    const r = ok(sampleJson, { today: '2027-01-01' })
+    expect(r.codes).toContain('DATE_PAST')
+    expect(r.publishable).toBe(true)
+    expect(ok(sampleJson, { today: '2026-01-01' }).codes).not.toContain('DATE_PAST')
+  })
+
   it('rejects an image that was not uploaded', () => {
     expect(ok(mutate((p) => { p.sections[0].questions[0].images = ['figure.png'] })).codes).toContain('IMAGE_MISSING')
   })
@@ -228,8 +250,128 @@ describe('blocking errors', () => {
     expect(r.publishable).toBe(true)
   })
 
+  it('rejects an image name that cannot be a safe file name, in the validator and the schema', () => {
+    const ajv = new (Ajv as any)({ allErrors: true, strict: false })
+    const validate = ajv.compile(schema)
+    for (const bad of ['../secret.png', 'DI chart (1).png', 'figure.svg', '.hidden.png', 'no-extension']) {
+      const src = mutate((p) => { p.sections[0].directions[0].images = [bad] })
+      expect(ok(src, { availableImages: [bad] }).codes, bad).toContain('IMAGE_NAME')
+      expect(validate(JSON.parse(src)), bad).toBe(false)
+    }
+    const good = mutate((p) => { p.sections[0].directions[0].images = ['DI-chart_1.JPG'] })
+    expect(ok(good, { availableImages: ['DI-chart_1.JPG'] }).publishable).toBe(true)
+    expect(validate(JSON.parse(good))).toBe(true)
+  })
+
+  it('rejects an unknown key rather than silently dropping it', () => {
+    const r = ok(mutate((p) => {
+      p.sections[0].direction = p.sections[0].directions
+      delete p.sections[0].directions
+    }))
+    const issue = r.issues.find((i) => i.code === 'UNKNOWN_FIELD')!
+    expect(issue.path).toBe('sections[0].direction')
+    expect(issue.message).toMatch(/Did you mean "directions"/)
+    expect(r.publishable).toBe(false)
+  })
+
+  it('rejects unknown keys at every level', () => {
+    const paths = ok(mutate((p) => {
+      p.extra = 1
+      p.sections[1].extra = 1
+      p.sections[0].directions[0].extra = 1
+      p.sections[0].directions[0].table.extra = 1
+      p.sections[0].questions[2].extra = 1
+    })).issues.filter((i) => i.code === 'UNKNOWN_FIELD').map((i) => i.path)
+    expect(paths).toEqual(expect.arrayContaining([
+      'extra', 'sections[1].extra', 'sections[0].directions[0].extra',
+      'sections[0].directions[0].table.extra', 'sections[0].questions[2].extra',
+    ]))
+  })
+
+  it('rejects sections out of order', () => {
+    const r = ok(mutate((p) => { [p.sections[0], p.sections[1]] = [p.sections[1], p.sections[0]] }))
+    expect(r.codes).toContain('SECTION_ORDER')
+    expect(r.publishable).toBe(false)
+  })
+
+  it('rejects a fifth section', () => {
+    expect(ok(mutate((p) => { p.sections.push({ ...p.sections[3] }) })).codes).toContain('SECTION_EXTRA')
+  })
+
+  it('rejects overlapping directions ranges', () => {
+    const r = ok(mutate((p) => {
+      p.sections[0].directions.push({ from: 8, to: 12, text: 'A second block over part of the first.' })
+    }))
+    expect(r.codes).toContain('DIRECTIONS_OVERLAP')
+  })
+
+  it('rejects two directions blocks starting at the same question', () => {
+    const r = ok(mutate((p) => {
+      const d = p.sections[0].directions[0]
+      p.sections[0].directions.push({ from: d.from, to: d.from, text: 'Same start.' })
+    }))
+    expect(r.codes).toContain('DIRECTIONS_OVERLAP')
+  })
+
+  it('accepts directions ranges that touch without overlapping', () => {
+    const r = ok(mutate((p) => {
+      p.sections[0].directions = [
+        { from: 1, to: 5, text: 'First block.' },
+        { from: 6, to: 10, text: 'Second block.' },
+      ]
+    }))
+    expect(r.codes).not.toContain('DIRECTIONS_OVERLAP')
+    expect(r.publishable).toBe(true)
+  })
+
+  it('rejects a table with no headers', () => {
+    const r = ok(mutate((p) => { p.sections[0].directions[0].table = { headers: [], rows: [] } }))
+    expect(r.codes).toContain('TABLE_HEADERS')
+  })
+
+  it('rejects question text that is long enough only because of spaces', () => {
+    expect(ok(mutate((p) => { p.sections[0].questions[0].text = '    short    ' })).codes).toContain('TEXT_EMPTY')
+  })
+
+  it('rejects an empty difficulty, which the database would refuse', () => {
+    const r = ok(mutate((p) => { p.sections[0].questions[0].difficulty = '' }))
+    expect(r.codes).toContain('DIFFICULTY_INVALID')
+    expect(r.codes).not.toContain('DIFFICULTY_MISSING')
+  })
+
+  it('rejects placeholder text left over from the template', () => {
+    const r = ok(mutate((p) => { p.sections[0].questions[4].options.C = 'Replace with option C' }))
+    const issue = r.issues.find((i) => i.code === 'PLACEHOLDER_TEXT')!
+    expect(issue.path).toBe('sections[0].questions[4]')
+    expect(issue.message).toContain('options.C')
+    expect(r.publishable).toBe(false)
+  })
+
   it('rejects an invalid difficulty', () => {
     expect(ok(mutate((p) => { p.sections[0].questions[0].difficulty = 'Tricky' })).codes).toContain('DIFFICULTY_INVALID')
+  })
+})
+
+describe('one question on its own', () => {
+  const q = () => JSON.parse(sampleJson).sections[0].questions[0]
+
+  it('accepts a question from the sample', () => {
+    expect(summarise(readQuestion(q(), 'QUANT')).publishable).toBe(true)
+  })
+
+  it('applies the same rules as a full upload', () => {
+    const codes = (x: unknown, code: 'QUANT' | 'PK' = 'QUANT') => readQuestion(x, code).map((i) => i.code)
+    expect(codes({ ...q(), text: 'short' })).toContain('TEXT_EMPTY')
+    expect(codes({ ...q(), options: { ...q().options, B: '' } })).toContain('OPTION_EMPTY')
+    expect(codes({ ...q(), solution: 'Replace with the worked explanation. Optional.' })).toContain('PLACEHOLDER_TEXT')
+    expect(codes({ ...q(), soluton: 'x' })).toContain('UNKNOWN_FIELD')
+    expect(codes(q(), 'PK')).toContain('NUMBER_OUT_OF_BAND')
+  })
+
+  it('checks images against those already stored', () => {
+    const withImage = { ...q(), images: ['fig.png'] }
+    expect(readQuestion(withImage, 'QUANT').map((i) => i.code)).toContain('IMAGE_MISSING')
+    expect(summarise(readQuestion(withImage, 'QUANT', { availableImages: ['fig.png'] })).publishable).toBe(true)
   })
 })
 

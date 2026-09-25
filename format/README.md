@@ -1,11 +1,11 @@
 # The Preppy paper format
 
-One paper per night, as **a single JSON object**, delivered as a PDF.
+One paper per night, as **a single JSON file**.
 
 The format is fixed. The checker reads this and nothing else.
 
 ```
-npm run check -- your-paper.pdf
+npm run check -- your-paper.json
 ```
 
 Exit `0` publishable, `1` blocking errors, `2` bad usage.
@@ -17,22 +17,20 @@ Exit `0` publishable, `1` blocking errors, `2` bad usage.
 | File | What it is |
 |---|---|
 | `template.json` | Fill-in skeleton. All 55 questions, numbered correctly, ready to overwrite |
-| `template.pdf` | The same, rendered |
-| `sample.json` | A complete worked paper: DI table, seating puzzle, RC passage |
-| `sample.pdf` | The same, rendered — this is exactly what a real upload looks like |
-| `paper-002.json` | A second complete paper: DI table, floor puzzle, RC passage. **Copy this one** |
-| `paper-002.pdf` | The same, rendered |
+| `sample.json` | A complete worked paper: DI table, seating puzzle, RC passage. **Copy this one** |
 | `schema.json` | JSON Schema. Point your editor at it for live validation while you type |
 
 Two ways in:
 
-- **Copy `paper-002.json`** and swap the content question by question. Everything
+- **Copy `sample.json`** and swap the content question by question. Everything
   is already in place — the numbering, the bands, a table, a puzzle, a passage.
   This is the quicker route and the one to prefer.
 - **Start from `template.json`** if you would rather fill a blank skeleton. The
-  55 questions are numbered correctly; overwrite the placeholder text.
+  55 questions are numbered correctly; overwrite the placeholder text. The
+  checker refuses any placeholder left in (see below), so an unedited
+  template can never go live by mistake.
 
-Either way: export to PDF, then run the checker on it.
+Either way: run the checker on it, then upload the `.json`.
 
 ---
 
@@ -85,7 +83,8 @@ Either way: export to PDF, then run the checker on it.
 
 ## The pattern
 
-Four sections, in this order, with these numbers. Nothing else validates.
+Four sections, in this order, with these numbers. Nothing else validates: a
+fifth section, or the right four in a different order, is a blocking error.
 
 | `code` | Section | Questions | Numbers | Minutes |
 |---|---|---|---|---|
@@ -108,7 +107,7 @@ Marking is +1 correct, −0.25 wrong, 0 unattempted.
 |---|---|---|
 | `format` | yes | Always the string `"preppy-paper"` |
 | `version` | yes | Always `1` |
-| `date` | yes | `YYYY-MM-DD`, the night it goes live |
+| `date` | yes | `YYYY-MM-DD`, the night it goes live. Must be a real day: `2026-02-31` is refused |
 | `title` | no | Defaults to the date |
 | `sections` | yes | Exactly four |
 
@@ -128,13 +127,13 @@ Marking is +1 correct, −0.25 wrong, 0 unattempted.
 | Field | Required | Notes |
 |---|---|---|
 | `number` | yes | Must fall inside the section's band |
-| `text` | yes | At least 10 characters |
+| `text` | yes | At least 10 characters, not counting spaces at either end |
 | `options` | yes | Object keyed `A`–`E`, contiguous from `A`, 2 to 5 entries |
 | `answer` | yes | One of the keys present in `options` |
 | `solution` | no | Shown in the archive after midnight |
 | `tag` | no | Topic, used to track weak areas |
-| `difficulty` | no | `Easy` `Medium` `Hard` |
-| `images` | no | File names, uploaded alongside the PDF |
+| `difficulty` | no | `Easy` `Medium` `Hard`. Leave it out rather than `""` |
+| `images` | no | File names of images uploaded with the paper — see [Images](#images) |
 
 ### Directions
 
@@ -144,62 +143,81 @@ them during the test.
 
 | Field | Required | Notes |
 |---|---|---|
-| `from`, `to` | yes | Inclusive range, inside the same section |
+| `from`, `to` | yes | Inclusive range, inside the same section. Ranges may not overlap |
 | `text` | yes | The passage or instruction |
-| `table` | no | `headers` plus `rows`, both arrays of strings |
-| `images` | no | File names |
+| `table` | no | `headers` (at least one) plus `rows`, both arrays of strings |
+| `images` | no | File names — see [Images](#images) |
 
-**Put tables in `table`, never in `text`.** A PDF collapses runs of spaces, so a
-table drawn with aligned spaces loses its columns on export. As structured
-`headers` and `rows` it cannot be damaged.
+A question shows at most one directions block, so two blocks covering the same
+question are an error: the second would never be seen. Ranges that touch
+(`1`–`5` and `6`–`10`) are fine.
+
+**Put tables in `table`, never in `text`.** A table drawn with aligned spaces
+loses its columns when rendered in the browser. As structured `headers` and
+`rows` it displays correctly.
 
 ---
 
-## Why a PDF of JSON needs care
+## Only these fields
 
-JSON was never meant to survive a word processor. Four things happen to it on
-the way through a PDF, and the checker repairs all four — and tells you which
-ones it had to apply:
+Every object takes exactly the fields listed above and nothing else. An
+unknown key is a blocking error, not ignored: a misspelling such as
+`"direction"` for `"directions"` would otherwise drop a whole passage without
+a word. The message suggests the field you probably meant.
 
-| What happens | Why | Repaired |
-|---|---|---|
-| `"` becomes `“` and `”` | Word and Google Docs autocorrect | yes |
-| A long value splits across two lines | JSON strings cannot contain a raw newline | yes |
-| Headers, footers, page numbers appear | They sit outside the JSON object | yes |
-| `-0.25` becomes `−0.25` | Autocorrect swaps in a Unicode minus | yes |
+## Images
 
-`sample.pdf` needs **75 wrapped-string repairs** to be readable. It still comes
-back with all 570 fields identical to `sample.json`.
+For a DI chart, a puzzle diagram or a figure a question needs. List the file
+names in `images` on the question or the directions block, then choose the
+files in the **Images** box on the upload page, next to the paper.
 
-Two things the repair layer cannot fix, so avoid them:
+- Plain names only: letters, digits, `.`, `-`, `_`, ending in `.png`, `.jpg`,
+  `.webp` or `.gif`. `di-chart-1.png` works; `DI chart (1).png` does not.
+- Under 2 MB each, and 10 MB for the paper and all its images together.
+- Every name the paper lists must be uploaded, or the paper will not publish.
+  To check locally first: `npm run check -- paper.json --images <folder>`.
+- Students can load an image only once the paper opens at 22:00.
 
-- **Typographic quotes inside your text.** A `“` inside a question stem is
-  straightened into a `"`, which ends the string early. Use plain quotes, or
-  write the passage without them.
-- **A scanned or photographed PDF.** There is no text layer to read and no OCR.
-  Always use File → Export as PDF.
+Tables still belong in `table`, not in an image: a table stays readable and
+searchable, and cannot be the wrong file.
+
+## Plain JSON only
+
+The file is parsed strictly, exactly as written. Nothing is repaired, so:
+
+- **Straight quotes only.** `“` and `”` are not JSON; a word processor's
+  autocorrect will insert them. Write the file in a code editor.
+- **No trailing commas** after the last item in an object or array.
+- **No comments.**
+
+A parse error names the line and column, so it is quick to find.
 
 ## What blocks publication
 
-Wrong question count in a section · a number outside its section's band · a gap
-or duplicate in the numbering · a missing `answer`, or one naming an option that
-does not exist · options that are not contiguous from `A` · question text under
-10 characters · a `directions` range covering questions that are not there · a
-table row whose width does not match its headers · an image referenced but not
-uploaded · a date that already has a paper · JSON that cannot be read at all.
+Wrong question count in a section · sections missing, repeated, extra or out of
+order · a number outside its section's band · a gap or duplicate in the
+numbering · a missing `answer`, or one naming an option that does not exist ·
+options that are not contiguous from `A` · question text under 10 characters ·
+a `directions` range covering questions that are not there, or overlapping
+another · a table with no headers, or a row whose width does not match them ·
+an empty `difficulty` · an unknown field anywhere · placeholder text left over
+from `template.json` · an image referenced but not uploaded · a date that is not
+a real day, or that already has a scheduled paper · sections adding up to more
+than 45 minutes · JSON that cannot be read at all.
 
 **A gap in the numbering is an error, not a warning.** It nearly always means a
-question was lost on export, not that you skipped one on purpose.
+question was deleted by accident, not that you skipped one on purpose.
 
 ## What is only a warning
 
 No `solution` · no `tag` · no `difficulty` · fewer than five options · a very
-long option. These publish fine.
+long option · a date that has already passed (you pick a new night when you
+schedule it). These publish fine.
 
 ## Habits that avoid trouble
 
-- Start from `template.json`; the numbering is already correct.
+- Start from `sample.json` (or `template.json`); the numbering is already correct.
 - Point your editor at `schema.json` and it will catch mistakes as you type.
-- Export to PDF. Never scan, never screenshot.
+- Edit in a code editor, not a word processor.
 - Run `npm run check` before you publish. It reads the paper exactly the way the
   site will.

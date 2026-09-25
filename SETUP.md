@@ -1,3 +1,7 @@
+> **A fuller guide with diagrams lives in [docs/architecture.html](docs/architecture.html)** —
+> open it in a browser. It covers the same setup plus how the system works
+> and what to do when something breaks. This file is the short version.
+
 # Setting up Preppy
 
 Written for someone who does not write web code. Follow it top to bottom once;
@@ -35,6 +39,9 @@ locked them down.
 To confirm: open **Table Editor**. You should see `profiles`, `tests`,
 `sections`, `direction_blocks`, `questions`, `attempts`, `attempt_sections`
 and `responses`. Each will show a **RLS enabled** badge. That is intentional.
+
+Paper images need no setup: the app creates a private Storage bucket called
+`paper-images` the first time a paper with images is uploaded.
 
 ## 4. Copy your keys
 
@@ -90,6 +97,13 @@ To set fresh passwords at any time:
 npm run seed -- --reset
 ```
 
+A reset also reactivates each account and signs out every session it had, on
+every device. If an earlier run left a login with no profile behind (it prints
+`adopted`), the seed takes it over with a fresh password instead of failing on
+the duplicate.
+
+Passwords look like `k7qm-3xtr-9hwp`: easy to read out, about 60 bits.
+
 ## 7. Set a cron secret
 
 One job runs nightly, at 00:05, to score any attempt somebody left open. The
@@ -130,26 +144,30 @@ Log in as `admin` to reach the admin page, or as any student for the dashboard.
 - The home page, with a live countdown to the next 10 PM unlock
 - Username and password login
 - A dashboard that knows whether tonight's paper is live, already taken, or
-  past its entry cut-off
+  past its entry cut-off, with your recent papers and the leaderboard inline
 - The full test: sectional timers, the question palette, one-way section
   navigation, full screen with the two counters, and resume after a refresh
-- A result page with the sectional breakdown and the pacing verdict
-- Past papers, with answers and solutions from midnight, filterable to the
-  ones you got wrong or never reached
-- The leaderboard, with All time, Last 7 and Last 30
+- A result page the moment you submit: the score, the sectional breakdown, the
+  pacing verdict and your slowest questions. Your rank and leaderboard move
+  appear at 12:01 AM, when the board takes in the night's paper
+- Past papers, with answers, solutions and your time per question from
+  midnight, filterable by section and to the ones you got wrong or never reached
+- The leaderboard, with All time, Last 7, Last 30 and any one paper's rank
+  list, refreshed at 12:01 AM each night
 - Confetti on a personal best, an animated podium, and streak badges
 - A sound toggle, off by default, which never plays during a section
 - Changing their own password
 
 **For you**
 
-- Upload a paper, see the validation report and the repair log, preview every
+- Upload a paper with its images, see the validation report, preview every
   question exactly as a student sees it, then schedule it
-- Dry run any paper in the real engine; it never counts
+- Dry run any paper in the real engine; it never counts, and can be deleted
 - Correct an answer key after the fact, which rescores every attempt
 - A flag on any question under 10% correct, which is usually a wrong key
 - Create people one at a time or in bulk from a CSV, reset passwords, deactivate
-- An attempts table with scores, durations and the two integrity counters
+- An attempts table with scores, durations and the two integrity counters, and
+  any one student's full history
 - Export the whole question bank as JSON
 
 ## What is left
@@ -160,7 +178,7 @@ second exam track and practice mode.
 Paper ingestion also works from the command line, without the app running:
 
 ```bash
-npm run check format/paper-002.pdf
+npm run check format/sample.json
 ```
 
 ---
@@ -190,11 +208,30 @@ Same cause. The seed script reads `.env.local` directly.
 **Seeding fails with "Database error creating new user"**
 The tables are missing. Re-run step 3.
 
+**Login says "Too many failed attempts"**
+Five wrong passwords on one account, or twenty from one network, lock that
+account or address out for 15 minutes. The count lives in the running server's
+memory, so restarting `npm run dev` clears it; on Vercel each server instance
+counts separately.
+
+**Someone was signed out unexpectedly**
+Expected after an admin password reset, a reactivation, or their own password
+change on another device: each of those ends the account's other sessions.
+
 **Login always says "Wrong username or password"**
 Either the password is wrong, or email confirmation is still on. Re-check
 step 5, then `npm run seed -- --reset`.
 
 **A student can reach `/admin`**
-They cannot — the role check is in `app/admin/layout.tsx` and runs on the
-server for every page in that section. If you see otherwise, that is a bug
-worth reporting.
+They cannot — every admin page and every admin action checks the role on the
+server for itself (`lib/guard.ts`); the layout's check is not relied on. If you
+see otherwise, that is a bug worth reporting.
+
+**Starting a test does not sign the account out on another device**
+Signing out other devices is done by a database function,
+`revoke_user_sessions`, that deletes the account's Supabase sessions. If your
+project does not allow it, `npm run seed -- --reset` prints
+`WARNING ... sessions not ended`, and the app falls back to Supabase's own
+"sign out other sessions", which takes effect within an hour rather than at
+once. Re-run `supabase/schema.sql` in the SQL editor (as the default
+`postgres` user) and try again.

@@ -1,0 +1,1260 @@
+<title>Preppy Engineering Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+
+<style>
+:root{
+  --ground:#EEF1F5; --surface:#FFFFFF; --surface-2:#E4E9F0; --surface-3:#D6DDE7;
+  --ink:#10151C; --ink-2:#3E4856; --ink-3:#59616E;
+  --line:#D2D9E2; --line-2:#B4BFCC;
+  --accent:#0B565D; --accent-2:#0E767F; --accent-soft:#DBEAEB;
+  --ok:#1A6433; --ok-soft:#DEEFE3;
+  --warn:#7E5205; --warn-soft:#F8EDD6;
+  --danger:#94202B; --danger-soft:#F8DDDF;
+  --on-fill:#FFFFFF;
+  --shadow:0 1px 2px rgba(16,21,28,.05), 0 10px 26px -14px rgba(16,21,28,.2);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0B0F14; --surface:#131A22; --surface-2:#1B242E; --surface-3:#28323E;
+    --ink:#E7EDF4; --ink-2:#A6B2C0; --ink-3:#8F9BAA;
+    --line:#242F3B; --line-2:#36434F;
+    --accent:#63C7D1; --accent-2:#8AD8E0; --accent-soft:#12262A;
+    --ok:#5DC77E; --ok-soft:#10241A;
+    --warn:#D9A648; --warn-soft:#241C0C;
+    --danger:#EE7D88; --danger-soft:#2A1317;
+    --on-fill:#0B0F14;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 12px 30px -16px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0B0F14; --surface:#131A22; --surface-2:#1B242E; --surface-3:#28323E;
+  --ink:#E7EDF4; --ink-2:#A6B2C0; --ink-3:#8F9BAA;
+  --line:#242F3B; --line-2:#36434F;
+  --accent:#63C7D1; --accent-2:#8AD8E0; --accent-soft:#12262A;
+  --ok:#5DC77E; --ok-soft:#10241A;
+  --warn:#D9A648; --warn-soft:#241C0C;
+  --danger:#EE7D88; --danger-soft:#2A1317;
+  --on-fill:#0B0F14;
+  --shadow:0 1px 2px rgba(0,0,0,.35), 0 12px 30px -16px rgba(0,0,0,.7);
+}
+
+/* A terminal is dark in every theme. Painted explicitly, not inherited. */
+:root, :root[data-theme="dark"], :root[data-theme="light"]{
+  --term-bg:#111820; --term-ink:#DCE4EE; --term-dim:#7F8B9C; --term-accent:#5FCAD6; --term-warn:#E2B063;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  font-size:16.5px; line-height:1.65; -webkit-font-smoothing:antialiased;
+}
+
+.wrap{display:grid; grid-template-columns:1fr; max-width:1260px; margin:0 auto; padding:0 20px 120px}
+@media(min-width:1100px){ .wrap{grid-template-columns:232px minmax(0,1fr); gap:56px; padding:0 32px 140px} }
+
+/* ---------------------------------------------------------------- rail */
+.rail{display:none}
+@media(min-width:1100px){
+  .rail{display:block; position:sticky; top:0; align-self:start; max-height:100vh; overflow-y:auto; padding:40px 0}
+}
+.rail-part{font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--accent); margin:20px 0 8px; padding-bottom:6px; border-bottom:1px solid var(--line)}
+.rail-part:first-child{margin-top:0}
+.rail ol{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:1px}
+.rail a{display:grid; grid-template-columns:20px 1fr; gap:8px; align-items:baseline; padding:5px 8px 5px 5px;
+  border-radius:4px; text-decoration:none; color:var(--ink-2); font-size:12.5px; line-height:1.35;
+  border-left:2px solid transparent}
+.rail a span{font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--ink-3); font-variant-numeric:tabular-nums}
+.rail a:hover{background:var(--surface-2); color:var(--ink)}
+.rail a.on{color:var(--accent); font-weight:600; border-left-color:var(--accent); background:var(--accent-soft)}
+.rail a.on span{color:var(--accent)}
+
+main{min-width:0}
+.col{max-width:74ch}
+
+/* ---------------------------------------------------------------- masthead */
+.mast{padding:60px 0 30px; border-bottom:3px solid var(--ink)}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--accent); margin:0 0 18px; display:flex; flex-wrap:wrap; gap:9px; align-items:center}
+.dot{width:3px;height:3px;border-radius:50%;background:var(--line-2);display:inline-block}
+h1{font-family:"IBM Plex Sans Condensed",sans-serif; font-weight:700; font-size:clamp(42px,7vw,72px);
+  line-height:.98; letter-spacing:-.02em; margin:0 0 16px; text-wrap:balance}
+.lede{font-size:19.5px; line-height:1.55; color:var(--ink-2); margin:0; max-width:62ch}
+.lede strong{color:var(--ink); font-weight:600}
+
+.facts{display:grid; grid-template-columns:repeat(auto-fit,minmax(118px,1fr)); margin:30px 0 0; border-top:1px solid var(--line)}
+.facts div{padding:13px 16px 13px 0; border-right:1px solid var(--line)}
+.facts div:last-child{border-right:0}
+.facts dt{font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3); margin:0 0 4px}
+.facts dd{margin:0; font-family:"IBM Plex Sans Condensed",sans-serif; font-size:21px; font-weight:700; line-height:1.15; font-variant-numeric:tabular-nums}
+.facts dd small{display:block; font-family:"IBM Plex Sans",sans-serif; font-size:11px; font-weight:400; color:var(--ink-3); letter-spacing:0}
+
+/* ---------------------------------------------------------------- part divider */
+.part{margin:70px 0 0; padding:28px 0 0; border-top:3px solid var(--accent)}
+.part p{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--accent); margin:0 0 8px}
+.part h2{font-family:"IBM Plex Sans Condensed",sans-serif; font-weight:700; font-size:clamp(30px,4.6vw,44px);
+  letter-spacing:-.018em; line-height:1.06; margin:0 0 10px; display:block}
+.part .sub{font-size:17px; color:var(--ink-2); margin:0; max-width:60ch}
+
+/* ---------------------------------------------------------------- sections */
+section{padding:48px 0 0; scroll-margin-top:20px}
+h2{font-family:"IBM Plex Sans Condensed",sans-serif; font-weight:700; font-size:clamp(24px,3.2vw,32px);
+  letter-spacing:-.015em; line-height:1.14; margin:0 0 22px; text-wrap:balance;
+  display:grid; grid-template-columns:auto 1fr; gap:13px; align-items:baseline}
+h2 i{font-style:normal; font-family:"IBM Plex Mono",monospace; font-size:12.5px; font-weight:400; color:var(--accent); letter-spacing:0}
+h3{font-family:"IBM Plex Sans Condensed",sans-serif; font-weight:700; font-size:19px; margin:34px 0 11px; text-wrap:balance}
+h4{font-family:"IBM Plex Sans",sans-serif; font-weight:600; font-size:14px; margin:24px 0 9px; color:var(--ink-2)}
+p{margin:0 0 15px}
+ul,ol{margin:0 0 17px; padding-left:21px}
+li{margin:0 0 7px}
+code{font-family:"IBM Plex Mono",monospace; font-size:.85em; background:var(--surface-2); padding:.13em .38em; border-radius:3px}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:3px}
+strong{font-weight:600}
+
+/* ---------------------------------------------------------------- callouts */
+.note{border-radius:8px; padding:15px 18px; margin:20px 0; border:1px solid}
+.note h4{margin:0 0 6px; font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; font-weight:600}
+.note p{margin:0 0 9px; font-size:15.5px}
+.note p:last-child{margin:0}
+.note.do{background:var(--ok-soft); border-color:var(--ok)} .note.do h4{color:var(--ok)}
+.note.care{background:var(--warn-soft); border-color:var(--warn)} .note.care h4{color:var(--warn)}
+.note.never{background:var(--danger-soft); border-color:var(--danger)} .note.never h4{color:var(--danger)}
+.note.why{background:var(--accent-soft); border-color:var(--accent)} .note.why h4{color:var(--accent)}
+
+/* ---------------------------------------------------------------- terminal */
+.term{background:var(--term-bg); border-radius:9px; margin:18px 0; overflow:hidden; box-shadow:var(--shadow)}
+.term-bar{display:flex; align-items:center; gap:7px; padding:9px 14px; border-bottom:1px solid rgba(255,255,255,.08)}
+.term-bar i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.18);display:block}
+.term-bar span{margin-left:6px; font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--term-dim)}
+.term pre{margin:0; padding:15px 18px; overflow-x:auto; font-family:"IBM Plex Mono",monospace;
+  font-size:13px; line-height:1.75; color:var(--term-ink)}
+.term pre b{color:var(--term-accent); font-weight:400}
+.term pre i{color:var(--term-dim); font-style:normal}
+.term pre u{color:var(--term-warn); text-decoration:none}
+
+/* ---------------------------------------------------------------- tables */
+.tw{overflow-x:auto; margin:0 0 20px; border:1px solid var(--line); border-radius:8px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; font-size:13.5px; line-height:1.45; font-variant-numeric:tabular-nums}
+th{text-align:left; font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:10px; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink-3); padding:10px 13px; border-bottom:1px solid var(--line-2); white-space:nowrap}
+td{padding:10px 13px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--ink-2)}
+tr:last-child td{border-bottom:0}
+td:first-child{color:var(--ink); font-weight:500}
+td.n{text-align:right}
+td code, th code{background:none; padding:0}
+
+/* ---------------------------------------------------------------- figures */
+figure{margin:24px 0; padding:0}
+figure svg{display:block; width:100%; max-width:100%; height:auto; background:var(--surface);
+  border:1px solid var(--line); border-radius:9px; padding:14px; color:var(--ink)}
+figcaption{margin-top:9px; font-size:13.5px; color:var(--ink-3); line-height:1.5; max-width:70ch}
+figcaption b{color:var(--ink-2); font-weight:600}
+
+/* ---------------------------------------------------------------- steps */
+.steps{counter-reset:step; list-style:none; margin:20px 0; padding:0}
+.steps > li{counter-increment:step; position:relative; padding:0 0 22px 46px; border-left:2px solid var(--line); margin-left:15px}
+.steps > li:last-child{border-left-color:transparent; padding-bottom:0}
+.steps > li::before{content:counter(step); position:absolute; left:-16px; top:-3px; width:30px; height:30px;
+  border-radius:50%; background:var(--accent); color:var(--on-fill);
+  font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:600;
+  display:grid; place-items:center}
+.steps h4{margin:2px 0 7px; font-family:"IBM Plex Sans Condensed",sans-serif; font-size:17px; font-weight:700; color:var(--ink)}
+
+.pill{display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:9.5px; font-weight:600;
+  letter-spacing:.07em; padding:2.5px 7px; border-radius:3px; text-transform:uppercase; vertical-align:1px}
+.pill.local{background:var(--accent); color:var(--on-fill)}
+.pill.prod{background:var(--danger); color:var(--on-fill)}
+.pill.both{background:var(--surface-3); color:var(--ink-2)}
+
+.end{margin-top:60px; padding-top:20px; border-top:1px solid var(--line);
+  font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--ink-3); line-height:1.8}
+
+@media (prefers-reduced-motion: reduce){ *{animation:none!important; transition:none!important; scroll-behavior:auto!important} }
+</style>
+
+<div class="wrap">
+<nav class="rail" aria-label="Contents">
+  <p class="rail-part">Part I &mdash; How it works</p>
+  <ol>
+    <li><a href="#s1"><span>1</span>The shape of it</a></li>
+    <li><a href="#s2"><span>2</span>Trust boundary</a></li>
+    <li><a href="#s3"><span>3</span>The daily clock</a></li>
+    <li><a href="#s4"><span>4</span>Layers</a></li>
+    <li><a href="#s5"><span>5</span>The database</a></li>
+    <li><a href="#s6"><span>6</span>Taking a paper</a></li>
+    <li><a href="#s7"><span>7</span>Publishing a paper</a></li>
+    <li><a href="#s8"><span>8</span>Scoring &amp; the board</a></li>
+    <li><a href="#s9"><span>9</span>Security</a></li>
+    <li><a href="#s10"><span>10</span>Failure modes</a></li>
+  </ol>
+  <p class="rail-part">Part II &mdash; Running it</p>
+  <ol>
+    <li><a href="#s11"><span>11</span>Two builds</a></li>
+    <li><a href="#s12"><span>12</span>Local setup</a></li>
+    <li><a href="#s13"><span>13</span>Daily use</a></li>
+    <li><a href="#s14"><span>14</span>Production setup</a></li>
+    <li><a href="#s15"><span>15</span>Going live</a></li>
+    <li><a href="#s16"><span>16</span>When it breaks</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="mast">
+  <p class="eyebrow"><b>Engineering reference</b><i class="dot"></i>Preppy<i class="dot"></i>Phases 1 &amp; 2 complete</p>
+  <h1>How Preppy is built,<br>and how to run it</h1>
+  <p class="lede">A nightly mock-test platform for IBPS Specialist Officer (IT) candidates. This document is in two halves: <strong>how the system works</strong>, for when you need to reason about it, and <strong>how to set it up and run it</strong>, written for someone who does not write web code.</p>
+  <dl class="facts">
+    <div><dt>Routes</dt><dd>20</dd></div>
+    <div><dt>Tables</dt><dd>9</dd></div>
+    <div><dt>SQL functions</dt><dd>10</dd></div>
+    <div><dt>Modules</dt><dd>28<small>lib/</small></dd></div>
+    <div><dt>Tests</dt><dd>257</dd></div>
+    <div><dt>Runtime deps</dt><dd>7</dd></div>
+  </dl>
+</header>
+
+<div class="part">
+  <p>Part I</p>
+  <h2>How it works</h2>
+  <p class="sub">The mental model. Read this once and the code stops being surprising.</p>
+</div>
+
+<section id="s1"><div class="col">
+<h2><i>1</i>The shape of it</h2>
+
+<p>Preppy is <strong>one Next.js application talking to one Supabase project</strong>. There is no separate backend service, no queue, no cache layer, and no second database. Everything is TypeScript.</p>
+
+<p>That is a deliberate size. The system serves six accounts. Every extra moving part would be something that can break at 10 PM while five people wait, in exchange for capacity nobody needs.</p>
+
+<figure>
+<svg viewBox="0 0 760 330" role="img" aria-label="The browser talks only to the Next.js server, which holds the service-role key and is the only thing that talks to Supabase Postgres, Auth and Storage.">
+  <defs>
+    <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+
+  <rect x="14" y="60" width="150" height="86" rx="9" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <text x="89" y="94" text-anchor="middle" font-size="14" font-weight="600" fill="currentColor">Browser</text>
+  <text x="89" y="114" text-anchor="middle" font-size="11" fill="currentColor" opacity=".65">React, on a laptop</text>
+  <text x="89" y="130" text-anchor="middle" font-size="11" fill="currentColor" opacity=".65">1024px or wider</text>
+
+  <line x1="164" y1="90" x2="252" y2="90" stroke="currentColor" stroke-width="1.5" marker-end="url(#a1)"/>
+  <text x="208" y="82" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".75">HTTPS</text>
+  <line x1="252" y1="118" x2="164" y2="118" stroke="currentColor" stroke-width="1.5" marker-end="url(#a1)"/>
+  <text x="208" y="134" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".75">HTML + JSON</text>
+
+  <rect x="252" y="30" width="196" height="200" rx="9" fill="none" stroke="#0E767F" stroke-width="2.5"/>
+  <text x="350" y="54" text-anchor="middle" font-size="9.5" font-weight="600" fill="#0E767F" letter-spacing="1.2">TRUST BOUNDARY</text>
+  <text x="350" y="78" text-anchor="middle" font-size="14" font-weight="600" fill="currentColor">Next.js server</text>
+  <text x="350" y="99" text-anchor="middle" font-size="11" fill="currentColor" opacity=".7">Pages, Server Actions,</text>
+  <text x="350" y="114" text-anchor="middle" font-size="11" fill="currentColor" opacity=".7">route handlers, cron</text>
+  <rect x="270" y="132" width="160" height="34" rx="6" fill="#0E767F" opacity=".14"/>
+  <text x="350" y="148" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor">holds the</text>
+  <text x="350" y="161" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor">service-role key</text>
+  <text x="350" y="190" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".6">all business logic</text>
+  <text x="350" y="206" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".6">lives here</text>
+
+  <line x1="448" y1="100" x2="540" y2="100" stroke="currentColor" stroke-width="1.5" marker-end="url(#a1)"/>
+  <text x="494" y="92" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".75">SQL, RPC</text>
+
+  <rect x="540" y="30" width="206" height="62" rx="9" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <text x="643" y="54" text-anchor="middle" font-size="13" font-weight="600" fill="currentColor">Postgres</text>
+  <text x="643" y="73" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".65">9 tables, 10 functions, RLS on</text>
+
+  <rect x="540" y="104" width="206" height="58" rx="9" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <text x="643" y="127" text-anchor="middle" font-size="13" font-weight="600" fill="currentColor">Auth</text>
+  <text x="643" y="146" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".65">passwords, sessions</text>
+
+  <rect x="540" y="174" width="206" height="58" rx="9" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <text x="643" y="197" text-anchor="middle" font-size="13" font-weight="600" fill="currentColor">Storage</text>
+  <text x="643" y="216" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".65">paper images, private</text>
+
+  <line x1="448" y1="133" x2="540" y2="133" stroke="currentColor" stroke-width="1.5" marker-end="url(#a1)"/>
+  <line x1="448" y1="196" x2="540" y2="196" stroke="currentColor" stroke-width="1.5" marker-end="url(#a1)"/>
+
+  <path d="M89 146 L89 286 L643 286 L643 240" fill="none" stroke="#94202B" stroke-width="2" stroke-dasharray="7 5"/>
+  <line x1="352" y1="268" x2="382" y2="304" stroke="#94202B" stroke-width="2.5"/>
+  <line x1="382" y1="268" x2="352" y2="304" stroke="#94202B" stroke-width="2.5"/>
+  <text x="400" y="296" font-size="11.5" font-weight="600" fill="#94202B">the browser never reaches Supabase directly</text>
+</svg>
+<figcaption><b>One rule shapes the whole system.</b> Every database read and write happens in server code holding the service-role key. The browser is handed HTML and JSON, never a database connection. Section 2 covers why, and what backs it up when someone forgets.</figcaption>
+</figure>
+
+<h3>What each piece does</h3>
+<div class="tw"><table>
+<tr><th>Piece</th><th>Job</th><th>Why this one</th></tr>
+<tr><td>Next.js 16</td><td>Pages, server actions, API routes, the cron endpoint</td><td>UI and backend in one project, one language, one deploy</td></tr>
+<tr><td>Supabase Postgres</td><td>Every piece of durable state</td><td>Relational fits the data; transactions make scoring safe</td></tr>
+<tr><td>Supabase Auth</td><td>Password hashing, sessions, refresh</td><td>So no custom crypto is written anywhere in this codebase</td></tr>
+<tr><td>Supabase Storage</td><td>Diagrams for DI sets and puzzles</td><td>Private bucket; served through an app route that checks permission</td></tr>
+<tr><td>Vercel</td><td>Hosting and the one nightly cron</td><td>Zero-config for Next; the free tier covers six people</td></tr>
+</table></div>
+
+<div class="note why">
+  <h4>Why no separate backend</h4>
+  <p>A Next.js server action <em>is</em> a backend endpoint: it runs on the server, it is POST-only, and it carries an origin check. Splitting the same logic into a second service would add a network hop, a second deploy, and a second place for the service-role key to live, and would buy nothing at this size.</p>
+</div>
+</div></section>
+
+<section id="s2"><div class="col">
+<h2><i>2</i>The trust boundary</h2>
+
+<p>There is exactly one security rule to remember, and the rest of the security design follows from it.</p>
+
+<div class="note never">
+  <h4>The one rule</h4>
+  <p><strong>Never query Supabase from the browser.</strong> If a file starts with <code>'use client'</code>, it must not import anything under <code>lib/supabase/</code> or <code>lib/repo/</code>.</p>
+</div>
+
+<p>The service-role key bypasses every access rule in the database. It lives in a server-only environment variable and must never reach a browser. Three independent mechanisms keep it there, so forgetting the rule is caught rather than shipped:</p>
+
+<div class="tw"><table>
+<tr><th>Guard</th><th>Where</th><th>What happens if you slip</th></tr>
+<tr><td><code>import 'server-only'</code></td><td>Top of <code>lib/supabase/admin.ts</code>, <code>lib/auth.ts</code></td><td>The build fails. A client component importing it cannot compile</td></tr>
+<tr><td>Row Level Security</td><td>All 9 tables, enabled, no permissive policy</td><td>A leaked <code>anon</code> key reads nothing at all</td></tr>
+<tr><td><code>scripts/check-bundle.ts</code></td><td>Runs after every build</td><td>Scans the emitted client files for the key and fails the build</td></tr>
+</table></div>
+
+<p>That third one is why <code>npm run build</code> ends with a line like <code>check-bundle: 27 client files scanned, no service-role key found.</code> It is a belt on top of two braces, and it costs a second.</p>
+
+<h3>Who may do what</h3>
+<p>Authorisation is checked on the server on every request, never by hiding a link. <code>lib/guard.ts</code> holds the page guards so the rules cannot drift apart between routes:</p>
+
+<div class="tw"><table>
+<tr><th>Guard</th><th>Sends you away if</th><th>Used by</th></tr>
+<tr><td><code>requireUser()</code></td><td>Not signed in, or you still have an admin-set password</td><td>Every student page</td></tr>
+<tr><td><code>requireAdmin()</code></td><td>The above, or you are not an admin</td><td>The whole <code>/admin</code> segment</td></tr>
+<tr><td><code>requireAnySignedIn()</code></td><td>Not signed in</td><td>Only the change-password page, which must not redirect to itself</td></tr>
+</table></div>
+</div></section>
+
+<section id="s3"><div class="col">
+<h2><i>3</i>The daily clock</h2>
+
+<p>The whole product runs on one repeating 24-hour cycle. Understanding this is most of understanding the system.</p>
+
+<figure>
+<svg viewBox="0 0 760 236" role="img" aria-label="Timeline: the paper unlocks at 10 PM, entry closes at 11:15 PM, every attempt hard-stops at 11:59 PM, and one scheduled job runs at 12:05 AM.">
+  <defs>
+    <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+
+  <line x1="40" y1="120" x2="726" y2="120" stroke="currentColor" stroke-width="1.5" marker-end="url(#a2)"/>
+
+  <rect x="96" y="108" width="330" height="24" rx="5" fill="#0E767F" opacity=".18"/>
+  <text x="261" y="124" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor">entry open &mdash; 75 minutes</text>
+
+  <rect x="426" y="108" width="176" height="24" rx="5" fill="currentColor" opacity=".08"/>
+  <text x="514" y="124" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".75">finishing only</text>
+
+  <g font-size="11" fill="currentColor">
+    <line x1="96" y1="96" x2="96" y2="146" stroke="#0E767F" stroke-width="2.5"/>
+    <text x="96" y="86" text-anchor="middle" font-weight="700" font-size="13">10:00 PM</text>
+    <text x="96" y="166" text-anchor="middle" opacity=".75">paper unlocks</text>
+
+    <line x1="426" y1="96" x2="426" y2="146" stroke="#0E767F" stroke-width="2.5"/>
+    <text x="426" y="86" text-anchor="middle" font-weight="700" font-size="13">11:15 PM</text>
+    <text x="426" y="166" text-anchor="middle" opacity=".75">last entry</text>
+    <text x="426" y="181" text-anchor="middle" opacity=".55" font-size="10">no new starts</text>
+
+    <line x1="602" y1="96" x2="602" y2="146" stroke="#94202B" stroke-width="2.5"/>
+    <text x="602" y="86" text-anchor="middle" font-weight="700" font-size="13">11:59 PM</text>
+    <text x="602" y="166" text-anchor="middle" opacity=".75">hard stop</text>
+
+    <line x1="662" y1="104" x2="662" y2="138" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text x="662" y="86" text-anchor="middle" font-weight="600" font-size="12">12:00</text>
+    <text x="662" y="166" text-anchor="middle" opacity=".75" font-size="10">answers</text>
+    <text x="662" y="179" text-anchor="middle" opacity=".75" font-size="10">unlock</text>
+
+    <line x1="706" y1="104" x2="706" y2="138" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text x="706" y="86" text-anchor="middle" font-weight="600" font-size="12">12:05</text>
+    <text x="706" y="166" text-anchor="middle" opacity=".75" font-size="10">the job</text>
+  </g>
+
+  <path d="M426 56 L426 44 L602 44 L602 56" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".5"/>
+  <text x="514" y="36" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".7">44-minute tail: the 11:14 entrant still gets a full 45 minutes</text>
+
+  <text x="40" y="214" font-size="11" fill="currentColor" opacity=".65">Derived from the clock on read &mdash; cannot fail</text>
+  <line x1="332" y1="210" x2="352" y2="210" stroke="currentColor" stroke-width="1.5"/>
+  <text x="362" y="214" font-size="11" fill="currentColor" opacity=".65">Scheduled job &mdash; can fail, and is re-runnable</text>
+  <line x1="646" y1="210" x2="666" y2="210" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
+</svg>
+<figcaption><b>Only one thing on this timeline is a scheduled job.</b> Unlocking at 10 PM, closing entry at 11:15, and opening the archive at midnight are all computed from the clock whenever a page is read, so there is nothing to miss. The 12:05 job exists solely to score an attempt somebody abandoned.</figcaption>
+</figure>
+
+<h3>Why almost nothing is scheduled</h3>
+<p>A job that must fire at 10 PM for the product to work is a job that will one day not fire. Instead, <code>lib/time.ts</code> answers <em>&ldquo;is this paper open right now?&rdquo;</em> from the current time every time a page loads. India has never observed daylight saving, so IST is a fixed UTC+05:30 and all of it is plain arithmetic with one offset.</p>
+
+<p>The 44-minute tail between last entry and the hard stop is not slack. A student starting at 11:14 PM gets their full 45 minutes, which lands exactly on 11:59. Nobody ever sits a shortened paper.</p>
+
+<div class="note care">
+  <h4>Changing the times</h4>
+  <p>They live in one object, <code>WINDOW</code> in <code>lib/time.ts</code>. Change them there and the whole system follows &mdash; the countdown, the entry check, the hard stop and the briefing text. Twenty-two tests pin the boundaries, so a mistake shows up as a red test rather than a locked-out student.</p>
+</div>
+</div></section>
+
+<section id="s4"><div class="col">
+<h2><i>4</i>Layers</h2>
+
+<p>Code is organised so that <strong>the parts where a bug is expensive are pure functions with no database access</strong>. Those can be tested exhaustively. Everything that touches the network is kept thin enough to read in one sitting.</p>
+
+<figure>
+<svg viewBox="0 0 760 400" role="img" aria-label="Five layers: pages and components, server actions, pure domain logic, the repository layer, and SQL functions in Postgres. Pure domain logic has no database access and carries most of the tests.">
+  <defs>
+    <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+
+  <rect x="20" y="16" width="470" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <text x="38" y="40" font-size="13.5" font-weight="600" fill="currentColor">Pages and components</text>
+  <text x="38" y="59" font-size="10.5" fill="currentColor" opacity=".65">app/**/page.tsx &middot; components/*.tsx &middot; the only client-side code</text>
+
+  <rect x="20" y="88" width="470" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <text x="38" y="112" font-size="13.5" font-weight="600" fill="currentColor">Server actions and routes</text>
+  <text x="38" y="131" font-size="10.5" fill="currentColor" opacity=".65">app/**/actions.ts &middot; app/api/** &middot; authorise, rate-limit, validate</text>
+
+  <rect x="20" y="160" width="470" height="76" rx="8" fill="none" stroke="#0E767F" stroke-width="2.5"/>
+  <text x="38" y="184" font-size="13.5" font-weight="700" fill="currentColor">Pure domain logic</text>
+  <text x="38" y="203" font-size="10.5" fill="currentColor" opacity=".7">time &middot; attempt &middot; scoring &middot; leaderboard &middot; paper &middot; csv &middot; images</text>
+  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 257 tests live here</text>
+
+  <rect x="20" y="252" width="470" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <text x="38" y="276" font-size="13.5" font-weight="600" fill="currentColor">Repository</text>
+  <text x="38" y="295" font-size="10.5" fill="currentColor" opacity=".65">lib/repo/*.ts &middot; the only place Supabase is called</text>
+
+  <rect x="20" y="324" width="470" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <text x="38" y="348" font-size="13.5" font-weight="600" fill="currentColor">SQL functions in Postgres</text>
+  <text x="38" y="367" font-size="10.5" fill="currentColor" opacity=".65">start_attempt &middot; finish_attempt &middot; save_paper &middot; apply_rescore</text>
+
+  <line x1="255" y1="72" x2="255" y2="86" stroke="currentColor" stroke-width="1.5" marker-end="url(#a3)"/>
+  <line x1="255" y1="144" x2="255" y2="158" stroke="currentColor" stroke-width="1.5" marker-end="url(#a3)"/>
+  <line x1="255" y1="236" x2="255" y2="250" stroke="currentColor" stroke-width="1.5" marker-end="url(#a3)"/>
+  <line x1="255" y1="308" x2="255" y2="322" stroke="currentColor" stroke-width="1.5" marker-end="url(#a3)"/>
+
+  <line x1="490" y1="44" x2="620" y2="44" stroke="currentColor" stroke-width="1.2" opacity=".45"/>
+  <line x1="620" y1="44" x2="620" y2="352" stroke="currentColor" stroke-width="1.2" opacity=".45"/>
+  <line x1="490" y1="352" x2="620" y2="352" stroke="currentColor" stroke-width="1.2" opacity=".45"/>
+  <line x1="620" y1="198" x2="646" y2="198" stroke="currentColor" stroke-width="1.2" opacity=".45"/>
+  <text x="654" y="188" font-size="11" font-weight="600" fill="currentColor">All server-side</text>
+  <text x="654" y="204" font-size="11" fill="currentColor" opacity=".7">except the top</text>
+  <text x="654" y="220" font-size="11" fill="currentColor" opacity=".7">layer</text>
+</svg>
+<figcaption><b>The teal layer is the one that matters.</b> Timers, scoring and ranking are pure functions over plain data, so every boundary can be tested without a database. The repository below it is deliberately dull: fetch rows, call a function, map the result.</figcaption>
+</figure>
+
+<h3>Where to look for what</h3>
+<div class="tw"><table>
+<tr><th>If you want to change</th><th>Open</th></tr>
+<tr><td>The window times, or anything about IST</td><td><code>lib/time.ts</code></td></tr>
+<tr><td>Marks, or how skipped differs from not-reached</td><td><code>lib/scoring.ts</code></td></tr>
+<tr><td>Which section is open and how long is left</td><td><code>lib/attempt.ts</code></td></tr>
+<tr><td>Ranking, tie-breaks, streaks</td><td><code>lib/leaderboard.ts</code></td></tr>
+<tr><td>The paper format and its validation</td><td><code>lib/paper.ts</code>, <code>format/README.md</code></td></tr>
+<tr><td>What the live test screen does</td><td><code>components/TestEngine.tsx</code></td></tr>
+<tr><td>Anything that reads or writes the database</td><td><code>lib/repo/</code></td></tr>
+<tr><td>Tables, constraints, SQL functions</td><td><code>supabase/schema.sql</code></td></tr>
+</table></div>
+</div></section>
+
+<section id="s5"><div class="col">
+<h2><i>5</i>The database</h2>
+
+<p>Nine tables. Eight hold the product; one holds rate-limit counters.</p>
+
+<figure>
+<svg viewBox="0 0 760 420" role="img" aria-label="Entity diagram. Profiles and tests are the two roots. Tests own sections, which own direction blocks and questions. Attempts join a profile to a test and own attempt sections and responses.">
+  <defs>
+    <marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+
+  <g font-size="11.5" fill="currentColor">
+    <rect x="18" y="18" width="150" height="62" rx="7" fill="none" stroke="currentColor" stroke-width="2"/>
+    <text x="30" y="38" font-weight="700" font-size="12.5">profiles</text>
+    <text x="30" y="55" font-size="10" opacity=".65">username, role</text>
+    <text x="30" y="70" font-size="10" opacity=".65">is_active</text>
+
+    <rect x="300" y="18" width="150" height="62" rx="7" fill="none" stroke="currentColor" stroke-width="2"/>
+    <text x="312" y="38" font-weight="700" font-size="12.5">tests</text>
+    <text x="312" y="55" font-size="10" opacity=".65">date (unique), status</text>
+    <text x="312" y="70" font-size="10" opacity=".65">key_version</text>
+
+    <rect x="300" y="110" width="150" height="56" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <text x="312" y="130" font-weight="600">sections</text>
+    <text x="312" y="147" font-size="10" opacity=".65">code, position</text>
+    <text x="312" y="160" font-size="10" opacity=".65">duration_sec, marks</text>
+
+    <rect x="300" y="196" width="150" height="52" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <text x="312" y="216" font-weight="600">questions</text>
+    <text x="312" y="233" font-size="10" opacity=".65">options, correct_option</text>
+
+    <rect x="500" y="196" width="150" height="52" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <text x="512" y="216" font-weight="600">direction_blocks</text>
+    <text x="512" y="233" font-size="10" opacity=".65">content, table_data</text>
+
+    <rect x="18" y="196" width="180" height="70" rx="7" fill="none" stroke="#0E767F" stroke-width="2.5"/>
+    <text x="30" y="216" font-weight="700" font-size="12.5">attempts</text>
+    <text x="30" y="233" font-size="10" opacity=".7">state, is_dry_run</text>
+    <text x="30" y="247" font-size="10" opacity=".7">total_score, counters</text>
+    <text x="30" y="261" font-size="10" opacity=".7">key_version</text>
+
+    <rect x="18" y="300" width="180" height="46" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <text x="30" y="320" font-weight="600">attempt_sections</text>
+    <text x="30" y="336" font-size="10" opacity=".65">started_at, ended_at</text>
+
+    <rect x="228" y="300" width="180" height="46" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <text x="240" y="320" font-weight="600">responses</text>
+    <text x="240" y="336" font-size="10" opacity=".65">selected_option, was_visited</text>
+
+    <rect x="500" y="18" width="150" height="62" rx="7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="512" y="38" font-weight="600">rate_limits</text>
+    <text x="512" y="55" font-size="10" opacity=".65">key, hits, reset_at</text>
+    <text x="512" y="70" font-size="10" opacity=".65">stands apart</text>
+  </g>
+
+  <line x1="375" y1="80" x2="375" y2="108" stroke="currentColor" stroke-width="1.5" marker-end="url(#a4)"/>
+  <line x1="375" y1="166" x2="375" y2="194" stroke="currentColor" stroke-width="1.5" marker-end="url(#a4)"/>
+  <line x1="450" y1="222" x2="498" y2="222" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#a4)"/>
+
+  <line x1="93" y1="80" x2="93" y2="194" stroke="currentColor" stroke-width="1.5" marker-end="url(#a4)"/>
+  <text x="101" y="140" font-size="10" fill="currentColor" opacity=".7">one per</text>
+  <text x="101" y="153" font-size="10" fill="currentColor" opacity=".7">paper</text>
+
+  <line x1="298" y1="49" x2="200" y2="200" stroke="currentColor" stroke-width="1.5" marker-end="url(#a4)"/>
+
+  <line x1="93" y1="266" x2="93" y2="298" stroke="currentColor" stroke-width="1.5" marker-end="url(#a4)"/>
+  <line x1="198" y1="248" x2="300" y2="300" stroke="currentColor" stroke-width="1.5" marker-end="url(#a4)"/>
+  <line x1="330" y1="248" x2="320" y2="298" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#a4)"/>
+
+  <text x="18" y="382" font-size="10.5" fill="currentColor" opacity=".7">Solid: owned, deleted with the parent.</text>
+  <text x="18" y="398" font-size="10.5" fill="currentColor" opacity=".7">Dashed: referenced, survives the reference.</text>
+  <text x="430" y="382" font-size="10.5" font-weight="600" fill="#0E767F">attempts is the join: one profile, one paper.</text>
+  <text x="430" y="398" font-size="10.5" fill="currentColor" opacity=".7">A unique index allows only one counted attempt each.</text>
+</svg>
+<figcaption><b>Two roots, one join.</b> A paper is a tree: test to sections to questions. A person is a row. <code>attempts</code> joins them, and everything about how a paper went hangs off it.</figcaption>
+</figure>
+
+<h3>Four fields carry more weight than their size suggests</h3>
+<div class="tw"><table>
+<tr><th>Field</th><th>On</th><th>What it buys</th></tr>
+<tr><td><code>is_dry_run</code></td><td>attempts</td><td>The entire admin exclusion. Admin attempts are always dry runs, so no query anywhere needs a role check to keep them off the board</td></tr>
+<tr><td><code>was_visited</code></td><td>responses</td><td>The difference between <em>never reached</em> and <em>skipped</em>. A row is written when a question is opened, not when it is answered</td></tr>
+<tr><td><code>key_version</code></td><td>tests, attempts</td><td>Optimistic locking. If an answer key changes while someone is mid-paper, their submission is detected as stale and rescored rather than silently banked against the old key</td></tr>
+<tr><td><code>fullscreen_exits</code><br><code>tab_switches</code></td><td>attempts</td><td>All the integrity recording there is. Two integers, no event log &mdash; which is also why this codebase has no log-retention policy anywhere</td></tr>
+</table></div>
+
+<h3>Work that happens inside the database</h3>
+<p>Supabase offers no client-side transaction, so anything that must be all-or-nothing is a SQL function called as one round trip:</p>
+
+<div class="tw"><table>
+<tr><th>Function</th><th>Why it cannot be application code</th></tr>
+<tr><td><code>start_attempt</code></td><td>Creates the attempt and opens its first section together. A half-started attempt has no valid state</td></tr>
+<tr><td><code>finish_attempt</code></td><td>Locks the row, refuses to double-score, and rejects a submission carrying a stale <code>key_version</code></td></tr>
+<tr><td><code>save_paper</code></td><td>Writes a test, its sections, blocks and 55 questions atomically. A half-written paper would go live with questions missing</td></tr>
+<tr><td><code>apply_rescore</code></td><td>Rewrites every affected attempt in one statement and stamps the paper</td></tr>
+<tr><td><code>rate_limit_hit</code></td><td>Counting must be shared. A serverless host runs many instances and each would keep its own count</td></tr>
+<tr><td><code>revoke_user_sessions</code></td><td>Reaches into <code>auth.sessions</code>, which needs elevated rights</td></tr>
+</table></div>
+
+<div class="note why">
+  <h4>Two triggers that say no</h4>
+  <p>A paper with real attempts against it cannot be deleted, and cannot be moved back to draft. Both are enforced by database triggers rather than UI checks, because the consequence &mdash; scores pointing at questions that no longer exist &mdash; is unrecoverable.</p>
+</div>
+</div></section>
+
+<section id="s6"><div class="col">
+<h2><i>6</i>Taking a paper</h2>
+
+<p>The test engine is the one screen where being wrong is expensive, so almost nothing about it is trusted to the browser.</p>
+
+<h3>The clock belongs to the server</h3>
+<p>The browser shows a countdown, but it never decides anything. Every response write returns the authoritative time remaining, and a section that has run out refuses writes regardless of what the client believes. Changing the system clock on the laptop does nothing.</p>
+
+<p>Expired sections are closed <strong>on read</strong>, not by a timer. Somebody who shuts the laptop mid-paper and comes back twenty minutes later lands in the right section with the right time left, and the sections they slept through are recorded as <code>TIMER_EXPIRED</code> rather than quietly reopened.</p>
+
+<h3>Not reached versus skipped</h3>
+<p>These look the same on a scoresheet and mean opposite things, so the engine separates them at the moment they happen.</p>
+
+<figure>
+<svg viewBox="0 0 760 240" role="img" aria-label="A question starts as not visited. Opening it writes a response row. If the section ends with no row it is not reached, a pacing problem. With a row but no option chosen it is skipped, a confidence problem. With an option chosen it is attempted and scored.">
+  <defs>
+    <marker id="a5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+
+  <rect x="16" y="86" width="126" height="52" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <text x="79" y="108" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">Not visited</text>
+  <text x="79" y="126" text-anchor="middle" font-size="10" fill="currentColor" opacity=".6">no row exists</text>
+
+  <line x1="142" y1="112" x2="212" y2="112" stroke="currentColor" stroke-width="1.5" marker-end="url(#a5)"/>
+  <text x="177" y="103" text-anchor="middle" font-size="10" fill="currentColor" opacity=".75">opens it</text>
+
+  <rect x="212" y="86" width="140" height="52" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <text x="282" y="108" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">Row written</text>
+  <text x="282" y="126" text-anchor="middle" font-size="10" fill="currentColor" opacity=".6">was_visited = true</text>
+
+  <line x1="352" y1="100" x2="430" y2="58" stroke="currentColor" stroke-width="1.5" marker-end="url(#a5)"/>
+  <text x="392" y="70" text-anchor="middle" font-size="10" fill="currentColor" opacity=".75">picks</text>
+  <line x1="352" y1="124" x2="430" y2="166" stroke="currentColor" stroke-width="1.5" marker-end="url(#a5)"/>
+  <text x="390" y="158" text-anchor="middle" font-size="10" fill="currentColor" opacity=".75">moves on</text>
+
+  <rect x="430" y="26" width="150" height="52" rx="7" fill="#0E767F" opacity=".14"/>
+  <rect x="430" y="26" width="150" height="52" rx="7" fill="none" stroke="#0E767F" stroke-width="2"/>
+  <text x="505" y="48" text-anchor="middle" font-size="12.5" font-weight="700" fill="currentColor">Attempted</text>
+  <text x="505" y="66" text-anchor="middle" font-size="10" fill="currentColor" opacity=".75">+1 or &minus;0.25</text>
+
+  <rect x="430" y="140" width="150" height="52" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <text x="505" y="162" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">Skipped</text>
+  <text x="505" y="180" text-anchor="middle" font-size="10" fill="currentColor" opacity=".65">saw it, passed</text>
+
+  <path d="M79 138 L79 208 L430 208 L430 192" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#a5)"/>
+  <rect x="430" y="196" width="150" height="34" rx="7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="505" y="218" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">Not reached</text>
+  <text x="196" y="204" font-size="10" fill="currentColor" opacity=".75">section ends, still no row</text>
+
+  <text x="600" y="48" font-size="10.5" fill="currentColor" opacity=".7">scores</text>
+  <text x="600" y="168" font-size="10.5" fill="currentColor" opacity=".7">confidence</text>
+  <text x="600" y="181" font-size="10.5" fill="currentColor" opacity=".7">problem</text>
+  <text x="600" y="216" font-size="10.5" fill="currentColor" opacity=".7">speed problem</text>
+</svg>
+<figcaption><b>One write makes the distinction possible.</b> The row goes in when the question is opened, not when it is answered. No row at section end means the student never got there; a row with no option means they looked and moved on. The result page says which, because the remedies are opposite.</figcaption>
+</figure>
+
+<h3>The answer key never reaches the browser</h3>
+<p>This is enforced by what the query selects, not by what the UI chooses to render. <code>loadLiveSection</code> reads id, number, text and options &mdash; <code>correct_option</code> and <code>solution</code> are simply never in the statement. The card component types the answer as optional and refuses to reveal without one, so the live path has nothing to leak even by accident.</p>
+
+<h3>Full screen, honestly</h3>
+<p>Every browser guarantees a user can leave full screen with Escape, and no web page can override that. Preppy treats it as <strong>deterrence and a record, not prevention</strong>, and the briefing says so before the student starts:</p>
+<ul>
+<li>Leaving full screen covers the question with an opaque overlay until they return.</li>
+<li><strong>The section timer keeps running throughout</strong> &mdash; otherwise leaving would be a pause button.</li>
+<li>Two counters increment, and appear on the result page and in the admin attempts table.</li>
+<li>It <strong>never</strong> ends the test, at any count.</li>
+</ul>
+</div></section>
+
+<section id="s7"><div class="col">
+<h2><i>7</i>Publishing a paper</h2>
+
+<p>A paper is <strong>one JSON file</strong>, uploaded with its images in the same request. The format is fixed and documented in <code>format/README.md</code>, with a fill-in template and a complete worked paper beside it.</p>
+
+<figure>
+<svg viewBox="0 0 760 210" role="img" aria-label="Pipeline: upload the JSON and its images, parse, validate, preview, then schedule. Nothing is saved until validation passes and nothing goes live until the admin schedules it on the preview screen.">
+  <defs>
+    <marker id="a6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+  <g font-size="11" fill="currentColor">
+    <rect x="16" y="52" width="122" height="50" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <text x="77" y="74" text-anchor="middle" font-weight="600" font-size="11.5">Upload</text>
+    <text x="77" y="90" text-anchor="middle" font-size="9.5" opacity=".65">.json + images</text>
+
+    <rect x="166" y="52" width="122" height="50" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <text x="227" y="74" text-anchor="middle" font-weight="600" font-size="11.5">Parse</text>
+    <text x="227" y="90" text-anchor="middle" font-size="9.5" opacity=".65">line and column</text>
+
+    <rect x="316" y="52" width="122" height="50" rx="7" fill="#0E767F" opacity=".14"/>
+    <rect x="316" y="52" width="122" height="50" rx="7" fill="none" stroke="#0E767F" stroke-width="2"/>
+    <text x="377" y="74" text-anchor="middle" font-weight="700" font-size="11.5">Validate</text>
+    <text x="377" y="90" text-anchor="middle" font-size="9.5" opacity=".75">55 questions, keys</text>
+
+    <rect x="466" y="52" width="122" height="50" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <text x="527" y="74" text-anchor="middle" font-weight="600" font-size="11.5">Preview</text>
+    <text x="527" y="90" text-anchor="middle" font-size="9.5" opacity=".65">as a student sees</text>
+
+    <rect x="616" y="52" width="128" height="50" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <text x="680" y="74" text-anchor="middle" font-weight="600" font-size="11.5">Schedule</text>
+    <text x="680" y="90" text-anchor="middle" font-size="9.5" opacity=".65">goes live 10 PM</text>
+  </g>
+
+  <line x1="138" y1="77" x2="164" y2="77" stroke="currentColor" stroke-width="1.5" marker-end="url(#a6)"/>
+  <line x1="288" y1="77" x2="314" y2="77" stroke="currentColor" stroke-width="1.5" marker-end="url(#a6)"/>
+  <line x1="438" y1="77" x2="464" y2="77" stroke="currentColor" stroke-width="1.5" marker-end="url(#a6)"/>
+  <line x1="588" y1="77" x2="614" y2="77" stroke="currentColor" stroke-width="1.5" marker-end="url(#a6)"/>
+
+  <path d="M377 102 L377 136 L200 136" fill="none" stroke="#94202B" stroke-width="1.5" marker-end="url(#a6)"/>
+  <text x="386" y="132" font-size="10.5" fill="#94202B">any blocking error and nothing is saved at all</text>
+
+  <line x1="527" y1="102" x2="527" y2="122" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="536" y="118" font-size="10.5" fill="currentColor" opacity=".7">saved as DRAFT here &mdash; not live yet</text>
+
+  <text x="16" y="176" font-size="11" font-weight="600" fill="currentColor">Images travel in the same request and land in a private bucket keyed by paper.</text>
+  <text x="16" y="194" font-size="10.5" fill="currentColor" opacity=".72">The paper and its images together may not exceed 10 MB. A diagram is served through /api/images, which checks whether the paper is open before handing it over.</text>
+</svg>
+<figcaption><b>Two gates, on purpose.</b> Validation decides whether the paper <em>can</em> be saved; the preview decides whether it <em>should</em> go live, and the schedule button exists only on that screen. A paper cannot reach a student without somebody having read it.</figcaption>
+</figure>
+
+<div class="note why">
+  <h4>Why JSON and not a PDF</h4>
+  <p>An earlier version read papers out of PDFs, which meant extracting a text layer and then repairing what a word processor does to JSON: curly quotes from autocorrect, long values wrapped across lines, page furniture, a Unicode minus in &minus;0.25. It worked, and it was a permanent source of doubt about whether a question had survived the trip. A <code>.json</code> file has none of those failure modes. If it parses, it is exactly what you wrote.</p>
+</div>
+
+<h3>What blocks a paper, and what merely warns</h3>
+<div class="tw"><table>
+<tr><th>Blocks publication</th><th>Warns only</th></tr>
+<tr><td>Wrong question count in a section &middot; a number outside its section band &middot; a gap or duplicate in the numbering &middot; a missing answer, or one naming an option that does not exist &middot; options not contiguous from A &middot; a directions range covering questions that are not there &middot; a table row the wrong width &middot; an image referenced but not uploaded &middot; a date that already has a paper</td><td>No solution &middot; no topic tag &middot; no difficulty &middot; fewer than five options &middot; a very long option</td></tr>
+</table></div>
+
+<div class="note why">
+  <h4>Why a numbering gap is an error, not a warning</h4>
+  <p>If Q29 vanishes between Q28 and Q30, it almost never means a number was skipped on purpose. It means a question was lost while editing. Warning about it would let a 54-question paper go live.</p>
+</div>
+</div></section>
+
+<section id="s8"><div class="col">
+<h2><i>8</i>Scoring and the board</h2>
+
+<h3>Marking</h3>
+<p><strong>+1</strong> correct, <strong>&minus;0.25</strong> wrong, <strong>0</strong> unattempted. Maximum <code>+55.00</code>, minimum <code>&minus;13.75</code>. Both bounds are pinned by tests, along with a mixed attempt checked for floating-point drift, because a scoring bug is the one defect that corrupts the leaderboard silently rather than announcing itself.</p>
+
+<h3>The board is computed on read</h3>
+<p>There is no stored leaderboard. Ranking runs over the attempts table whenever somebody opens the page. Five students across a few hundred papers is a trivial aggregate, and a snapshot table would need its own invalidation story every time a paper was rescored.</p>
+
+<p>That choice pays for itself in one place especially: <strong>correcting an answer key needs no cache invalidation at all.</strong> Rescore the attempts and the board is right on the next page load.</p>
+
+<div class="tw"><table>
+<tr><th>Rule</th><th>Detail</th></tr>
+<tr><td>Ranking</td><td>Cumulative total score, all time. Dry runs excluded, which excludes the admin by construction</td></tr>
+<tr><td>Tie-breaks, in order</td><td>Higher total, then higher accuracy, then less time taken, then who started earlier</td></tr>
+<tr><td>Ties</td><td>Genuinely tied rows share a rank</td></tr>
+<tr><td>Streaks</td><td>Consecutive papers attempted, counting back from the most recent. A night with no paper never breaks one</td></tr>
+<tr><td>Windows</td><td>All time, last 7, last 30</td></tr>
+<tr><td>A new member</td><td>Starts at zero. The last-30 view is the one that stays meaningful for them</td></tr>
+</table></div>
+
+<div class="note care">
+  <h4>A cap that would have bitten quietly</h4>
+  <p>PostgREST returns at most 1,000 rows, and a capped response looks exactly like a complete one. Read in a single request, the board would silently start losing attempts once the history grew past that. <code>lib/repo/select-all.ts</code> pages through every result and advances by what actually came back, so a server configured with a lower cap still reads everything.</p>
+</div>
+
+<h3>Correcting a key after the fact</h3>
+<p>A wrong key with no way back destroys trust in the leaderboard permanently, and the leaderboard is the whole product. So the admin can change a key on a paper that has already run; every attempt is rescored, the paper's <code>key_version</code> increments, and affected students see a note on their result explaining why their score moved. Any question answered correctly by under 10% of the people who tried it is flagged, because that is usually a wrong key rather than a hard question.</p>
+</div></section>
+
+<section id="s9"><div class="col">
+<h2><i>9</i>Security and privacy</h2>
+
+<div class="tw"><table>
+<tr><th>Concern</th><th>How it is handled</th></tr>
+<tr><td>Passwords</td><td>Hashed and managed by Supabase Auth. No custom crypto exists in this codebase</td></tr>
+<tr><td>Database access</td><td>Server-side only, service-role key, RLS deny-all as backstop, build-time bundle scan</td></tr>
+<tr><td>Answer keys</td><td>Never selected by any query on the live test path</td></tr>
+<tr><td>Paper images</td><td>Private bucket. Served through <code>/api/images</code>, which checks who is asking and whether the paper is open</td></tr>
+<tr><td>Brute force</td><td>Rate limits counted in the database, so they hold across serverless instances</td></tr>
+<tr><td>Session hygiene</td><td>Starting a paper signs the account out everywhere else</td></tr>
+<tr><td>First login</td><td>An admin-set password must be replaced before anything else is reachable</td></tr>
+<tr><td>Write endpoints</td><td>Server actions, which are POST-only and carry Next's origin check</td></tr>
+</table></div>
+
+<h3>What is deliberately not collected</h3>
+<p>No email address, no phone number, no address. A username maps to a synthetic internal address that never receives mail, which is why there is no password-reset email and the admin is the recovery path.</p>
+
+<p>Integrity recording is two integers per attempt. There is no event log, no timestamps, and therefore <strong>no retention policy anywhere in this system</strong>. The trade is explicit: the counters tell you <em>that</em> something happened, never when or for how long. For six people who know each other, deterrence was the goal rather than evidence.</p>
+</div></section>
+
+<section id="s10"><div class="col">
+<h2><i>10</i>Failure modes</h2>
+
+<p>What happens when things go wrong, and why it is survivable.</p>
+
+<div class="tw"><table>
+<tr><th>If this happens</th><th>Then</th></tr>
+<tr><td>A student refreshes, or the browser crashes</td><td>They resume at the same question with the correct time left. Time that passed is not refunded</td></tr>
+<tr><td>Their network drops</td><td>A banner appears, answers queue locally and flush on reconnect, the timer keeps running</td></tr>
+<tr><td>They close the laptop and never come back</td><td>The attempt is scored either by the 12:05 job or the next time anyone opens it, whichever is first</td></tr>
+<tr><td>The nightly job does not fire</td><td>Nothing is lost. It is idempotent and re-runnable from a button in the admin console</td></tr>
+<tr><td>You publish no paper</td><td>The dashboard says so, and <strong>nobody's streak breaks</strong></td></tr>
+<tr><td>You publish a wrong answer key</td><td>Correct it and rescore. Students are told why their score moved</td></tr>
+<tr><td>Supabase is down at 10 PM</td><td>The site cannot serve. There is no fallback, and at this size that is the accepted trade</td></tr>
+<tr><td>A student changes their computer clock</td><td>Nothing. The server owns the clock</td></tr>
+<tr><td>Two people open the same account</td><td>Starting a paper signs the other out</td></tr>
+</table></div>
+
+<div class="note never">
+  <h4>The one thing that has never been exercised</h4>
+  <p>Every SQL query typechecks, and 257 tests cover the pure logic around them, but <strong>no query has been run against a live Postgres</strong> &mdash; the machine this was built on had no database to run them against. Section 15 covers the ten-minute check that exercises nearly all of them at once. Do that before a real paper night.</p>
+</div>
+</div></section>
+
+<div class="part">
+  <p>Part II</p>
+  <h2>Running it</h2>
+  <p class="sub">Two setups. Local is for changing things and finding out why something broke. Production is the real site. Follow one section at a time; nothing here assumes you write web code.</p>
+</div>
+
+<section id="s11"><div class="col">
+<h2><i>11</i>The two builds</h2>
+
+<p>There are two ways to build this app, and the difference is small and deliberate.</p>
+
+<figure>
+<svg viewBox="0 0 760 300" role="img" aria-label="Local build keeps source maps and skips the CRON_SECRET requirement. Production build additionally runs typecheck and the full test suite, requires CRON_SECRET, and drops source maps. Both run the bundle scan.">
+  <defs>
+    <marker id="a7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+
+  <text x="16" y="24" font-size="12.5" font-weight="700" fill="#0E767F" font-family="monospace">npm run build:local</text>
+  <text x="16" y="42" font-size="10.5" fill="currentColor" opacity=".7">for debugging on your machine</text>
+
+  <g font-size="10.5" fill="currentColor">
+    <rect x="16" y="56" width="104" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <text x="68" y="79" text-anchor="middle" font-weight="600">preflight</text>
+    <line x1="120" y1="75" x2="138" y2="75" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
+    <rect x="138" y="56" width="104" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <text x="190" y="79" text-anchor="middle" font-weight="600">build</text>
+    <line x1="242" y1="75" x2="260" y2="75" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
+    <rect x="260" y="56" width="116" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <text x="318" y="79" text-anchor="middle" font-weight="600">bundle scan</text>
+  </g>
+  <rect x="400" y="52" width="344" height="46" rx="6" fill="#0E767F" opacity=".14"/>
+  <text x="416" y="72" font-size="11" font-weight="600" fill="currentColor">Source maps KEPT</text>
+  <text x="416" y="89" font-size="10.5" fill="currentColor" opacity=".75">a browser error points at real code, with line numbers</text>
+
+  <line x1="16" y1="124" x2="744" y2="124" stroke="currentColor" stroke-width="1" opacity=".3"/>
+
+  <text x="16" y="154" font-size="12.5" font-weight="700" fill="#94202B" font-family="monospace">npm run build:prod</text>
+  <text x="16" y="172" font-size="10.5" fill="currentColor" opacity=".7">what the live site runs</text>
+
+  <g font-size="10.5" fill="currentColor">
+    <rect x="16" y="186" width="104" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <text x="68" y="209" text-anchor="middle" font-weight="600">preflight</text>
+    <line x1="120" y1="205" x2="132" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
+    <rect x="132" y="186" width="94" height="38" rx="6" fill="none" stroke="#94202B" stroke-width="2"/>
+    <text x="179" y="209" text-anchor="middle" font-weight="600">typecheck</text>
+    <line x1="226" y1="205" x2="238" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
+    <rect x="238" y="186" width="94" height="38" rx="6" fill="none" stroke="#94202B" stroke-width="2"/>
+    <text x="285" y="209" text-anchor="middle" font-weight="600">257 tests</text>
+    <line x1="332" y1="205" x2="344" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
+    <rect x="344" y="186" width="84" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <text x="386" y="209" text-anchor="middle" font-weight="600">build</text>
+    <line x1="428" y1="205" x2="440" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
+    <rect x="440" y="186" width="106" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <text x="493" y="209" text-anchor="middle" font-weight="600">bundle scan</text>
+  </g>
+  <rect x="562" y="182" width="182" height="46" rx="6" fill="#94202B" opacity=".12"/>
+  <text x="576" y="202" font-size="11" font-weight="600" fill="currentColor">Source maps DROPPED</text>
+  <text x="576" y="219" font-size="10.5" fill="currentColor" opacity=".75">source is not shipped</text>
+
+  <text x="16" y="264" font-size="11" font-weight="600" fill="currentColor">Also different: the production preflight refuses to build without CRON_SECRET.</text>
+  <text x="16" y="282" font-size="10.5" fill="currentColor" opacity=".7">Locally that is only a note, because an abandoned attempt is scored the next time anyone opens it anyway.</text>
+</svg>
+<figcaption><b>Everything else is identical on purpose.</b> A local build that behaved differently from production would not be worth debugging against. The two red boxes are the gate: production will not build if the types are wrong or a single test fails.</figcaption>
+</figure>
+
+<h3>Every command, and when to use it</h3>
+<div class="tw"><table>
+<tr><th>Command</th><th>When</th><th>What it does</th></tr>
+<tr><td><code>npm run dev</code></td><td><span class="pill local">daily</span> While changing things</td><td>Starts a development server that reloads as you edit. Not a build</td></tr>
+<tr><td><code>npm run build:local</code></td><td><span class="pill local">local</span> To reproduce a bug</td><td>A real production server, built on your machine, with source maps</td></tr>
+<tr><td><code>npm run start:local</code></td><td><span class="pill local">local</span> After the above</td><td>Serves that build on port 3000</td></tr>
+<tr><td><code>npm run build:prod</code></td><td><span class="pill prod">prod</span> Before deploying</td><td>Typecheck, all tests, then build without source maps</td></tr>
+<tr><td><code>npm run start:prod</code></td><td><span class="pill prod">prod</span> On the server</td><td>Serves the production build</td></tr>
+<tr><td><code>npm test</code></td><td><span class="pill both">any</span> Anytime</td><td>257 tests. Needs no database and takes about a second</td></tr>
+<tr><td><code>npm run typecheck</code></td><td><span class="pill both">any</span> Anytime</td><td>Checks types without building</td></tr>
+<tr><td><code>npm run seed</code></td><td><span class="pill both">once</span> First setup</td><td>Creates the six accounts and prints their passwords once</td></tr>
+<tr><td><code>npm run secret</code></td><td><span class="pill both">once</span> First setup</td><td>Prints a random string for CRON_SECRET</td></tr>
+<tr><td><code>npm run check &lt;file&gt;</code></td><td><span class="pill both">any</span> Before publishing</td><td>Validates a paper from the command line, app not required</td></tr>
+</table></div>
+
+<div class="note do">
+  <h4>The short version</h4>
+  <p><code>npm run dev</code> while you work. <code>npm run build:prod</code> before you ship. The other two exist for the day something behaves differently in production than it did in development, which is exactly when you want a production build you can put a breakpoint in.</p>
+</div>
+</div></section>
+
+<section id="s12"><div class="col">
+<h2><i>12</i>Local setup, once</h2>
+
+<p>Do this once on your laptop. It takes about fifteen minutes, most of it waiting for Supabase to finish creating a project.</p>
+
+<p>You need <strong>Node 20 or newer</strong> and a free <strong>Supabase</strong> account. Check Node first:</p>
+
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>node -v</b>
+<i>v22.9.0   &larr; anything v20 or higher is fine</i></pre>
+</div>
+
+<p>If that says <code>command not found</code>, install Node from <a href="https://nodejs.org">nodejs.org</a> &mdash; take the version labelled LTS &mdash; and open a new terminal window afterwards.</p>
+
+<ol class="steps">
+
+<li>
+<h4>Install the project's dependencies</h4>
+<p>In a terminal, from the project folder:</p>
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>cd ~/preppy</b>
+<b>npm install</b></pre>
+</div>
+<p>This downloads everything the app needs into a <code>node_modules</code> folder. It is safe to re-run at any time.</p>
+</li>
+
+<li>
+<h4>Create the Supabase project</h4>
+<p>Go to <a href="https://supabase.com">supabase.com</a> and sign in. Press <strong>New project</strong>.</p>
+<ul>
+<li>Name it <code>preppy</code>.</li>
+<li>Choose the region closest to you. If Mumbai (<code>ap-south-1</code>) is offered, take it &mdash; every page load makes several database round trips, and distance shows.</li>
+<li>Set a database password and save it somewhere. You will rarely need it, but it cannot be recovered.</li>
+</ul>
+<p>Provisioning takes a couple of minutes. Wait for it to finish before the next step.</p>
+</li>
+
+<li>
+<h4>Create the tables</h4>
+<p>In the Supabase dashboard, open <strong>SQL Editor</strong> in the left sidebar, then <strong>New query</strong>.</p>
+<p>Open <code>supabase/schema.sql</code> from the project folder, copy <em>all</em> of it, paste it into the editor, and press <strong>Run</strong>.</p>
+<p>You should see <code>Success. No rows returned</code>. That built all nine tables, ten functions, the indexes and the access rules.</p>
+<p>To confirm, open <strong>Table Editor</strong>. You should see nine tables, each showing an <strong>RLS enabled</strong> badge. That badge is intentional &mdash; it means nothing can read those tables except your server.</p>
+<div class="note do">
+  <h4>Safe to re-run</h4>
+  <p>The whole file is written so that running it twice changes nothing. If you are ever unsure whether it applied, run it again.</p>
+</div>
+</li>
+
+<li>
+<h4>Copy your keys into .env.local</h4>
+<p>In Supabase, go to <strong>Settings</strong> (the gear), then <strong>API</strong>. Keep that tab open.</p>
+<p>Back in the terminal:</p>
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>cp .env.example .env.local</b></pre>
+</div>
+<p>Open <code>.env.local</code> in any text editor and fill in three values:</p>
+<div class="tw"><table>
+<tr><th>Line in the file</th><th>Where it comes from</th></tr>
+<tr><td><code>NEXT_PUBLIC_SUPABASE_URL</code></td><td>Settings &rarr; API &rarr; <strong>Project URL</strong></td></tr>
+<tr><td><code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code></td><td>Settings &rarr; API &rarr; <strong>anon public</strong></td></tr>
+<tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code></td><td>Settings &rarr; API &rarr; <strong>service_role</strong></td></tr>
+</table></div>
+<div class="note never">
+  <h4>The service_role key is a master key</h4>
+  <p>It bypasses every access rule in the database. It belongs only in <code>.env.local</code>, which is already ignored by git. Never paste it into a chat, a browser console, a screenshot, or any file under <code>app/</code> or <code>components/</code>.</p>
+</div>
+</li>
+
+<li>
+<h4>Turn off email confirmation</h4>
+<p>Preppy has no email addresses &mdash; usernames map to a synthetic internal address that never receives mail. So Supabase must not sit waiting for anyone to confirm one.</p>
+<p>Go to <strong>Authentication</strong> &rarr; <strong>Sign In / Providers</strong> &rarr; <strong>Email</strong>, turn <strong>Confirm email</strong> off, and save.</p>
+<div class="note care">
+  <h4>Skip this and login will fail confusingly</h4>
+  <p>Accounts get created, but every sign-in is refused as unconfirmed. If login says the password is wrong when you know it is right, come back here first.</p>
+</div>
+</li>
+
+<li>
+<h4>Create the six accounts</h4>
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>npm run seed</b>
+
+<i>  created  admin
+  created  student1
+  ...
+
+  Passwords are shown once. Copy them now.</i>
+
+<i>  USERNAME    ROLE     PASSWORD
+  ---------------------------------------
+  admin       admin    </i><u>quant-rank-4f2a</u><i>
+  student1    student  </i><u>timer-solve-9b71</u></pre>
+</div>
+<p><strong>Copy those now.</strong> There is no email to send them to and no way to recover them. If you lose one, run <code>npm run seed -- --reset</code> to set fresh passwords.</p>
+<p>Everyone is made to choose their own password the first time they log in; until they do, nothing else in the app is reachable.</p>
+</li>
+
+<li>
+<h4>Start it</h4>
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>npm run dev</b>
+
+<i>  &#9650; Next.js 16
+  - Local:  http://localhost:3000
+  Ready in 404ms</i></pre>
+</div>
+<p>Open <a href="http://localhost:3000">localhost:3000</a>. You should see the countdown to 10 PM. Log in as <code>admin</code>, change the password when asked, and you are in.</p>
+<p>Leave this running while you work. To stop it, press <kbd>Ctrl</kbd>+<kbd>C</kbd> in that terminal.</p>
+</li>
+
+</ol>
+
+<div class="note care">
+  <h4>After editing .env.local, restart</h4>
+  <p>Environment changes are not picked up while the server is running. Stop it with <kbd>Ctrl</kbd>+<kbd>C</kbd> and start it again. This is the single most common thing to trip on.</p>
+</div>
+</div></section>
+
+<section id="s13"><div class="col">
+<h2><i>13</i>Using it, day to day</h2>
+
+<h3>Publishing tonight's paper</h3>
+<ol class="steps">
+<li>
+<h4>Write the paper</h4>
+<p>Copy <code>format/sample.json</code> and replace the content question by question. The numbering, the section bands, a data table, a puzzle and a passage are all already in place, which makes it a faster starting point than the blank template.</p>
+<p>Check it before you even open the app:</p>
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>npm run check my-paper.json</b>
+
+<i>  Quantitative Aptitude    15 q | 12 min | +1/-0.25
+  ...
+  Publishable</i></pre>
+</div>
+</li>
+<li>
+<h4>Upload and preview</h4>
+<p>In the app: <strong>Admin</strong> &rarr; <strong>Upload a paper</strong>. You get the validation report and a list of anything the file needed repaired on the way in. If it passes, it is saved as a <strong>draft</strong> &mdash; not live.</p>
+<p>Read the preview. Every question is rendered with the same component a student sees, so what you approve is literally what they get.</p>
+</li>
+<li>
+<h4>Dry run it, optionally</h4>
+<p>The <strong>Dry run</strong> button puts you through the real engine with real timers. It is never counted and never reaches the leaderboard, so take it as often as you like. This is the fastest way to catch a question that reads badly under time pressure.</p>
+</li>
+<li>
+<h4>Schedule it</h4>
+<p>Press <strong>Schedule</strong> on the preview screen. That is the only place the button exists, so a paper cannot go live without somebody having looked at it. It unlocks at 10 PM on its own date.</p>
+</li>
+</ol>
+
+<h3>The rest of the console</h3>
+<div class="tw"><table>
+<tr><th>Screen</th><th>What it is for</th></tr>
+<tr><td>Admin home</td><td>Leads with tonight's status: <strong>Scheduled</strong> or <strong>Not scheduled</strong>. Also has the manual run of the nightly job</td></tr>
+<tr><td>Papers</td><td>Everything published or drafted. Open one to preview, correct a key, or dry-run it</td></tr>
+<tr><td>Attempts</td><td>Every attempt with score, duration and the two integrity counters. Void one here if you must</td></tr>
+<tr><td>People</td><td>Create accounts one at a time or paste a CSV. Reset passwords. Deactivate without losing any history</td></tr>
+<tr><td>Export question bank</td><td>Downloads every paper ever published as one JSON file</td></tr>
+</table></div>
+
+<div class="note care">
+  <h4>There is no automated reminder</h4>
+  <p>With no email configured there is nowhere to send one. The admin home tells you tonight's status the moment you open it; for the reminder itself, a recurring 9:45 PM alarm on your phone does the job with no code.</p>
+</div>
+</div></section>
+
+<section id="s14"><div class="col">
+<h2><i>14</i>Production setup</h2>
+
+<p>Production is a second, separate Supabase project plus a Vercel deployment. Fifteen minutes, once.</p>
+
+<div class="note never">
+  <h4>Use a separate Supabase project for production</h4>
+  <p>Do not point the live site at the database you have been experimenting against. You will want to try things locally &mdash; delete a paper, reset a password, run the schema again &mdash; and none of that should be able to touch a night that counts. Two free projects cost nothing.</p>
+</div>
+
+<ol class="steps">
+
+<li>
+<h4>Create the production Supabase project</h4>
+<p>Exactly as in section 12, steps 2, 3 and 5: new project (call it <code>preppy-prod</code>), run <code>supabase/schema.sql</code> in its SQL editor, and turn <strong>Confirm email</strong> off.</p>
+<p>Keep its <strong>Settings &rarr; API</strong> page open; you need all three keys again, and they are different from your local ones.</p>
+</li>
+
+<li>
+<h4>Generate a cron secret</h4>
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>npm run secret</b>
+<i>8f3c9d1e7a4b20c65d8e1f93a70b4c25de6f8a91b3c47d02</i></pre>
+</div>
+<p>Keep it. It goes into Vercel in the next step, and it is what stops anyone but Vercel Cron from triggering the nightly job.</p>
+</li>
+
+<li>
+<h4>Put the code on GitHub</h4>
+<p>Vercel deploys from a git repository. If the project is not on GitHub yet, create an empty <strong>private</strong> repository there and push:</p>
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>git remote add origin https://github.com/YOU/preppy.git</b>
+<b>git push -u origin main</b></pre>
+</div>
+<p><code>.env.local</code> is already ignored by git, so your keys do not travel with the code. Check that nothing sensitive is staged before pushing:</p>
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>git status --short</b>
+<i>(.env.local must not appear in this list)</i></pre>
+</div>
+</li>
+
+<li>
+<h4>Import into Vercel</h4>
+<p>At <a href="https://vercel.com">vercel.com</a>, sign in with GitHub and press <strong>Add New &rarr; Project</strong>. Pick the repository. Vercel recognises Next.js on its own; leave the build settings alone.</p>
+<p>Before pressing Deploy, open <strong>Environment Variables</strong> and add four:</p>
+<div class="tw"><table>
+<tr><th>Name</th><th>Value</th></tr>
+<tr><td><code>NEXT_PUBLIC_SUPABASE_URL</code></td><td>The <strong>production</strong> project URL</td></tr>
+<tr><td><code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code></td><td>Its anon public key</td></tr>
+<tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code></td><td>Its service_role key</td></tr>
+<tr><td><code>CRON_SECRET</code></td><td>The string from step 2</td></tr>
+</table></div>
+<p>Then press <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code> &mdash; preflight, typecheck, all 257 tests, then the build. <strong>If any test fails, the deploy fails</strong> and the previous version stays up.</p>
+</li>
+
+<li>
+<h4>Confirm the nightly job registered</h4>
+<p>After the first successful deploy, open <strong>Settings &rarr; Cron Jobs</strong> in Vercel. You should see one entry for <code>/api/cron/finalise</code> scheduled at <code>35 18 * * *</code>.</p>
+<p>That is 18:35 UTC, which is 00:05 IST. Vercel Cron runs on UTC, so the schedule is written in UTC.</p>
+<div class="note care">
+  <h4>If CRON_SECRET is missing, the endpoint refuses everyone</h4>
+  <p>Including Vercel. That is deliberate &mdash; better a job that does not run than an open endpoint that writes scores &mdash; but it does mean you must set it. The production build refuses to start without it for exactly this reason.</p>
+</div>
+</li>
+
+<li>
+<h4>Seed the production accounts</h4>
+<p>The seed script talks to whichever database its environment points at, so point it at production for one command. Create a temporary file called <code>.env.prod.local</code> holding the <em>production</em> URL and service-role key, then:</p>
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>npx tsx --env-file=.env.prod.local supabase/seed.ts</b>
+<i>  created  admin
+  created  student1 ... student5</i>
+
+<b>rm .env.prod.local</b>   <i>&larr; delete it straight away</i></pre>
+</div>
+<p>Copy the passwords, hand them out, and delete that file. Everyone changes their own password on first login.</p>
+</li>
+
+</ol>
+
+<h3>Deploying a change, afterwards</h3>
+<p>Once it is set up, shipping is one command. Run the production build locally first so a failure shows up on your machine rather than in a deploy log:</p>
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>npm run build:prod</b>     <i>&larr; catches it here if something is wrong</i>
+<b>git add -A &amp;&amp; git commit -m "what changed"</b>
+<b>git push</b>                <i>&larr; Vercel builds and deploys on its own</i></pre>
+</div>
+
+<div class="note care">
+  <h4>Never deploy during a paper window</h4>
+  <p>A deploy replaces the running server. Between 10 PM and midnight somebody is probably mid-paper, and while their answers are saved, the interruption is real. Ship before 9 PM or after midnight.</p>
+</div>
+</div></section>
+
+<section id="s15"><div class="col">
+<h2><i>15</i>Before the first real paper night</h2>
+
+<p>One check, about ten minutes, and it exercises nearly every database query in the system at once. Do it on production, in daylight, before anyone is depending on it.</p>
+
+<div class="note never">
+  <h4>This is the gap worth closing first</h4>
+  <p>Every query in this codebase typechecks, and 257 tests cover the logic around them, but no query has ever run against a live Postgres. This walkthrough is how you find out whether any of them is wrong, at a moment when being wrong costs nothing.</p>
+</div>
+
+<ol class="steps">
+<li>
+<h4>Log in as admin and change the password</h4>
+<p>Proves: Supabase Auth, the synthetic email mapping, the profile read, and the must-change-password gate.</p>
+</li>
+<li>
+<h4>Upload format/sample.json</h4>
+<p>Proves: the upload path, the repair layer, validation, and <code>save_paper</code> writing a test, four sections, three directions blocks and 55 questions atomically.</p>
+</li>
+<li>
+<h4>Read the preview to the bottom</h4>
+<p>Proves: reading a whole paper back out and reassembling it &mdash; the reverse of the step above, and the one most likely to reveal a wrong join.</p>
+</li>
+<li>
+<h4>Schedule it for a date in the past, then dry-run it</h4>
+<p>Set the date to yesterday so the paper is out of the way of a real night. A dry run ignores the window, so you can still take it. Answer some questions, skip some, deliberately leave a whole section untouched, and press Escape once to leave full screen.</p>
+<p>Proves: <code>start_attempt</code>, the response write path, the sectional timers, the integrity counters, and section advance.</p>
+</li>
+<li>
+<h4>Finish it and read the result</h4>
+<p>Proves: <code>finish_attempt</code>, scoring, the section breakdown, and &mdash; check this specifically &mdash; that the section you ignored shows as <strong>not reached</strong> while the questions you looked at and moved past show as <strong>skipped</strong>. If those two are the same number, something is wrong.</p>
+</li>
+<li>
+<h4>Correct one answer key on that paper</h4>
+<p>Proves: <code>apply_rescore</code>, and that your score changes and a note appears explaining why.</p>
+</li>
+<li>
+<h4>Open the leaderboard</h4>
+<p>Proves: the read-time aggregation. Your dry run should <strong>not</strong> appear on it. If it does, the admin exclusion is broken and that is worth fixing before anyone competes.</p>
+</li>
+<li>
+<h4>Delete the test paper</h4>
+<p>It only has a dry run against it, so deletion is allowed. Proves the trigger lets go when it should.</p>
+</li>
+</ol>
+
+<div class="note do">
+  <h4>If something breaks</h4>
+  <p>The error message names the query. Note which step failed and what it said &mdash; that is enough to find it. Nothing in this walkthrough touches a real attempt, so you can repeat it as often as you like.</p>
+</div>
+</div></section>
+
+<section id="s16"><div class="col">
+<h2><i>16</i>When it breaks</h2>
+
+<div class="tw"><table>
+<tr><th>Symptom</th><th>Cause and fix</th></tr>
+<tr><td><strong>"Not configured yet" on the login page</strong></td><td><code>.env.local</code> is missing or incomplete. Check all three values, then <strong>restart the server</strong> &mdash; environment changes are not picked up while it runs</td></tr>
+<tr><td><strong>Login always says the password is wrong</strong></td><td>Almost always email confirmation still being on. Section 12, step 5. Then <code>npm run seed -- --reset</code></td></tr>
+<tr><td><strong>The build refuses with "Cannot build for production"</strong></td><td>Working as intended. It lists exactly which variable is missing and where to find it</td></tr>
+<tr><td><strong>Seeding fails with a database error</strong></td><td>The tables are not there. Re-run <code>supabase/schema.sql</code></td></tr>
+<tr><td><strong>The nightly job did not run</strong></td><td>Press <strong>Finalise open attempts now</strong> on the admin home. It is idempotent, so pressing it twice is harmless. Then check <code>CRON_SECRET</code> is set in Vercel</td></tr>
+<tr><td><strong>A paper will not delete</strong></td><td>Someone has a counted attempt on it. That is a database trigger refusing, because deleting would leave scores pointing at questions that no longer exist. Void the attempts first, if you really mean it</td></tr>
+<tr><td><strong>Upload rejects the file</strong></td><td>The report names the exact path and line. Run <code>npm run check your-paper.json</code> for the same report in the terminal, without the app</td></tr>
+<tr><td><strong>A student is stuck on a finished paper</strong></td><td>Opening it scores it automatically. If they are genuinely stuck, run the nightly job manually</td></tr>
+<tr><td><strong>Everything is slow</strong></td><td>Check the Supabase region. A project in the wrong continent adds a few hundred milliseconds to every round trip, and a page makes several</td></tr>
+</table></div>
+
+<h3>Where to look</h3>
+<div class="tw"><table>
+<tr><th>Logs</th><th>Where</th></tr>
+<tr><td>Application errors, in production</td><td>Vercel &rarr; your project &rarr; <strong>Logs</strong></td></tr>
+<tr><td>Whether the cron fired</td><td>Vercel &rarr; <strong>Cron Jobs</strong></td></tr>
+<tr><td>Database errors and slow queries</td><td>Supabase &rarr; <strong>Logs</strong></td></tr>
+<tr><td>What is actually in a table</td><td>Supabase &rarr; <strong>Table Editor</strong></td></tr>
+<tr><td>Anything local</td><td>The terminal running <code>npm run dev</code></td></tr>
+</table></div>
+
+<h3>Backups</h3>
+<p>The database is the question bank &mdash; once a paper is published, Postgres is the system of record and the <code>.json</code> file you wrote it in is only a working copy. Supabase takes automatic daily backups on every project, including free ones.</p>
+<p>For a copy that does not depend on Supabase still being there, use <strong>Export question bank</strong> on the admin home. It downloads every paper ever published as one JSON file. Worth doing monthly, and worth doing before anything that touches the schema.</p>
+
+<p class="end">
+Preppy engineering reference &middot; Phases 1 and 2 complete<br>
+The code is the other half of this document: <code>lib/</code> for logic, <code>supabase/schema.sql</code> for the data, <code>format/README.md</code> for the paper format.
+</p>
+</div></section>
+
+</main>
+</div>
+
+<script>
+(function(){
+  var links = Array.prototype.slice.call(document.querySelectorAll('.rail a'));
+  var map = {}; links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
+  var secs = Array.prototype.slice.call(document.querySelectorAll('section[id]'));
+  if(!('IntersectionObserver' in window) || !secs.length) return;
+  var visible = {};
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ visible[e.target.id] = e.isIntersecting; });
+    var current = null;
+    for(var i=0;i<secs.length;i++){ if(visible[secs[i].id]){ current = secs[i].id; break; } }
+    links.forEach(function(a){ a.classList.remove('on'); });
+    if(current && map[current]) map[current].classList.add('on');
+  }, {rootMargin:'0px 0px -70% 0px', threshold:0});
+  secs.forEach(function(s){ io.observe(s); });
+})();
+</script>

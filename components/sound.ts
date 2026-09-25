@@ -1,26 +1,15 @@
 /**
  * Sound (PRD 8.3).
  *
- * Off by default, toggleable, remembered per browser, and never played while
- * a section timer is running (FR-8.1) — which holds structurally, because the
- * test engine does not import this module.
+ * Off by default, toggleable, remembered per person (profiles.sound_enabled,
+ * saved by app/sound.ts), and never played while a section timer is running
+ * (FR-8.1) — which holds structurally, because the test engine does not
+ * import this module. Callers pass the person's setting; this only plays.
  *
  * Tones are synthesised with the Web Audio API rather than shipped as files.
  * That keeps the bundle free of binary assets, and it means a blocked or
  * missing audio file can never be the reason a result page fails.
  */
-
-const STORAGE_KEY = 'preppy.sound'
-
-export function soundEnabled(): boolean {
-  if (typeof window === 'undefined') return false
-  return window.localStorage.getItem(STORAGE_KEY) === 'on'
-}
-
-export function setSoundEnabled(on: boolean): void {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(STORAGE_KEY, on ? 'on' : 'off')
-}
 
 export type Tune = 'result' | 'personal-best' | 'click'
 
@@ -31,11 +20,12 @@ const TUNES: Record<Tune, { steps: number[]; gap: number; duration: number }> = 
   'personal-best': { steps: [0, 4, 7, 12, 16], gap: 0.08, duration: 0.2 },
 }
 
-/** Never throws: sound is decoration, and a failure here must not surface. */
+/**
+ * Never throws: sound is decoration, and a failure here must not surface.
+ * Reduced motion does not silence it: someone who turned sound on asked for it.
+ */
 export async function play(tune: Tune): Promise<void> {
-  if (!soundEnabled()) return
   if (typeof window === 'undefined') return
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
   try {
     const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext

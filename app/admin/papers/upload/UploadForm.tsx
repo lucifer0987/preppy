@@ -19,7 +19,7 @@ export function UploadForm() {
           <input
             type="file"
             name="paper"
-            accept=".pdf,.json,application/pdf,application/json"
+            accept=".json,application/json"
             required
             className="mt-2 block w-full text-sm file:mr-4 file:rounded-xl file:border-0
                        file:bg-play-purple file:px-4 file:py-2.5 file:text-sm file:font-bold
@@ -27,8 +27,23 @@ export function UploadForm() {
           />
         </label>
         <p className="mt-3 text-sm text-ink-soft">
-          A PDF exported from your document, or the .json directly. The format is documented in{' '}
+          The paper as a .json file. The format is documented in{' '}
           <code className="rounded bg-black/5 px-1.5 py-0.5">format/README.md</code>.
+        </p>
+        <label className="mt-5 block">
+          <span className="text-xs font-bold uppercase tracking-widest text-ink-soft">Images (optional)</span>
+          <input
+            type="file"
+            name="images"
+            multiple
+            accept=".png,.jpg,.jpeg,.webp,.gif,image/png,image/jpeg,image/webp,image/gif"
+            className="mt-2 block w-full text-sm file:mr-4 file:rounded-xl file:border-0
+                       file:bg-black/10 file:px-4 file:py-2.5 file:text-sm file:font-bold"
+          />
+        </label>
+        <p className="mt-3 text-sm text-ink-soft">
+          Every file the paper names in <code className="rounded bg-black/5 px-1.5 py-0.5">images</code>,
+          under 2 MB each. Up to 10 MB with the paper.
         </p>
         <Submit />
       </form>
@@ -37,25 +52,6 @@ export function UploadForm() {
         <p role="alert" className="mt-4 rounded-2xl bg-notanswered px-5 py-4 font-semibold text-white">
           {state.fatal}
         </p>
-      )}
-
-      {state.repairs.length > 0 && (
-        <section className="mt-4 rounded-2xl bg-play-blue/10 p-5">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">
-            Repaired while reading
-          </h2>
-          <p className="mt-1 text-sm text-ink-soft">
-            A PDF text layer damages JSON in predictable ways. These were fixed automatically.
-          </p>
-          <ul className="mt-3 space-y-1 text-sm">
-            {state.repairs.map((r) => (
-              <li key={r.kind} className="flex gap-3">
-                <span className="w-12 shrink-0 text-right font-mono font-bold tabular-nums">{r.count}x</span>
-                <span>{r.detail ?? r.kind}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
       )}
 
       <IssueList title="Blocking errors" tone="error" issues={errors} />

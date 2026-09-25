@@ -5,11 +5,18 @@ import { StreakBadge } from './StreakBadge'
  * The only surface that shows one student anything about another (FR-5.3),
  * and it shows exactly these columns.
  */
-export function LeaderboardTable({ rows, meUserId }: { rows: LeaderboardRow[]; meUserId: string }) {
+export function LeaderboardTable({
+  rows, meUserId, compact = false,
+}: {
+  rows: LeaderboardRow[]
+  meUserId: string
+  /** The dashboard's inline panel (PRD 6.3): the table only, no podium. */
+  compact?: boolean
+}) {
   if (!rows.length) {
     return (
       <p className="rounded-3xl border-2 border-dashed border-black/15 p-8 text-center text-ink-soft">
-        Nothing yet. The board fills in once the first paper closes at midnight.
+        Nothing yet. The board fills in at 12:01 AM, once the first paper has run.
       </p>
     )
   }
@@ -18,7 +25,7 @@ export function LeaderboardTable({ rows, meUserId }: { rows: LeaderboardRow[]; m
 
   return (
     <>
-      <ol className="grid gap-3 sm:grid-cols-3">
+      {!compact && <ol className="grid gap-3 sm:grid-cols-3">
         {podium.map((row, i) => (
           <li
             key={row.userId}
@@ -42,9 +49,9 @@ export function LeaderboardTable({ rows, meUserId }: { rows: LeaderboardRow[]; m
             )}
           </li>
         ))}
-      </ol>
+      </ol>}
 
-      <div className="mt-4 overflow-x-auto rounded-3xl bg-white p-5">
+      <div className={`overflow-x-auto rounded-3xl bg-white p-5 ${compact ? '' : 'mt-4'}`}>
         <table className="w-full border-collapse text-sm tabular-nums">
           <thead>
             <tr className="text-left text-[10px] uppercase tracking-widest text-ink-soft">

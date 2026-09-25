@@ -9,14 +9,15 @@ import { PATTERN, type Paper, type PaperQuestion, type SectionCode } from './typ
  * months.
  *
  * Primary keys are assigned by Postgres, so rows here are linked by section
- * code and question number. The repository resolves those to UUIDs on insert.
+ * code and question number. save_paper (supabase/schema.sql) resolves those to
+ * ids inside one transaction, and links each question to the directions block
+ * whose range holds it.
  */
 
 export interface TestRow {
   date: string
   title: string | null
   status: 'DRAFT' | 'SCHEDULED'
-  source_pdf_path: string | null
 }
 
 export interface SectionRow {
@@ -39,14 +40,6 @@ export interface DirectionBlockRow {
 
 export interface QuestionRow {
   sectionCode: SectionCode
-  /**
-   * Index into the section's direction blocks, or null.
-   *
-   * Write-side only: savePaper uses it to set the foreign key. rowsToPaper
-   * re-derives the association from the block's own from/to range, so a paper
-   * read back from the database does not need it populated.
-   */
-  directionIndex: number | null
   number: number
   text: string
   options: Record<string, string>
@@ -64,7 +57,7 @@ export interface PaperRows {
   questions: QuestionRow[]
 }
 
-export function paperToRows(paper: Paper, sourcePdfPath: string | null = null): PaperRows {
+export function paperToRows(paper: Paper): PaperRows {
   const sections: SectionRow[] = []
   const directionBlocks: DirectionBlockRow[] = []
   const questions: QuestionRow[] = []
@@ -93,10 +86,8 @@ export function paperToRows(paper: Paper, sourcePdfPath: string | null = null): 
     })
 
     for (const q of section.questions) {
-      const directionIndex = blocks.findIndex((b) => q.number >= b.from && q.number <= b.to)
       questions.push({
         sectionCode: section.code,
-        directionIndex: directionIndex === -1 ? null : directionIndex,
         number: q.number,
         text: q.text,
         options: q.options as Record<string, string>,
@@ -114,11 +105,30 @@ export function paperToRows(paper: Paper, sourcePdfPath: string | null = null): 
       date: paper.date,
       title: paper.title ?? null,
       status: 'DRAFT',
-      source_pdf_path: sourcePdfPath,
     },
     sections,
     directionBlocks,
     questions,
+  }
+}
+
+/**
+ * The argument to save_paper: each section with its own blocks and questions
+ * nested inside it, so the function needs no join keys from the client.
+ */
+export function savePaperPayload(rows: PaperRows): Record<string, unknown> {
+  return {
+    date: rows.test.date,
+    title: rows.test.title,
+    sections: rows.sections.map((s) => ({
+      ...s,
+      blocks: rows.directionBlocks
+        .filter((b) => b.sectionCode === s.code)
+        .map(({ sectionCode: _c, ...b }) => b),
+      questions: rows.questions
+        .filter((q) => q.sectionCode === s.code)
+        .map(({ sectionCode: _c, ...q }) => q),
+    })),
   }
 }
 

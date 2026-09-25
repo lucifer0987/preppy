@@ -3,11 +3,14 @@ import { requireAdmin } from '../../lib/guard'
 import { logoutAction } from '../login/actions'
 
 /**
- * Role gate for every admin route.
+ * The admin shell.
  *
- * The check is server-side and applies to the whole segment, so an admin page
- * is never protected by the obscurity of its URL alone (PRD section 13). A
- * logged-in student who guesses /admin is sent to their dashboard.
+ * The check here is server-side, so an admin page is never protected by the
+ * obscurity of its URL alone (PRD section 13), and a logged-in student who
+ * guesses /admin is sent to their dashboard. It is not the only check: a
+ * layout does not re-run on every navigation and does not cover server
+ * actions or route handlers, so each page calls requireAdmin and each action
+ * calls actionAdmin for itself.
  */
 /**
  * Authenticated and live-data backed: never prerender it.

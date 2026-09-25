@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { KAHOOT_COLORS, prefersReducedMotion } from './motion'
+import { KAHOOT_COLORS, claimFirstView, prefersReducedMotion } from './motion'
 
 export type CelebrationLevel = 'none' | 'good' | 'personal-best' | 'podium'
 
@@ -11,8 +11,11 @@ export type CelebrationLevel = 'none' | 'good' | 'personal-best' | 'podium'
  * Fires once, sized to the occasion, and not at all for someone who asked for
  * reduced motion. It is purely decorative: the page reads identically without
  * it, and nothing here can fail in a way that hides a score.
+ *
+ * With `onceKey`, it fires only on the first view of that key in this
+ * browser, so revisiting a result does not replay the moment.
  */
-export function Celebration({ level }: { level: CelebrationLevel }) {
+export function Celebration({ level, onceKey }: { level: CelebrationLevel; onceKey?: string }) {
   useEffect(() => {
     if (level === 'none' || prefersReducedMotion()) return
 
@@ -20,6 +23,7 @@ export function Celebration({ level }: { level: CelebrationLevel }) {
     void (async () => {
       const confetti = (await import('canvas-confetti')).default
       if (cancelled) return
+      if (onceKey && !claimFirstView(`${onceKey}.confetti`)) return
 
       const burst = (particleCount: number, spread: number, origin: { x: number; y: number }) =>
         confetti({ particleCount, spread, origin, colors: KAHOOT_COLORS, disableForReducedMotion: true })
@@ -33,7 +37,7 @@ export function Celebration({ level }: { level: CelebrationLevel }) {
     })()
 
     return () => { cancelled = true }
-  }, [level])
+  }, [level, onceKey])
 
   return null
 }

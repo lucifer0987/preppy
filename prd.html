@@ -238,7 +238,7 @@ html{scroll-behavior:smooth}
     <li><a href="#s4"><span>04</span>The daily clock</a></li>
     <li><a href="#s5"><span>05</span>Roles &amp; privacy</a></li>
     <li><a href="#s6"><span>06</span>Requirements</a></li>
-    <li><a href="#s7"><span>07</span>The PDF contract</a></li>
+    <li><a href="#s7"><span>07</span>The paper format</a></li>
     <li><a href="#s8"><span>08</span>Design direction</a></li>
     <li><a href="#s9"><span>09</span>Data model</a></li>
     <li><a href="#s10"><span>10</span>Architecture</a></li>
@@ -282,6 +282,7 @@ html{scroll-behavior:smooth}
 <tr><td>Exports</td><td>Three CSV exports</td><td><strong>One JSON question-bank export</strong></td></tr>
 <tr><td>Percentiles</td><td>Percentile everywhere</td><td><strong>"2nd of 5"</strong></td></tr>
 <tr><td>Admin on leaderboard</td><td>Exclusion logic threaded through every aggregate query</td><td><strong>Admin attempts are always dry runs</strong> — one rule, no exclusion logic</td></tr>
+<tr><td>Paper format</td><td>PDF in a text grammar, server-side PDF extraction, <code>.txt</code> fallback, source PDF kept in Storage</td><td><strong>A JSON file, parsed strictly.</strong> No extraction, no repair layer, nothing lossy between the admin and the database</td></tr>
 </table></div>
 <div class="good">
   <h4>Net effect</h4>
@@ -298,7 +299,7 @@ html{scroll-behavior:smooth}
 <p>Serious IBPS SO aspirants practise alone. Commercial test series are generic — built for the broad banking pool, not CSE professional knowledge — expensive, and they give a percentile against an anonymous mass that means nothing. A study group that wants to drill together every night has no tool that combines real exam conditions, real marking, a persistent ranking among people they actually know, and the ability to run their <em>own</em> question bank.</p>
 <h3>Who it's for</h3>
 <p><strong>The Aspirant.</strong> Final-year CSE student or working IT professional, 21–27. Studies at night, owns a laptop, and is motivated far more by beating four people they know than by a percentile against 200,000 strangers.</p>
-<p><strong>The Admin.</strong> One person sources the questions, formats them into the PDF contract, and publishes nightly. Not a developer. Their daily cost must stay under five minutes.</p>
+<p><strong>The Admin.</strong> One person sources the questions, formats them into the paper format, and publishes nightly. Not a developer. Their daily cost must stay under five minutes.</p>
 <h3>Goals</h3>
 <div class="tw"><table>
 <tr><th style="width:52px">#</th><th>Goal</th></tr>
@@ -317,7 +318,7 @@ html{scroll-behavior:smooth}
 <tr><td>Completion rate (submitted ÷ started)</td><td class="n">≥ 95%</td></tr>
 <tr><td>Median 7-day student streak</td><td class="n">≥ 5</td></tr>
 <tr><td>Admin publish time, upload → scheduled</td><td class="n">≤ 5 min</td></tr>
-<tr><td>PDF first-pass parse success</td><td class="n">≥ 90%</td></tr>
+<tr><td>Paper first-pass validation success</td><td class="n">≥ 90%</td></tr>
 <tr><td>Attempts lost to technical fault</td><td class="n">0</td></tr>
 </table></div>
 </div></section>
@@ -347,7 +348,7 @@ html{scroll-behavior:smooth}
 <tr><td>4</td><td><i class="sec-dot" style="background:var(--k-green)"></i>Professional Knowledge</td><td><code>PK</code></td><td class="n">15</td><td class="n">12:00</td><td class="n">48</td></tr>
 <tr class="tot"><td></td><td>Total</td><td></td><td class="n">55</td><td class="n">45:00</td><td class="n">49</td></tr>
 </table></div>
-<div class="fr"><p><b class="id">FR-3.2</b>Section order, question counts and durations are stored per test and overridable from the PDF header.</p></div>
+<div class="fr"><p><b class="id">FR-3.2</b>Section order, question counts and durations are stored per test and overridable in the paper file.</p></div>
 <div class="good">
   <h4>✓ Pacing is correct</h4>
   <p><strong>48 s/q</strong> for Quant, Reasoning and PK is an exact match for IBPS SO Prelims, and more generous than SO Mains Professional Knowledge at 45 s/q. English at 54 s/q carries margin for comprehension passages.</p>
@@ -357,7 +358,7 @@ html{scroll-behavior:smooth}
 <ul>
 <li>Two decimals, displayed signed when negative.</li>
 <li>A question left <strong>Marked for Review</strong> with no option selected is unattempted and scores 0.</li>
-<li>Per-section <code>MARKS</code> and <code>NEGATIVE</code> overridable in the PDF header.</li>
+<li>Per-section <code>marksCorrect</code> and <code>marksNegative</code> overridable in the paper file.</li>
 <li>No sectional cut-offs. Rank is total score alone.</li>
 </ul>
 <h3>Not reached vs skipped</h3>
@@ -379,12 +380,13 @@ html{scroll-behavior:smooth}
   <div class="ct"><time>—</time><div><h5>Admin prepares</h5><p>Upload, validate, dry-run and schedule a paper for any future date.</p></div></div>
   <div class="ct key"><time>22:00</time><div><h5>Test unlocks</h5><p>Status reads <code>LIVE</code>. Dashboard flips from countdown to the entry card.</p></div></div>
   <div class="ct key"><time>23:15</time><div><h5>Entry closes</h5><p>No attempt may start at or after 23:15. Last possible start is 23:14:59.</p></div></div>
-  <div class="ct key"><time>23:59</time><div><h5>Hard stop</h5><p>The 23:14:59 entrant's 45 minutes expire.</p></div></div>
+  <div class="ct key"><time>24:00</time><div><h5>Hard stop</h5><p>Midnight. The 23:14:59 entrant's 45 minutes expire, and answers unlock.</p></div></div>
   <div class="ct"><time>00:00</time><div><h5>Archive unlocks</h5><p>Questions, keys and solutions become visible to everyone. Computed on read.</p></div></div>
+  <div class="ct key"><time>00:01</time><div><h5>Leaderboard refresh</h5><p>The night's paper joins the leaderboard, ranks and streaks. Computed on read; anything still open is scored first.</p></div></div>
   <div class="ct key"><time>00:05</time><div><h5>Finalise</h5><p>Force-submit and score any attempt still open. <em>The only scheduled job.</em></p></div></div>
 </div>
-<div class="fr"><p><b class="id">FR-4.1</b><strong>Entry closes at 23:15 while the window runs to 23:59.</strong> The 44-minute tail exists so a student starting at the last possible moment still gets their full 45 minutes.</p></div>
-<div class="fr"><p><b class="id">FR-4.2</b>Score and rank appear the instant a student submits. Because the leaderboard is computed on read, rank is correct immediately — <strong>there is no provisional state to explain</strong>.</p></div>
+<div class="fr"><p><b class="id">FR-4.1</b><strong>Entry closes at 23:15 while the window runs to midnight.</strong> The 45-minute tail exists so a student starting at the last possible moment still gets their full 45 minutes.</p></div>
+<div class="fr"><p><b class="id">FR-4.2</b><strong>Score appears the instant a student submits; rank waits for 00:01.</strong> The result page shows the score and its full breakdown at once. Everything that compares one student with another — the leaderboard, "2nd of 5", the leaderboard delta, archive ranks, streaks — takes in the night's paper at 00:01, once every attempt on it has had to end. That is what keeps FR-5.3 true: nobody can read off a rank who has or has not sat tonight's paper.</p></div>
 <div class="fr"><p><b class="id">FR-4.3</b>Correct answers and solutions are withheld from <strong>every</strong> user — including those who already submitted — until 00:00.</p></div>
 <h3>Lifecycle</h3>
 <p><strong>Test:</strong> <code>DRAFT</code> → <code>SCHEDULED</code> → <code>LIVE</code> → <code>CLOSED</code>. <code>LIVE</code> and <code>CLOSED</code> are <strong>derived from the clock</strong>, not written by a job.</p>
@@ -454,7 +456,7 @@ html{scroll-behavior:smooth}
 <tr><td>Live, not attempted, before 23:15</td><td>Entry card: date, pattern, marking, time left to enter, <strong>Start Test</strong></td></tr>
 <tr><td>Live, in progress</td><td><strong>Resume Test</strong> with live remaining time</td></tr>
 <tr><td>Live, at/after 23:15, not attempted</td><td>"Entry closed at 11:15 PM" + countdown to tomorrow</td></tr>
-<tr><td>Live, already submitted</td><td>Score and rank, "Answers unlock at midnight"</td></tr>
+<tr><td>Live, already submitted</td><td>Score, "Your rank appears at 12:01 AM", "Answers unlock at midnight"</td></tr>
 <tr><td>Not live</td><td>Countdown to 22:00, current streak</td></tr>
 <tr><td>No test scheduled</td><td>"No test tonight" + countdown to the next scheduled paper</td></tr>
 </table></div>
@@ -533,7 +535,7 @@ html{scroll-behavior:smooth}
 <div class="fr"><p><b class="id">FR-6.5.3</b>On violation an opaque overlay covers the question: <em>"Return to full screen to continue."</em> <strong>The section timer keeps running</strong> — otherwise leaving full-screen becomes a pause button.</p></div>
 <div class="fr"><p><b class="id">FR-6.5.4</b><strong>Two counters, no log table.</strong> The attempt row carries <code>fullscreen_exits</code> and <code>tab_switches</code>, each an integer incremented in place. There is no event table, no timestamps, no durations, no event list — and therefore <strong>no retention policy to implement</strong>. The counters are part of the attempt and live as long as it does.</p></div>
 <div class="fr"><p><b class="id">FR-6.5.5</b>The live count shows in the test header. The result page shows the final two numbers. The admin sees the same two numbers.</p></div>
-<div class="fr"><p><b class="id">FR-6.5.6</b>The test <strong>never</strong> auto-submits on a violation. Only timer expiry or the 23:59 hard stop ends a test the student did not end.</p></div>
+<div class="fr"><p><b class="id">FR-6.5.6</b>The test <strong>never</strong> auto-submits on a violation. Only timer expiry or the midnight hard stop ends a test the student did not end.</p></div>
 <div class="fr"><p><b class="id">FR-6.5.7</b><strong>Best-effort deterrents.</strong> Selection, copy, cut, paste, right-click and print are suppressed; <code>Ctrl/⌘+P</code>, <code>Ctrl/⌘+S</code> and <code>F12</code> intercepted. Friction, not security — <strong>not counted or stored</strong>.</p></div>
 <div class="fr"><p><b class="id">FR-6.5.8</b><strong>Device policy.</strong> Taking a test requires a viewport ≥ 1024 px. Smaller viewports get a friendly block explaining the real exam is desktop-only too.</p></div>
 <div class="flag">
@@ -546,12 +548,12 @@ html{scroll-behavior:smooth}
 <p>Everything on this page is about the student and nobody else.</p>
 <ul>
 <li><strong>Headline:</strong> total out of 55, animated count-up, full Kahoot celebration.</li>
-<li><strong>Rank:</strong> <em>"2nd of 5."</em> No percentile — at n=5 a percentile is noise.</li>
+<li><strong>Rank:</strong> <em>"2nd of 5,"</em> from 00:01 (FR-4.2). No percentile — at n=5 a percentile is noise.</li>
 <li><strong>Sectional table:</strong> score, attempted, correct, wrong, <strong>skipped</strong>, <strong>not reached</strong>, accuracy, time used.</li>
 <li><strong>Pacing verdict</strong> from the skipped/not-reached split: <em>"You never reached 4 questions in Quant. That's a speed problem, not a knowledge problem."</em></li>
 <li><strong>Slowest three questions</strong> per section.</li>
 <li><strong>Integrity:</strong> the two counters.</li>
-<li><strong>Leaderboard delta:</strong> cumulative rank before → after.</li>
+<li><strong>Leaderboard delta:</strong> cumulative rank before → after, from 00:01.</li>
 <li><strong>Review answers</strong> — enabled from 00:00.</li>
 </ul>
 
@@ -576,9 +578,9 @@ html{scroll-behavior:smooth}
 <p>At <code>/admin</code>, gated on <code>role = admin</code> server-side.</p>
 <h4>Paper ingestion</h4>
 <ol>
-<li><strong>Upload</strong> a PDF, optionally with images. <code>.txt</code> accepted as fallback.</li>
-<li><strong>Extract</strong> text and run the grammar parser.</li>
-<li><strong>Validate</strong> — blocking errors separated from warnings, each with a line number.</li>
+<li><strong>Upload</strong> the paper as a <code>.json</code> file, optionally with images.</li>
+<li><strong>Parse</strong> strictly. Invalid JSON is reported with its line and column.</li>
+<li><strong>Validate</strong> — blocking errors separated from warnings, each with the path to the field.</li>
 <li><strong>Preview</strong> — every question rendered in the exact student interface, with key and solution. Cannot be skipped.</li>
 <li><strong>Dry run</strong> <em>(optional)</em> — take the paper end to end in the real test engine.</li>
 <li><strong>Schedule</strong> — assign a date; save as draft or publish.</li>
@@ -586,7 +588,7 @@ html{scroll-behavior:smooth}
 <div class="fr"><p><b class="id">FR-6.9.1</b><strong>Publishing is never automatic.</strong> A paper reaches <code>SCHEDULED</code> only by explicit admin action after preview.</p></div>
 <div class="tw"><table>
 <tr><th>Blocking errors</th><th>Warnings — still publishable</th></tr>
-<tr><td>Wrong question count · missing or unparseable key · key not among the options · fewer than 2 or more than 5 options · duplicate question numbers · referenced image not uploaded · <code>#DIRECTIONS</code> range covering non-existent questions · unrecognised section code · date already holds a published test</td><td>No solution · no tag · no difficulty · option text over 300 characters · fewer than 5 options · suspiciously low extracted character count, which usually means a scan</td></tr>
+<tr><td>Wrong question count · missing or unparseable key · key not among the options · fewer than 2 or more than 5 options · duplicate question numbers · referenced image not uploaded · <code>directions</code> range covering non-existent questions · unrecognised section code · date already holds a published test</td><td>No solution · no tag · no difficulty · option text over 300 characters · fewer than 5 options</td></tr>
 </table></div>
 <h4>Dry run</h4>
 <div class="fr"><p><b class="id">FR-6.9.2</b>The admin can take <strong>any</strong> test — <code>DRAFT</code>, <code>SCHEDULED</code>, <code>LIVE</code> or <code>CLOSED</code> — as a dry run, using the real test engine: real sectional timers, real full-screen, real scoring. The attempt is stored with <code>is_dry_run = true</code>, visible only to the admin, excluded from the leaderboard, ranks and every aggregate. Dry runs can be repeated and deleted freely.</p></div>
@@ -600,64 +602,62 @@ html{scroll-behavior:smooth}
 
 <!-- 7 -->
 <section id="s7"><div class="col">
-<h2><i>07</i>The PDF contract</h2>
-<p>The highest-risk component. PDF text extraction is lossy, so the format is rigid and the parser strict — it fails loudly rather than guessing.</p>
+<h2><i>07</i>The paper format</h2>
+<p>One paper is one JSON file. The format is rigid and the parser strict — it fails loudly rather than guessing. The full spec, written for whoever makes the papers, is <code>format/README.md</code>; <code>format/schema.json</code> mirrors the rules for editor validation.</p>
 <ul>
-<li>Text-based PDF only. <strong>Scanned or image-only PDFs are rejected</strong> — no OCR.</li>
-<li>One question block per question, in presentation order. Blank line between blocks.</li>
-<li>Keys case-insensitive. Option labels accept <code>A)</code>, <code>A.</code> or <code>(A)</code>.</li>
-<li>Everything except <code>Q</code>, the options and <code>ANS:</code> is optional.</li>
+<li><strong>JSON only, parsed as written.</strong> Curly quotes, trailing commas and comments are errors, not silently repaired. Papers are written in a code editor, not a word processor.</li>
+<li>Question numbers run 1–55 straight through the paper, and each section holds exactly its own band.</li>
+<li>Everything except <code>number</code>, <code>text</code>, <code>options</code> and <code>answer</code> is optional on a question.</li>
 </ul>
-<pre><code><b>#TEST</b>
-<b>DATE:</b> 2026-09-26
-<b>TITLE:</b> Daily Mock 042              <i>(optional)</i>
-
-<b>#SECTION:</b> QUANT
-<b>DURATION:</b> 12                       <i>(minutes; defaults to pattern)</i>
-<b>MARKS:</b> 1                           <i>(default 1)</i>
-<b>NEGATIVE:</b> 0.25                     <i>(default 0.25)</i>
-
-<b>Q1.</b> A train 150 m long crosses a pole in 15 seconds. Find its speed.
-<b>A)</b> 30 km/h
-<b>B)</b> 36 km/h
-<b>C)</b> 40 km/h
-<b>D)</b> 45 km/h
-<b>E)</b> None of these
-<b>ANS:</b> B
-<b>SOL:</b> Speed = 150/15 = 10 m/s = 10 x 18/5 = 36 km/h.
-<b>TAG:</b> Speed-Time-Distance
-<b>DIFF:</b> Easy
-
-<b>#DIRECTIONS:</b> Q6-Q10
-Study the table below and answer the questions that follow.
-<b>[IMG:</b> di_table_1.png<b>]</b>
-<b>#ENDDIRECTIONS</b>
-
-<b>Q6.</b> ...
-
-<b>#SECTION:</b> REASONING     <i>DURATION: 12</i>
-<b>#SECTION:</b> ENGLISH       <i>DURATION: 9</i>
-<b>#SECTION:</b> PK            <i>DURATION: 12</i>
-
-<b>#ENDTEST</b></code></pre>
+<pre><code>{
+  <b>"format"</b>: "preppy-paper",
+  <b>"version"</b>: 1,
+  <b>"date"</b>: "2026-09-26",
+  <b>"title"</b>: "Daily Mock 042",              <i>(optional)</i>
+  <b>"sections"</b>: [
+    {
+      <b>"code"</b>: "QUANT",
+      <b>"durationMinutes"</b>: 12,              <i>(defaults to pattern)</i>
+      <b>"marksCorrect"</b>: 1,                  <i>(default 1)</i>
+      <b>"marksNegative"</b>: 0.25,              <i>(default 0.25)</i>
+      <b>"directions"</b>: [
+        {
+          <b>"from"</b>: 6, <b>"to"</b>: 10,
+          <b>"text"</b>: "Study the table below and answer the questions that follow.",
+          <b>"table"</b>: { "headers": ["Year", "Java"], "rows": [["2024", "15"]] }
+        }
+      ],
+      <b>"questions"</b>: [
+        {
+          <b>"number"</b>: 1,
+          <b>"text"</b>: "A train 150 m long crosses a pole in 15 seconds. Find its speed.",
+          <b>"options"</b>: { "A": "30 km/h", "B": "36 km/h", "C": "40 km/h", "D": "45 km/h", "E": "None of these" },
+          <b>"answer"</b>: "B",
+          <b>"solution"</b>: "Speed = 150/15 = 10 m/s = 10 x 18/5 = 36 km/h.",
+          <b>"tag"</b>: "Speed-Time-Distance",
+          <b>"difficulty"</b>: "Easy"
+        }
+      ]
+    }
+  ]
+}</code></pre>
 <div class="tw"><table>
-<tr><th>Directive</th><th>Scope</th><th class="n">Req</th><th>Notes</th></tr>
-<tr><td><code>#TEST</code> / <code>#ENDTEST</code></td><td>file</td><td class="n yes">✓</td><td>Outer wrapper</td></tr>
-<tr><td><code>DATE:</code></td><td>test</td><td class="n yes">✓</td><td><code>YYYY-MM-DD</code>, the date it goes live</td></tr>
-<tr><td><code>TITLE:</code></td><td>test</td><td class="n">—</td><td>Defaults to "Daily Mock — {date}"</td></tr>
-<tr><td><code>#SECTION:</code></td><td>section</td><td class="n yes">✓</td><td><code>QUANT</code> · <code>REASONING</code> · <code>ENGLISH</code> · <code>PK</code></td></tr>
-<tr><td><code>DURATION:</code></td><td>section</td><td class="n">—</td><td>Minutes; overrides the pattern</td></tr>
-<tr><td><code>MARKS:</code> / <code>NEGATIVE:</code></td><td>section</td><td class="n">—</td><td>Overrides the marking</td></tr>
-<tr><td><code>Qn.</code></td><td>question</td><td class="n yes">✓</td><td>Sequential within the file</td></tr>
-<tr><td><code>A)</code>–<code>E)</code></td><td>question</td><td class="n yes">✓</td><td>2–5 options</td></tr>
-<tr><td><code>ANS:</code></td><td>question</td><td class="n yes">✓</td><td>A single option letter</td></tr>
-<tr><td><code>SOL:</code></td><td>question</td><td class="n">—</td><td>Multi-line, until the next directive</td></tr>
-<tr><td><code>TAG:</code> / <code>DIFF:</code></td><td>question</td><td class="n">—</td><td>Topic · Easy / Medium / Hard</td></tr>
-<tr><td><code>[IMG: file]</code></td><td>anywhere</td><td class="n">—</td><td>References a separately uploaded image</td></tr>
-<tr><td><code>#DIRECTIONS:</code></td><td>group</td><td class="n">—</td><td>Shared passage, DI set or puzzle</td></tr>
+<tr><th>Field</th><th>Scope</th><th class="n">Req</th><th>Notes</th></tr>
+<tr><td><code>format</code> / <code>version</code></td><td>paper</td><td class="n yes">✓</td><td>Always <code>"preppy-paper"</code> and <code>1</code></td></tr>
+<tr><td><code>date</code></td><td>paper</td><td class="n yes">✓</td><td><code>YYYY-MM-DD</code>, the date it goes live</td></tr>
+<tr><td><code>title</code></td><td>paper</td><td class="n">—</td><td>Defaults to the date</td></tr>
+<tr><td><code>sections</code></td><td>paper</td><td class="n yes">✓</td><td>Exactly four: <code>QUANT</code> · <code>REASONING</code> · <code>ENGLISH</code> · <code>PK</code></td></tr>
+<tr><td><code>durationMinutes</code></td><td>section</td><td class="n">—</td><td>Overrides the pattern</td></tr>
+<tr><td><code>marksCorrect</code> / <code>marksNegative</code></td><td>section</td><td class="n">—</td><td>Overrides the marking</td></tr>
+<tr><td><code>directions</code></td><td>section</td><td class="n">—</td><td>Shared passage, DI table or puzzle over <code>from</code>–<code>to</code></td></tr>
+<tr><td><code>number</code></td><td>question</td><td class="n yes">✓</td><td>Inside the section's band</td></tr>
+<tr><td><code>options</code></td><td>question</td><td class="n yes">✓</td><td>Keyed <code>A</code>–<code>E</code>, contiguous from <code>A</code>, 2–5 entries</td></tr>
+<tr><td><code>answer</code></td><td>question</td><td class="n yes">✓</td><td>One of the option keys</td></tr>
+<tr><td><code>solution</code> · <code>tag</code> · <code>difficulty</code></td><td>question</td><td class="n">—</td><td>Difficulty is Easy · Medium · Hard</td></tr>
+<tr><td><code>images</code></td><td>question or directions</td><td class="n">—</td><td>File names of separately uploaded images</td></tr>
 </table></div>
-<div class="fr"><p><b class="id">FR-7.1</b><code>#DIRECTIONS</code> is mandatory infrastructure. Reading comprehension, cloze tests, DI sets and seating-arrangement puzzles are a large share of a real IBPS paper and are <strong>unrepresentable</strong> without it.</p></div>
-<div class="fr"><p><b class="id">FR-7.2</b>A downloadable <code>template.pdf</code>, a filled <code>sample.pdf</code> and a one-page cheatsheet ship with the admin console. Format drift is the most likely cause of a missed night.</p></div>
+<div class="fr"><p><b class="id">FR-7.1</b><code>directions</code> is mandatory infrastructure. Reading comprehension, cloze tests, DI sets and seating-arrangement puzzles are a large share of a real IBPS paper and are <strong>unrepresentable</strong> without it. DI tables are structured <code>headers</code> and <code>rows</code>, never space-aligned text.</p></div>
+<div class="fr"><p><b class="id">FR-7.2</b>A fill-in <code>template.json</code>, a filled <code>sample.json</code> and <code>schema.json</code> ship in <code>format/</code>, and <code>npm run check</code> validates a paper exactly as the upload does. Format drift is the most likely cause of a missed night.</p></div>
 </div></section>
 
 <!-- 8 -->
@@ -677,7 +677,7 @@ Study the table below and answer the questions that follow.
     <p>One question at a time · palette rail · one-way section navigation · Save &amp; Next / Mark for Review / Clear Response · a visible, authoritative sectional countdown.</p>
   </div>
 </div>
-<div class="fr"><p><b class="id">FR-8.1</b><strong>The one restraint inside a running section.</strong> Celebratory motion and sound do not fire while a section timer is running. This is a focus decision, not a theme decision — an animation over a Quant question costs marks. Celebration fires at section end and on results, fully on.</p></div>
+<div class="fr"><p><b class="id">FR-8.1</b><strong>The one restraint inside a running section.</strong> Celebratory motion and sound do not fire while a section timer is running. This is a focus decision, not a theme decision — an animation over a Quant question costs marks. Celebration fires on results, fully on. <strong>There is no celebration between sections</strong>: the next section's clock starts the instant the previous one ends.</p></div>
 <h3>Colour</h3>
 <p>Kahoot's option shapes carry the product: <i class="sh sh-tri" style="display:inline-block;vertical-align:-2px;background:var(--k-red)"></i> red · <i class="sh sh-dia" style="display:inline-block;vertical-align:-2px;background:var(--k-blue)"></i> blue · <i class="sh sh-cir" style="display:inline-block;vertical-align:-2px;background:var(--k-yellow)"></i> yellow · <i class="sh sh-sqr" style="display:inline-block;vertical-align:-2px;background:var(--k-green)"></i> green · <i class="sh sh-str" style="display:inline-block;vertical-align:-2px;background:var(--k-purple)"></i> purple. Shape-plus-colour keeps options distinguishable to colour-blind users — the brand device itself satisfies an accessibility requirement.</p>
 <p>The palette legend uses the same hues, mapping onto the exam vocabulary students know: <strong>green</strong> answered · <strong>red</strong> not answered · <strong>purple</strong> marked · <strong>grey</strong> not visited.</p>
@@ -688,20 +688,20 @@ Study the table below and answer the questions that follow.
 <!-- 9 -->
 <section id="s9"><div class="col">
 <h2><i>09</i>Data model</h2>
-<p><strong>Eight tables.</strong> Dropped from v1.1: <code>options</code> (now a JSON column), <code>integrity_events</code>, <code>leaderboard_snapshots</code>, <code>admin_audit_log</code>.</p>
+<p><strong>Eight tables</strong>, plus <code>rate_limits</code> for the throttles in §13. Dropped from v1.1: <code>options</code> (now a JSON column), <code>integrity_events</code>, <code>leaderboard_snapshots</code>, <code>admin_audit_log</code>.</p>
 <div class="tw"><table>
 <tr><th>Table</th><th>Key fields</th></tr>
-<tr><td><code>profiles</code></td><td>id (= auth.users.id) · username (unique, lower) · display_name · role · is_active · must_change_password · created_at</td></tr>
-<tr><td><code>tests</code></td><td>id · date (unique) · title · status · source_pdf_path · published_by · published_at</td></tr>
+<tr><td><code>profiles</code></td><td>id (= auth.users.id) · username (unique, lower) · display_name · role · is_active · must_change_password · sound_enabled · created_at</td></tr>
+<tr><td><code>tests</code></td><td>id · date (unique) · title · status · published_by · published_at · rescored_at</td></tr>
 <tr><td><code>sections</code></td><td>id · test_id · code · order · duration_sec · marks_correct · marks_negative · question_count</td></tr>
 <tr><td><code>direction_blocks</code></td><td>id · section_id · content · image_paths[] · q_from · q_to</td></tr>
 <tr><td><code>questions</code></td><td>id · section_id · direction_block_id · number · text · image_paths[] · <strong>options jsonb</strong> · correct_option · solution · tag · difficulty</td></tr>
-<tr><td><code>attempts</code></td><td>id · test_id · user_id · state · <strong>is_dry_run</strong> · started_at · submitted_at · total_score · section_scores_json · attempted · correct · wrong · skipped · not_reached · time_spent_sec · <strong>fullscreen_exits</strong> · <strong>tab_switches</strong></td></tr>
+<tr><td><code>attempts</code></td><td>id · test_id · user_id · state · <strong>is_dry_run</strong> · started_at · submitted_at · total_score · section_scores_json · attempted · correct · wrong · skipped · not_reached · time_spent_sec · <strong>fullscreen_exits</strong> · <strong>tab_switches</strong> · rescored_at</td></tr>
 <tr><td><code>attempt_sections</code></td><td>id · attempt_id · section_id · started_at · ended_at · end_reason</td></tr>
 <tr><td><code>responses</code></td><td>id · attempt_id · question_id · selected_option · is_marked · <strong>was_visited</strong> · time_spent_sec · updated_at</td></tr>
 </table></div>
 <div class="fr"><p><b class="id">FR-9.1</b><code>responses.was_visited</code> makes not-reached vs skipped possible. A row is written the moment a question is <em>opened</em>, not only when answered. No row at section end means <strong>not reached</strong>; a row with <code>selected_option IS NULL</code> means <strong>skipped</strong>.</p></div>
-<div class="fr"><p><b class="id">FR-9.2</b><strong>The database is the question bank.</strong> Once a PDF is parsed and published, the questions, options, keys and solutions live in Postgres and that is the system of record. The source PDF is kept in Storage as provenance only — deleting it loses nothing. Supabase takes automatic daily backups, and FR-6.9.5 provides a one-click JSON export as the manual escape hatch.</p></div>
+<div class="fr"><p><b class="id">FR-9.2</b><strong>The database is the question bank.</strong> Once a paper is validated and published, the questions, options, keys and solutions live in Postgres and that is the system of record. The uploaded file is not kept; the rows are the paper. Supabase takes automatic daily backups, and FR-6.9.5 provides a one-click JSON export as the manual escape hatch.</p></div>
 <p>Indexes on <code>attempts(test_id, total_score DESC)</code> · <code>attempts(user_id)</code> · <code>responses(attempt_id)</code> · <code>questions(section_id, number)</code>. All timestamps stored UTC, rendered Asia/Kolkata.</p>
 </div></section>
 
@@ -716,8 +716,8 @@ Study the table below and answer the questions that follow.
 <tr><td>Database</td><td><strong>Supabase Postgres</strong></td><td></td></tr>
 <tr><td>DB access</td><td><strong><code>supabase-js</code> + generated types</strong></td><td>No ORM, no migration tool to learn</td></tr>
 <tr><td>Auth</td><td><strong>Supabase Auth</strong></td><td>Username → <code>&lt;username&gt;@preppy.local</code>. No custom crypto</td></tr>
-<tr><td>Storage</td><td><strong>Supabase Storage</strong></td><td>Source PDFs and question images</td></tr>
-<tr><td>PDF parsing</td><td><strong><code>pdfjs-dist</code></strong> in a Route Handler</td><td>Pure JavaScript, server-side</td></tr>
+<tr><td>Storage</td><td><strong>Supabase Storage</strong></td><td>Question images</td></tr>
+<tr><td>Paper validation</td><td><strong>Hand-written validator</strong> in a Server Action</td><td>Every message names the field path; <code>format/schema.json</code> mirrors it for editors</td></tr>
 <tr><td>Styling</td><td><strong>Tailwind CSS</strong></td><td></td></tr>
 <tr><td>Celebration</td><td><strong><code>canvas-confetti</code></strong></td><td>CSS animations cover the rest; no animation library</td></tr>
 <tr><td>Hosting</td><td><strong>Vercel</strong></td><td></td></tr>
@@ -725,8 +725,9 @@ Study the table below and answer the questions that follow.
 </table></div>
 <p><strong>Everything is JavaScript or TypeScript. No Python, no ORM, no separate API server, no second provider.</strong></p>
 <h3>One job; everything else computed on read</h3>
-<div class="fr"><p><b class="id">FR-10.1</b>Test status is <strong>derived from the clock on every read</strong>. A test dated today reads <code>LIVE</code> between 22:00 and 23:59, <code>CLOSED</code> after. Unlock, entry-close and archive-unlock need no job and <strong>therefore cannot fail</strong>.</p></div>
+<div class="fr"><p><b class="id">FR-10.1</b>Test status is <strong>derived from the clock on every read</strong>. A test dated today reads <code>LIVE</code> from 22:00 until midnight, <code>CLOSED</code> after. Unlock, entry-close and archive-unlock need no job and <strong>therefore cannot fail</strong>.</p></div>
 <div class="fr"><p><b class="id">FR-10.2</b>The leaderboard, ranks, accuracy, averages and streaks are <strong>computed on read</strong> from the attempts table. With five students this is a few dozen rows. Nothing is precomputed, so nothing can go stale — and a rescore needs no cache invalidation.</p></div>
+<p>Writes that must land together — saving a paper, starting an attempt, a key correction with its rescore — are each one Postgres function in <code>supabase/schema.sql</code>, so each is all or nothing. Those functions are callable with the service-role key only.</p>
 <div class="tw"><table>
 <tr><th>Cron</th><th class="n">Time</th><th>Work</th></tr>
 <tr><td>Finalise</td><td class="n">00:05</td><td>Force-submit and score any attempt still in progress. That is the whole job.</td></tr>
@@ -747,7 +748,7 @@ Study the table below and answer the questions that follow.
 <tr><td>Browser crash / power loss</td><td>Same as refresh; responses persisted to the last write</td></tr>
 <tr><td>Network loss</td><td>Non-blocking banner; responses queue locally and flush on reconnect; timer keeps running</td></tr>
 <tr><td>Two devices, same account</td><td>Starting a test invalidates other sessions</td></tr>
-<tr><td>Attempt still open at 23:59</td><td>Force-submitted and scored; marked <code>AUTO_SUBMITTED</code></td></tr>
+<tr><td>Attempt still open at midnight</td><td>Force-submitted and scored; marked <code>AUTO_SUBMITTED</code></td></tr>
 <tr><td>Browser died, row stuck open</td><td>Cleaned up by the 00:05 job and scored from persisted responses</td></tr>
 <tr><td>Client clock altered</td><td>No effect — the server owns the clock</td></tr>
 <tr><td>Student tries to start at 23:15:00</td><td>Rejected server-side</td></tr>
@@ -772,7 +773,7 @@ Study the table below and answer the questions that follow.
 <p>Deliberately small.</p>
 <div class="tw"><table>
 <tr><th>Who</th><th>Sees</th></tr>
-<tr><td>The student, <br>about themselves only</td><td>Score trend · sectional accuracy over time · accuracy by topic tag · skipped vs not-reached trend per section · streak</td></tr>
+<tr><td>The student, <br>about themselves only</td><td>Each paper's result page and review, and their streak. There is no progress page or trend view.</td></tr>
 <tr><td>The admin</td><td><strong>% correct per question</strong> — the single statistic needed to catch a bad key — plus each attempt's score, duration and two violation counters</td></tr>
 <tr><td>Nobody</td><td>Cohort averages · per-question cohort statistics · another student's timings or answers · who has submitted tonight</td></tr>
 </table></div>
@@ -787,7 +788,7 @@ Study the table below and answer the questions that follow.
 <li>Password hashing and sessions are <strong>Supabase Auth's responsibility</strong>. No custom crypto.</li>
 <li>All database access is server-side with the service-role key; RLS deny-all as a backstop.</li>
 <li>Admin routes gated by role server-side, not by route obscurity.</li>
-<li>Rate limits on login, response writes and PDF upload. Uploads restricted by MIME type and size.</li>
+<li>Rate limits on login, response writes and paper upload. Uploads restricted by MIME type and size.</li>
 <li><strong>Minimal PII</strong> — a username, a display name, and a synthetic internal address that receives no mail.</li>
 <li><strong>Minimal behavioural data</strong> — two integers per attempt. No event log, no timestamps, <strong>no retention policy, because there is nothing to retain</strong>. Students are told in the briefing what the two counters are and that the admin can see them.</li>
 <li>FR-5.3 makes the privacy posture structural: a student's data is visible to that student, to the admin, and — for the leaderboard columns only — to the cohort.</li>
@@ -799,7 +800,7 @@ Study the table below and answer the questions that follow.
 <h2><i>14</i>Risks</h2>
 <div class="tw"><table>
 <tr><th style="width:38px">#</th><th>Risk</th><th>Severity</th><th>Mitigation</th></tr>
-<tr><td>R1</td><td><strong>PDF extraction is lossy</strong> — layout-heavy Quant and Reasoning parse badly</td><td>High / Likely</td><td>Rigid grammar; fail-loud validation; mandatory preview; <strong>dry run</strong>; image attachments; <code>.txt</code> fallback; shipped templates</td></tr>
+<tr><td>R1</td><td><strong>A malformed paper</strong> — a hand-edited JSON file has a typo, a miscounted section or a wrong key</td><td>Med / Likely</td><td>Strict parse with line and column; fail-loud validation; JSON Schema in the editor; <code>npm run check</code>; mandatory preview; <strong>dry run</strong>; shipped template and sample</td></tr>
 <tr><td>R2</td><td><strong>Admin burnout</strong> — one person owes 55 questions a night</td><td>High / Likely</td><td>5-minute publish target; schedule ahead; drafts; "no test tonight" does not break streaks</td></tr>
 <tr><td>R3</td><td><strong>Missed night because nobody was reminded</strong></td><td>Med / Likely</td><td>Admin dashboard leads with tonight's status. Accepted: no automated reminder exists — a phone alarm is the intended mitigation</td></tr>
 <tr><td>R4</td><td><strong>A wrong key corrupts scores</strong></td><td>High / Occasional</td><td>Rescore is P0; items below 10% correct auto-flagged; read-time leaderboard means no cache to invalidate</td></tr>
@@ -818,12 +819,12 @@ Study the table below and answer the questions that follow.
 <h3>Phase 0 — Foundation <span class="pill p2">Week 1</span></h3>
 <p>Supabase project and the eight tables · RLS deny-all · Supabase Auth with the synthetic-email mapping · seed script for 5 students + 1 admin · Next.js project, Tailwind, Kahoot tokens · admin shell and role gating · Asia/Kolkata time handling.</p>
 <h3>Phase 1 — MVP <span class="pill p0">P0</span> <span class="pill p2">Weeks 2–4</span></h3>
-<p>PDF parser, validator and preview · <strong>dry run</strong> · publish and schedule · the one cron job · clock-derived test status · test engine with sectional timers, palette, one-way navigation and Next Section · <code>was_visited</code> tracking · full-screen with two counters · server-authoritative timer with resume · scoring · results with absolute rank · read-time leaderboard with tie-breaks · archive with full review · three-panel dashboard · rescore · question-bank JSON export · device gate.</p>
+<p>Paper validator and preview · <strong>dry run</strong> · publish and schedule · the one cron job · clock-derived test status · test engine with sectional timers, palette, one-way navigation and Next Section · <code>was_visited</code> tracking · full-screen with two counters · server-authoritative timer with resume · scoring · results with absolute rank · read-time leaderboard with tie-breaks · archive with full review · three-panel dashboard · rescore · question-bank JSON export · device gate.</p>
 <div class="fr"><p><b class="id">EXIT</b>A paper is uploaded, dry-run, published, taken by all 5 students, scored, ranked, and reviewable the next morning — with <strong>zero manual database intervention</strong>, for five consecutive nights.</p></div>
 <h3>Phase 2 — Polish <span class="pill p1">P1</span> <span class="pill p2">Weeks 5–6</span></h3>
 <p>Kahoot motion layer, confetti and podium · streaks · Last-30 filter · "questions I got wrong" and "questions I never reached" · pacing verdict · per-item % correct for the admin · bulk user CSV · sound toggle.</p>
 <h3>Phase 3 — Expansion <span class="pill p2">P2</span></h3>
-<p>Computer Awareness and General Awareness as toggleable sections · disciplines beyond CSE · a second exam track · practice mode over the archive · PWA · OCR fallback · percentiles if the cohort exceeds 30.</p>
+<p>Computer Awareness and General Awareness as toggleable sections · disciplines beyond CSE · a second exam track · practice mode over the archive · PWA · percentiles if the cohort exceeds 30.</p>
 </div></section>
 
 <!-- 16 -->
@@ -848,7 +849,7 @@ Study the table below and answer the questions that follow.
 </table></div>
 <p class="end">
 <b>Requirement index</b><br>
-FR-3.1–3.4 pattern, marking, not-reached · FR-4.1–4.3 the clock · FR-5.1 no sign-up · FR-5.2 admin attempts are dry runs · FR-5.3 students see only the leaderboard · FR-6.1.1–4 auth · FR-6.2.1 no public preview · FR-6.3.1–4 dashboard · FR-6.4.1–11 test engine · FR-6.5.1–8 integrity · FR-6.7.1–5 leaderboard · FR-6.9.1–5 admin, dry run, rescore, export · FR-7.1–2 PDF contract · FR-8.1 no celebration mid-section · FR-9.1 was_visited · FR-9.2 the DB is the question bank · FR-10.1–4 architecture · FR-13.1 key confidentiality
+FR-3.1–3.4 pattern, marking, not-reached · FR-4.1–4.3 the clock · FR-5.1 no sign-up · FR-5.2 admin attempts are dry runs · FR-5.3 students see only the leaderboard · FR-6.1.1–4 auth · FR-6.2.1 no public preview · FR-6.3.1–4 dashboard · FR-6.4.1–11 test engine · FR-6.5.1–8 integrity · FR-6.7.1–5 leaderboard · FR-6.9.1–5 admin, dry run, rescore, export · FR-7.1–2 paper format · FR-8.1 no celebration mid-section · FR-9.1 was_visited · FR-9.2 the DB is the question bank · FR-10.1–4 architecture · FR-13.1 key confidentiality
 </p>
 </div></section>
 

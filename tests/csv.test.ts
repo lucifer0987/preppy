@@ -108,3 +108,68 @@ describe('writing the credentials back out', () => {
       .toBe('username,password\na,"p,1"')
   })
 })
+
+describe('quoted fields across lines', () => {
+  it('keeps a newline inside quotes in one row', () => {
+    const { users, problems } = parseUserCsv('priya,"Priya\nSharma",student\nstudent7,Seven')
+    expect(problems).toHaveLength(0)
+    expect(users.map((u) => u.username)).toEqual(['priya', 'student7'])
+    expect(users[0]!.displayName).toBe('Priya Sharma')
+    // Line numbers still point at where each row starts.
+    expect(users[1]!.line).toBe(3)
+  })
+
+  it('reports an unterminated quote at the line it starts on', () => {
+    const { users, problems } = parseUserCsv('good1,One\n"broken,Two\ngood2,Three')
+    expect(users.map((u) => u.username)).toEqual(['good1'])
+    expect(problems[0]!.line).toBe(2)
+  })
+
+  it('handles Windows line endings', () => {
+    expect(parseUserCsv('a_1,One\r\nb_2,Two\r\n').users).toHaveLength(2)
+  })
+})
+
+describe('header detection', () => {
+  it('imports a first student called "user"', () => {
+    const { users } = parseUserCsv('user,Some User\nstudent7,Seven')
+    expect(users.map((u) => u.username)).toEqual(['user', 'student7'])
+  })
+
+  it('imports a first student called "name"', () => {
+    expect(parseUserCsv('name,Name Person').users.map((u) => u.username)).toEqual(['name'])
+  })
+
+  it('imports a lone "user" row', () => {
+    expect(parseUserCsv('user').users).toHaveLength(1)
+  })
+
+  it('still recognises the usual header shapes', () => {
+    expect(parseUserCsv('user,name\nstudent6,Six').users.map((u) => u.username)).toEqual(['student6'])
+    expect(parseUserCsv('Username,Display Name,Role\nstudent6,Six').users).toHaveLength(1)
+    expect(parseUserCsv('username\nstudent6').users.map((u) => u.username)).toEqual(['student6'])
+  })
+
+  it('only treats the first row as a header', () => {
+    const { users, problems } = parseUserCsv('student6,Six\nusername,display_name')
+    expect(users.map((u) => u.username)).toEqual(['student6', 'username'])
+    expect(problems).toHaveLength(0)
+  })
+})
+
+describe('extra columns', () => {
+  it('imports the row but warns', () => {
+    const { users, warnings } = parseUserCsv('priya,Sharma, Priya,student')
+    expect(users).toHaveLength(0) // " Priya" is not a role
+    expect(warnings).toHaveLength(0)
+
+    const ok = parseUserCsv('priya,Priya,student,extra')
+    expect(ok.users).toHaveLength(1)
+    expect(ok.warnings[0]!.line).toBe(1)
+    expect(ok.warnings[0]!.message).toMatch(/extra column/)
+  })
+
+  it('does not warn about trailing empty columns', () => {
+    expect(parseUserCsv('priya,Priya,student,,').warnings).toHaveLength(0)
+  })
+})

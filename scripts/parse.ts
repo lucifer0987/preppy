@@ -2,24 +2,23 @@
 /**
  * Preppy paper checker.
  *
- *   npm run check -- <paper.pdf|paper.json> [--images <dir>] [--json]
+ *   npm run check -- <paper.json> [--images <dir>] [--json]
  *
- * Reads a paper in the fixed JSON format, repairs the damage a PDF text layer
- * inflicts on JSON, validates it, and prints the report an admin sees before
- * publishing.
+ * Reads a paper in the fixed JSON format, validates it, and prints the report
+ * an admin sees before publishing.
  */
 import { readFile, readdir } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
-import { basename, extname } from 'node:path'
-import { extractPdfText } from '../lib/extract'
+import { basename } from 'node:path'
 import { readPaper, summarise } from '../lib/paper'
+import { istDate } from '../lib/time'
 import { PATTERN, SECTION_NAMES, type Issue, type SectionCode } from '../lib/types'
 
 const T = process.stdout.isTTY
 const E = String.fromCharCode(27)
 const C = {
   dim: T ? `${E}[2m` : '', red: T ? `${E}[31m` : '', yellow: T ? `${E}[33m` : '',
-  green: T ? `${E}[32m` : '', blue: T ? `${E}[34m` : '', bold: T ? `${E}[1m` : '', off: T ? `${E}[0m` : '',
+  green: T ? `${E}[32m` : '', bold: T ? `${E}[1m` : '', off: T ? `${E}[0m` : '',
 }
 
 const arg = (flag: string) => {
@@ -32,15 +31,14 @@ function usage() {
   console.error(`
 Check a Preppy paper before publishing it.
 
-  npm run check <paper.pdf>          a paper exported to PDF
-  npm run check <paper.json>         the JSON on its own, before exporting
+  npm run check <paper.json>
 
 Options
   --images <dir>   folder holding the images the paper references
   --json           machine-readable output
 
 Try one of these:
-  npm run check format/sample.pdf      a complete worked paper
+  npm run check format/sample.json     a complete worked paper
   npm run check format/template.json   the fill-in skeleton
 
 The format is documented in format/README.md.
@@ -62,43 +60,16 @@ async function main() {
   }
 
   const availableImages = imagesDir && existsSync(imagesDir) ? await readdir(imagesDir) : []
-  const isPdf = extname(file).toLowerCase() === '.pdf'
-
-  let raw: string
-  let extractIssues: Issue[] = []
-  let pages = 0
-  let chars: number[] = []
-
-  if (isPdf) {
-    const res = await extractPdfText(new Uint8Array(await readFile(file)))
-    raw = res.text
-    extractIssues = res.issues
-    pages = res.pages
-    chars = res.charsPerPage
-  } else {
-    raw = await readFile(file, 'utf8')
-  }
-
-  const { paper, issues, repairs } = readPaper(raw, { availableImages })
-  const all = [...extractIssues, ...issues]
-  const { errors, warnings, publishable } = summarise(all)
+  const raw = await readFile(file, 'utf8')
+  const { paper, issues } = readPaper(raw, { availableImages, today: istDate() })
+  const { errors, warnings, publishable } = summarise(issues)
 
   if (process.argv.includes('--json')) {
-    console.log(JSON.stringify({ file, publishable, repairs, issues: all, paper }, null, 2))
+    console.log(JSON.stringify({ file, publishable, issues, paper }, null, 2))
     process.exit(publishable ? 0 : 1)
   }
 
   console.log(`\n${C.bold}${basename(file)}${C.off}`)
-  if (isPdf) {
-    console.log(`${C.dim}${pages} page(s) - ${chars.reduce((a, b) => a + b, 0)} characters extracted${C.off}`)
-  }
-
-  if (repairs.length) {
-    console.log(`\n${C.blue}${C.bold}Repaired on the way in${C.off} ${C.dim}(the PDF text layer damaged the JSON)${C.off}`)
-    for (const r of repairs) {
-      console.log(`  ${C.blue}${String(r.count).padStart(4)}x${C.off}  ${C.dim}${r.kind.padEnd(22)}${C.off} ${r.detail ?? ''}`)
-    }
-  }
 
   if (paper) {
     console.log(`\n${C.dim}date ${paper.date} - ${paper.title ?? 'untitled'}${C.off}`)

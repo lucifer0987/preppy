@@ -1,5 +1,6 @@
 import 'server-only'
 import { db } from '../supabase/admin'
+import { istDate } from '../time'
 
 /**
  * What the admin sees about attempts (PRD 6.9.4).
@@ -12,6 +13,7 @@ import { db } from '../supabase/admin'
 
 export interface AdminAttemptRow {
   id: string
+  userId: string
   username: string
   displayName: string
   state: string
@@ -33,25 +35,49 @@ export interface AdminTestAttempts {
   attempts: AdminAttemptRow[]
 }
 
-export async function getAttemptsByTest(testId?: string): Promise<AdminTestAttempts[]> {
+/** A finished attempt that counts: the only kind that may be voided. */
+export const FINISHED_STATES = ['SUBMITTED', 'AUTO_SUBMITTED'] as const
+
+export function isCounted(a: Pick<AdminAttemptRow, 'state' | 'isDryRun'>): boolean {
+  return !a.isDryRun && (FINISHED_STATES as readonly string[]).includes(a.state)
+}
+
+/**
+ * Attempts grouped by paper, newest paper first.
+ *
+ * By default the 30 most recent papers that could have been sat, so papers
+ * scheduled ahead do not use up the limit. A paper asked for by id is shown
+ * whatever its date, which is how a dry run on a future paper is found. With
+ * `userId`, one person's whole history (PRD 6.9: "view any student's attempt
+ * history"), every paper they have attempted.
+ */
+export async function getAttemptsByTest(
+  { testId, userId }: { testId?: string; userId?: string } = {},
+): Promise<AdminTestAttempts[]> {
   const client = db()
 
   let testQuery = client.from('tests').select('id, date, title').order('date', { ascending: false })
   if (testId) testQuery = testQuery.eq('id', testId)
-  const { data: tests } = await testQuery.limit(30)
+  else if (!userId) testQuery = testQuery.lte('date', istDate()).limit(30)
+  const { data: tests, error: testError } = await testQuery
+  if (testError) throw new Error(`Could not list the papers: ${testError.message}`)
   if (!tests?.length) return []
 
-  const { data: attempts } = await client
+  let attemptQuery = client
     .from('attempts')
-    .select('id, test_id, state, is_dry_run, total_score, attempted, correct, not_reached, time_spent_sec, fullscreen_exits, tab_switches, submitted_at, profiles(username, display_name)')
+    .select('id, test_id, user_id, state, is_dry_run, total_score, attempted, correct, not_reached, time_spent_sec, fullscreen_exits, tab_switches, submitted_at, profiles(username, display_name)')
     .in('test_id', tests.map((t) => t.id as string))
     .order('total_score', { ascending: false, nullsFirst: false })
+  if (userId) attemptQuery = attemptQuery.eq('user_id', userId)
+  const { data: attempts, error: attemptError } = await attemptQuery
+  if (attemptError) throw new Error(`Could not list the attempts: ${attemptError.message}`)
 
   const byTest = new Map<string, AdminAttemptRow[]>()
   for (const a of attempts ?? []) {
     const p = a.profiles as unknown as { username: string; display_name: string }
     const row: AdminAttemptRow = {
       id: a.id as string,
+      userId: a.user_id as string,
       username: p.username,
       displayName: p.display_name,
       state: a.state as string,
@@ -80,8 +106,33 @@ export async function getAttemptsByTest(testId?: string): Promise<AdminTestAttem
     .filter((t) => t.attempts.length > 0)
 }
 
-/** Voiding keeps the row for audit but takes it off the leaderboard (FR-6.7.4). */
+/**
+ * Voiding keeps the row for audit but takes it off the leaderboard (FR-6.7.4).
+ *
+ * Only a finished, counted attempt can be voided. An attempt still in
+ * progress would be flipped back when it submits, and a dry run is never on
+ * the leaderboard to begin with. The filters make that part of the write.
+ */
+/**
+ * Dry runs are the admin's own rehearsals and "can be repeated and deleted
+ * freely" (FR-6.9.2). The filter makes a counted attempt impossible to delete
+ * this way; those can only be voided, which keeps the row.
+ */
+export async function deleteDryRun(attemptId: string): Promise<void> {
+  const { data, error } = await db()
+    .from('attempts').delete().eq('id', attemptId).eq('is_dry_run', true).select('id')
+  if (error) throw new Error(`Could not delete that dry run: ${error.message}`)
+  if (!data?.length) throw new Error('Only a dry run can be deleted.')
+}
+
 export async function voidAttempt(attemptId: string): Promise<void> {
-  const { error } = await db().from('attempts').update({ state: 'VOIDED' }).eq('id', attemptId)
+  const { data, error } = await db()
+    .from('attempts')
+    .update({ state: 'VOIDED' })
+    .eq('id', attemptId)
+    .eq('is_dry_run', false)
+    .in('state', [...FINISHED_STATES])
+    .select('id')
   if (error) throw new Error(`Could not void that attempt: ${error.message}`)
+  if (!data?.length) throw new Error('Only a finished, counted attempt can be voided.')
 }

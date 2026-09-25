@@ -1,31 +1,37 @@
 import { NextResponse } from 'next/server'
-import { currentUser } from '../../../../lib/auth'
-import { listPapers, getPaperById } from '../../../../lib/repo/papers'
+import { actionAdmin } from '../../../../lib/guard'
+import { loadPublishedPapers } from '../../../../lib/repo/papers'
 import { istDate } from '../../../../lib/time'
 
 export const dynamic = 'force-dynamic'
 
 /**
- * FR-6.9.5: the whole question bank as JSON.
+ * FR-6.9.5: the whole question bank as JSON — "every test ever published".
+ *
+ * Drafts are left out: they were never published and may be half-finished.
+ * Each entry carries its database id, status and rescore time alongside the
+ * paper itself, which stays in the upload format so it can be checked or
+ * re-uploaded as it is.
  *
  * The database is the system of record (FR-9.2); this is the manual escape
  * hatch that does not depend on Supabase still being there.
  */
 export async function GET() {
-  const user = await currentUser()
-  if (!user || user.role !== 'admin') {
+  if (!(await actionAdmin())) {
     return NextResponse.json({ error: 'Not authorised.' }, { status: 401 })
   }
 
-  const summaries = await listPapers()
-  const papers = []
-  for (const s of summaries) {
-    const record = await getPaperById(s.id)
-    if (record) papers.push(record.paper)
+  let papers
+  try {
+    papers = (await loadPublishedPapers()).map((r) => ({
+      id: r.id, status: r.status, publishedAt: r.publishedAt, rescoredAt: r.rescoredAt, paper: r.paper,
+    }))
+  } catch (e) {
+    return NextResponse.json({ error: (e as Error).message }, { status: 500 })
   }
 
   const body = JSON.stringify(
-    { exportedAt: new Date().toISOString(), format: 'preppy-bank', version: 1, papers },
+    { exportedAt: new Date().toISOString(), format: 'preppy-bank', version: 2, papers },
     null, 2,
   )
 

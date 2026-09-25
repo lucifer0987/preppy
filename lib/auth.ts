@@ -1,7 +1,9 @@
 import 'server-only'
+import { cache } from 'react'
 import { db } from './supabase/admin'
 import { isConfigured } from './env'
 import { authClient } from './supabase/session'
+import { sessionIdFromToken } from './password'
 import { USERNAME_PATTERN, normaliseUsername, usernameToEmail } from './username'
 
 /**
@@ -14,9 +16,7 @@ import { USERNAME_PATTERN, normaliseUsername, usernameToEmail } from './username
  * custom crypto is written anywhere in this codebase.
  */
 
-export {
-  USERNAME_DOMAIN, USERNAME_PATTERN, normaliseUsername, usernameToEmail, emailToUsername,
-} from './username'
+export { USERNAME_PATTERN, normaliseUsername, usernameToEmail } from './username'
 
 export type Role = 'student' | 'admin'
 
@@ -27,10 +27,21 @@ export interface CurrentUser {
   role: Role
   isActive: boolean
   mustChangePassword: boolean
+  /** Remembered per person, not per browser (PRD 8.3). */
+  soundEnabled: boolean
 }
 
-/** The signed-in user's profile, or null. */
-export async function currentUser(): Promise<CurrentUser | null> {
+/**
+ * The signed-in user's profile, or null. Deactivated users are returned with
+ * isActive false; lib/guard.ts decides what they may still do.
+ *
+ * getUser() asks the auth server, which refuses a token whose session has been
+ * revoked (see revokeSessions), so a reset or a test started elsewhere signs
+ * this device out on its next request.
+ *
+ * Cached per request, so a layout and its page share one lookup.
+ */
+export const currentUser = cache(async (): Promise<CurrentUser | null> => {
   // Before setup there is nothing to authenticate against. Returning null
   // sends the visitor to /login, which explains what is missing, rather than
   // throwing a 500 out of a layout.
@@ -42,7 +53,7 @@ export async function currentUser(): Promise<CurrentUser | null> {
 
   const { data, error } = await db()
     .from('profiles')
-    .select('id, username, display_name, role, is_active, must_change_password')
+    .select('id, username, display_name, role, is_active, must_change_password, sound_enabled')
     .eq('id', user.id)
     .maybeSingle()
 
@@ -54,10 +65,41 @@ export async function currentUser(): Promise<CurrentUser | null> {
     role: data.role,
     isActive: data.is_active,
     mustChangePassword: data.must_change_password,
+    soundEnabled: data.sound_enabled ?? false,
   }
+})
+
+/**
+ * Ends a user's sessions on every device, except `keep` when given.
+ * Best effort by design at the call sites: a failure is reported, and the
+ * account stays usable.
+ */
+export async function revokeSessions(userId: string, keep: string | null = null): Promise<void> {
+  const { error } = await db().rpc('revoke_user_sessions', { p_user: userId, p_keep: keep })
+  if (!error) return
+  // Keeping this request's own session means the caller is the user, so
+  // Supabase's own sign-out of their other sessions is available. It revokes
+  // their refresh tokens, so they end within an access token's lifetime
+  // rather than at once: a fallback, not an equal.
+  if (keep) {
+    const supabase = await authClient()
+    const { error: fallbackError } = await supabase.auth.signOut({ scope: 'others' })
+    if (!fallbackError) {
+      console.error(`[auth] revoke_user_sessions failed (${error.message}); used sign-out of other sessions instead`)
+      return
+    }
+  }
+  throw new Error(`Could not sign out the other sessions: ${error.message}`)
 }
 
-export type SignInResult = { ok: true } | { ok: false; message: string }
+/** The id of the session this request is signed in with, or null. */
+export async function currentSessionId(): Promise<string | null> {
+  const supabase = await authClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  return sessionIdFromToken(session?.access_token)
+}
+
+export type SignInResult = { ok: true; sessionId: string | null } | { ok: false; message: string }
 
 /**
  * Failures are deliberately indistinguishable, so the form never reveals
@@ -93,7 +135,7 @@ export async function signIn(usernameInput: string, password: string): Promise<S
   }
 
   await db().from('profiles').update({ last_login_at: new Date().toISOString() }).eq('id', data.user.id)
-  return { ok: true }
+  return { ok: true, sessionId: sessionIdFromToken(data.session?.access_token) }
 }
 
 export async function signOut(): Promise<void> {

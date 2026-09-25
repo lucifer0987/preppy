@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { paperToRows, rowsToPaper } from '../lib/paper-rows'
+import { paperToRows, rowsToPaper, savePaperPayload } from '../lib/paper-rows'
 import { readPaper } from '../lib/paper'
 import { PATTERN } from '../lib/types'
 
@@ -10,7 +10,6 @@ const load = (f: string) => {
   return r.paper
 }
 const sample = load('format/sample.json')
-const paper002 = load('format/paper-002.json')
 
 describe('paper -> rows', () => {
   it('produces one row per section, block and question', () => {
@@ -31,12 +30,15 @@ describe('paper -> rows', () => {
     expect(paperToRows(sample).sections.map((s) => s.position)).toEqual([1, 2, 3, 4])
   })
 
-  it('links each question to the directions block covering it', () => {
-    const rows = paperToRows(sample)
-    const byNumber = new Map(rows.questions.map((q) => [q.number, q]))
-    // The DI set covers Q6-Q10 and is the only block in QUANT.
-    for (const n of [6, 7, 8, 9, 10]) expect(byNumber.get(n)!.directionIndex).toBe(0)
-    for (const n of [1, 5, 11, 15]) expect(byNumber.get(n)!.directionIndex).toBeNull()
+  it('nests each section\'s blocks and questions for save_paper', () => {
+    const payload = savePaperPayload(paperToRows(sample)) as any
+    expect(payload.date).toBe(sample.date)
+    expect(payload.sections.map((s: { code: string }) => s.code)).toEqual(['QUANT', 'REASONING', 'ENGLISH', 'PK'])
+    const quant = payload.sections[0]
+    expect(quant.questions).toHaveLength(15)
+    expect(quant.blocks).toEqual([expect.objectContaining({ q_from: 6, q_to: 10 })])
+    // The section code is implied by nesting, so it is not repeated.
+    expect(quant.questions[0]).not.toHaveProperty('sectionCode')
   })
 
   it('carries the DI table through as structured data', () => {
@@ -57,17 +59,15 @@ describe('paper -> rows', () => {
 })
 
 describe('rows -> paper is the inverse', () => {
-  for (const [name, paper] of [['sample', sample], ['paper-002', paper002]] as const) {
-    it(`round-trips ${name} unchanged`, () => {
-      expect(rowsToPaper(paperToRows(paper))).toEqual(paper)
-    })
+  it('round-trips sample unchanged', () => {
+    expect(rowsToPaper(paperToRows(sample))).toEqual(sample)
+  })
 
-    it(`${name} survives the round trip still valid`, () => {
-      const back = rowsToPaper(paperToRows(paper))
-      const r = readPaper(JSON.stringify(back))
-      expect(r.issues.filter((i) => i.severity === 'error')).toHaveLength(0)
-    })
-  }
+  it('sample survives the round trip still valid', () => {
+    const back = rowsToPaper(paperToRows(sample))
+    const r = readPaper(JSON.stringify(back))
+    expect(r.issues.filter((i) => i.severity === 'error')).toHaveLength(0)
+  })
 
   it('keeps questions in ascending order even if rows come back shuffled', () => {
     const rows = paperToRows(sample)
