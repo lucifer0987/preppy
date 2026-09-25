@@ -60,11 +60,6 @@ export function UploadForm() {
       <IssueList title="Blocking errors" tone="error" issues={errors} />
       <IssueList title="Warnings" tone="warning" issues={warnings} />
 
-      {state.fileName && errors.length === 0 && !state.fatal && (
-        <p className="mt-4 rounded-2xl bg-answered px-5 py-4 font-semibold text-white">
-          {state.fileName} is publishable. Taking you to the preview...
-        </p>
-      )}
     </>
   )
 }

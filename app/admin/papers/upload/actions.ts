@@ -17,6 +17,8 @@ export interface UploadState {
 
 export const emptyUpload: UploadState = { issues: [], repairs: [], fileName: null, fatal: null }
 
+/** The framework limit in next.config.ts sits above this on purpose, so this
+ *  check is what an oversized upload actually hits. */
 const MAX_BYTES = 10 * 1024 * 1024
 
 export async function uploadAction(_prev: UploadState, formData: FormData): Promise<UploadState> {
@@ -61,12 +63,12 @@ export async function uploadAction(_prev: UploadState, formData: FormData): Prom
 
   // Saved as a DRAFT. It reaches SCHEDULED only by an explicit second action
   // taken after the preview screen (FR-6.9.1).
-  let id: string
+  let saved
   try {
-    id = await savePaper(paper, null)
+    saved = await savePaper(paper, null)
   } catch (e) {
     return { issues: all, repairs, fileName: file.name, fatal: (e as Error).message }
   }
 
-  redirect(`/admin/papers/${id}?new=1`)
+  redirect(`/admin/papers/${saved.id}?new=1${saved.replacedDraft ? '&replaced=1' : ''}`)
 }

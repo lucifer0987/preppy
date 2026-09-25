@@ -21,9 +21,31 @@ export interface PaperSummary {
   questionCount: number
 }
 
-export async function savePaper(paper: Paper, sourcePdfPath: string | null = null): Promise<string> {
+export interface SaveResult {
+  id: string
+  /** True when an existing draft for the same date was replaced. */
+  replacedDraft: boolean
+}
+
+export async function savePaper(paper: Paper, sourcePdfPath: string | null = null): Promise<SaveResult> {
   const rows = paperToRows(paper, sourcePdfPath)
   const client = db()
+
+  // A draft is by definition not committed to, so re-uploading a corrected
+  // version replaces it. A scheduled paper is refused: someone may already be
+  // relying on it going live tonight.
+  let replacedDraft = false
+  const { data: existing } = await client
+    .from('tests').select('id, status').eq('date', paper.date).maybeSingle()
+  if (existing) {
+    if (existing.status !== 'DRAFT') {
+      throw new Error(
+        `A paper is already scheduled for ${paper.date}. Move it back to draft first, or pick another date.`,
+      )
+    }
+    await client.from('tests').delete().eq('id', existing.id)
+    replacedDraft = true
+  }
 
   const { data: test, error: testError } = await client
     .from('tests')
@@ -33,7 +55,7 @@ export async function savePaper(paper: Paper, sourcePdfPath: string | null = nul
 
   if (testError || !test) {
     if (testError?.code === '23505') {
-      throw new Error(`A paper already exists for ${paper.date}. Delete it first, or pick another date.`)
+      throw new Error(`A paper already exists for ${paper.date}. Pick another date.`)
     }
     throw new Error(`Could not create the paper: ${testError?.message ?? 'unknown error'}`)
   }
@@ -87,7 +109,7 @@ export async function savePaper(paper: Paper, sourcePdfPath: string | null = nul
     )
     if (questionError) throw new Error(questionError.message)
 
-    return test.id as string
+    return { id: test.id as string, replacedDraft }
   } catch (e) {
     // Undo the parent row; the cascade removes whatever children got in.
     await client.from('tests').delete().eq('id', test.id)

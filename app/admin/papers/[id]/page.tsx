@@ -36,7 +36,9 @@ export default async function PaperPreview(
 
       {q['new'] && (
         <p className="mt-4 rounded-2xl bg-answered px-5 py-4 font-semibold text-white">
-          Saved as a draft. Read it through below, then schedule it.
+          {q['replaced']
+            ? 'Replaced the earlier draft for this date. Read it through below, then schedule it.'
+            : 'Saved as a draft. Read it through below, then schedule it.'}
         </p>
       )}
       {q['scheduled'] && (

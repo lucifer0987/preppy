@@ -39,7 +39,13 @@ export interface DirectionBlockRow {
 
 export interface QuestionRow {
   sectionCode: SectionCode
-  /** Index into the section's direction blocks, or null. */
+  /**
+   * Index into the section's direction blocks, or null.
+   *
+   * Write-side only: savePaper uses it to set the foreign key. rowsToPaper
+   * re-derives the association from the block's own from/to range, so a paper
+   * read back from the database does not need it populated.
+   */
   directionIndex: number | null
   number: number
   text: string
