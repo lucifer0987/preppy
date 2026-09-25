@@ -3,9 +3,10 @@
 Daily exam-simulation platform for IBPS Specialist Officer (IT) aspirants.
 See [PRD.md](PRD.md) for the full specification.
 
-**Status:** Phase 1 in progress. Ingestion, the test engine, results, the
-leaderboard and the archive all work. Still to come: rescore, the 00:05 job,
-user management in the UI, and the Kahoot motion layer.
+**Status:** Phase 1 feature-complete. Ingestion, the test engine, results, the
+leaderboard, the archive, rescore, user management, the nightly job and the
+question-bank export all work. Left: the Kahoot motion layer, and an attempts
+table for the admin.
 
 ## Getting started
 
@@ -53,6 +54,9 @@ Exit `0` publishable, `1` blocking errors, `2` bad usage.
 | `lib/scoring.ts` | +1 / −0.25 / 0, and not-reached vs skipped |
 | `lib/leaderboard.ts` | Cumulative ranking with tie-breaks and streaks. Pure |
 | `lib/repo/` | The thin IO layer over Supabase |
+| `lib/repo/rescore.ts` | Correcting a key and rescoring every attempt |
+| `lib/repo/finalise.ts` | The one nightly job: score anything left open |
+| `vercel.json` | Schedules that job at 00:05 IST (18:35 UTC) |
 | `components/TestEngine.tsx` | The live test: palette, timers, full-screen |
 | `app/` | Home, login, dashboard, test, archive, leaderboard, admin |
 

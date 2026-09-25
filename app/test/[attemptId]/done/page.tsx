@@ -22,14 +22,14 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
 
   const { data: attempt } = await db()
     .from('attempts')
-    .select('id, user_id, state, is_dry_run, total_score, section_scores, attempted, correct, wrong, skipped, not_reached, time_spent_sec, fullscreen_exits, tab_switches, tests(date, title)')
+    .select('id, user_id, state, is_dry_run, total_score, section_scores, attempted, correct, wrong, skipped, not_reached, time_spent_sec, fullscreen_exits, tab_switches, tests(date, title, rescored_at)')
     .eq('id', attemptId)
     .maybeSingle()
 
   if (!attempt || attempt.user_id !== user.id) redirect('/dashboard')
   if (attempt.state === 'IN_PROGRESS') redirect(`/test/${attemptId}`)
 
-  const test = attempt.tests as unknown as { date: string; title: string | null }
+  const test = attempt.tests as unknown as { date: string; title: string | null; rescored_at: string | null }
   const sections = (attempt.section_scores ?? []) as SectionScore[]
   const score = Number(attempt.total_score ?? 0)
   const unlocked = answersUnlocked(test.date)
@@ -40,6 +40,13 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
       <p className="text-xs font-bold uppercase tracking-[0.2em] text-ink-soft">
         {test.title ?? 'Daily mock'} &middot; {formatIstDate(test.date)}
       </p>
+
+      {test.rescored_at && (
+        <p className="mt-4 rounded-2xl bg-play-yellow/20 px-5 py-4 text-sm font-semibold">
+          An answer key on this paper was corrected after it ran, so every attempt was rescored.
+          The score below is the corrected one.
+        </p>
+      )}
 
       <section className="mt-4 rounded-3xl bg-play-purple p-8 text-center text-white">
         {attempt.is_dry_run && (

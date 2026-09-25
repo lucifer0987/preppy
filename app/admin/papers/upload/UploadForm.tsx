@@ -2,7 +2,8 @@
 
 import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
-import { emptyUpload, uploadAction } from './actions'
+import { uploadAction } from './actions'
+import { emptyUpload } from './state'
 import type { Issue } from '../../../../lib/types'
 
 export function UploadForm() {

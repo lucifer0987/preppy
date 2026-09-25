@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { currentUser } from '../../../../lib/auth'
 import { deletePaper, schedulePaper, unschedulePaper } from '../../../../lib/repo/papers'
+import { correctAnswerKey } from '../../../../lib/repo/rescore'
+import type { OptionLabel } from '../../../../lib/types'
 
 async function requireAdmin() {
   const admin = await currentUser()
@@ -30,4 +32,23 @@ export async function deleteAction(formData: FormData) {
   await deletePaper(String(formData.get('id')))
   revalidatePath('/admin')
   redirect('/admin/papers')
+}
+
+/**
+ * FR-6.9.2. Correcting a key rescores every attempt on the paper. The
+ * leaderboard is computed on read, so there is nothing else to invalidate.
+ */
+export async function correctKeyAction(formData: FormData) {
+  await requireAdmin()
+  const testId = String(formData.get('testId'))
+  const questionId = String(formData.get('questionId'))
+  const answer = String(formData.get('answer')) as OptionLabel
+
+  const report = await correctAnswerKey(testId, questionId, answer)
+  revalidatePath(`/admin/papers/${testId}`)
+  revalidatePath('/leaderboard')
+  redirect(
+    `/admin/papers/${testId}?rescored=${report.questionNumber}` +
+    `&from=${report.from}&to=${report.to}&changed=${report.changed.length}&of=${report.attemptsRescored}`,
+  )
 }

@@ -6,6 +6,9 @@ import { DirectionsBlock } from '../../../../components/DirectionsBlock'
 import { SECTION_NAMES, TOTAL_MINUTES, TOTAL_QUESTIONS, type SectionCode } from '../../../../lib/types'
 import { formatIstDate, windowState } from '../../../../lib/time'
 import { deleteAction, scheduleAction, unscheduleAction } from './actions'
+import { KeyEditor } from './KeyEditor'
+import { getItemStats } from '../../../../lib/repo/rescore'
+import { OPTION_LABELS, type OptionLabel } from '../../../../lib/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,6 +29,9 @@ export default async function PaperPreview(
   if (!record) notFound()
 
   const { paper, status } = record
+  const stats = await getItemStats(id)
+  const statByNumber = new Map(stats.map((s) => [s.number, s]))
+  const flagged = stats.filter((s) => s.suspicious)
   const scheduled = status === 'SCHEDULED'
   const state = windowState(paper.date)
   const alreadyRun = state === 'CLOSED'
@@ -39,6 +45,13 @@ export default async function PaperPreview(
           {q['replaced']
             ? 'Replaced the earlier draft for this date. Read it through below, then schedule it.'
             : 'Saved as a draft. Read it through below, then schedule it.'}
+        </p>
+      )}
+      {q['rescored'] && (
+        <p className="mt-4 rounded-2xl bg-answered px-5 py-4 font-semibold text-white">
+          Q{q['rescored']} changed from {q['from']} to {q['to']}. {q['of']} attempt
+          {q['of'] === '1' ? '' : 's'} rescored, {q['changed']} score
+          {q['changed'] === '1' ? '' : 's'} moved.
         </p>
       )}
       {q['scheduled'] && (
@@ -100,6 +113,20 @@ export default async function PaperPreview(
         </form>
       </section>
 
+      {flagged.length > 0 && (
+        <section className="mt-6 rounded-3xl bg-notanswered px-5 py-4 text-white">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-white/70">
+            Worth a second look
+          </h2>
+          <p className="mt-1 text-sm">
+            {flagged.map((f) => `Q${f.number}`).join(', ')}{' '}
+            {flagged.length === 1 ? 'was' : 'were'} answered correctly by under 10% of the students
+            who tried {flagged.length === 1 ? 'it' : 'them'}. That is usually a wrong key rather
+            than a hard question.
+          </p>
+        </section>
+      )}
+
       <p className="mt-8 text-xs font-bold uppercase tracking-widest text-ink-soft">
         Preview &middot; exactly what a student sees
       </p>
@@ -121,6 +148,13 @@ export default async function PaperPreview(
                 <li key={question.number} className="rounded-3xl bg-white p-5">
                   {isFirstOfBlock && <DirectionsBlock block={block} />}
                   <QuestionCard question={question} reveal disabled />
+                  <ItemFooter
+                    testId={id}
+                    number={question.number}
+                    answer={question.answer}
+                    present={OPTION_LABELS.filter((l) => question.options[l] !== undefined)}
+                    stat={statByNumber.get(question.number)}
+                  />
                 </li>
               )
             })}
@@ -128,5 +162,40 @@ export default async function PaperPreview(
         </section>
       ))}
     </>
+  )
+}
+
+async function ItemFooter({
+  testId, number, answer, present, stat,
+}: {
+  testId: string
+  number: number
+  answer: OptionLabel
+  present: OptionLabel[]
+  stat: { questionId: string; correctPct: number | null; attempts: number; suspicious: boolean } | undefined
+}) {
+  if (!stat) return null
+  return (
+    <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-black/10 pt-3">
+      <span className="text-xs text-ink-soft tabular-nums">
+        {stat.attempts === 0
+          ? 'Not yet attempted'
+          : `${stat.correctPct}% correct of ${stat.attempts} who answered`}
+      </span>
+      {stat.suspicious && (
+        <span className="rounded-full bg-notanswered px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-white">
+          Check this key
+        </span>
+      )}
+      <span className="ml-auto">
+        <KeyEditor
+          testId={testId}
+          questionId={stat.questionId}
+          questionNumber={number}
+          current={answer}
+          present={present}
+        />
+      </span>
+    </div>
   )
 }

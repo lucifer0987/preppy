@@ -52,6 +52,7 @@ cp .env.example .env.local
 | `NEXT_PUBLIC_SUPABASE_URL` | Settings → API → **Project URL** |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Settings → API → Project API keys → **anon public** |
 | `SUPABASE_SERVICE_ROLE_KEY` | Settings → API → Project API keys → **service_role** |
+| `CRON_SECRET` | Any random string you invent. See step 8 |
 
 > **The `service_role` key is a master key.** It bypasses every access rule in
 > the database. It belongs only in `.env.local`, which is already in
@@ -83,7 +84,29 @@ To set fresh passwords at any time:
 npm run seed -- --reset
 ```
 
-## 7. Run it
+## 7. Set a cron secret
+
+One job runs nightly, at 00:05, to score any attempt somebody left open. The
+endpoint writes scores, so it is locked behind a secret.
+
+Generate one and put it in `.env.local` as `CRON_SECRET`:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
+```
+
+Locally you do not need the job at all — an abandoned attempt is also scored
+the next time anyone loads it. On Vercel, add the same value under
+**Settings → Environment Variables**, and `vercel.json` schedules the rest.
+
+> The schedule reads `35 18 * * *` because Vercel Cron runs on UTC.
+> 18:35 UTC is 00:05 IST.
+>
+> **If `CRON_SECRET` is not set, the endpoint refuses everyone**, including
+> Vercel. That is deliberate — better a job that does not run than an open
+> endpoint that writes scores — but it does mean you must set it in production.
+
+## 8. Run it
 
 ```bash
 npm run dev
@@ -96,18 +119,35 @@ Log in as `admin` to reach the admin page, or as any student for the dashboard.
 
 ## What works now
 
+**For a student**
+
 - The home page, with a live countdown to the next 10 PM unlock
-- Username and password login, and logout
-- The student dashboard shell, showing whether a paper is live
-- The admin area, gated by role — a student who types `/admin` is turned away
-- Tonight's status on the admin page: **Scheduled** or **Not scheduled**
+- Username and password login
+- A dashboard that knows whether tonight's paper is live, already taken, or
+  past its entry cut-off
+- The full test: sectional timers, the question palette, one-way section
+  navigation, full screen with the two counters, and resume after a refresh
+- A result page with the sectional breakdown and the pacing verdict
+- Past papers, with answers and solutions from midnight, filterable to the
+  ones you got wrong or never reached
+- The leaderboard, with All time, Last 7 and Last 30
 
-## What does not exist yet
+**For you**
 
-The test engine, uploading a paper, scoring, the leaderboard and the archive.
-Those are Phase 1. The panels that say *Phase 1* are placeholders.
+- Upload a paper, see the validation report and the repair log, preview every
+  question exactly as a student sees it, then schedule it
+- Dry run any paper in the real engine; it never counts
+- Correct an answer key after the fact, which rescores every attempt
+- A flag on any question under 10% correct, which is usually a wrong key
+- Create people, reset passwords, deactivate
+- Export the whole question bank as JSON
 
-Paper ingestion already works from the command line:
+## What is left
+
+The Kahoot motion layer — confetti, the podium animation, streak badges — and
+an attempts table showing every attempt with its integrity counters.
+
+Paper ingestion also works from the command line, without the app running:
 
 ```bash
 npm run check format/paper-002.pdf

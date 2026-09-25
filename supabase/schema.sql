@@ -45,6 +45,9 @@ create table if not exists tests (
   source_pdf_path text,
   published_by    uuid references profiles(id),
   published_at    timestamptz,
+  -- Set when an answer key was corrected after the paper ran, so affected
+  -- students see why their score moved (FR-6.9.2).
+  rescored_at     timestamptz,
   created_at      timestamptz not null default now()
 );
 

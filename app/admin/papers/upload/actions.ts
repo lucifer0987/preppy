@@ -7,15 +7,7 @@ import { savePaper } from '../../../../lib/repo/papers'
 import type { Issue } from '../../../../lib/types'
 import { currentUser } from '../../../../lib/auth'
 
-export interface UploadState {
-  issues: Issue[]
-  repairs: { kind: string; count: number; detail?: string }[]
-  fileName: string | null
-  /** Set when nothing could be read at all. */
-  fatal: string | null
-}
-
-export const emptyUpload: UploadState = { issues: [], repairs: [], fileName: null, fatal: null }
+import { emptyUpload, type UploadState } from './state'
 
 /** The framework limit in next.config.ts sits above this on purpose, so this
  *  check is what an oversized upload actually hits. */
