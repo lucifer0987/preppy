@@ -91,7 +91,8 @@ export function windowState(date: string, at: Date = new Date()): WindowState {
  */
 export function liveTestDate(at: Date = new Date()): string | null {
   const today = istDate(at)
-  return windowState(today, at) === 'CLOSED' || windowState(today, at) === 'BEFORE_OPEN' ? null : today
+  const state = windowState(today, at)
+  return state === 'OPEN' || state === 'ENTRY_CLOSED' ? today : null
 }
 
 /** Whether a new attempt may begin for this paper (FR-4.1). */

@@ -167,6 +167,10 @@ export function readPaper(rawText: string, opts: ReadOptions = {}): ReadResult {
       }
 
       // options
+      // `present` is hoisted so the answer can still be checked when the
+      // options are missing entirely. Reporting one error at a time would make
+      // the admin fix, re-run, and only then discover the next problem.
+      let present: string[] = []
       const options = q['options']
       if (typeof options !== 'object' || options === null || Array.isArray(options)) {
         err(`${qp}.options`, 'OPTIONS_MISSING', '"options" must be an object keyed A to E.')
@@ -179,6 +183,7 @@ export function readPaper(rawText: string, opts: ReadOptions = {}): ReadResult {
             `Option key(s) ${bad.join(', ')} are not A-E.`)
         }
         const good = keys.filter((k) => OPTION_LABELS.includes(k as OptionLabel))
+        present = good
         if (good.length < 2) {
           err(`${qp}.options`, 'OPTION_TOO_FEW', `Only ${good.length} option(s); at least 2 are required.`)
         } else if (good.length < 5) {
@@ -200,16 +205,16 @@ export function readPaper(rawText: string, opts: ReadOptions = {}): ReadResult {
               `Option ${k} is ${v.length} characters; over ${MAX_OPTION_CHARS} will crowd the option card.`)
           }
         }
+      }
 
-        // answer
-        const answer = q['answer']
-        if (typeof answer !== 'string' || !OPTION_LABELS.includes(answer as OptionLabel)) {
-          err(`${qp}.answer`, 'ANSWER_MISSING',
-            `"answer" must be one of A-E, got ${JSON.stringify(answer)}.`)
-        } else if (!good.includes(answer)) {
-          err(`${qp}.answer`, 'ANSWER_NOT_AN_OPTION',
-            `"answer" is ${answer} but there is no option ${answer} (present: ${good.join(', ') || 'none'}).`)
-        }
+      // answer — checked independently of the options above
+      const answer = q['answer']
+      if (typeof answer !== 'string' || !OPTION_LABELS.includes(answer as OptionLabel)) {
+        err(`${qp}.answer`, 'ANSWER_MISSING',
+          `"answer" must be one of A-E, got ${JSON.stringify(answer)}.`)
+      } else if (present.length && !present.includes(answer)) {
+        err(`${qp}.answer`, 'ANSWER_NOT_AN_OPTION',
+          `"answer" is ${answer} but there is no option ${answer} (present: ${present.join(', ')}).`)
       }
 
       for (const [key, code2] of [['solution', 'SOLUTION_MISSING'], ['tag', 'TAG_MISSING'], ['difficulty', 'DIFFICULTY_MISSING']] as const) {

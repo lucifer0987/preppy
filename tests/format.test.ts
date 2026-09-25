@@ -159,6 +159,17 @@ describe('blocking errors', () => {
     expect(ok(mutate((p) => { delete p.sections[0].questions[0].answer })).codes).toContain('ANSWER_MISSING')
   })
 
+  it('reports a missing answer even when the options are missing too', () => {
+    // Reporting one error at a time would make the admin fix, re-run, and only
+    // then discover the next problem.
+    const r = ok(mutate((p) => {
+      delete p.sections[0].questions[0].options
+      delete p.sections[0].questions[0].answer
+    }))
+    expect(r.codes).toContain('OPTIONS_MISSING')
+    expect(r.codes).toContain('ANSWER_MISSING')
+  })
+
   it('rejects an answer naming an option that does not exist', () => {
     const r = ok(mutate((p) => {
       p.sections[0].questions[0].answer = 'E'
