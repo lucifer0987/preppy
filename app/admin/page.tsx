@@ -57,6 +57,10 @@ export default async function AdminHome() {
               className="rounded-2xl border-2 border-black/15 px-5 py-3 font-bold transition hover:border-black/30">
           People
         </Link>
+        <Link href="/admin/attempts"
+              className="rounded-2xl border-2 border-black/15 px-5 py-3 font-bold transition hover:border-black/30">
+          Attempts
+        </Link>
         <a href="/api/admin/export"
            className="rounded-2xl border-2 border-black/15 px-5 py-3 font-bold transition hover:border-black/30">
           Export question bank
@@ -64,16 +68,13 @@ export default async function AdminHome() {
       </div>
 
       <section className="mt-8 space-y-3">
-        <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-ink-soft">Still to come</h2>
-        {[
-          ['Attempts', 'Every attempt with its score, duration and two integrity counters.'],
-          ['Kahoot polish', 'Confetti, the podium animation and streak badges.'],
-        ].map(([title, body]) => (
-          <div key={title} className="rounded-2xl border-2 border-dashed border-black/10 px-5 py-4">
-            <p className="font-bold">{title}</p>
-            <p className="text-sm text-ink-soft">{body}</p>
-          </div>
-        ))}
+        <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-ink-soft">Later</h2>
+        <div className="rounded-2xl border-2 border-dashed border-black/10 px-5 py-4">
+          <p className="font-bold">Phase 2 and beyond</p>
+          <p className="text-sm text-ink-soft">
+            More sections, other disciplines, a second exam track, practice mode over the archive.
+          </p>
+        </div>
       </section>
     </>
   )

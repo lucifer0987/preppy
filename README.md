@@ -3,10 +3,11 @@
 Daily exam-simulation platform for IBPS Specialist Officer (IT) aspirants.
 See [PRD.md](PRD.md) for the full specification.
 
-**Status:** Phase 1 feature-complete. Ingestion, the test engine, results, the
-leaderboard, the archive, rescore, user management, the nightly job and the
-question-bank export all work. Left: the Kahoot motion layer, and an attempts
-table for the admin.
+**Status:** Phase 1 complete. Ingestion, the test engine, results, the
+leaderboard, the archive, rescore, user management, the nightly job, the
+question-bank export, the Kahoot motion layer and the attempts table all work.
+
+Nothing has been run against a live database yet — see *Known limit* below.
 
 ## Getting started
 
@@ -57,6 +58,7 @@ Exit `0` publishable, `1` blocking errors, `2` bad usage.
 | `lib/repo/rescore.ts` | Correcting a key and rescoring every attempt |
 | `lib/repo/finalise.ts` | The one nightly job: score anything left open |
 | `vercel.json` | Schedules that job at 00:05 IST (18:35 UTC) |
+| `components/motion.ts` | The one place that answers "may this animate?" |
 | `components/TestEngine.tsx` | The live test: palette, timers, full-screen |
 | `app/` | Home, login, dashboard, test, archive, leaderboard, admin |
 
@@ -83,9 +85,13 @@ what it had to do rather than changing the paper silently:
 `format/sample.pdf` needs **75 wrapped-string repairs** before it will parse.
 It still round-trips with all **570 fields identical** to `format/sample.json`.
 
-## Known limit
+## Known limits
 
-`format/sample.pdf` is rendered by a library, so it extracts a little more
+**No database has been exercised.** Every query typechecks and the pure logic
+around it is covered by 134 tests, but nothing here has run against a live
+Postgres. Follow SETUP.md, then take one paper end to end before relying on it.
+
+**`format/sample.pdf` is rendered by a library**, so it extracts a little more
 cleanly than a Word or Google Docs export. The pipeline is proven end to end
-against it, but **the format is not proven against a real export until one is
-run through `npm run check`.**
+against it, but the format is not proven against a real export until one is run
+through `npm run check`.

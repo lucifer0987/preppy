@@ -1,4 +1,5 @@
 import type { LeaderboardRow } from '../lib/leaderboard'
+import { StreakBadge } from './StreakBadge'
 
 /**
  * The only surface that shows one student anything about another (FR-5.3),
@@ -18,11 +19,12 @@ export function LeaderboardTable({ rows, meUserId }: { rows: LeaderboardRow[]; m
   return (
     <>
       <ol className="grid gap-3 sm:grid-cols-3">
-        {podium.map((row) => (
+        {podium.map((row, i) => (
           <li
             key={row.userId}
+            style={{ animationDelay: `${i * 110}ms` }}
             className={[
-              'rounded-3xl p-5 text-center',
+              'rounded-3xl p-5 text-center motion-safe:animate-[rise_420ms_cubic-bezier(.2,.8,.2,1)_both]',
               row.rank === 1 ? 'bg-play-purple text-white sm:order-2 sm:scale-105'
                 : row.rank === 2 ? 'bg-white sm:order-1'
                 : 'bg-white sm:order-3',
@@ -35,6 +37,9 @@ export function LeaderboardTable({ rows, meUserId }: { rows: LeaderboardRow[]; m
             <p className={`text-2xl font-black tabular-nums ${row.rank === 1 ? '' : 'text-play-purple'}`}>
               {row.totalPoints.toFixed(2)}
             </p>
+            {row.currentStreak > 0 && (
+              <p className="mt-2"><StreakBadge days={row.currentStreak} /></p>
+            )}
           </li>
         ))}
       </ol>
@@ -78,7 +83,9 @@ export function LeaderboardTable({ rows, meUserId }: { rows: LeaderboardRow[]; m
                   </td>
                   <td className="py-2.5 px-2 text-right text-ink-soft">{row.bestScore.toFixed(2)}</td>
                   <td className="py-2.5 pl-2 text-right">
-                    {row.currentStreak > 0 ? `${row.currentStreak}` : '—'}
+                    {row.currentStreak > 0
+                      ? <StreakBadge days={row.currentStreak} />
+                      : <span className="text-ink-soft">—</span>}
                   </td>
                 </tr>
               )

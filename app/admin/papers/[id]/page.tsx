@@ -165,7 +165,7 @@ export default async function PaperPreview(
   )
 }
 
-async function ItemFooter({
+function ItemFooter({
   testId, number, answer, present, stat,
 }: {
   testId: string

@@ -5,6 +5,8 @@ import { db } from '../../../../lib/supabase/admin'
 import { SECTION_NAMES, TOTAL_QUESTIONS, type SectionCode } from '../../../../lib/types'
 import { pacingVerdict, type SectionScore } from '../../../../lib/scoring'
 import { answersUnlocked, formatIstDate } from '../../../../lib/time'
+import { Celebration, type CelebrationLevel } from '../../../../components/Celebration'
+import { CountUp } from '../../../../components/CountUp'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,8 +37,26 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
   const unlocked = answersUnlocked(test.date)
   const minutes = Math.round((attempt.time_spent_sec ?? 0) / 60)
 
+  // A dry run is not an achievement, and a celebration over a poor score reads
+  // as mockery. Best previous score decides whether this one is a personal best.
+  const { data: earlier } = await db()
+    .from('attempts').select('total_score')
+    .eq('user_id', user.id).eq('is_dry_run', false)
+    .in('state', ['SUBMITTED', 'AUTO_SUBMITTED'])
+    .neq('id', attemptId)
+  const best = (earlier ?? []).reduce((a, r) => Math.max(a, Number(r.total_score ?? 0)), -Infinity)
+  const isPersonalBest = (earlier ?? []).length > 0 && score > best
+
+  const celebration: CelebrationLevel =
+    attempt.is_dry_run ? 'none'
+    : isPersonalBest ? 'personal-best'
+    : score >= TOTAL_QUESTIONS * 0.5 ? 'good'
+    : 'none'
+
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
+      <Celebration level={celebration} />
+
       <p className="text-xs font-bold uppercase tracking-[0.2em] text-ink-soft">
         {test.title ?? 'Daily mock'} &middot; {formatIstDate(test.date)}
       </p>
@@ -55,8 +75,13 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
           </p>
         )}
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">Your score</p>
-        <p className="mt-2 text-7xl font-black tabular-nums">{score.toFixed(2)}</p>
+        <p className="mt-2 text-7xl font-black tabular-nums"><CountUp value={score} /></p>
         <p className="mt-1 text-white/70">out of {TOTAL_QUESTIONS}</p>
+        {isPersonalBest && !attempt.is_dry_run && (
+          <p className="mt-3 inline-block rounded-full bg-white px-4 py-1.5 text-sm font-black text-play-purple">
+            Personal best
+          </p>
+        )}
         <p className="mt-4 text-sm text-white/70 tabular-nums">
           {attempt.correct} correct &middot; {attempt.wrong} wrong &middot;{' '}
           {attempt.skipped} skipped &middot; {attempt.not_reached} not reached &middot; {minutes} min

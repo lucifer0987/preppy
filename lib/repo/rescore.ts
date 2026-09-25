@@ -135,6 +135,7 @@ export async function getItemStats(testId: string): Promise<ItemStat[]> {
     .from('responses').select('question_id, selected_option')
     .in('question_id', ids.length ? ids : ['00000000-0000-0000-0000-000000000000'])
 
+  const keyById = new Map((questions ?? []).map((q) => [q.id as string, q.correct_option as string]))
   const tally = new Map<string, { answered: number; correct: number }>()
   for (const q of questions ?? []) tally.set(q.id as string, { answered: 0, correct: 0 })
   for (const r of responses ?? []) {
@@ -142,8 +143,7 @@ export async function getItemStats(testId: string): Promise<ItemStat[]> {
     const t = tally.get(r.question_id as string)
     if (!t) continue
     t.answered++
-    const q = (questions ?? []).find((x) => x.id === r.question_id)
-    if (q && q.correct_option === r.selected_option) t.correct++
+    if (keyById.get(r.question_id as string) === r.selected_option) t.correct++
   }
 
   return (questions ?? []).map((q) => {

@@ -29,7 +29,10 @@ export async function finaliseOverdueAttempts(now = new Date()): Promise<Finalis
   // hard stop below decides. Future papers cannot have attempts yet.
   const { data: attempts, error } = await client
     .from('attempts')
-    .select('id, tests(date)')
+    // tests!inner makes the date filter apply to the attempt row. Without the
+    // inner join PostgREST filters the embedded object instead, leaving the
+    // parent row in the result with a null embed.
+    .select('id, tests!inner(date)')
     .eq('state', 'IN_PROGRESS')
     .lte('tests.date', today)
 
