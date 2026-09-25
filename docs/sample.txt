@@ -1,0 +1,656 @@
+#TEST
+DATE: 2026-09-26
+TITLE: Daily Mock 001
+
+#SECTION: QUANT
+DURATION: 12
+MARKS: 1
+NEGATIVE: 0.25
+
+Q1. A train 150 m long crosses a pole in 15 seconds. Find its speed.
+A) 30 km/h
+B) 36 km/h
+C) 40 km/h
+D) 45 km/h
+E) None of these
+ANS: B
+SOL: Speed = 150/15 = 10 m/s = 10 x 18/5 = 36 km/h.
+TAG: Speed-Time-Distance
+DIFF: Easy
+
+Q2. The simple interest on a sum of Rs 12,000 at 8% per annum for 3 years is:
+A) Rs 2,660
+B) Rs 2,880
+C) Rs 3,120
+D) Rs 2,400
+E) None of these
+ANS: B
+SOL: SI = (12000 x 8 x 3)/100 = Rs 2,880.
+TAG: Simple-Interest
+DIFF: Easy
+
+Q3. A shopkeeper marks an article 40% above cost price and allows a discount of 25%. His profit percentage is:
+A) 4%
+B) 5%
+C) 6%
+D) 10%
+E) None of these
+ANS: B
+SOL: Let CP = 100. MP = 140. SP = 140 x 0.75 = 105. Profit = 5%.
+TAG: Profit-Loss
+DIFF: Medium
+
+Q4. Two pipes A and B can fill a tank in 12 minutes and 18 minutes respectively. If both are opened together, the tank fills in:
+A) 7 1/5 minutes
+B) 7 1/2 minutes
+C) 8 minutes
+D) 6 3/4 minutes
+E) None of these
+ANS: A
+SOL: 1/12 + 1/18 = 5/36. Time = 36/5 = 7.2 = 7 1/5 minutes.
+TAG: Pipes-Cisterns
+DIFF: Medium
+
+Q5. The average of five consecutive even numbers is 36. The largest of these numbers is:
+A) 38
+B) 40
+C) 42
+D) 44
+E) None of these
+ANS: B
+SOL: For five consecutive even numbers the average is the middle term, so the numbers are 32, 34, 36, 38, 40.
+TAG: Averages
+DIFF: Easy
+
+#DIRECTIONS: Q6-Q10
+Study the following table carefully and answer the questions that follow.
+The table shows the number of students (in hundreds) who enrolled in four courses at an institute over three years.
+
+Year        Java    Python    DBMS    Networking
+2023         12       18        9          6
+2024         15       24       12          9
+2025         18       30       15         12
+#ENDDIRECTIONS
+
+Q6. The total number of students who enrolled in Python across all three years is:
+A) 6,600
+B) 7,200
+C) 7,800
+D) 8,400
+E) None of these
+ANS: B
+SOL: (18 + 24 + 30) hundred = 72 hundred = 7,200 students.
+TAG: Data-Interpretation
+DIFF: Easy
+
+Q7. The percentage increase in DBMS enrolment from 2023 to 2025 is:
+A) 50%
+B) 60%
+C) 66 2/3%
+D) 75%
+E) None of these
+ANS: C
+SOL: (15 - 9)/9 x 100 = 66 2/3%.
+TAG: Data-Interpretation
+DIFF: Medium
+
+Q8. In 2024, students enrolled in Java and Networking together form what percent of the total enrolment that year?
+A) 35%
+B) 40%
+C) 45%
+D) 50%
+E) None of these
+ANS: B
+SOL: Total 2024 = 15 + 24 + 12 + 9 = 60. Java + Networking = 15 + 9 = 24. 24/60 x 100 = 40%.
+TAG: Data-Interpretation
+DIFF: Medium
+
+Q9. The ratio of total Networking enrolment to total Java enrolment over the three years is:
+A) 2:3
+B) 3:5
+C) 5:9
+D) 4:7
+E) None of these
+ANS: B
+SOL: Networking = 6 + 9 + 12 = 27. Java = 12 + 15 + 18 = 45. Ratio = 27:45 = 3:5.
+TAG: Data-Interpretation
+DIFF: Medium
+
+Q10. The average annual enrolment in Java over the three years is:
+A) 1,200
+B) 1,500
+C) 1,800
+D) 2,100
+E) None of these
+ANS: B
+SOL: (12 + 15 + 18)/3 = 15 hundred = 1,500 students.
+TAG: Data-Interpretation
+DIFF: Easy
+
+Q11. What should come in place of the question mark? 48 x 12 / 8 + 15 = ?
+A) 79
+B) 83
+C) 87
+D) 91
+E) None of these
+ANS: C
+SOL: 48 x 12 = 576. 576/8 = 72. 72 + 15 = 87.
+TAG: Simplification
+DIFF: Easy
+
+Q12. Find the missing term in the series: 3, 7, 16, 35, 74, ?
+A) 148
+B) 151
+C) 153
+D) 157
+E) None of these
+ANS: C
+SOL: Each term is the previous term x 2 plus an increasing counter: 3x2+1=7, 7x2+2=16, 16x2+3=35, 35x2+4=74, 74x2+5=153.
+TAG: Number-Series
+DIFF: Hard
+
+Q13. A sum of money doubles itself in 8 years at simple interest. In how many years will it become four times itself?
+A) 16 years
+B) 20 years
+C) 24 years
+D) 32 years
+E) None of these
+ANS: C
+SOL: Interest equal to the principal accrues in 8 years. Four times requires interest of 3P, so 3 x 8 = 24 years.
+TAG: Simple-Interest
+DIFF: Medium
+
+Q14. The ratio of the present ages of A and B is 5:7. After 6 years the ratio becomes 3:4. A's present age is:
+A) 25 years
+B) 28 years
+C) 30 years
+D) 35 years
+E) None of these
+ANS: C
+SOL: (5x+6)/(7x+6) = 3/4 gives 20x + 24 = 21x + 18, so x = 6 and A = 30 years.
+TAG: Ages
+DIFF: Medium
+
+Q15. A boat covers 24 km downstream in 2 hours and returns in 3 hours. The speed of the stream is:
+A) 1 km/h
+B) 2 km/h
+C) 2.5 km/h
+D) 4 km/h
+E) None of these
+ANS: B
+SOL: Downstream = 12 km/h, upstream = 8 km/h. Stream = (12 - 8)/2 = 2 km/h.
+TAG: Boats-Streams
+DIFF: Medium
+
+#SECTION: REASONING
+DURATION: 12
+
+Q16. In a certain code, TABLE is written as UBCMF. How is CHAIR written in that code?
+A) DIBJS
+B) DJBJS
+C) DIBKS
+D) BGZHQ
+E) None of these
+ANS: A
+SOL: Each letter moves one step forward, so CHAIR becomes DIBJS.
+TAG: Coding-Decoding
+DIFF: Easy
+
+Q17. A is the brother of B, B is the sister of C, and C is the father of D. How is A related to D?
+A) Brother
+B) Uncle
+C) Father
+D) Cousin
+E) Cannot be determined
+ANS: B
+SOL: A and C are siblings, and C is D's father, so A is D's uncle.
+TAG: Blood-Relations
+DIFF: Easy
+
+Q18. Pointing to a man, a woman said, "His mother is the only daughter of my mother." How is the woman related to the man?
+A) Sister
+B) Mother
+C) Aunt
+D) Grandmother
+E) None of these
+ANS: B
+SOL: The only daughter of the woman's mother is the woman herself, so she is the man's mother.
+TAG: Blood-Relations
+DIFF: Medium
+
+Q19. A man walks 5 km north, turns right and walks 3 km, then turns right and walks 5 km. How far is he from the starting point?
+A) 3 km
+B) 5 km
+C) 8 km
+D) 13 km
+E) None of these
+ANS: A
+SOL: He ends 3 km due east of his start, since the two 5 km legs cancel.
+TAG: Direction-Sense
+DIFF: Easy
+
+Q20. Statements: All pens are books. Some books are red. Conclusions: I. Some pens are red. II. Some books are pens.
+A) Only conclusion I follows
+B) Only conclusion II follows
+C) Both conclusions follow
+D) Neither conclusion follows
+E) Either I or II follows
+ANS: B
+SOL: All pens being books guarantees that some books are pens. Nothing links pens to red.
+TAG: Syllogism
+DIFF: Medium
+
+#DIRECTIONS: Q21-Q25
+Study the following information carefully and answer the questions that follow.
+
+Seven friends - P, Q, R, S, T, U and V - sit in a straight row facing north.
+R sits third from the left end.
+Q sits immediately to the right of R.
+T sits second to the right of Q.
+P sits at the extreme right end.
+S sits immediately to the left of R.
+U does not sit at either extreme end.
+#ENDDIRECTIONS
+
+Q21. Who sits at the extreme left end of the row?
+A) V
+B) S
+C) U
+D) T
+E) P
+ANS: A
+SOL: The final arrangement from left to right is V, S, R, Q, U, T, P.
+TAG: Seating-Arrangement
+DIFF: Medium
+
+Q22. How many people sit between S and T?
+A) Two
+B) Three
+C) Four
+D) Five
+E) None
+ANS: B
+SOL: S is second and T is sixth, so R, Q and U sit between them.
+TAG: Seating-Arrangement
+DIFF: Medium
+
+Q23. Who sits immediately to the left of P?
+A) U
+B) Q
+C) T
+D) R
+E) S
+ANS: C
+SOL: P is seventh and T is sixth.
+TAG: Seating-Arrangement
+DIFF: Easy
+
+Q24. What is the position of U from the right end?
+A) Second
+B) Third
+C) Fourth
+D) Fifth
+E) Sixth
+ANS: B
+SOL: U is fifth from the left in a row of seven, so third from the right.
+TAG: Seating-Arrangement
+DIFF: Medium
+
+Q25. Which of the following pairs sits at the two extreme ends?
+A) V and P
+B) S and P
+C) V and T
+D) U and P
+E) None of these
+ANS: A
+SOL: V is first and P is seventh.
+TAG: Seating-Arrangement
+DIFF: Easy
+
+Q26. In a row of 40 students, Rahul is 12th from the left end. What is his position from the right end?
+A) 28th
+B) 29th
+C) 30th
+D) 27th
+E) None of these
+ANS: B
+SOL: 40 - 12 + 1 = 29.
+TAG: Order-Ranking
+DIFF: Easy
+
+Q27. If '+' means divide, '/' means subtract, '-' means multiply and 'x' means add, then 16 + 4 / 5 - 3 x 2 = ?
+A) -9
+B) 9
+C) -6
+D) 6
+E) None of these
+ANS: A
+SOL: The expression becomes 16/4 - 5x3 + 2 = 4 - 15 + 2 = -9.
+TAG: Symbol-Substitution
+DIFF: Hard
+
+Q28. Statements: P > Q >= R and S < R. Conclusions: I. P > S  II. Q >= S
+A) Only conclusion I follows
+B) Only conclusion II follows
+C) Both conclusions follow
+D) Neither conclusion follows
+E) Either I or II follows
+ANS: C
+SOL: Combining gives P > Q >= R > S, so both P > S and Q >= S hold.
+TAG: Inequality
+DIFF: Medium
+
+Q29. Which word comes third when the following are arranged in dictionary order? Nature, Nation, Native, Natural, Naughty
+A) Nature
+B) Native
+C) Natural
+D) Nation
+E) Naughty
+ANS: C
+SOL: The order is Nation, Native, Natural, Nature, Naughty.
+TAG: Alphabet-Test
+DIFF: Medium
+
+Q30. In a certain language MONKEY is coded as XDJMNL. How is CHAIR coded in that language?
+A) QHZGB
+B) QHZGC
+C) BGZHQ
+D) QIZGB
+E) None of these
+ANS: A
+SOL: Reverse the word and move each letter one step back: CHAIR reversed is RIAHC, which becomes QHZGB.
+TAG: Coding-Decoding
+DIFF: Hard
+
+#SECTION: ENGLISH
+DURATION: 9
+
+#DIRECTIONS: Q31-Q35
+Read the following passage carefully and answer the questions given below it.
+
+The rapid expansion of digital payments in India over the past decade has altered the relationship between citizens and formal finance. Where once a bank account was the preserve of the salaried urban household, the combination of low-cost identity verification, a ubiquitous mobile network and a public payments rail has pushed basic financial services into districts that commercial banks had long written off as unviable.
+
+Yet the achievement is more uneven than the headline numbers suggest. Opening an account is not the same as using one, and a substantial share of newly opened accounts record almost no activity beyond the receipt of government transfers. Researchers who have examined this dormancy argue that the binding constraint is no longer access but trust: households that have never had recourse when a transaction fails are reluctant to route their savings through a system they cannot interrogate.
+
+The lesson for policymakers is that infrastructure is necessary but not sufficient. A payments rail can be built in a few years; the institutional habit of using it accrues far more slowly, and depends on grievance redress mechanisms that are visible, cheap and fast. Without them, the digital economy risks reproducing, in a new form, precisely the exclusion it was designed to end.
+#ENDDIRECTIONS
+
+Q31. According to the passage, the main reason many newly opened bank accounts remain dormant is:
+A) A shortage of bank branches in rural districts
+B) The absence of trust in a system offering no recourse when transactions fail
+C) High transaction fees charged on small deposits
+D) Poor mobile network coverage in remote areas
+E) A lack of government transfers into those accounts
+ANS: B
+SOL: The second paragraph states that the binding constraint is no longer access but trust.
+TAG: Reading-Comprehension
+DIFF: Easy
+
+Q32. The phrase "the preserve of the salaried urban household" most nearly means:
+A) protected by urban households
+B) something restricted to salaried city dwellers
+C) a savings scheme for city workers
+D) an obligation placed on urban families
+E) a record kept by urban banks
+ANS: B
+SOL: A preserve here means an exclusive domain.
+TAG: Vocabulary-In-Context
+DIFF: Medium
+
+Q33. Which of the following best captures the author's central argument?
+A) Digital payments have failed in India
+B) Building infrastructure is easier than building the institutional trust needed to use it
+C) Commercial banks should be compelled to open rural branches
+D) Government transfers should be discontinued
+E) Mobile networks are the chief obstacle to financial inclusion
+ANS: B
+SOL: The final paragraph states that infrastructure is necessary but not sufficient and that the habit of use accrues far more slowly.
+TAG: Reading-Comprehension
+DIFF: Medium
+
+Q34. The author's attitude towards the expansion of digital payments can best be described as:
+A) Uniformly celebratory
+B) Dismissive and hostile
+C) Appreciative but qualified
+D) Indifferent and detached
+E) Nostalgic
+ANS: C
+SOL: The author acknowledges the achievement but immediately qualifies it as uneven.
+TAG: Tone
+DIFF: Medium
+
+Q35. Choose the word most nearly OPPOSITE in meaning to "ubiquitous" as used in the passage.
+A) Widespread
+B) Scarce
+C) Reliable
+D) Modern
+E) Affordable
+ANS: B
+SOL: Ubiquitous means present everywhere, so scarce is its opposite.
+TAG: Antonyms
+DIFF: Easy
+
+Q36. Select the part of the sentence that contains an error. Neither the manager (A) nor the employees (B) was present (C) at the meeting (D). No error (E)
+A) A
+B) B
+C) C
+D) D
+E) E
+ANS: C
+SOL: With neither-nor the verb agrees with the nearer subject, so it should be "were present".
+TAG: Subject-Verb-Agreement
+DIFF: Medium
+
+Q37. Fill in the blank: She is not only an excellent teacher ___ a gifted administrator.
+A) and also
+B) but also
+C) as well
+D) but and
+E) however
+ANS: B
+SOL: The correlative pair is "not only ... but also".
+TAG: Conjunctions
+DIFF: Easy
+
+Q38. Choose the correctly spelt word.
+A) Priviledge
+B) Privilege
+C) Privelege
+D) Privilage
+E) Priviledg
+ANS: B
+SOL: The correct spelling is privilege.
+TAG: Spelling
+DIFF: Easy
+
+Q39. Choose the word most nearly SIMILAR in meaning to MITIGATE.
+A) Aggravate
+B) Alleviate
+C) Provoke
+D) Postpone
+E) Complicate
+ANS: B
+SOL: To mitigate is to make less severe, which is to alleviate.
+TAG: Synonyms
+DIFF: Easy
+
+Q40. Rearrange the parts to form a meaningful sentence: (P) the report (Q) was submitted (R) by the committee (S) last Friday
+A) PQRS
+B) QPRS
+C) PRQS
+D) SPQR
+E) RQPS
+ANS: A
+SOL: The report was submitted by the committee last Friday.
+TAG: Sentence-Rearrangement
+DIFF: Easy
+
+#SECTION: PK
+DURATION: 12
+
+Q41. In a relational database, a superkey that contains no redundant attributes is called a:
+A) Foreign key
+B) Candidate key
+C) Composite key
+D) Secondary key
+E) None of these
+ANS: B
+SOL: A candidate key is a minimal superkey, containing no redundant attributes.
+TAG: DBMS-Keys
+DIFF: Easy
+
+Q42. Which normal form eliminates transitive functional dependency on the primary key?
+A) 1NF
+B) 2NF
+C) 3NF
+D) BCNF
+E) 4NF
+ANS: C
+SOL: Third normal form removes transitive dependencies on the primary key.
+TAG: DBMS-Normalisation
+DIFF: Easy
+
+Q43. The time complexity of searching for an element in a balanced binary search tree containing n nodes is:
+A) O(1)
+B) O(log n)
+C) O(n)
+D) O(n log n)
+E) O(n squared)
+ANS: B
+SOL: A balanced BST has height proportional to log n, so search is O(log n).
+TAG: Data-Structures
+DIFF: Easy
+
+Q44. Which CPU scheduling algorithm can cause starvation of long processes?
+A) First Come First Served
+B) Round Robin
+C) Shortest Job First
+D) FIFO
+E) None of these
+ANS: C
+SOL: Shortest Job First keeps preferring short jobs, so long jobs may never run.
+TAG: OS-Scheduling
+DIFF: Medium
+
+Q45. In the OSI model, which layer is responsible for end-to-end error recovery and flow control?
+A) Network layer
+B) Transport layer
+C) Session layer
+D) Data link layer
+E) Presentation layer
+ANS: B
+SOL: The transport layer provides end-to-end reliability, error recovery and flow control.
+TAG: Networking-OSI
+DIFF: Easy
+
+Q46. Which of the following is NOT a property of a database transaction?
+A) Atomicity
+B) Consistency
+C) Isolation
+D) Durability
+E) Redundancy
+ANS: E
+SOL: The ACID properties are atomicity, consistency, isolation and durability.
+TAG: DBMS-Transactions
+DIFF: Easy
+
+Q47. The default port number for HTTPS is:
+A) 21
+B) 25
+C) 80
+D) 443
+E) 8080
+ANS: D
+SOL: HTTPS uses TCP port 443 by default.
+TAG: Networking-Ports
+DIFF: Easy
+
+Q48. In a doubly linked list, deleting a node when a pointer to that node is given takes:
+A) O(1)
+B) O(log n)
+C) O(n)
+D) O(n log n)
+E) O(n squared)
+ANS: A
+SOL: Both neighbours are reachable through the node's own pointers, so the relinking is constant time.
+TAG: Data-Structures
+DIFF: Medium
+
+Q49. Which SQL clause is used to filter the groups produced by GROUP BY?
+A) WHERE
+B) HAVING
+C) ORDER BY
+D) DISTINCT
+E) LIMIT
+ANS: B
+SOL: WHERE filters rows before grouping; HAVING filters groups after grouping.
+TAG: SQL
+DIFF: Easy
+
+Q50. Thrashing in an operating system occurs when:
+A) The CPU is idle waiting for I/O
+B) The system spends more time paging than executing processes
+C) Two processes each hold a resource the other needs
+D) A process never gets CPU time
+E) Memory is fragmented into small blocks
+ANS: B
+SOL: Thrashing is excessive paging activity that leaves little time for useful work.
+TAG: OS-Memory
+DIFF: Medium
+
+Q51. Which data structure is used by the runtime to implement recursion?
+A) Queue
+B) Stack
+C) Linked list
+D) Heap
+E) Graph
+ANS: B
+SOL: Each recursive call pushes an activation record onto the call stack.
+TAG: Data-Structures
+DIFF: Easy
+
+Q52. In object-oriented programming, the ability of different classes to respond to the same message in different ways is called:
+A) Encapsulation
+B) Inheritance
+C) Polymorphism
+D) Abstraction
+E) Overloading
+ANS: C
+SOL: Polymorphism lets one interface serve different underlying types.
+TAG: OOP
+DIFF: Easy
+
+Q53. Which protocol resolves an IP address to a MAC address?
+A) DNS
+B) DHCP
+C) ARP
+D) ICMP
+E) RARP
+ANS: C
+SOL: The Address Resolution Protocol maps an IP address to a hardware address.
+TAG: Networking-Protocols
+DIFF: Easy
+
+Q54. The worst-case time complexity of QuickSort is:
+A) O(n)
+B) O(n log n)
+C) O(n squared)
+D) O(log n)
+E) O(n cubed)
+ANS: C
+SOL: When the pivot is consistently the smallest or largest element, QuickSort degrades to O(n squared).
+TAG: Algorithms
+DIFF: Medium
+
+Q55. In software engineering, the process model that emphasises risk analysis at each iteration is the:
+A) Waterfall model
+B) Spiral model
+C) V-model
+D) Big Bang model
+E) Prototype model
+ANS: B
+SOL: The spiral model places explicit risk analysis in every cycle.
+TAG: Software-Engineering
+DIFF: Medium
+
+#ENDTEST
