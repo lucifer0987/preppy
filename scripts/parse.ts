@@ -2,32 +2,36 @@
 /**
  * Preppy paper checker.
  *
- *   npm run parse -- <file.pdf|file.txt> [--images <dir>] [--json]
+ *   npm run check -- <paper.pdf|paper.json> [--images <dir>] [--json]
  *
- * Extracts, parses and validates a paper, then prints the report an admin
- * would see before the preview step (PRD §6.9.1).
+ * Reads a paper in the fixed JSON format, repairs the damage a PDF text layer
+ * inflicts on JSON, validates it, and prints the report an admin sees before
+ * publishing.
  */
 import { readFile, readdir } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { basename, extname } from 'node:path'
 import { extractPdfText } from '../lib/extract.js'
-import { parseTestDocument } from '../lib/parser.js'
-import { summarise, validateTest } from '../lib/validate.js'
-import { SECTION_NAMES, type Issue } from '../lib/types.js'
+import { readPaper, summarise } from '../lib/paper.js'
+import { PATTERN, SECTION_NAMES, type Issue, type SectionCode } from '../lib/types.js'
 
-const C = process.stdout.isTTY
-  ? { dim: '\x1b[2m', red: '\x1b[31m', yellow: '\x1b[33m', green: '\x1b[32m', bold: '\x1b[1m', off: '\x1b[0m' }
-  : { dim: '', red: '', yellow: '', green: '', bold: '', off: '' }
+const T = process.stdout.isTTY
+const E = String.fromCharCode(27)
+const C = {
+  dim: T ? `${E}[2m` : '', red: T ? `${E}[31m` : '', yellow: T ? `${E}[33m` : '',
+  green: T ? `${E}[32m` : '', blue: T ? `${E}[34m` : '', bold: T ? `${E}[1m` : '', off: T ? `${E}[0m` : '',
+}
 
-function arg(flag: string): string | undefined {
+const arg = (flag: string) => {
   const i = process.argv.indexOf(flag)
   return i > -1 ? process.argv[i + 1] : undefined
 }
 
 async function main() {
-  const file = process.argv.slice(2).find((a) => !a.startsWith('--') && a !== arg('--images'))
+  const imagesDir = arg('--images')
+  const file = process.argv.slice(2).find((a) => !a.startsWith('--') && a !== imagesDir)
   if (!file) {
-    console.error('usage: npm run parse -- <file.pdf|file.txt> [--images <dir>] [--json]')
+    console.error('usage: npm run check -- <paper.pdf|paper.json> [--images <dir>] [--json]')
     process.exit(2)
   }
   if (!existsSync(file)) {
@@ -35,65 +39,73 @@ async function main() {
     process.exit(2)
   }
 
-  const imagesDir = arg('--images')
   const availableImages = imagesDir && existsSync(imagesDir) ? await readdir(imagesDir) : []
-
   const isPdf = extname(file).toLowerCase() === '.pdf'
+
   let raw: string
   let extractIssues: Issue[] = []
   let pages = 0
-  let charsPerPage: number[] = []
+  let chars: number[] = []
 
   if (isPdf) {
-    const buf = await readFile(file)
-    const res = await extractPdfText(new Uint8Array(buf))
+    const res = await extractPdfText(new Uint8Array(await readFile(file)))
     raw = res.text
     extractIssues = res.issues
     pages = res.pages
-    charsPerPage = res.charsPerPage
+    chars = res.charsPerPage
   } else {
     raw = await readFile(file, 'utf8')
   }
 
-  const { test, issues: parseIssues } = parseTestDocument(raw)
-  const validateIssues = validateTest(test, { availableImages })
-  const all = [...extractIssues, ...parseIssues, ...validateIssues]
+  const { paper, issues, repairs } = readPaper(raw, { availableImages })
+  const all = [...extractIssues, ...issues]
   const { errors, warnings, publishable } = summarise(all)
 
   if (process.argv.includes('--json')) {
-    console.log(JSON.stringify({ file, test, issues: all, publishable }, null, 2))
+    console.log(JSON.stringify({ file, publishable, repairs, issues: all, paper }, null, 2))
     process.exit(publishable ? 0 : 1)
   }
 
-  // ---- report
-  const qTotal = test.sections.reduce((a, s) => a + s.questions.length, 0)
   console.log(`\n${C.bold}${basename(file)}${C.off}`)
   if (isPdf) {
-    console.log(`${C.dim}${pages} page(s) · ${charsPerPage.reduce((a, b) => a + b, 0)} chars extracted (${charsPerPage.join(', ')} per page)${C.off}`)
+    console.log(`${C.dim}${pages} page(s) - ${chars.reduce((a, b) => a + b, 0)} characters extracted${C.off}`)
   }
-  console.log(`${C.dim}date ${test.date ?? '—'} · title ${test.title ?? '—'} · ${qTotal} questions${C.off}\n`)
 
-  for (const s of test.sections) {
-    const dirCount = new Set(s.questions.map((q) => q.directionBlockIndex).filter((i) => i !== null)).size
-    const withSol = s.questions.filter((q) => q.solution).length
-    console.log(
-      `  ${C.bold}${SECTION_NAMES[s.code].padEnd(30)}${C.off}` +
-      `${String(s.questions.length).padStart(2)} q · ${String(s.durationMinutes).padStart(2)} min · ` +
-      `+${s.marksCorrect}/−${s.marksNegative} · ${withSol}/${s.questions.length} solved` +
-      (dirCount ? ` · ${dirCount} direction block(s)` : ''),
-    )
+  if (repairs.length) {
+    console.log(`\n${C.blue}${C.bold}Repaired on the way in${C.off} ${C.dim}(the PDF text layer damaged the JSON)${C.off}`)
+    for (const r of repairs) {
+      console.log(`  ${C.blue}${String(r.count).padStart(4)}x${C.off}  ${C.dim}${r.kind.padEnd(22)}${C.off} ${r.detail ?? ''}`)
+    }
   }
-  if (test.referencedImages.length) {
-    console.log(`\n  ${C.dim}images referenced: ${test.referencedImages.join(', ')}${C.off}`)
+
+  if (paper) {
+    console.log(`\n${C.dim}date ${paper.date} - ${paper.title ?? 'untitled'}${C.off}`)
+    let totalQ = 0
+    let totalMin = 0
+    for (const s of paper.sections) {
+      const code = s.code as SectionCode
+      const mins = s.durationMinutes ?? PATTERN[code].minutes
+      const dirs = s.directions?.length ?? 0
+      const tables = s.directions?.filter((d) => d.table).length ?? 0
+      const solved = s.questions.filter((q) => q.solution).length
+      totalQ += s.questions.length
+      totalMin += mins
+      console.log(
+        `  ${C.bold}${SECTION_NAMES[code].padEnd(30)}${C.off}` +
+        `${String(s.questions.length).padStart(2)} q | ${String(mins).padStart(2)} min | ` +
+        `+${s.marksCorrect ?? 1}/-${s.marksNegative ?? 0.25} | ${solved}/${s.questions.length} solved` +
+        (dirs ? ` | ${dirs} directions${tables ? `, ${tables} table` : ''}` : ''),
+      )
+    }
+    console.log(`  ${C.dim}${''.padEnd(30)}${String(totalQ).padStart(2)} q | ${totalMin} min total${C.off}`)
   }
 
   const show = (list: Issue[], colour: string, label: string) => {
     if (!list.length) return
     console.log(`\n${colour}${C.bold}${list.length} ${label}${list.length === 1 ? '' : 's'}${C.off}`)
     for (const i of list) {
-      const where = i.line ? `line ${String(i.line).padStart(4)}` : '   doc   '
-      console.log(`  ${colour}${where}${C.off}  ${C.dim}${i.code.padEnd(26)}${C.off} ${i.message}`)
-      if (i.excerpt) console.log(`             ${C.dim}> ${i.excerpt}${C.off}`)
+      console.log(`  ${colour}${(i.path ?? 'document').padEnd(34)}${C.off} ${C.dim}${i.code.padEnd(24)}${C.off} ${i.message}`)
+      if (i.excerpt) console.log(`    ${C.dim}> ...${i.excerpt}...${C.off}`)
     }
   }
   show(errors, C.red, 'blocking error')
@@ -101,8 +113,8 @@ async function main() {
 
   console.log(
     publishable
-      ? `\n${C.green}${C.bold}✓ Publishable${C.off}${warnings.length ? ` ${C.dim}(with ${warnings.length} warning${warnings.length === 1 ? '' : 's'})${C.off}` : ''}\n`
-      : `\n${C.red}${C.bold}✗ Not publishable — fix the ${errors.length} blocking error${errors.length === 1 ? '' : 's'} above.${C.off}\n`,
+      ? `\n${C.green}${C.bold}Publishable${C.off}${warnings.length ? ` ${C.dim}(with ${warnings.length} warning${warnings.length === 1 ? '' : 's'})${C.off}` : ''}\n`
+      : `\n${C.red}${C.bold}Not publishable - fix the ${errors.length} blocking error${errors.length === 1 ? '' : 's'} above.${C.off}\n`,
   )
   process.exit(publishable ? 0 : 1)
 }

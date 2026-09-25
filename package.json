@@ -4,13 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "parse": "tsx scripts/parse.ts",
-    "make-samples": "tsx scripts/make-samples.ts",
+    "check": "tsx scripts/parse.ts",
+    "build:format": "tsx scripts/build-format.ts",
     "test": "vitest run"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
     "@types/pdfkit": "^0.17.6",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vitest": "^4.1.11"

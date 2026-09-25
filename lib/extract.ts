@@ -58,7 +58,7 @@ export async function extractPdfText(data: Uint8Array): Promise<ExtractResult> {
     if (n < SCAN_CHARS_PER_PAGE) {
       issues.push({
         severity: 'warning',
-        line: null,
+        path: null,
         code: 'PAGE_LOW_TEXT',
         message: `Page ${i + 1} yielded only ${n} characters. This usually means the page is a scan or an image, and OCR is not supported.`,
       })
@@ -68,7 +68,7 @@ export async function extractPdfText(data: Uint8Array): Promise<ExtractResult> {
   if (charsPerPage.every((n) => n < SCAN_CHARS_PER_PAGE)) {
     issues.push({
       severity: 'error',
-      line: null,
+      path: null,
       code: 'PDF_NO_TEXT_LAYER',
       message: 'No usable text layer was found in this PDF. Scanned or image-only PDFs are rejected — export a text-based PDF instead.',
     })
