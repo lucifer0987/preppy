@@ -5,9 +5,9 @@
  * field by field. Whitespace is normalised; anything else is real signal loss.
  */
 import { readFile } from 'node:fs/promises'
-import { extractPdfText } from '../lib/extract.js'
-import { readPaper } from '../lib/paper.js'
-import type { Paper } from '../lib/types.js'
+import { extractPdfText } from '../lib/extract'
+import { readPaper } from '../lib/paper'
+import type { Paper } from '../lib/types'
 
 const norm = (s: unknown) => String(s ?? '').replace(/\s+/g, ' ').trim()
 

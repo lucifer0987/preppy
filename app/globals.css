@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+/*
+  Kahoot design tokens (PRD section 8).
+
+  The whole product wears this palette, including inside the test. What stays
+  exam-standard in the test engine is the interaction model, not the look.
+
+  The four option shapes are the load-bearing motif: shape carries the
+  distinction independently of colour, so the brand device itself satisfies an
+  accessibility requirement.
+*/
+@theme {
+  --color-play-purple: #46178f;
+  --color-play-purple-deep: #2d0e5c;
+  --color-play-red: #e21b3c;
+  --color-blue: #1368ce;
+  --color-play-yellow: #d89e00;
+  --color-play-green: #26890c;
+  --color-play-violet: #7128bc;
+
+  /* Question-palette status vocabulary, mapped onto the Kahoot hues. */
+  --color-answered: #1c7c2e;
+  --color-notanswered: #c7102f;
+  --color-marked: #7128bc;
+  --color-notvisited: #b7aecb;
+
+  --color-ink: #191327;
+  --color-ink-soft: #4e4463;
+  --color-paper: #f5f3fa;
+
+  --font-display: "Archivo", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root { color-scheme: light; }
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+/* Keyboard users must always see where they are (PRD section 8.4). */
+:focus-visible {
+  outline: 3px solid var(--color-play-purple);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

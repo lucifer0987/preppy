@@ -3,7 +3,20 @@
 Daily exam-simulation platform for IBPS Specialist Officer (IT) aspirants.
 See [PRD.md](PRD.md) for the full specification.
 
-**Status:** paper-ingestion pipeline only. No web app yet.
+**Status:** Phase 0 complete — foundation and paper ingestion. The test engine,
+scoring, leaderboard and archive are Phase 1.
+
+## Getting started
+
+New here? **[SETUP.md](SETUP.md)** walks through Supabase, the schema, the keys
+and the seed, in order.
+
+```bash
+npm install
+npm run dev          # http://localhost:3000
+npm run seed         # create 5 students + 1 admin
+npm test             # 60 tests
+```
 
 ## The paper format
 
@@ -30,6 +43,12 @@ Exit `0` publishable, `1` blocking errors, `2` bad usage.
 | `scripts/parse.ts` | The checker CLI |
 | `scripts/build-format.ts` | Regenerates the template and the sample PDFs |
 | `scripts/roundtrip.ts` | Proves a paper survives PDF export unchanged |
+| `supabase/schema.sql` | Eight tables, RLS deny-all on every one |
+| `supabase/seed.ts` | Creates the cohort and prints passwords once |
+| `lib/time.ts` | The IST clock: window state derived on read, never stored |
+| `lib/auth.ts` | Username+password over Supabase Auth, synthetic-email mapping |
+| `lib/supabase/admin.ts` | The only client that touches data. Server-only |
+| `app/` | Home, login, dashboard shell, role-gated admin |
 
 ## Commands
 

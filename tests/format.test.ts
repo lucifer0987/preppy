@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import Ajv from 'ajv/dist/2020.js'
-import { readPaper, summarise } from '../lib/paper.js'
-import { repairJson } from '../lib/json-repair.js'
-import { PATTERN, SECTION_CODES } from '../lib/types.js'
+import { readPaper, summarise } from '../lib/paper'
+import { repairJson } from '../lib/json-repair'
+import { PATTERN, SECTION_CODES } from '../lib/types'
 
 const sampleJson = readFileSync('format/sample.json', 'utf8')
 const templateJson = readFileSync('format/template.json', 'utf8')

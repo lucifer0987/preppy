@@ -9,8 +9,8 @@ import {
   type OptionLabel,
   type Paper,
   type SectionCode,
-} from './types.js'
-import { describeJsonError, repairJson, type Repair } from './json-repair.js'
+} from './types'
+import { describeJsonError, repairJson, type Repair } from './json-repair'
 
 /**
  * Reads and validates a paper in the fixed JSON format.

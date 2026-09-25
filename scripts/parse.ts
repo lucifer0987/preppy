@@ -11,9 +11,9 @@
 import { readFile, readdir } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { basename, extname } from 'node:path'
-import { extractPdfText } from '../lib/extract.js'
-import { readPaper, summarise } from '../lib/paper.js'
-import { PATTERN, SECTION_NAMES, type Issue, type SectionCode } from '../lib/types.js'
+import { extractPdfText } from '../lib/extract'
+import { readPaper, summarise } from '../lib/paper'
+import { PATTERN, SECTION_NAMES, type Issue, type SectionCode } from '../lib/types'
 
 const T = process.stdout.isTTY
 const E = String.fromCharCode(27)

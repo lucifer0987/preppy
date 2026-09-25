@@ -1,5 +1,5 @@
 import { createRequire } from 'node:module'
-import type { Issue } from './types.js'
+import type { Issue } from './types'
 
 /**
  * PDF text-layer extraction (PRD §7, R1).

@@ -12,7 +12,7 @@ import { createWriteStream } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
 import { once } from 'node:events'
 import PDFDocument from 'pdfkit'
-import { OPTION_LABELS, PATTERN, SECTION_CODES, TOTAL_MINUTES, TOTAL_QUESTIONS } from '../lib/types.js'
+import { OPTION_LABELS, PATTERN, SECTION_CODES, TOTAL_MINUTES, TOTAL_QUESTIONS } from '../lib/types'
 
 const MARGIN = 48
 const SIZE = 8.5
