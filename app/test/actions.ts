@@ -91,6 +91,15 @@ export async function endTestAction(attemptId: string): Promise<void> {
 export async function syncClockAction(attemptId: string): Promise<{
   remainingSec: number; sectionPosition: number | null; finished: boolean
 }> {
+  // Reads and can submit, so it needs the same ownership check as the rest.
+  // authorise throws once the attempt is finished, which is the answer the
+  // caller wants anyway.
+  try {
+    await authorise(attemptId)
+  } catch {
+    return { remainingSec: 0, sectionPosition: null, finished: true }
+  }
+
   const snapshot = await loadAttempt(attemptId)
   if (!snapshot) return { remainingSec: 0, sectionPosition: null, finished: true }
   if (snapshot.status.finished) {

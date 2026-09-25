@@ -120,6 +120,9 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      // A focused button already handles Enter and Space itself; handling them
+      // here too would select an option and advance in the same keystroke.
+      if (e.target instanceof HTMLButtonElement && (e.key === 'Enter' || e.key === ' ')) return
       const labels = Object.keys(question.options) as OptionLabel[]
       if (/^[1-5]$/.test(e.key)) {
         const label = labels[Number(e.key) - 1]
@@ -131,6 +134,9 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
+    // Re-registered each render on purpose: the handler closes over the
+    // current question and response state, and there is exactly one listener
+    // at a time because the cleanup runs first.
   })
 
   // ---------------------------------------------------------------- clock

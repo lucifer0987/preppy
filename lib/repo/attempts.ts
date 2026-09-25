@@ -154,6 +154,15 @@ export async function loadAttempt(attemptId: string): Promise<AttemptSnapshot | 
   const { rows } = await loadSectionProgress(attemptId)
   const status = attemptStatus(rows, new Date(), hardStop)
 
+  // An attempt whose sections have all closed must be scored here, at the one
+  // point every read passes through. Leaving it IN_PROGRESS with no open
+  // section locks the student out of their own result: the test page sends
+  // them to the result page because the attempt is over, and the result page
+  // sends them back because the state still says in progress.
+  if (status.finished && attempt.state === 'IN_PROGRESS') {
+    await submitAttempt(attemptId, 'AUTO_SUBMITTED')
+  }
+
   const section = status.currentPosition === null
     ? null
     : await loadLiveSection(attempt.test_id as string, attemptId, status.currentPosition, rows.length)

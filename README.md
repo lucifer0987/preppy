@@ -3,8 +3,9 @@
 Daily exam-simulation platform for IBPS Specialist Officer (IT) aspirants.
 See [PRD.md](PRD.md) for the full specification.
 
-**Status:** Phase 0 complete — foundation and paper ingestion. The test engine,
-scoring, leaderboard and archive are Phase 1.
+**Status:** Phase 1 in progress. Ingestion, the test engine, results, the
+leaderboard and the archive all work. Still to come: rescore, the 00:05 job,
+user management in the UI, and the Kahoot motion layer.
 
 ## Getting started
 
@@ -48,7 +49,12 @@ Exit `0` publishable, `1` blocking errors, `2` bad usage.
 | `lib/time.ts` | The IST clock: window state derived on read, never stored |
 | `lib/auth.ts` | Username+password over Supabase Auth, synthetic-email mapping |
 | `lib/supabase/admin.ts` | The only client that touches data. Server-only |
-| `app/` | Home, login, dashboard shell, role-gated admin |
+| `lib/attempt.ts` | Sectional timer state machine. Pure, server-authoritative |
+| `lib/scoring.ts` | +1 / −0.25 / 0, and not-reached vs skipped |
+| `lib/leaderboard.ts` | Cumulative ranking with tie-breaks and streaks. Pure |
+| `lib/repo/` | The thin IO layer over Supabase |
+| `components/TestEngine.tsx` | The live test: palette, timers, full-screen |
+| `app/` | Home, login, dashboard, test, archive, leaderboard, admin |
 
 ## Commands
 

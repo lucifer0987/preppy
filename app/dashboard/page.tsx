@@ -108,18 +108,29 @@ export default async function Dashboard() {
         )}
       </section>
 
-      <Placeholder title="Past papers" body="Every paper, with full answers and solutions after midnight." />
-      <Placeholder title="Leaderboard" body="Cumulative points across every paper, carried forward." />
+      <Panel
+        href="/archive"
+        title="Past papers"
+        body="Every paper that has closed, with full answers and solutions. Filter to the ones you got wrong or never reached."
+      />
+      <Panel
+        href="/leaderboard"
+        title="Leaderboard"
+        body="Cumulative points across every paper, carried forward. It never resets."
+      />
     </main>
   )
 }
 
-function Placeholder({ title, body }: { title: string; body: string }) {
+function Panel({ href, title, body }: { href: string; title: string; body: string }) {
   return (
-    <section className="mt-4 rounded-3xl border-2 border-dashed border-black/10 p-6">
+    <Link
+      href={href}
+      className="mt-4 block rounded-3xl bg-white p-6 transition hover:bg-black/[0.03]"
+    >
       <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-ink-soft">{title}</h2>
       <p className="mt-2 text-ink-soft">{body}</p>
-      <p className="mt-2 text-xs font-bold uppercase tracking-widest text-ink-soft/60">Next slice</p>
-    </section>
+      <p className="mt-3 text-sm font-bold text-play-purple">Open &rarr;</p>
+    </Link>
   )
 }
