@@ -4,11 +4,13 @@ import { NextResponse, type NextRequest } from 'next/server'
 /**
  * Refreshes the Supabase session cookie on every navigation.
  *
+ * Called Proxy since Next.js 16; this is what used to be Middleware.
+ *
  * Server Components cannot write cookies, so without this a session would
  * expire mid-visit and silently log the user out. This only touches auth
  * cookies; it never reads application data.
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   // Before setup, there is no session to refresh.
