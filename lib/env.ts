@@ -9,7 +9,7 @@ function required(name: string, value: string | undefined, where: string): strin
       `Missing ${name}.\n\n` +
       `Add it to .env.local. You can find it in your Supabase project under\n` +
       `${where}.\n\n` +
-      `See docs/setup.md, or docs/architecture.html for the full walkthrough.`,
+      `See docs/setup.html, or docs/architecture.html for the full walkthrough.`,
     )
   }
   return value

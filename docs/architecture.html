@@ -188,7 +188,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <li><a href="#s4"><span>4</span>Layers</a></li>
     <li><a href="#s5"><span>5</span>The database</a></li>
     <li><a href="#s6"><span>6</span>Taking a paper</a></li>
-    <li><a href="#s7"><span>7</span>Publishing a paper</a></li>
+    <li><a href="#s7"><span>7</span>The paper format</a></li>
     <li><a href="#s8"><span>8</span>Scoring &amp; the board</a></li>
     <li><a href="#s9"><span>9</span>Security</a></li>
     <li><a href="#s10"><span>10</span>Failure modes</a></li>
@@ -461,7 +461,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td>Marks, or how skipped differs from not-reached</td><td><code>lib/scoring.ts</code></td></tr>
 <tr><td>Which section is open and how long is left</td><td><code>lib/attempt.ts</code></td></tr>
 <tr><td>Ranking, tie-breaks, streaks</td><td><code>lib/leaderboard.ts</code></td></tr>
-<tr><td>The paper format and its validation</td><td><code>lib/paper.ts</code>, <code>format/README.md</code></td></tr>
+<tr><td>The paper format and its validation</td><td><code>lib/paper.ts</code>, and section 7 here</td></tr>
 <tr><td>What the live test screen does</td><td><code>components/TestEngine.tsx</code></td></tr>
 <tr><td>Anything that reads or writes the database</td><td><code>lib/repo/</code></td></tr>
 <tr><td>Tables, constraints, SQL functions</td><td><code>supabase/schema.sql</code></td></tr>
@@ -648,9 +648,9 @@ figcaption b{color:var(--ink-2); font-weight:600}
 </div></section>
 
 <section id="s7"><div class="col">
-<h2><i>7</i>Publishing a paper</h2>
+<h2><i>7</i>The paper format</h2>
 
-<p>A paper is <strong>one JSON file</strong>, uploaded with its images in the same request. The format is fixed and documented in <code>format/README.md</code>, with a fill-in template and a complete worked paper beside it.</p>
+<p>A paper is <strong>one JSON file</strong>, uploaded with its images in the same request. This section is the whole specification &mdash; there is no separate format document.</p>
 
 <figure>
 <svg viewBox="0 0 760 210" role="img" aria-label="Pipeline: upload the JSON and its images, parse, validate, preview, then schedule. Nothing is saved until validation passes and nothing goes live until the admin schedules it on the preview screen.">
@@ -671,7 +671,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <rect x="316" y="52" width="122" height="50" rx="7" fill="#0E767F" opacity=".14"/>
     <rect x="316" y="52" width="122" height="50" rx="7" fill="none" stroke="#0E767F" stroke-width="2"/>
     <text x="377" y="74" text-anchor="middle" font-weight="700" font-size="11.5">Validate</text>
-    <text x="377" y="90" text-anchor="middle" font-size="9.5" opacity=".75">55 questions, keys</text>
+    <text x="377" y="90" text-anchor="middle" font-size="9.5" opacity=".75">every rule below</text>
 
     <rect x="466" y="52" width="122" height="50" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
     <text x="527" y="74" text-anchor="middle" font-weight="600" font-size="11.5">Preview</text>
@@ -693,27 +693,170 @@ figcaption b{color:var(--ink-2); font-weight:600}
   <line x1="527" y1="102" x2="527" y2="122" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
   <text x="536" y="118" font-size="10.5" fill="currentColor" opacity=".7">saved as DRAFT here &mdash; not live yet</text>
 
-  <text x="16" y="176" font-size="11" font-weight="600" fill="currentColor">Images travel in the same request and land in a private bucket keyed by paper.</text>
-  <text x="16" y="194" font-size="10.5" fill="currentColor" opacity=".72">The paper and its images together may not exceed 10 MB. A diagram is served through /api/images, which checks whether the paper is open before handing it over.</text>
+  <text x="16" y="176" font-size="11" font-weight="600" fill="currentColor">Check a paper before opening the app at all:</text>
+  <text x="16" y="194" font-size="11.5" font-family="monospace" fill="#0E767F">npm run check -- my-paper.json</text>
 </svg>
 <figcaption><b>Two gates, on purpose.</b> Validation decides whether the paper <em>can</em> be saved; the preview decides whether it <em>should</em> go live, and the schedule button exists only on that screen. A paper cannot reach a student without somebody having read it.</figcaption>
 </figure>
 
-<div class="note why">
-  <h4>Why JSON and not a PDF</h4>
-  <p>An earlier version read papers out of PDFs, which meant extracting a text layer and then repairing what a word processor does to JSON: curly quotes from autocorrect, long values wrapped across lines, page furniture, a Unicode minus in &minus;0.25. It worked, and it was a permanent source of doubt about whether a question had survived the trip. A <code>.json</code> file has none of those failure modes. If it parses, it is exactly what you wrote.</p>
+<h3>Where to start</h3>
+<div class="tw"><table>
+<tr><th>File in <code>format/</code></th><th>What it is</th></tr>
+<tr><td><code>sample.json</code></td><td>A complete worked paper with a DI table, a seating puzzle and a reading passage. <strong>Copy this one.</strong> Swap the content question by question; the numbering, bands and structure are already right</td></tr>
+<tr><td><code>template.json</code></td><td>A blank skeleton, 55 questions numbered correctly, if you would rather fill in placeholders. The checker refuses any placeholder left in, so an unedited template can never go live</td></tr>
+<tr><td><code>schema.json</code></td><td>A JSON Schema. Point your editor at it and mistakes are underlined as you type</td></tr>
+</table></div>
+
+<h3>Shape</h3>
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>my-paper.json</span></div>
+<pre>{
+  <b>"format"</b>: "preppy-paper",
+  <b>"version"</b>: 1,
+  <b>"date"</b>: "2026-09-26",
+  <b>"title"</b>: "Daily Mock 001",
+  <b>"sections"</b>: [
+    {
+      <b>"code"</b>: "QUANT",
+      <b>"durationMinutes"</b>: 12,
+      <b>"marksCorrect"</b>: 1,
+      <b>"marksNegative"</b>: 0.25,
+      <b>"directions"</b>: [
+        {
+          <b>"from"</b>: 6, <b>"to"</b>: 10,
+          <b>"text"</b>: "Study the table and answer the questions that follow.",
+          <b>"table"</b>: {
+            <b>"headers"</b>: ["Year", "Java", "Python"],
+            <b>"rows"</b>: [["2024", "15", "24"], ["2025", "18", "30"]]
+          }
+        }
+      ],
+      <b>"questions"</b>: [
+        {
+          <b>"number"</b>: 1,
+          <b>"text"</b>: "A train 150 m long crosses a pole in 15 seconds. Find its speed.",
+          <b>"options"</b>: {
+            "A": "30 km/h", "B": "36 km/h", "C": "40 km/h",
+            "D": "45 km/h", "E": "None of these"
+          },
+          <b>"answer"</b>: "B",
+          <b>"solution"</b>: "Speed = 150/15 = 10 m/s = 36 km/h.",
+          <b>"tag"</b>: "Speed-Time-Distance",
+          <b>"difficulty"</b>: "Easy"
+        }
+      ]
+    }
+  ]
+}</pre>
 </div>
 
-<h3>What blocks a paper, and what merely warns</h3>
+<h3>The pattern</h3>
+<p>Four sections, in this order, with these counts. A fifth section, or the right four out of order, is a blocking error.</p>
 <div class="tw"><table>
-<tr><th>Blocks publication</th><th>Warns only</th></tr>
-<tr><td>Wrong question count in a section &middot; a number outside its section band &middot; a gap or duplicate in the numbering &middot; a missing answer, or one naming an option that does not exist &middot; options not contiguous from A &middot; a directions range covering questions that are not there &middot; a table row the wrong width &middot; an image referenced but not uploaded &middot; a date that already has a paper</td><td>No solution &middot; no topic tag &middot; no difficulty &middot; fewer than five options &middot; a very long option</td></tr>
+<tr><th><code>code</code></th><th>Section</th><th class="n">Questions</th><th class="n">Numbers</th><th class="n">Minutes</th></tr>
+<tr><td><code>QUANT</code></td><td>Quantitative Aptitude</td><td class="n">15</td><td class="n">1&ndash;15</td><td class="n">12</td></tr>
+<tr><td><code>REASONING</code></td><td>Reasoning Ability</td><td class="n">15</td><td class="n">16&ndash;30</td><td class="n">12</td></tr>
+<tr><td><code>ENGLISH</code></td><td>English Language</td><td class="n">10</td><td class="n">31&ndash;40</td><td class="n">9</td></tr>
+<tr><td><code>PK</code></td><td>Professional Knowledge (CSE)</td><td class="n">15</td><td class="n">41&ndash;55</td><td class="n">12</td></tr>
+<tr><td></td><td><strong>Total</strong></td><td class="n"><strong>55</strong></td><td class="n"></td><td class="n"><strong>45</strong></td></tr>
 </table></div>
+<p>Question numbers run <strong>1 to 55 straight through the paper</strong>, not 1 to 15 per section, and each section must hold exactly its own band. Marking is +1 correct, &minus;0.25 wrong, 0 unattempted.</p>
+
+<h3>Every field</h3>
+<h4>Document</h4>
+<div class="tw"><table>
+<tr><th>Field</th><th class="n">Required</th><th>Notes</th></tr>
+<tr><td><code>format</code></td><td class="n">yes</td><td>Always <code>"preppy-paper"</code></td></tr>
+<tr><td><code>version</code></td><td class="n">yes</td><td>Always <code>1</code></td></tr>
+<tr><td><code>date</code></td><td class="n">yes</td><td><code>YYYY-MM-DD</code>, the night it goes live. Must be a real day: <code>2026-02-31</code> is refused</td></tr>
+<tr><td><code>title</code></td><td class="n">no</td><td>Defaults to the date</td></tr>
+<tr><td><code>sections</code></td><td class="n">yes</td><td>Exactly four</td></tr>
+</table></div>
+
+<h4>Section</h4>
+<div class="tw"><table>
+<tr><th>Field</th><th class="n">Required</th><th>Notes</th></tr>
+<tr><td><code>code</code></td><td class="n">yes</td><td><code>QUANT</code> <code>REASONING</code> <code>ENGLISH</code> <code>PK</code></td></tr>
+<tr><td><code>durationMinutes</code></td><td class="n">no</td><td>Defaults to the pattern. All four together may not exceed 45</td></tr>
+<tr><td><code>marksCorrect</code></td><td class="n">no</td><td>Default <code>1</code></td></tr>
+<tr><td><code>marksNegative</code></td><td class="n">no</td><td>Default <code>0.25</code></td></tr>
+<tr><td><code>directions</code></td><td class="n">no</td><td>Shared passages, tables, puzzles</td></tr>
+<tr><td><code>questions</code></td><td class="n">yes</td><td>Exactly the pattern count</td></tr>
+</table></div>
+
+<h4>Question</h4>
+<div class="tw"><table>
+<tr><th>Field</th><th class="n">Required</th><th>Notes</th></tr>
+<tr><td><code>number</code></td><td class="n">yes</td><td>Must fall inside the section's band</td></tr>
+<tr><td><code>text</code></td><td class="n">yes</td><td>At least 10 characters, not counting surrounding spaces</td></tr>
+<tr><td><code>options</code></td><td class="n">yes</td><td>Object keyed <code>A</code>&ndash;<code>E</code>, contiguous from <code>A</code>, 2 to 5 entries</td></tr>
+<tr><td><code>answer</code></td><td class="n">yes</td><td>One of the keys present in <code>options</code></td></tr>
+<tr><td><code>solution</code></td><td class="n">no</td><td>Shown in the archive after midnight</td></tr>
+<tr><td><code>tag</code></td><td class="n">no</td><td>Topic, used to track weak areas</td></tr>
+<tr><td><code>difficulty</code></td><td class="n">no</td><td><code>Easy</code> <code>Medium</code> <code>Hard</code>. Leave it out rather than writing <code>""</code></td></tr>
+<tr><td><code>images</code></td><td class="n">no</td><td>File names uploaded with the paper</td></tr>
+</table></div>
+
+<h4>Directions</h4>
+<p>For anything several questions share: a reading passage, a DI table, a seating puzzle. It attaches to questions <code>from</code>..<code>to</code> inclusive and shows above each of them during the test.</p>
+<div class="tw"><table>
+<tr><th>Field</th><th class="n">Required</th><th>Notes</th></tr>
+<tr><td><code>from</code>, <code>to</code></td><td class="n">yes</td><td>Inclusive range, inside the same section. Ranges may not overlap</td></tr>
+<tr><td><code>text</code></td><td class="n">yes</td><td>The passage or instruction</td></tr>
+<tr><td><code>table</code></td><td class="n">no</td><td><code>headers</code> (at least one) plus <code>rows</code>, both arrays of strings</td></tr>
+<tr><td><code>images</code></td><td class="n">no</td><td>File names</td></tr>
+</table></div>
+<p>A question shows at most one directions block, so two blocks covering the same question is an error &mdash; the second would never be seen. Ranges that merely touch (1&ndash;5 and 6&ndash;10) are fine.</p>
+
+<div class="note care">
+  <h4>Put tables in <code>table</code>, never in <code>text</code></h4>
+  <p>A table drawn with aligned spaces loses its columns when rendered in a browser. As structured <code>headers</code> and <code>rows</code> it displays correctly, stays searchable, and cannot be the wrong file.</p>
+</div>
+
+<h3>Only these fields</h3>
+<p>Every object takes exactly the fields listed above and nothing else. <strong>An unknown key is a blocking error, not ignored</strong> &mdash; a misspelling such as <code>"direction"</code> for <code>"directions"</code> would otherwise drop a whole passage without a word. The message suggests the field you probably meant.</p>
+
+<h3>Images</h3>
+<p>For a DI chart, a puzzle diagram, or a figure a question needs. List the file names in <code>images</code> on the question or the directions block, then choose the files in the <strong>Images</strong> box on the upload page, next to the paper.</p>
+<ul>
+<li>Plain names only: letters, digits, <code>.</code>, <code>-</code>, <code>_</code>, ending in <code>.png</code>, <code>.jpg</code>, <code>.webp</code> or <code>.gif</code>. <code>di-chart-1.png</code> works; <code>DI chart (1).png</code> does not.</li>
+<li>Under 2 MB each, and 10 MB for the paper and all its images together.</li>
+<li>Every name the paper lists must be uploaded, or it will not publish. To check locally: <code>npm run check -- paper.json --images &lt;folder&gt;</code></li>
+<li>Students can load an image only once the paper opens at 10 PM.</li>
+</ul>
+
+<h3>Plain JSON only</h3>
+<p>The file is parsed strictly, exactly as written. Nothing is repaired, so:</p>
+<ul>
+<li><strong>Straight quotes only.</strong> <code>&ldquo;</code> and <code>&rdquo;</code> are not JSON, and a word processor's autocorrect inserts them. Write the file in a code editor.</li>
+<li><strong>No trailing commas</strong> after the last item in an object or array.</li>
+<li><strong>No comments.</strong></li>
+</ul>
+<p>A parse error names the line and column, so it is quick to find.</p>
+
+<div class="note why">
+  <h4>Why JSON and not a PDF</h4>
+  <p>An earlier version read papers out of PDFs, which meant extracting a text layer and then repairing what a word processor does to JSON: curly quotes, long values wrapped across lines, page furniture, a Unicode minus in &minus;0.25. It worked, and it was a permanent source of doubt about whether a question had survived the trip. A <code>.json</code> file has none of those failure modes. If it parses, it is exactly what you wrote.</p>
+</div>
+
+<h3>What blocks publication</h3>
+<p>Wrong question count in a section &middot; sections missing, repeated, extra or out of order &middot; a number outside its section's band &middot; a gap or duplicate in the numbering &middot; a missing <code>answer</code>, or one naming an option that does not exist &middot; options not contiguous from <code>A</code> &middot; question text under 10 characters &middot; a <code>directions</code> range covering questions that are not there, or overlapping another &middot; a table with no headers, or a row whose width does not match them &middot; an empty <code>difficulty</code> &middot; an unknown field anywhere &middot; placeholder text left over from <code>template.json</code> &middot; an image referenced but not uploaded &middot; a date that is not a real day, or that already has a scheduled paper &middot; sections adding up to more than 45 minutes &middot; JSON that cannot be read at all.</p>
 
 <div class="note why">
   <h4>Why a numbering gap is an error, not a warning</h4>
-  <p>If Q29 vanishes between Q28 and Q30, it almost never means a number was skipped on purpose. It means a question was lost while editing. Warning about it would let a 54-question paper go live.</p>
+  <p>If Q29 vanishes between Q28 and Q30, it almost never means a number was skipped on purpose. It means a question was deleted by accident. Warning about it would let a 54-question paper go live.</p>
 </div>
+
+<h3>What is only a warning</h3>
+<p>No <code>solution</code> &middot; no <code>tag</code> &middot; no <code>difficulty</code> &middot; fewer than five options &middot; a very long option &middot; a date that has already passed, since you pick a new night when you schedule it. These publish fine.</p>
+
+<h3>Habits that avoid trouble</h3>
+<ul>
+<li>Start from <code>sample.json</code>; the numbering is already correct.</li>
+<li>Point your editor at <code>schema.json</code> and it catches mistakes as you type.</li>
+<li>Edit in a code editor, not a word processor.</li>
+<li>Run <code>npm run check</code> before publishing. It reads the paper exactly the way the site will.</li>
+</ul>
 </div></section>
 
 <section id="s8"><div class="col">
@@ -1419,7 +1562,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <p class="end">
 Preppy engineering reference &middot; Phases 1 and 2 complete<br>
 The code is the other half of this: <code>lib/</code> for logic, <code>supabase/schema.sql</code> for the data,<br>
-<code>format/README.md</code> for the paper format, <code>tests/</code> for what is guaranteed.
+<code>tests/</code> for what is guaranteed.
 </p>
 </div></section>
 

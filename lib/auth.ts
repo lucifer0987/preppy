@@ -110,7 +110,7 @@ export async function signIn(usernameInput: string, password: string): Promise<S
   const username = normaliseUsername(usernameInput)
   const generic = { ok: false as const, message: 'Wrong username or password.' }
   if (!isConfigured()) {
-    return { ok: false, message: 'Preppy is not configured yet. See docs/setup.md.' }
+    return { ok: false, message: 'Preppy is not configured yet. See docs/setup.html.' }
   }
 
   if (!USERNAME_PATTERN.test(username) || password.length === 0) return generic

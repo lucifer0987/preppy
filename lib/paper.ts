@@ -96,7 +96,7 @@ export function readPaper(rawText: string, opts: ReadOptions = {}): ReadResult {
 
   if (!json.trim().startsWith('{')) {
     err(null, 'NOT_JSON',
-      'No JSON object was found in this file. The paper must be a single JSON object in the fixed format — see format/README.md.')
+      'No JSON object was found in this file. The paper must be a single JSON object in the fixed format — see docs/architecture.html, section 7.')
     return { paper: null, issues }
   }
 

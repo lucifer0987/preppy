@@ -1,4 +1,4 @@
-/** The fixed JSON paper format (see format/README.md). */
+/** The fixed JSON paper format (see docs/architecture.html, section 7). */
 
 export type SectionCode = 'QUANT' | 'REASONING' | 'ENGLISH' | 'PK'
 export const SECTION_CODES: SectionCode[] = ['QUANT', 'REASONING', 'ENGLISH', 'PK']

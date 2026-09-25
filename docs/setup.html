@@ -1,0 +1,382 @@
+<title>Preppy Setup Checklist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+
+<style>
+:root{
+  --ground:#EEF1F5; --surface:#FFFFFF; --surface-2:#E4E9F0; --surface-3:#D6DDE7;
+  --ink:#10151C; --ink-2:#3E4856; --ink-3:#59616E;
+  --line:#D2D9E2; --line-2:#B4BFCC;
+  --accent:#0B565D; --accent-2:#0E767F; --accent-soft:#DBEAEB;
+  --ok:#1A6433; --ok-soft:#DEEFE3;
+  --warn:#7E5205; --warn-soft:#F8EDD6;
+  --danger:#94202B; --danger-soft:#F8DDDF;
+  --on-fill:#FFFFFF;
+  --shadow:0 1px 2px rgba(16,21,28,.05), 0 10px 26px -14px rgba(16,21,28,.2);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0B0F14; --surface:#131A22; --surface-2:#1B242E; --surface-3:#28323E;
+    --ink:#E7EDF4; --ink-2:#A6B2C0; --ink-3:#8F9BAA;
+    --line:#242F3B; --line-2:#36434F;
+    --accent:#63C7D1; --accent-2:#8AD8E0; --accent-soft:#12262A;
+    --ok:#5DC77E; --ok-soft:#10241A;
+    --warn:#D9A648; --warn-soft:#241C0C;
+    --danger:#EE7D88; --danger-soft:#2A1317;
+    --on-fill:#0B0F14;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 12px 30px -16px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0B0F14; --surface:#131A22; --surface-2:#1B242E; --surface-3:#28323E;
+  --ink:#E7EDF4; --ink-2:#A6B2C0; --ink-3:#8F9BAA;
+  --line:#242F3B; --line-2:#36434F;
+  --accent:#63C7D1; --accent-2:#8AD8E0; --accent-soft:#12262A;
+  --ok:#5DC77E; --ok-soft:#10241A;
+  --warn:#D9A648; --warn-soft:#241C0C;
+  --danger:#EE7D88; --danger-soft:#2A1317;
+  --on-fill:#0B0F14;
+  --shadow:0 1px 2px rgba(0,0,0,.35), 0 12px 30px -16px rgba(0,0,0,.7);
+}
+
+/* A terminal is dark in every theme. Painted explicitly, not inherited. */
+:root, :root[data-theme="dark"], :root[data-theme="light"]{
+  --term-bg:#111820; --term-ink:#DCE4EE; --term-dim:#7F8B9C; --term-accent:#5FCAD6; --term-warn:#E2B063;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  font-size:16.5px; line-height:1.65; -webkit-font-smoothing:antialiased;
+}
+
+.wrap{display:grid; grid-template-columns:1fr; max-width:1260px; margin:0 auto; padding:0 20px 120px}
+@media(min-width:1100px){ .wrap{grid-template-columns:232px minmax(0,1fr); gap:56px; padding:0 32px 140px} }
+
+/* ---------------------------------------------------------------- rail */
+.rail{display:none}
+@media(min-width:1100px){
+  .rail{display:block; position:sticky; top:0; align-self:start; max-height:100vh; overflow-y:auto; padding:40px 0}
+}
+.rail-part{font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--accent); margin:20px 0 8px; padding-bottom:6px; border-bottom:1px solid var(--line)}
+.rail-part:first-child{margin-top:0}
+.rail ol{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:1px}
+.rail a{display:grid; grid-template-columns:20px 1fr; gap:8px; align-items:baseline; padding:5px 8px 5px 5px;
+  border-radius:4px; text-decoration:none; color:var(--ink-2); font-size:12.5px; line-height:1.35;
+  border-left:2px solid transparent}
+.rail a span{font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--ink-3); font-variant-numeric:tabular-nums}
+.rail a:hover{background:var(--surface-2); color:var(--ink)}
+.rail a.on{color:var(--accent); font-weight:600; border-left-color:var(--accent); background:var(--accent-soft)}
+.rail a.on span{color:var(--accent)}
+
+main{min-width:0}
+.col{max-width:74ch}
+
+/* ---------------------------------------------------------------- masthead */
+.mast{padding:60px 0 30px; border-bottom:3px solid var(--ink)}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--accent); margin:0 0 18px; display:flex; flex-wrap:wrap; gap:9px; align-items:center}
+.dot{width:3px;height:3px;border-radius:50%;background:var(--line-2);display:inline-block}
+h1{font-family:"IBM Plex Sans Condensed",sans-serif; font-weight:700; font-size:clamp(42px,7vw,72px);
+  line-height:.98; letter-spacing:-.02em; margin:0 0 16px; text-wrap:balance}
+.lede{font-size:19.5px; line-height:1.55; color:var(--ink-2); margin:0; max-width:62ch}
+.lede strong{color:var(--ink); font-weight:600}
+
+.facts{display:grid; grid-template-columns:repeat(auto-fit,minmax(118px,1fr)); margin:30px 0 0; border-top:1px solid var(--line)}
+.facts div{padding:13px 16px 13px 0; border-right:1px solid var(--line)}
+.facts div:last-child{border-right:0}
+.facts dt{font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3); margin:0 0 4px}
+.facts dd{margin:0; font-family:"IBM Plex Sans Condensed",sans-serif; font-size:21px; font-weight:700; line-height:1.15; font-variant-numeric:tabular-nums}
+.facts dd small{display:block; font-family:"IBM Plex Sans",sans-serif; font-size:11px; font-weight:400; color:var(--ink-3); letter-spacing:0}
+
+/* ---------------------------------------------------------------- part divider */
+.part{margin:70px 0 0; padding:28px 0 0; border-top:3px solid var(--accent)}
+.part p{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--accent); margin:0 0 8px}
+.part h2{font-family:"IBM Plex Sans Condensed",sans-serif; font-weight:700; font-size:clamp(30px,4.6vw,44px);
+  letter-spacing:-.018em; line-height:1.06; margin:0 0 10px; display:block}
+.part .sub{font-size:17px; color:var(--ink-2); margin:0; max-width:60ch}
+
+/* ---------------------------------------------------------------- sections */
+section{padding:48px 0 0; scroll-margin-top:20px}
+h2{font-family:"IBM Plex Sans Condensed",sans-serif; font-weight:700; font-size:clamp(24px,3.2vw,32px);
+  letter-spacing:-.015em; line-height:1.14; margin:0 0 22px; text-wrap:balance;
+  display:grid; grid-template-columns:auto 1fr; gap:13px; align-items:baseline}
+h2 i{font-style:normal; font-family:"IBM Plex Mono",monospace; font-size:12.5px; font-weight:400; color:var(--accent); letter-spacing:0}
+h3{font-family:"IBM Plex Sans Condensed",sans-serif; font-weight:700; font-size:19px; margin:34px 0 11px; text-wrap:balance}
+h4{font-family:"IBM Plex Sans",sans-serif; font-weight:600; font-size:14px; margin:24px 0 9px; color:var(--ink-2)}
+p{margin:0 0 15px}
+ul,ol{margin:0 0 17px; padding-left:21px}
+li{margin:0 0 7px}
+code{font-family:"IBM Plex Mono",monospace; font-size:.85em; background:var(--surface-2); padding:.13em .38em; border-radius:3px}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:3px}
+strong{font-weight:600}
+
+/* ---------------------------------------------------------------- callouts */
+.note{border-radius:8px; padding:15px 18px; margin:20px 0; border:1px solid}
+.note h4{margin:0 0 6px; font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; font-weight:600}
+.note p{margin:0 0 9px; font-size:15.5px}
+.note p:last-child{margin:0}
+.note.do{background:var(--ok-soft); border-color:var(--ok)} .note.do h4{color:var(--ok)}
+.note.care{background:var(--warn-soft); border-color:var(--warn)} .note.care h4{color:var(--warn)}
+.note.never{background:var(--danger-soft); border-color:var(--danger)} .note.never h4{color:var(--danger)}
+.note.why{background:var(--accent-soft); border-color:var(--accent)} .note.why h4{color:var(--accent)}
+
+/* ---------------------------------------------------------------- terminal */
+.term{background:var(--term-bg); border-radius:9px; margin:18px 0; overflow:hidden; box-shadow:var(--shadow)}
+.term-bar{display:flex; align-items:center; gap:7px; padding:9px 14px; border-bottom:1px solid rgba(255,255,255,.08)}
+.term-bar i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.18);display:block}
+.term-bar span{margin-left:6px; font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--term-dim)}
+.term pre{margin:0; padding:15px 18px; overflow-x:auto; font-family:"IBM Plex Mono",monospace;
+  font-size:13px; line-height:1.75; color:var(--term-ink)}
+.term pre b{color:var(--term-accent); font-weight:400}
+.term pre i{color:var(--term-dim); font-style:normal}
+.term pre u{color:var(--term-warn); text-decoration:none}
+
+/* ---------------------------------------------------------------- tables */
+.tw{overflow-x:auto; margin:0 0 20px; border:1px solid var(--line); border-radius:8px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; font-size:13.5px; line-height:1.45; font-variant-numeric:tabular-nums}
+th{text-align:left; font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:10px; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink-3); padding:10px 13px; border-bottom:1px solid var(--line-2); white-space:nowrap}
+td{padding:10px 13px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--ink-2)}
+tr:last-child td{border-bottom:0}
+td:first-child{color:var(--ink); font-weight:500}
+td.n{text-align:right}
+td code, th code{background:none; padding:0}
+
+/* ---------------------------------------------------------------- figures */
+figure{margin:24px 0; padding:0}
+figure svg{display:block; width:100%; max-width:100%; height:auto; background:var(--surface);
+  border:1px solid var(--line); border-radius:9px; padding:14px; color:var(--ink)}
+figcaption{margin-top:9px; font-size:13.5px; color:var(--ink-3); line-height:1.5; max-width:70ch}
+figcaption b{color:var(--ink-2); font-weight:600}
+
+/* ---------------------------------------------------------------- steps */
+.steps{counter-reset:step; list-style:none; margin:20px 0; padding:0}
+.steps > li{counter-increment:step; position:relative; padding:0 0 22px 46px; border-left:2px solid var(--line); margin-left:15px}
+.steps > li:last-child{border-left-color:transparent; padding-bottom:0}
+.steps > li::before{content:counter(step); position:absolute; left:-16px; top:-3px; width:30px; height:30px;
+  border-radius:50%; background:var(--accent); color:var(--on-fill);
+  font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:600;
+  display:grid; place-items:center}
+.steps h4{margin:2px 0 7px; font-family:"IBM Plex Sans Condensed",sans-serif; font-size:17px; font-weight:700; color:var(--ink)}
+
+.pill{display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:9.5px; font-weight:600;
+  letter-spacing:.07em; padding:2.5px 7px; border-radius:3px; text-transform:uppercase; vertical-align:1px}
+.pill.local{background:var(--accent); color:var(--on-fill)}
+.pill.prod{background:var(--danger); color:var(--on-fill)}
+.pill.both{background:var(--surface-3); color:var(--ink-2)}
+
+.end{margin-top:60px; padding-top:20px; border-top:1px solid var(--line);
+  font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--ink-3); line-height:1.8}
+
+@media (prefers-reduced-motion: reduce){ *{animation:none!important; transition:none!important; scroll-behavior:auto!important} }
+</style>
+<div class="wrap">
+<nav class="rail" aria-label="Contents">
+  <p class="rail-part">Checklist</p>
+  <ol>
+    <li><a href="#c1"><span>1</span>First time, local</a></li>
+    <li><a href="#c2"><span>2</span>Every day</a></li>
+    <li><a href="#c3"><span>3</span>Publishing a paper</a></li>
+    <li><a href="#c4"><span>4</span>Shipping a change</a></li>
+    <li><a href="#c5"><span>5</span>First time, production</a></li>
+    <li><a href="#c6"><span>6</span>All commands</a></li>
+    <li><a href="#c7"><span>7</span>Quick fixes</a></li>
+  </ol>
+  <p class="rail-part">Also</p>
+  <ol>
+    <li><a href="architecture.html"><span>&rarr;</span>Full reference</a></li>
+    <li><a href="prd.html"><span>&rarr;</span>Requirements</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="mast">
+  <p class="eyebrow"><b>Checklist</b><i class="dot"></i>Preppy<i class="dot"></i>commands only</p>
+  <h1>Setup checklist</h1>
+  <p class="lede">The commands, in order, with nothing in between. For <strong>what each step does, why, and how to tell it worked</strong>, open <a href="architecture.html">architecture.html</a> and read sections 12 to 16.</p>
+</header>
+
+<section id="c1"><div class="col">
+<h2><i>1</i>First time, local</h2>
+
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>node -v</b>                 <i># needs v20 or newer</i>
+<b>npm install</b>
+<b>npm test</b>                <i># 263 passing means the code is sound</i></pre>
+</div>
+
+<p>Then in the Supabase dashboard:</p>
+<ol>
+<li><strong>New project</strong>, named <code>preppy-dev</code>, nearest region.</li>
+<li><strong>SQL Editor</strong> &rarr; paste all of <code>supabase/schema.sql</code> &rarr; <strong>Run</strong>.<br>
+Expect <code>Success. No rows returned</code>, and nine tables each showing an <strong>RLS enabled</strong> badge.</li>
+<li><strong>Authentication &rarr; Sign In / Providers &rarr; Email</strong> &rarr; turn <strong>Confirm email</strong> off.</li>
+</ol>
+
+<div class="note care">
+  <h4>Step 3 is not optional</h4>
+  <p>Skip it and every login is refused as unconfirmed &mdash; but the form only says "wrong username or password", so it looks like the password is wrong when it is not.</p>
+</div>
+
+<p>Back in the terminal:</p>
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>cp .env.example .env.local</b>
+
+<i># fill in three values from Supabase -> Settings -> API:
+#   NEXT_PUBLIC_SUPABASE_URL        Project URL
+#   NEXT_PUBLIC_SUPABASE_ANON_KEY   anon public
+#   SUPABASE_SERVICE_ROLE_KEY       service_role  </i><u>(secret)</u><i>
+# leave CRON_SECRET blank; it is only needed in production</i>
+
+<b>npx tsx --env-file=.env.local scripts/preflight.ts local</b>   <i># checks the keys</i>
+<b>npm run seed</b>            <i># prints passwords </i><u>ONCE</u><i> - copy them</i>
+<b>npm run dev</b>             <i># http://localhost:3000</i></pre>
+</div>
+
+<div class="note never">
+  <h4>The service_role key</h4>
+  <p>It bypasses every access rule in the database. It belongs only in <code>.env.local</code>, which git already ignores. Never paste it anywhere else.</p>
+</div>
+</div></section>
+
+<section id="c2"><div class="col">
+<h2><i>2</i>Every day</h2>
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>npm run dev</b></pre>
+</div>
+<p>Restart it after editing <code>.env.local</code> &mdash; environment changes are not picked up while it runs. This is the most common thing to trip on.</p>
+</div></section>
+
+<section id="c3"><div class="col">
+<h2><i>3</i>Publishing a paper</h2>
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>npm run check -- my-paper.json</b>          <i># validate before opening the app</i>
+<b>npm run check -- my-paper.json --images ./img</b></pre>
+</div>
+<p>Then in the app: <strong>Admin &rarr; Upload a paper</strong> &rarr; read the preview &rarr; <strong>Schedule</strong>. Copy <code>format/sample.json</code> as your starting point. The format is specified in <a href="architecture.html#s7">architecture.html section 7</a>.</p>
+</div></section>
+
+<section id="c4"><div class="col">
+<h2><i>4</i>Shipping a change</h2>
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>npm run build:prod</b>      <i># preflight + typecheck + 263 tests + build</i>
+<b>git add -A &amp;&amp; git commit -m "what changed"</b>
+<b>git push</b>                 <i># Vercel deploys by itself</i></pre>
+</div>
+<div class="note never">
+  <h4>Never deploy between 10 PM and midnight</h4>
+  <p>Somebody is probably mid-paper. Ship before 9 PM or after midnight.</p>
+</div>
+</div></section>
+
+<section id="c5"><div class="col">
+<h2><i>5</i>First time, production</h2>
+
+<p>A <strong>second</strong> Supabase project, <code>preppy-prod</code>. Never point your laptop at it.</p>
+
+<ol>
+<li>Same three dashboard steps as section 1, in the new project.</li>
+<li><code>npm run secret</code> &rarr; copy the value.</li>
+<li>Push to GitHub, then import the repository into Vercel.</li>
+<li>In Vercel &rarr; <strong>Environment Variables</strong>, add four, all from <strong>preppy-prod</strong>:
+<div class="tw"><table>
+<tr><th>Name</th><th>From</th></tr>
+<tr><td><code>NEXT_PUBLIC_SUPABASE_URL</code></td><td>Settings &rarr; API &rarr; Project URL</td></tr>
+<tr><td><code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code></td><td>anon public</td></tr>
+<tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code></td><td>service_role</td></tr>
+<tr><td><code>CRON_SECRET</code></td><td>the value from step 2</td></tr>
+</table></div>
+</li>
+<li>Deploy. Then check <strong>Settings &rarr; Cron Jobs</strong> shows <code>/api/cron/finalise</code> at <code>35 18 * * *</code> &mdash; that is 18:35 UTC, which is 00:05 IST.</li>
+<li>Seed production once:
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><i># .env.prod.local holds the PRODUCTION url + service-role key</i>
+<b>npx tsx --env-file=.env.prod.local supabase/seed.ts</b>
+<b>rm .env.prod.local</b></pre>
+</div>
+</li>
+</ol>
+
+<div class="note do">
+  <h4>Before the first real paper night</h4>
+  <p><a href="architecture.html#s17">architecture.html section 17</a> is a ten-minute walkthrough that exercises nearly every database query. Do it in daylight.</p>
+</div>
+</div></section>
+
+<section id="c6"><div class="col">
+<h2><i>6</i>All commands</h2>
+<div class="tw"><table>
+<tr><th>Command</th><th>What it does</th></tr>
+<tr><td><code>npm run dev</code></td><td>Development server, reloads as you edit</td></tr>
+<tr><td><code>npm test</code></td><td>263 tests. No database needed</td></tr>
+<tr><td><code>npm run typecheck</code></td><td>Types only, no build</td></tr>
+<tr><td><code>npm run build:local</code></td><td>Production build with source maps, for debugging</td></tr>
+<tr><td><code>npm run start:local</code></td><td>Serves that build</td></tr>
+<tr><td><code>npm run build:prod</code></td><td>Typecheck + tests + build, no source maps</td></tr>
+<tr><td><code>npm run start:prod</code></td><td>Serves the production build</td></tr>
+<tr><td><code>npm run check -- &lt;file&gt;</code></td><td>Validates a paper, app not needed</td></tr>
+<tr><td><code>npm run seed</code></td><td>Creates the accounts, prints passwords once</td></tr>
+<tr><td><code>npm run seed -- --reset</code></td><td>Fresh passwords for everyone</td></tr>
+<tr><td><code>npm run secret</code></td><td>A random string for <code>CRON_SECRET</code></td></tr>
+</table></div>
+</div></section>
+
+<section id="c7"><div class="col">
+<h2><i>7</i>Quick fixes</h2>
+<div class="tw"><table>
+<tr><th>Symptom</th><th>Fix</th></tr>
+<tr><td>"Not configured yet"</td><td><code>.env.local</code> incomplete, or the server needs restarting</td></tr>
+<tr><td>Login rejects a password you know is right</td><td>Email confirmation is still on. Then <code>npm run seed -- --reset</code></td></tr>
+<tr><td>"Cannot build for production"</td><td>Working as intended &mdash; it names the missing variable</td></tr>
+<tr><td>Seeding errors</td><td>Tables missing. Re-run <code>supabase/schema.sql</code></td></tr>
+<tr><td>Nightly job did not run</td><td>Admin home &rarr; <strong>Finalise open attempts now</strong></td></tr>
+<tr><td>A paper will not delete</td><td>Somebody has a counted attempt on it. A trigger is refusing</td></tr>
+<tr><td>Leaderboard missing last night</td><td>It takes a paper in at 00:01, not midnight</td></tr>
+<tr><td>Changed <code>.env.local</code>, nothing happened</td><td>Restart <code>npm run dev</code></td></tr>
+</table></div>
+
+<p>Three questions answer most problems:</p>
+<ol>
+<li><strong>Which database am I talking to?</strong> Compare the URL in <code>.env.local</code> with the project name in Supabase.</li>
+<li><strong>Did the schema apply?</strong> Table Editor: nine tables, RLS badges.</li>
+<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those pass, it is configuration, not logic.</li>
+</ol>
+
+<p class="end">
+Fuller troubleshooting in <a href="architecture.html#s18">architecture.html section 18</a>.
+</p>
+</div></section>
+
+</main>
+</div>
+
+<script>
+(function(){
+  var links = Array.prototype.slice.call(document.querySelectorAll('.rail a[href^="#"]'));
+  var map = {}; links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
+  var secs = Array.prototype.slice.call(document.querySelectorAll('section[id]'));
+  if(!('IntersectionObserver' in window) || !secs.length) return;
+  var visible = {};
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ visible[e.target.id] = e.isIntersecting; });
+    var current = null;
+    for(var i=0;i<secs.length;i++){ if(visible[secs[i].id]){ current = secs[i].id; break; } }
+    links.forEach(function(a){ a.classList.remove('on'); });
+    if(current && map[current]) map[current].classList.add('on');
+  }, {rootMargin:'0px 0px -70% 0px', threshold:0});
+  secs.forEach(function(s){ io.observe(s); });
+})();
+</script>

@@ -28,7 +28,7 @@ export function UploadForm() {
         </label>
         <p className="mt-3 text-sm text-ink-soft">
           The paper as a .json file. The format is documented in{' '}
-          <code className="rounded bg-black/5 px-1.5 py-0.5">format/README.md</code>.
+          <code className="rounded bg-black/5 px-1.5 py-0.5">docs/architecture.html</code>, section 7.
         </p>
         <label className="mt-5 block">
           <span className="text-xs font-bold uppercase tracking-widest text-ink-soft">Images (optional)</span>

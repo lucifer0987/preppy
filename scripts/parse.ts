@@ -41,7 +41,7 @@ Try one of these:
   npm run check format/sample.json     a complete worked paper
   npm run check format/template.json   the fill-in skeleton
 
-The format is documented in format/README.md.
+The format is documented in docs/architecture.html, section 7.
 Exit codes: 0 publishable, 1 blocking errors, 2 bad usage.
 `)
 }
