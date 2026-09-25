@@ -13,7 +13,8 @@ begin;
 -- ---------------------------------------------------------------- enums
 do $$ begin
   create type user_role   as enum ('student', 'admin');
-  create type test_status as enum ('DRAFT', 'SCHEDULED', 'PUBLISHED');
+  -- LIVE and CLOSED are derived from the clock (FR-10.1), never stored.
+  create type test_status as enum ('DRAFT', 'SCHEDULED');
   create type section_code as enum ('QUANT', 'REASONING', 'ENGLISH', 'PK');
   create type attempt_state as enum ('IN_PROGRESS', 'SUBMITTED', 'AUTO_SUBMITTED', 'VOIDED');
   create type section_end_reason as enum ('SUBMITTED', 'TIMER_EXPIRED', 'FORCE_CLOSED');

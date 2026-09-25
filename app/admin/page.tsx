@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { db } from '../../lib/supabase/admin'
 import { formatIstDate, istDate } from '../../lib/time'
 
@@ -20,7 +21,7 @@ export default async function AdminHome() {
   const { count: userCount } = await db()
     .from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student')
 
-  const scheduled = tonight?.status === 'SCHEDULED' || tonight?.status === 'PUBLISHED'
+  const scheduled = tonight?.status === 'SCHEDULED'
 
   return (
     <>
@@ -43,10 +44,20 @@ export default async function AdminHome() {
         <Stat label="Papers published" value={<Published />} />
       </dl>
 
+      <div className="mt-6 flex flex-wrap gap-3">
+        <Link href="/admin/papers/upload"
+              className="rounded-2xl bg-play-purple px-5 py-3 font-black text-white transition hover:bg-play-purple-deep">
+          Upload a paper
+        </Link>
+        <Link href="/admin/papers"
+              className="rounded-2xl border-2 border-black/15 px-5 py-3 font-bold transition hover:border-black/30">
+          All papers
+        </Link>
+      </div>
+
       <section className="mt-8 space-y-3">
-        <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-ink-soft">Coming in Phase 1</h2>
+        <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-ink-soft">Still to come</h2>
         {[
-          ['Upload a paper', 'Drop the PDF, see the validation report, preview it, then schedule.'],
           ['Dry run', 'Take any paper yourself in the real engine. Never counted, never ranked.'],
           ['Manage users', 'Create accounts, reset passwords, deactivate.'],
           ['Attempts', 'Every attempt with its score, duration and two integrity counters.'],
@@ -63,7 +74,7 @@ export default async function AdminHome() {
 
 async function Published() {
   const { count } = await db()
-    .from('tests').select('*', { count: 'exact', head: true }).eq('status', 'PUBLISHED')
+    .from('tests').select('*', { count: 'exact', head: true }).eq('status', 'SCHEDULED')
   return <>{count ?? 0}</>
 }
 

@@ -1,4 +1,3 @@
-import { createRequire } from 'node:module'
 import type { Issue } from './types'
 
 /**
@@ -29,9 +28,10 @@ interface TextItem {
 }
 
 export async function extractPdfText(data: Uint8Array): Promise<ExtractResult> {
-  const require = createRequire(import.meta.url)
-  const pdfjsPath = require.resolve('pdfjs-dist/legacy/build/pdf.mjs')
-  const pdfjs = await import(pdfjsPath)
+  // A static specifier, so the Next bundler can resolve it. next.config.ts
+  // lists pdfjs-dist in serverExternalPackages, which keeps it out of the
+  // client bundle and loads it at runtime on the server.
+  const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
 
   const doc = await pdfjs.getDocument({
     data,
