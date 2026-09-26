@@ -2,6 +2,10 @@
   "crons": [
     {
       "path": "/api/cron/finalise",
+      "schedule": "30 7 * * *"
+    },
+    {
+      "path": "/api/cron/finalise",
       "schedule": "30 19 * * *"
     }
   ]

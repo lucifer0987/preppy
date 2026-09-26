@@ -217,7 +217,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <div><dt>SQL functions</dt><dd>11</dd></div>
     <div><dt>Migrations</dt><dd>6</dd></div>
     <div><dt>Modules</dt><dd>30<small>lib/</small></dd></div>
-    <div><dt>Tests</dt><dd>362</dd></div>
+    <div><dt>Tests</dt><dd>363</dd></div>
     <div><dt>Runtime deps</dt><dd>8</dd></div>
   </dl>
 </header>
@@ -344,7 +344,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <p>The whole product runs on one repeating 24-hour cycle. Understanding this is most of understanding the system.</p>
 
 <figure>
-<svg viewBox="0 0 820 300" role="img" aria-label="One IST day on a timeline. A morning paper opens at 6:00 AM, closes entry at 7:00 and runs to 7:45. An evening paper opens at 10:00 PM, closes entry at 11:15 and runs to midnight. A single scheduled job runs at 1:00 AM the next day.">
+<svg viewBox="0 0 820 300" role="img" aria-label="One IST day on a timeline. A morning paper opens at 6:00 AM, closes entry at 7:00 and runs to 7:45. An evening paper opens at 10:00 PM, closes entry at 11:15 and runs to midnight. The finalise job runs at 1:00 PM and again at 1:00 AM the next day.">
   <defs>
     <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
@@ -379,11 +379,15 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <line x1="751" y1="217" x2="751" y2="227" stroke="currentColor" stroke-width="1.5"/><text x="751" y="243">12 AM</text>
   </g>
 
-  <!-- midnight boundary and the one job -->
+  <!-- the two finalise runs, and the midnight boundary -->
+  <line x1="434" y1="186" x2="434" y2="232" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="434" y="180" font-size="11" font-weight="700" fill="currentColor" text-anchor="middle">1:00 PM</text>
+  <text x="434" y="194" font-size="10.5" fill="currentColor" opacity=".75" text-anchor="middle">finalise</text>
+
   <line x1="751" y1="60" x2="751" y2="222" stroke="currentColor" stroke-width="1" stroke-dasharray="2 3" opacity=".45"/>
   <line x1="780" y1="186" x2="780" y2="232" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
   <text x="800" y="180" font-size="11" font-weight="700" fill="currentColor" text-anchor="end">1:00 AM</text>
-  <text x="800" y="194" font-size="10.5" fill="currentColor" opacity=".75" text-anchor="end">the only job</text>
+  <text x="800" y="194" font-size="10.5" fill="currentColor" opacity=".75" text-anchor="end">finalise</text>
 
   <!-- legend -->
   <g font-size="10.5" fill="currentColor" opacity=".65">
@@ -392,10 +396,10 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <rect x="160" y="270" width="16" height="9" rx="2" fill="currentColor" opacity=".08"/>
     <text x="184" y="278">finishing only &mdash; no new starts</text>
     <line x1="392" y1="274" x2="412" y2="274" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
-    <text x="420" y="278">the one scheduled job; everything else is derived on read</text>
+    <text x="420" y="278">the only scheduled job, run twice; everything else is derived on read</text>
   </g>
 </svg>
-<figcaption><b>Each paper carries its own window, and a day may hold more than one.</b> Nothing on this timeline is a scheduled job except the 1:00 AM one: a paper unlocking, entry closing, and the archive opening are all computed from the clock as a page is read, so there is nothing to miss. The job exists solely to score an attempt somebody walked away from. Both windows here are examples, and so is each paper&rsquo;s length &mdash; the only fixed rule is that entry close plus the paper&rsquo;s own running time must land inside the same day.</figcaption>
+<figcaption><b>Each paper carries its own window, and a day may hold more than one.</b> Nothing on this timeline is a scheduled job except the finalise runs: a paper unlocking, entry closing, and the archive opening are all computed from the clock as a page is read, so there is nothing to miss. The job exists solely to score an attempt somebody walked away from. Both windows here are examples, and so is each paper&rsquo;s length &mdash; the only fixed rule is that entry close plus the paper&rsquo;s own running time must land inside the same day.</figcaption>
 </figure>
 
 <h3>Every paper carries its own window</h3>
@@ -468,7 +472,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
   <rect x="20" y="160" width="470" height="76" rx="8" fill="none" stroke="#0E767F" stroke-width="2.5"/>
   <text x="38" y="184" font-size="13.5" font-weight="700" fill="currentColor">Pure domain logic</text>
   <text x="38" y="203" font-size="10.5" fill="currentColor" opacity=".7">time &middot; attempt &middot; scoring &middot; leaderboard &middot; paper &middot; csv &middot; images</text>
-  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 362 tests live here</text>
+  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 363 tests live here</text>
 
   <rect x="20" y="252" width="470" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
   <text x="38" y="276" font-size="13.5" font-weight="600" fill="currentColor">Repository</text>
@@ -1000,8 +1004,8 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><th>If this happens</th><th>Then</th></tr>
 <tr><td>A student refreshes, or the browser crashes</td><td>They resume at the same question with the correct time left. Time that passed is not refunded</td></tr>
 <tr><td>Their network drops</td><td>A banner appears, answers queue locally and flush on reconnect, the timer keeps running</td></tr>
-<tr><td>They close the laptop and never come back</td><td>The attempt is scored either by the 1:00 AM job or the next time anyone opens it, whichever is first</td></tr>
-<tr><td>They walk away from the morning paper, then come back for the evening one</td><td>Starting the second paper scores the abandoned first one on the spot and proceeds. Only one counted attempt may be open at a time, and waiting for the 1:00 AM job to clear it would have locked them out all day</td></tr>
+<tr><td>They close the laptop and never come back</td><td>The attempt is scored by the next finalise run &mdash; 1 PM or 1 AM &mdash; or the next time anyone opens it, whichever is first</td></tr>
+<tr><td>They walk away from the morning paper, then come back for the evening one</td><td>Starting the second paper scores the abandoned first one on the spot and proceeds. Only one counted attempt may be open at a time, and waiting for a scheduled run to clear it would have locked them out in between</td></tr>
 <tr><td>The nightly job does not fire</td><td>Nothing is lost. It is idempotent and re-runnable from a button in the admin console</td></tr>
 <tr><td>You publish no paper</td><td>The dashboard says so, and <strong>nobody's streak breaks</strong></td></tr>
 <tr><td>You publish a wrong answer key</td><td>Correct it and rescore. Students are told why their score moved</td></tr>
@@ -1015,7 +1019,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 
 <div class="tw"><table>
 <tr><th>Layer</th><th>Status</th></tr>
-<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 362 tests, no database needed</td></tr>
+<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 363 tests, no database needed</td></tr>
 <tr><td>The schema, its functions, triggers and indexes</td><td><strong>Tested against real Postgres.</strong> <code>tests/schema.test.ts</code> applies every migration to an in-process Postgres and exercises each function and guard. <code>tests/migrate.test.ts</code> proves the chain is ordered and that a second run changes nothing</td></tr>
 <tr><td>The queries in <code>lib/repo/</code></td><td><strong>Typechecked only.</strong> The PostgREST calls have never run against a live server</td></tr>
 <tr><td>Supabase Auth and Storage</td><td><strong>Typechecked only</strong></td></tr>
@@ -1078,7 +1082,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <text x="179" y="209" text-anchor="middle" font-weight="600">typecheck</text>
     <line x1="226" y1="205" x2="238" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="238" y="186" width="94" height="38" rx="6" fill="none" stroke="#94202B" stroke-width="2"/>
-    <text x="285" y="209" text-anchor="middle" font-weight="600">362 tests</text>
+    <text x="285" y="209" text-anchor="middle" font-weight="600">363 tests</text>
     <line x1="332" y1="205" x2="344" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="344" y="186" width="84" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
     <text x="386" y="209" text-anchor="middle" font-weight="600">build</text>
@@ -1103,7 +1107,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td><code>npm run start:local</code></td><td><span class="pill local">rare</span></td><td>Serves that build on port 3000</td></tr>
 <tr><td><code>npm run build:prod</code></td><td><span class="pill prod">before shipping</span></td><td>Typecheck, all tests, then build without source maps</td></tr>
 <tr><td><code>npm run start:prod</code></td><td><span class="pill prod">on the host</span></td><td>Serves the production build</td></tr>
-<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>362 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>363 tests. No database needed, about a second</td></tr>
 <tr><td><code>npm run typecheck</code></td><td><span class="pill both">anytime</span></td><td>Checks types without building</td></tr>
 <tr><td><code>npm run seed</code></td><td><span class="pill both">setup</span></td><td>Creates the accounts, prints passwords once</td></tr>
 <tr><td><code>npm run secret</code></td><td><span class="pill both">setup</span></td><td>Prints a random string for CRON_SECRET</td></tr>
@@ -1220,7 +1224,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <b>npm install</b></pre>
 </div>
 <p>Downloads everything into a <code>node_modules</code> folder. Safe to re-run at any time.</p>
-<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>362 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
+<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>363 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
 </li>
 
 <li>
@@ -1581,14 +1585,14 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code></td><td>preppy-prod &rarr; service_role</td></tr>
 <tr><td><code>CRON_SECRET</code></td><td>The string from step 2</td></tr>
 </table></div>
-<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 362 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
+<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 363 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
 <p><strong>Check it worked:</strong> the deployment goes green and the URL shows the countdown page.</p>
 </li>
 
 <li>
 <h4>Confirm the nightly job registered</h4>
-<p>Vercel &rarr; <strong>Settings</strong> &rarr; <strong>Cron Jobs</strong>. One entry for <code>/api/cron/finalise</code>, schedule <code>30 19 * * *</code>.</p>
-<p>That is 19:30 UTC, which is 01:00 IST. Vercel Cron runs on UTC, so the schedule is written in UTC.</p>
+<p>Vercel &rarr; <strong>Settings</strong> &rarr; <strong>Cron Jobs</strong>. Two entries, both for <code>/api/cron/finalise</code>: <code>30 7 * * *</code> and <code>30 19 * * *</code>.</p>
+<p>That is 07:30 and 19:30 UTC, which is 13:00 and 01:00 IST. Vercel Cron runs on UTC, so the schedule is written in UTC. The 1 AM run has the whole of the previous day complete behind it; the 1 PM run is so a morning paper is not left off the leaderboard until the small hours.</p>
 <div class="note care">
   <h4>Without CRON_SECRET the endpoint refuses everyone</h4>
   <p>Including Vercel. Deliberate &mdash; better a job that does not run than an open endpoint that writes scores &mdash; which is why the production build will not even start without it.</p>
@@ -1705,7 +1709,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <ol>
 <li><strong>Which database am I talking to?</strong> Check the URL in <code>.env.local</code> against the project name in Supabase.</li>
 <li><strong>Did the schema actually apply?</strong> Table Editor, ten tables, RLS badges.</li>
-<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 362 pass, the logic is fine and the problem is configuration or a query.</li>
+<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 363 pass, the logic is fine and the problem is configuration or a query.</li>
 </ol>
 
 <p class="end">

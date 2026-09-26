@@ -384,7 +384,7 @@ html{scroll-behavior:smooth}
   <div class="ct key"><time>24:00</time><div><h5>Hard stop</h5><p>Midnight. The 23:14:59 entrant's 45 minutes expire, and answers unlock.</p></div></div>
   <div class="ct"><time>00:00</time><div><h5>Archive unlocks</h5><p>Questions, keys and solutions become visible to everyone. Computed on read.</p></div></div>
   <div class="ct key"><time>00:01</time><div><h5>Leaderboard refresh</h5><p>The night's paper joins the leaderboard, ranks and streaks. Computed on read; anything still open is scored first.</p></div></div>
-  <div class="ct key"><time>01:00</time><div><h5>Finalise</h5><p>Force-submit and score any attempt still open. <em>The only scheduled job.</em></p></div></div>
+  <div class="ct key"><time>13:00 &amp; 01:00</time><div><h5>Finalise</h5><p>Force-submit and score any attempt still open. <em>The only scheduled job, run twice a day.</em></p></div></div>
 </div>
 <div class="fr"><p><b class="id">FR-4.1</b><strong>Entry closes at 23:15 while the window runs to midnight.</strong> The 45-minute tail exists so a student starting at the last possible moment still gets their full 45 minutes.</p></div>
 <div class="fr"><p><b class="id">FR-4.2</b><strong>Score appears the instant a student submits; rank waits for 00:01.</strong> The result page shows the score and its full breakdown at once. Everything that compares one student with another — the leaderboard, "2nd of 5", the leaderboard delta, archive ranks, streaks — takes in the night's paper at 00:01, once every attempt on it has had to end. That is what keeps FR-5.3 true: nobody can read off a rank who has or has not sat tonight's paper.</p></div>
@@ -395,7 +395,7 @@ html{scroll-behavior:smooth}
 <tr><th>Attempt state</th><th>Meaning</th><th class="n">Counts</th></tr>
 <tr><td><code>IN_PROGRESS</code></td><td>Started, timer running, resumable</td><td class="n">—</td></tr>
 <tr><td><code>SUBMITTED</code></td><td>Student pressed End Test</td><td class="n yes">✓</td></tr>
-<tr><td><code>AUTO_SUBMITTED</code></td><td>Timer expired, or force-closed by the 01:00 job</td><td class="n yes">✓</td></tr>
+<tr><td><code>AUTO_SUBMITTED</code></td><td>Timer expired, or force-closed by a finalise run</td><td class="n yes">✓</td></tr>
 <tr><td><code>VOIDED</code></td><td>Invalidated by admin</td><td class="n">—</td></tr>
 </table></div>
 <p>Dry-run attempts never count, whatever their state.</p>
@@ -731,7 +731,7 @@ html{scroll-behavior:smooth}
 <p>Writes that must land together — saving a paper, starting an attempt, a key correction with its rescore — are each one Postgres function in <code>supabase/migrations/</code>, so each is all or nothing. Those functions are callable with the service-role key only.</p>
 <div class="tw"><table>
 <tr><th>Cron</th><th class="n">Time</th><th>Work</th></tr>
-<tr><td>Finalise</td><td class="n">01:00</td><td>Force-submit and score any attempt still in progress. That is the whole job.</td></tr>
+<tr><td>Finalise</td><td class="n">13:00, 01:00</td><td>Force-submit and score any attempt still in progress. That is the whole job, and the admin can also run it on demand.</td></tr>
 </table></div>
 <div class="fr"><p><b class="id">FR-10.3</b>The job is <strong>idempotent</strong> — re-running produces identical output — and can be triggered manually from the admin console.</p></div>
 <p><strong>The v1.1 publish-reminder job is dropped.</strong> With no SMTP configured there is nowhere to send a reminder, so it would have needed a whole notification channel to be useful. Instead the admin dashboard shows tonight's status — <strong>Scheduled</strong> or <strong>Not scheduled</strong> — as its first element. For the reminder itself, a recurring 21:45 phone alarm does the job with no code.</p>
@@ -750,7 +750,7 @@ html{scroll-behavior:smooth}
 <tr><td>Network loss</td><td>Non-blocking banner; responses queue locally and flush on reconnect; timer keeps running</td></tr>
 <tr><td>Two devices, same account</td><td>Starting a test invalidates other sessions</td></tr>
 <tr><td>Attempt still open at midnight</td><td>Force-submitted and scored; marked <code>AUTO_SUBMITTED</code></td></tr>
-<tr><td>Browser died, row stuck open</td><td>Cleaned up by the 01:00 job and scored from persisted responses</td></tr>
+<tr><td>Browser died, row stuck open</td><td>Cleaned up by the next finalise run and scored from persisted responses</td></tr>
 <tr><td>Client clock altered</td><td>No effect — the server owns the clock</td></tr>
 <tr><td>Student tries to start at 23:15:00</td><td>Rejected server-side</td></tr>
 <tr><td>Zero attempts on a test</td><td>Closes normally; leaderboard unchanged; archive still opens</td></tr>
@@ -850,7 +850,7 @@ html{scroll-behavior:smooth}
 
 <div class="good">
   <h4>The one thing still unproven</h4>
-  <p>The schema and its functions are exercised against real Postgres, and 362 tests cover the pure logic. What has never run is the layer that talks to Supabase over the network: the queries in <code>lib/repo/</code>, signing in, and reading an image out of Storage. The engineering reference has a ten-minute walkthrough that exercises nearly all of it.</p>
+  <p>The schema and its functions are exercised against real Postgres, and 363 tests cover the pure logic. What has never run is the layer that talks to Supabase over the network: the queries in <code>lib/repo/</code>, signing in, and reading an image out of Storage. The engineering reference has a ten-minute walkthrough that exercises nearly all of it.</p>
 </div>
 </div></section>
 

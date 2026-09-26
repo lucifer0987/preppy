@@ -63,7 +63,7 @@ export default async function WindowPage() {
           <li>Papers already scheduled keep the window they were given.</li>
           <li>An attempt already running keeps the deadline it started with.</li>
           <li>Each paper's answers unlock, and it joins the leaderboard, at its own closing time.</li>
-          <li>The daily job still runs at 1 AM.</li>
+          <li>The finalise job still runs at 1 PM and 1 AM.</li>
         </ul>
       </section>
     </>

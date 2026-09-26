@@ -5,12 +5,19 @@ import { finaliseOverdueAttempts } from '../../../../lib/repo/finalise'
 export const dynamic = 'force-dynamic'
 
 /**
- * Runs once a day at 01:00 IST (19:30 UTC), scheduled in vercel.json. Every
- * paper dated yesterday has hard-stopped by then, whatever length it was:
- * `tests_window_within_the_day` forces entry close plus the paper's own running
- * time to land inside its own IST day, so midnight is the furthest any paper can
- * reach. A paper scheduled for the small hours of the morning is swept by the
- * next day's run, or sooner by the admin's manual button on /admin.
+ * Runs twice a day, at 13:00 and 01:00 IST (07:30 and 19:30 UTC), scheduled in
+ * vercel.json. Vercel Cron runs on UTC, which is why the file reads oddly.
+ *
+ * The 01:00 run catches everything from the day before: whatever its length, a
+ * paper must finish inside its own IST day, because
+ * `tests_window_within_the_day` forces entry close plus its running time to land
+ * on or before midnight. The 13:00 run is there so a morning paper is not left
+ * sitting off the leaderboard until the small hours -- no abandoned attempt
+ * waits more than twelve hours for a sweep.
+ *
+ * Neither is the first line of defence. An abandoned attempt is also scored the
+ * next time anyone opens it, and when that student starts another paper. And
+ * the admin can run it on demand from /admin.
  *
  * Vercel Cron is the only caller: it presents CRON_SECRET as a bearer token.
  * A signed-in admin does not come through here. A cookie-authenticated GET is
