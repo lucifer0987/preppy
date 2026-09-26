@@ -8,6 +8,7 @@
  * `server-only` on lib/supabase/* already turns the likely mistake into a
  * build error; this catches the unlikely ones.
  */
+import { existsSync } from 'node:fs'
 import { readdir, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
@@ -25,6 +26,17 @@ async function* files(dir: string): AsyncGenerator<string> {
 }
 
 async function main() {
+  // A missing build is a raw ENOENT stack otherwise, and the fix is not
+  // obvious from it: this runs as the last step of build:local / build:prod.
+  if (!existsSync(ROOT)) {
+    console.error(
+      `\ncheck-bundle: there is no ${ROOT} to scan.\n\n` +
+      '  Build first -- this runs as the last step of `npm run build:local`\n' +
+      '  and `npm run build:prod`, and has nothing to look at on its own.\n',
+    )
+    process.exit(1)
+  }
+
   let scanned = 0
   const hits: string[] = []
   for await (const path of files(ROOT)) {
@@ -39,6 +51,16 @@ async function main() {
     console.error('\nThe service-role key, or its name, is in the client bundle (risk R7):\n')
     for (const h of hits) console.error(`  ${h}`)
     console.error('\nFind the client component that imports server code and remove the import.\n')
+    process.exit(1)
+  }
+  // Nothing scanned is not a pass. An empty or half-written .next/static
+  // would otherwise report success having checked nothing at all, which is
+  // the one outcome a guard like this must never produce.
+  if (scanned === 0) {
+    console.error(
+      `\ncheck-bundle: found ${ROOT} but no client files in it, so nothing was checked.\n\n` +
+      '  Treating that as a failure rather than a pass. Build again and re-run.\n',
+    )
     process.exit(1)
   }
   console.log(`check-bundle: ${scanned} client files scanned, no service-role key found.`)
