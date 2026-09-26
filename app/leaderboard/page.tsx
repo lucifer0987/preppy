@@ -47,7 +47,10 @@ export default async function LeaderboardPage({
 
       <div className="mt-5 flex flex-wrap items-center gap-2">
         <nav className="flex flex-wrap gap-2" aria-label="Window">
-          {([['All time', undefined], ['Last 7', '7'], ['Last 30', '30']] as const).map(([label, value]) => (
+          {/* Counted in papers, not days: a day may hold more than one, so the
+                label says which. */}
+            {([['All time', undefined], ['Last 7 papers', '7'], ['Last 30 papers', '30']] as const)
+              .map(([label, value]) => (
             <Link
               key={label}
               href={value ? `/leaderboard?window=${value}` : '/leaderboard'}

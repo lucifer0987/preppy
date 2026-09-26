@@ -210,7 +210,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>node -v</b>                 <i># needs v20 or newer</i>
 <b>npm install</b>
-<b>npm test</b>                <i># 358 passing means the code is sound</i></pre>
+<b>npm test</b>                <i># 362 passing means the code is sound</i></pre>
 </div>
 
 <p>Then in the Supabase dashboard:</p>
@@ -277,7 +277,7 @@ Either way you should end with eleven tables, each showing an <strong>RLS enable
 <h2><i>4</i>Shipping a change</h2>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
-<pre><b>npm run build:prod</b>      <i># preflight + typecheck + 358 tests + build</i>
+<pre><b>npm run build:prod</b>      <i># preflight + typecheck + 362 tests + build</i>
 <b>git add -A &amp;&amp; git commit -m "what changed"</b>
 <b>git push</b>                 <i># Vercel deploys by itself</i></pre>
 </div>
@@ -327,7 +327,7 @@ Either way you should end with eleven tables, each showing an <strong>RLS enable
 <div class="tw"><table>
 <tr><th>Command</th><th>What it does</th></tr>
 <tr><td><code>npm run dev</code></td><td>Development server, reloads as you edit</td></tr>
-<tr><td><code>npm test</code></td><td>358 tests. No database needed</td></tr>
+<tr><td><code>npm test</code></td><td>362 tests. No database needed</td></tr>
 <tr><td><code>npm run typecheck</code></td><td>Types only, no build</td></tr>
 <tr><td><code>npm run build:local</code></td><td>Production build with source maps, for debugging</td></tr>
 <tr><td><code>npm run start:local</code></td><td>Serves that build</td></tr>

@@ -51,6 +51,22 @@ export default async function PatternPage() {
 
       <PatternForm current={current} latestEntryClose={latestEntryClose} />
 
+      <section className="mt-6 rounded-3xl bg-white p-5">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">Start a paper from this pattern</h2>
+        <p className="mt-2 text-sm text-ink-soft">
+          A blank file with the right sections, counts, numbering and marking, and placeholder text
+          everywhere the content goes. Built from the pattern above, so it follows any change you make
+          here. The checker refuses a placeholder left in, so an unedited one can never go live.
+        </p>
+        <a
+          href="/api/admin/template"
+          className="mt-3 inline-block rounded-2xl bg-play-purple px-6 py-3 font-black text-white
+                     transition hover:bg-play-purple-deep"
+        >
+          Download a blank template
+        </a>
+      </section>
+
       <section className="mt-6 rounded-3xl border-2 border-dashed border-black/10 p-5">
         <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">
           What changing this does not affect

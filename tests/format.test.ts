@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import Ajv from 'ajv/dist/2020.js'
 import { FIELDS, readPaper, readQuestion, summarise } from '../lib/paper'
+import { buildTemplate } from '../lib/template'
 import {
   DEFAULT_PATTERN, SECTION_CODES, patternBands, patternTotals, uniformMarking, type Pattern,
 } from '../lib/types'
@@ -419,6 +420,54 @@ describe('a file whose sections are out of order', () => {
     expect(r.codes).toContain('SECTION_ORDER')
     expect(r.codes).not.toContain('SECTION_COUNT')
     expect(r.codes).not.toContain('TOTAL_COUNT')
+  })
+})
+
+describe('a template built from a pattern', () => {
+  const build = (p: Pattern) => JSON.stringify(buildTemplate(p))
+
+  it('matches the shipped file when built from the shipped pattern', () => {
+    expect(JSON.parse(build(DEFAULT_PATTERN))).toEqual(JSON.parse(templateJson))
+  })
+
+  it('fails only on its placeholders, for any pattern', () => {
+    const patterns: Pattern[] = [
+      DEFAULT_PATTERN,
+      [{ code: 'QUANT', questions: 10, minutes: 15, marksCorrect: 2, marksNegative: 0.5 },
+       { code: 'REASONING', questions: 10, minutes: 15, marksCorrect: 2, marksNegative: 0.5 },
+       { code: 'ENGLISH', questions: 10, minutes: 15, marksCorrect: 2, marksNegative: 0.5 },
+       { code: 'PK', questions: 10, minutes: 15, marksCorrect: 2, marksNegative: 0.5 }],
+      // A section too small for the worked directions block, and uneven counts.
+      [{ code: 'QUANT', questions: 3, minutes: 5, marksCorrect: 1, marksNegative: 0 },
+       { code: 'REASONING', questions: 25, minutes: 30, marksCorrect: 1, marksNegative: 0.25 },
+       { code: 'ENGLISH', questions: 1, minutes: 1, marksCorrect: 5, marksNegative: 1.25 },
+       { code: 'PK', questions: 40, minutes: 44, marksCorrect: 0.5, marksNegative: 0.1 }],
+    ]
+    for (const pattern of patterns) {
+      const codes = new Set(ok(build(pattern), { pattern }).issues
+        .filter((i) => i.severity === 'error').map((i) => i.code))
+      expect(codes, JSON.stringify(patternTotals(pattern))).toEqual(new Set(['PLACEHOLDER_TEXT']))
+    }
+  })
+
+  it('numbers straight through, whatever the counts', () => {
+    const odd: Pattern = [
+      { code: 'QUANT', questions: 3, minutes: 5, marksCorrect: 1, marksNegative: 0 },
+      { code: 'REASONING', questions: 25, minutes: 30, marksCorrect: 1, marksNegative: 0.25 },
+      { code: 'ENGLISH', questions: 1, minutes: 1, marksCorrect: 5, marksNegative: 1.25 },
+      { code: 'PK', questions: 40, minutes: 44, marksCorrect: 0.5, marksNegative: 0.1 },
+    ]
+    const numbers = (JSON.parse(build(odd)).sections as { questions: { number: number }[] }[])
+      .flatMap((s) => s.questions.map((q) => q.number))
+    expect(numbers).toEqual(Array.from({ length: 69 }, (_, i) => i + 1))
+  })
+
+  it('leaves out the worked directions block when the section is too small for it', () => {
+    // It covers five questions; a three-question section cannot spare them, and
+    // a block naming questions that do not exist would be a blocking error.
+    const tiny: Pattern = DEFAULT_PATTERN.map((s) => ({ ...s, questions: 4 }))
+    const built = JSON.parse(build(tiny)) as { sections: Record<string, unknown>[] }
+    expect(built.sections.some((s) => 'directions' in s)).toBe(false)
   })
 })
 
