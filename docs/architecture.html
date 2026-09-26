@@ -1255,11 +1255,31 @@ figcaption b{color:var(--ink-2); font-weight:600}
 up in exactly the same place.</p>
 
 <p><strong>Either</strong> let the runner talk to the database itself. Copy the
-connection string from <strong>Settings &rarr; Database &rarr; Connection string</strong>,
-the one labelled <strong>URI</strong>, and put it in <code>.env.local</code> as
+connection string from the <strong>Connect</strong> button at the top of your
+project dashboard, and put it in <code>.env.local</code> as
 <code>DATABASE_URL</code> with your database password filled in where it says
-<code>[YOUR-PASSWORD]</code>. Use the direct connection on port <strong>5432</strong>;
-a pooler address on 6543 works differently and can trip the runner. Then:</p>
+<code>[YOUR-PASSWORD]</code>.</p>
+
+<div class="note care">
+  <h4>Take the Session pooler, not the direct connection</h4>
+  <p>The <strong>Connect</strong> panel offers three. They are not interchangeable:</p>
+  <div class="tw"><table>
+  <thead><tr><th>Option</th><th>Port</th><th>Use it?</th></tr></thead>
+  <tbody>
+  <tr><td><strong>Session pooler</strong></td><td>5432</td><td><strong>Yes.</strong> Works on IPv4, which is what home and office connections almost always are, and supports everything a migration needs</td></tr>
+  <tr><td>Direct connection</td><td>5432</td><td>Only if it works for you. It is <strong>IPv6-only</strong> unless you pay for the IPv4 add-on, so on most networks it simply cannot be reached</td></tr>
+  <tr><td>Transaction pooler</td><td>6543</td><td>No. It does not support prepared statements, which the runner uses</td></tr>
+  </tbody>
+  </table></div>
+  <p>The session pooler's username carries the project reference, which is how you can tell them apart at a glance:</p>
+  <div class="term">
+    <div class="term-bar"><i></i><i></i><i></i><span>.env.local</span></div>
+<pre>DATABASE_URL=postgresql://postgres.<b>[REF]</b>:[PASSWORD]@aws-0-[region].<b>pooler</b>.supabase.com:5432/postgres</pre>
+  </div>
+  <p>If <code>npm run migrate</code> hangs or says the host is unreachable, this is almost always why, and the runner says so when it happens.</p>
+</div>
+
+<p>Then:</p>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>npm run migrate</b>
@@ -1470,7 +1490,9 @@ landed and what has not, at any time.</p>
 </tbody>
 </table></div>
 
-<p>It needs <code>DATABASE_URL</code> in <code>.env.local</code> &mdash; Supabase &rarr; <strong>Settings</strong> &rarr; <strong>Database</strong> &rarr; <strong>Connection string</strong>, the <strong>URI</strong> one, with your database password filled in where it says <code>[YOUR-PASSWORD]</code>. Use the direct connection on port <strong>5432</strong>; a pooler address on 6543 works differently and can trip the client. Without <code>DATABASE_URL</code> the runner does not fail &mdash; it prints the SQL to paste into the Supabase SQL editor, each block ending with the line that records it.</p>
+<p>It needs <code>DATABASE_URL</code> in <code>.env.local</code>, from the <strong>Connect</strong> button at the top of the Supabase project dashboard. Choose the <strong>Session pooler</strong> &mdash; port 5432, username <code>postgres.[REF]</code>. The direct connection is IPv6-only without the paid add-on and will not be reachable from most networks; the transaction pooler on 6543 has no prepared statements, which the runner uses. Section 13 lays the three out side by side.</p>
+
+<p>Without <code>DATABASE_URL</code> the runner does not fail &mdash; it prints the SQL to paste into the Supabase SQL editor, each block ending with the line that records it.</p>
 
 <div class="note why">
   <h4>Why your database says both files are pending</h4>

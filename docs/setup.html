@@ -216,7 +216,8 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <p>Then in the Supabase dashboard:</p>
 <ol>
 <li><strong>New project</strong>, named <code>preppy-dev</code>, nearest region.</li>
-<li>Apply the schema. Put the connection string from <strong>Settings &rarr; Database &rarr; Connection string &rarr; URI</strong> into <code>.env.local</code> as <code>DATABASE_URL</code>, password filled in, then <code>npm run migrate</code>. Use the direct connection on <strong>port 5432</strong>; a pooler URI on 6543 is transaction-mode and can trip the client.<br>
+<li>Apply the schema. Press <strong>Connect</strong> at the top of the project dashboard, choose the <strong>Session pooler</strong>, and put that string into <code>.env.local</code> as <code>DATABASE_URL</code> with your database password filled in. Then <code>npm run migrate</code>.<br>
+<strong>Session pooler, specifically.</strong> The direct connection is IPv6-only without the paid add-on, so on a normal IPv4 network it cannot be reached at all; the transaction pooler on 6543 has no prepared statements. The session pooler's username has the project ref in it &mdash; <code>postgres.[REF]@aws-0-[region].pooler.supabase.com:5432</code> &mdash; which is how you tell them apart.<br>
 No connection string? <code>npm run migrate -- --print</code> prints the SQL to paste into the <strong>SQL Editor</strong> instead, in order.<br>
 Either way you should end with eleven tables, each showing an <strong>RLS enabled</strong> badge.</li>
 <li><strong>Authentication &rarr; Sign In / Providers &rarr; Email</strong> &rarr; turn <strong>Confirm email</strong> off.</li>

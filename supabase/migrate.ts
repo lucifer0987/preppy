@@ -39,7 +39,7 @@ async function load(): Promise<Migration[]> {
 function printPending(pending: Migration[]) {
   console.log(
     '\n  No DATABASE_URL set, so nothing was run.\n\n' +
-    '  Either set it (Supabase -> Settings -> Database -> Connection string),\n' +
+    '  Either set it (Supabase dashboard -> Connect -> Session pooler),\n' +
     '  or paste the SQL below into the Supabase SQL editor in this order.\n' +
     '  The last statement of each block is what records it as applied.\n',
   )
@@ -106,7 +106,33 @@ async function main() {
 }
 
 main().catch((e) => {
-  console.error(`\n  Migration failed: ${(e as Error).message}\n`)
-  console.error('  Nothing from the failing migration was kept. Fix it and run again.\n')
+  const message = (e as Error).message
+  console.error(`\n  Migration failed: ${message}\n`)
+
+  // The two failures that are not about the SQL, and whose messages say
+  // nothing about the actual cause.
+  if (/ENETUNREACH|EHOSTUNREACH|ENOTFOUND|ECONNREFUSED|timeout/i.test(message)) {
+    console.error(
+      '  Could not reach the database at all, so this is the connection string\n' +
+      '  rather than the migration.\n\n' +
+      '  The most common cause: the DIRECT connection is IPv6-only unless you pay\n' +
+      '  for the IPv4 add-on, and most home and office networks are IPv4. Use the\n' +
+      '  SESSION POOLER instead -- Supabase dashboard, "Connect" at the top,\n' +
+      '  Session pooler. Its username has the project ref in it:\n\n' +
+      '    postgresql://postgres.[REF]:[PASSWORD]@aws-0-[region].pooler.supabase.com:5432/postgres\n\n' +
+      '  Not the Transaction pooler on 6543: it has no prepared statements.\n' +
+      '  No connection string at all? `npm run migrate -- --print` gives you the\n' +
+      '  SQL to paste into the Supabase SQL editor.\n',
+    )
+  } else if (/password authentication failed|SASL|SCRAM/i.test(message)) {
+    console.error(
+      '  The database rejected the password. It is the database password set when\n' +
+      '  the project was created, not your Supabase account password and not the\n' +
+      '  service-role key. Reset it under Settings -> Database if it is lost, and\n' +
+      '  remember to URL-encode any @ : / or # in it.\n',
+    )
+  } else {
+    console.error('  Nothing from the failing migration was kept. Fix it and run again.\n')
+  }
   process.exit(1)
 })
