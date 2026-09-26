@@ -18,7 +18,7 @@ export default async function PatternPage() {
 
   return (
     <>
-      <Link href="/admin" className="text-sm font-bold text-play-purple">&larr; Admin</Link>
+      <Link href="/admin" className="text-sm font-bold text-accent">&larr; Admin</Link>
       <h1 className="mt-4 text-3xl font-black tracking-tight">Paper pattern</h1>
       <p className="mt-1 text-ink-soft">
         How many questions each section holds, how long it runs, and what a right or wrong answer is
@@ -67,7 +67,7 @@ export default async function PatternPage() {
         </a>
       </section>
 
-      <section className="mt-6 rounded-card border-2 border-dashed border-line p-5">
+      <section className="mt-6 rounded-card border border-dashed border-line p-5">
         <h2 className="eyebrow">
           What changing this does not affect
         </h2>
@@ -83,7 +83,7 @@ export default async function PatternPage() {
       </section>
 
       <p className="mt-6 text-sm">
-        <Link href="/admin/window" className="font-bold text-play-purple underline">Nightly window &rarr;</Link>{' '}
+        <Link href="/admin/window" className="font-bold text-accent underline">Nightly window &rarr;</Link>{' '}
         <span className="text-ink-soft">
           when papers open and the last moment to start. A longer pattern needs entry to close earlier,
           so the two are worth checking together.

@@ -10,7 +10,7 @@ import { PaperImages } from './PaperImages'
 export function DirectionsBlock({ block, testId }: { block: PaperDirections; testId?: string }) {
   return (
     <aside
-      className="mb-4 max-h-64 overflow-y-auto rounded-control border-2 border-line bg-surface p-4"
+      className="card mb-4 max-h-64 overflow-y-auto p-4"
       aria-label={`Directions for questions ${block.from} to ${block.to}`}
     >
       <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-ink-soft">

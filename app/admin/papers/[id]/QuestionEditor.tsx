@@ -33,20 +33,20 @@ export function QuestionEditor({
   if (!open) {
     return (
       <span className="inline-flex items-center gap-3">
-        {state.saved && <span className="text-xs font-semibold text-answered">Saved.</span>}
+        {state.saved && <span className="text-xs font-semibold text-good">Saved.</span>}
         <button type="button" onClick={() => setOpen(true)}
-                className="text-xs font-bold text-play-purple underline">
+                className="text-xs font-bold text-accent underline">
           Edit wording
         </button>
       </span>
     )
   }
 
-  const field = 'mt-1 block w-full rounded-xl border-2 border-line-strong px-3 py-2 text-sm'
+  const field = 'field mt-1 text-sm'
   return (
     <form
       action={action}
-      className="mt-2 basis-full rounded-control border-2 border-play-purple/30 bg-play-purple/5 p-4 text-left"
+      className="mt-2 basis-full rounded-control border border-accent/40 bg-accent-soft p-4 text-left"
     >
       <input type="hidden" name="testId" value={testId} />
       <input type="hidden" name="questionId" value={questionId} />
@@ -77,21 +77,21 @@ export function QuestionEditor({
         use &ldquo;Correct this key&rdquo;.
       </p>
 
-      {state.fatal && <p role="alert" className="mt-2 text-sm font-semibold text-notanswered">{state.fatal}</p>}
+      {state.fatal && <p role="alert" className="mt-2 text-sm font-semibold text-bad">{state.fatal}</p>}
       {errors.length > 0 && (
-        <ul role="alert" className="mt-2 space-y-1 text-sm text-notanswered">
+        <ul role="alert" className="mt-2 space-y-1 text-sm text-bad">
           {errors.map((i, n) => <li key={n}>{i.message} <span className="font-mono text-[11px]">{i.code}</span></li>)}
         </ul>
       )}
       {state.saved && (
-        <p className="mt-2 text-sm font-semibold text-answered">
+        <p className="mt-2 text-sm font-semibold text-good">
           Saved.{warnings.length ? ` ${warnings.map((w) => w.message).join(' ')}` : ''}
         </p>
       )}
 
       <div className="mt-3 flex gap-2">
         <button type="button" onClick={() => setOpen(false)}
-                className="rounded-xl border-2 border-line-strong px-4 py-2 text-sm font-bold">
+                className="field">
           Close
         </button>
         <Save />
@@ -104,7 +104,7 @@ function Save() {
   const { pending } = useFormStatus()
   return (
     <button type="submit" disabled={pending}
-            className="rounded-xl bg-play-purple px-4 py-2 text-sm font-black text-white disabled:opacity-40">
+            className="btn btn-primary px-4 py-2 text-sm disabled:opacity-40">
       {pending ? 'Saving...' : 'Save changes'}
     </button>
   )

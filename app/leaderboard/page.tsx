@@ -38,7 +38,7 @@ export default async function LeaderboardPage({
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-10">
-      <Link href="/dashboard" className="text-sm font-bold text-play-purple">&larr; Dashboard</Link>
+      <Link href="/dashboard" className="text-sm font-bold text-accent">&larr; Dashboard</Link>
       <h1 className="mt-4 text-3xl font-black tracking-tight">Leaderboard</h1>
       <p className="mt-1 text-ink-soft">
         Cumulative points across every paper. It never resets, and takes in each night&rsquo;s paper
@@ -69,14 +69,14 @@ export default async function LeaderboardPage({
             <label htmlFor="paper" className="text-sm font-bold text-ink-soft">One paper</label>
             <select
               id="paper" name="test" defaultValue={test ?? ''}
-              className="rounded-full border-2 border-line bg-surface px-3 py-1.5 text-sm font-semibold"
+              className="field w-auto rounded-full px-3 py-1.5 text-sm font-semibold"
             >
               <option value="" disabled>Choose…</option>
               {papers.map((p) => (
                 <option key={p.id} value={p.id}>{formatIstDate(p.date)}{p.title ? ` · ${p.title}` : ''}</option>
               ))}
             </select>
-            <button className="rounded-full bg-play-purple px-4 py-1.5 text-sm font-bold text-white">Show</button>
+            <button className="pill-brand px-4 py-1.5 text-sm">Show</button>
           </form>
         )}
       </div>
@@ -112,14 +112,14 @@ function PaperRankList({
 }) {
   if (!standings) {
     return (
-      <p className="rounded-card border-2 border-dashed border-line-strong p-8 text-center text-ink-soft">
+      <p className="rounded-card border border-dashed border-line-strong p-8 text-center text-ink-soft">
         That paper is not on the board yet. A paper joins it when its own window closes and every attempt on it has had to end.
       </p>
     )
   }
   if (!standings.rows.length) {
     return (
-      <p className="rounded-card border-2 border-dashed border-line-strong p-8 text-center text-ink-soft">
+      <p className="rounded-card border border-dashed border-line-strong p-8 text-center text-ink-soft">
         Nobody sat the paper for {formatIstDate(standings.date)}.
       </p>
     )
@@ -144,7 +144,7 @@ function PaperRankList({
                 <td className="py-2.5 pr-2 font-bold">{ordinal(row.rank)}</td>
                 <td className="py-2.5 pr-3">
                   {row.displayName}
-                  {me && <span className="ml-2 text-[10px] uppercase tracking-widest text-play-purple">you</span>}
+                  {me && <span className="ml-2 text-[10px] uppercase tracking-widest text-accent">you</span>}
                 </td>
                 <td className="py-2.5 px-2 text-right font-bold">{row.score.toFixed(2)}</td>
                 <td className="py-2.5 pl-2 text-right text-ink-soft">

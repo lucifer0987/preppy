@@ -52,7 +52,7 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
-      <Link href={isDryRun ? `/admin/papers/${testId}` : '/dashboard'} className="text-sm font-bold text-play-purple">
+      <Link href={isDryRun ? `/admin/papers/${testId}` : '/dashboard'} className="text-sm font-bold text-accent">
         &larr; Back
       </Link>
 

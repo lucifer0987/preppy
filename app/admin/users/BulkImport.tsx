@@ -16,7 +16,7 @@ export function BulkImport() {
 
   if (!open) {
     return (
-      <button onClick={() => setOpen(true)} className="mt-3 text-sm font-bold text-play-purple underline">
+      <button onClick={() => setOpen(true)} className="mt-3 text-sm font-bold text-accent underline">
         Add several at once from a CSV
       </button>
     )
@@ -38,8 +38,7 @@ export function BulkImport() {
       <form action={action} className="mt-3">
         <textarea
           name="csv" rows={6} defaultValue={SAMPLE} spellCheck={false}
-          className="w-full rounded-xl border-2 border-line bg-surface p-3 font-mono text-sm
-                     outline-none transition focus:border-play-purple"
+          className="field font-mono text-sm"
         />
         <Submit />
       </form>
@@ -82,7 +81,7 @@ export function BulkImport() {
 
       {state.failed.length > 0 && (
         <div className="mt-3 rounded-control bg-notanswered/10 p-4">
-          <p className="text-xs font-bold uppercase tracking-widest text-notanswered">
+          <p className="text-xs font-bold uppercase tracking-widest text-bad">
             {state.failed.length} could not be created
           </p>
           <ul className="mt-2 space-y-1 text-sm">
@@ -114,7 +113,7 @@ function Credentials({ rows }: { rows: { username: string; password: string }[] 
       <pre className="mt-2 overflow-x-auto rounded-xl bg-surface-sunken p-3 font-mono text-sm">{csv}</pre>
       <a
         href={href} download="preppy-accounts.csv"
-        className="mt-3 inline-block rounded-xl bg-surface px-4 py-2 text-sm font-black text-answered"
+        className="mt-3 inline-block rounded-xl bg-surface px-4 py-2 text-sm font-black text-good"
       >
         Download as CSV
       </a>

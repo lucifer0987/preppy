@@ -70,7 +70,7 @@ export default async function PaperPreview(
 
   return (
     <>
-      <Link href="/admin/papers" className="text-sm font-bold text-play-purple">&larr; Papers</Link>
+      <Link href="/admin/papers" className="text-sm font-bold text-accent">&larr; Papers</Link>
 
       {q['error'] && (
         <p role="alert" className="mt-4 rounded-control bg-notanswered px-5 py-4 font-semibold text-white">
@@ -128,7 +128,7 @@ export default async function PaperPreview(
         {lock.canUnschedule && (
           <form action={unscheduleAction}>
             <input type="hidden" name="id" value={id} />
-            <button className="rounded-control border-2 border-line-strong px-6 py-3 font-bold transition hover:border-accent">
+            <button className="btn btn-quiet px-6 py-3 hover:border-accent hover:text-accent">
               Move back to draft
             </button>
           </form>
@@ -142,7 +142,7 @@ export default async function PaperPreview(
         </p>
         <Link
           href={`/test/start?test=${id}`}
-          className="rounded-control border-2 border-play-green px-6 py-3 font-bold text-play-green transition hover:bg-play-green/10"
+          className="rounded-control btn btn-quiet border-go px-6 py-3 text-go transition hover:bg-go/10"
         >
           Dry run
         </Link>
@@ -220,7 +220,7 @@ export default async function PaperPreview(
           <label className="mt-4 block text-xs font-bold uppercase tracking-widest text-ink-soft">
             Night
             <input type="date" name="date" defaultValue={defaultDate} min={istDate()} required
-                   className="mt-1 block rounded-xl border-2 border-line-strong px-3 py-2 text-base font-semibold" />
+                   className="field mt-1" />
           </label>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -228,14 +228,14 @@ export default async function PaperPreview(
               <span className="eyebrow">Unlocks at</span>
               <input type="time" name="opensAt" required
                      defaultValue={hhmm(defaultWindow.opensAtMin)}
-                     className="mt-1 block w-full rounded-xl border-2 border-line-strong px-3 py-2 text-base font-semibold tabular-nums" />
+                     className="field mt-1 tabular-nums" />
             </label>
             <label className="block">
               <span className="eyebrow">Last moment to start</span>
               <input type="time" name="entryClosesAt" required
                      defaultValue={hhmm(defaultWindow.entryClosesAtMin)}
                      max="23:15"
-                     className="mt-1 block w-full rounded-xl border-2 border-line-strong px-3 py-2 text-base font-semibold tabular-nums" />
+                     className="field mt-1 tabular-nums" />
             </label>
           </div>
           <p className="mt-2 text-xs text-ink-soft">

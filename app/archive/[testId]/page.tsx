@@ -40,7 +40,7 @@ export default async function ArchiveDetail({
           Answers and solutions for {formatIstDate(paper.date)} unlock at midnight, for everyone at
           the same moment.
         </p>
-        <Link href="/archive" className="mt-6 inline-block font-bold text-play-purple underline">
+        <Link href="/archive" className="mt-6 inline-block font-bold text-accent underline">
           Back to past papers
         </Link>
       </main>
@@ -78,7 +78,7 @@ export default async function ArchiveDetail({
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
-      <Link href="/archive" className="text-sm font-bold text-play-purple">&larr; Past papers</Link>
+      <Link href="/archive" className="text-sm font-bold text-accent">&larr; Past papers</Link>
       <h1 className="mt-4 text-3xl font-black tracking-tight">{paper.title ?? 'Daily mock'}</h1>
       <p className="mt-1 text-ink-soft">{formatIstDate(paper.date)}</p>
 

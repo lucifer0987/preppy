@@ -159,7 +159,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
           </p>
         )}
         {isPersonalBest && (
-          <p className="mt-3 inline-block rounded-full bg-surface px-4 py-1.5 text-sm font-black text-play-purple">
+          <p className="chip btn-invert mt-3 inline-block px-4 py-1.5 text-sm">
             Personal best
           </p>
         )}
@@ -200,8 +200,8 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
                 <td className="py-2 pr-3 font-semibold">{SECTION_NAMES[s.code as SectionCode]}</td>
                 <td className="py-2 px-2 text-right font-bold">{s.score.toFixed(2)}</td>
                 <td className="py-2 px-2 text-right">{s.attempted}</td>
-                <td className="py-2 px-2 text-right text-answered">{s.correct}</td>
-                <td className="py-2 px-2 text-right text-notanswered">{s.wrong}</td>
+                <td className="py-2 px-2 text-right text-good">{s.correct}</td>
+                <td className="py-2 px-2 text-right text-bad">{s.wrong}</td>
                 <td className="py-2 px-2 text-right">{s.skipped}</td>
                 <td className="py-2 px-2 text-right">{s.notReached}</td>
                 <td className="py-2 px-2 text-right">
@@ -294,7 +294,7 @@ function BoardDelta({ before, after, of }: { before: number | null; after: numbe
   return (
     <>
       All-time rank {ordinal(before)} &rarr; <strong>{ordinal(after)}</strong> of {of}{' '}
-      <span className={up ? 'text-answered' : 'text-notanswered'}>
+      <span className={up ? 'text-good' : 'text-bad'}>
         ({up ? 'up' : 'down'} {Math.abs(before - after)})
       </span>
     </>

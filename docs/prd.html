@@ -728,7 +728,7 @@ html{scroll-behavior:smooth}
 <h3>One job; everything else computed on read</h3>
 <div class="fr"><p><b class="id">FR-10.1</b>Test status is <strong>derived from the clock on every read</strong>. A test dated today reads <code>LIVE</code> from 22:00 until midnight, <code>CLOSED</code> after. Unlock, entry-close and archive-unlock need no job and <strong>therefore cannot fail</strong>.</p></div>
 <div class="fr"><p><b class="id">FR-10.2</b>The leaderboard, ranks, accuracy, averages and streaks are <strong>computed on read</strong> from the attempts table. With five students this is a few dozen rows. Nothing is precomputed, so nothing can go stale — and a rescore needs no cache invalidation.</p></div>
-<p>Writes that must land together — saving a paper, starting an attempt, a key correction with its rescore — are each one Postgres function in <code>supabase/migrations/</code>, so each is all or nothing. Those functions are callable with the service-role key only.</p>
+<p>Writes that must land together — saving a paper, starting an attempt, a key correction with its rescore — are each one Postgres function in <code>supabase/migrations/</code>, so each is all or nothing. Those functions are callable with the secret key only.</p>
 <div class="tw"><table>
 <tr><th>Cron</th><th class="n">Time</th><th>Work</th></tr>
 <tr><td>Finalise</td><td class="n">13:00, 01:00</td><td>Force-submit and score any attempt still in progress. That is the whole job, and the admin can also run it on demand.</td></tr>
@@ -736,7 +736,7 @@ html{scroll-behavior:smooth}
 <div class="fr"><p><b class="id">FR-10.3</b>The job is <strong>idempotent</strong> — re-running produces identical output — and can be triggered manually from the admin console.</p></div>
 <p><strong>The v1.1 publish-reminder job is dropped.</strong> With no SMTP configured there is nowhere to send a reminder, so it would have needed a whole notification channel to be useful. Instead the admin dashboard shows tonight's status — <strong>Scheduled</strong> or <strong>Not scheduled</strong> — as its first element. For the reminder itself, a recurring 21:45 phone alarm does the job with no code.</p>
 <h3>The one security rule</h3>
-<div class="fr"><p><b class="id">FR-10.4</b><strong>Never query Supabase from the browser.</strong> All database access happens in server code using the service-role key, held in a server-only environment variable. Row Level Security is enabled on every table with <strong>deny-all</strong> policies as a backstop, so a leaked anon key reads nothing.</p></div>
+<div class="fr"><p><b class="id">FR-10.4</b><strong>Never query Supabase from the browser.</strong> All database access happens in server code using the secret key &mdash; <code>sb_secret_...</code>, or the legacy <code>service_role</code> key it replaces &mdash; held in a server-only environment variable. Row Level Security is enabled on every table with <strong>deny-all</strong> policies as a backstop, so the publishable key the browser does hold reads nothing.</p></div>
 <p>Deliberately simpler than per-table RLS policies. With six accounts, writing and debugging fine-grained policies is more risk than it removes — and one memorable rule is easier to follow correctly than a dozen policies.</p>
 </div></section>
 
@@ -787,7 +787,7 @@ html{scroll-behavior:smooth}
 <div class="fr"><p><b class="id">FR-13.1</b>Correct answers and solutions are <strong>never sent to the client during a live test</strong>, in any payload, including for questions already answered. The test API returns questions and options only.</p></div>
 <ul>
 <li>Password hashing and sessions are <strong>Supabase Auth's responsibility</strong>. No custom crypto.</li>
-<li>All database access is server-side with the service-role key; RLS deny-all as a backstop.</li>
+<li>All database access is server-side with the secret key; RLS deny-all as a backstop.</li>
 <li>Admin routes gated by role server-side, not by route obscurity.</li>
 <li>Rate limits on login, response writes and paper upload. Uploads restricted by MIME type and size.</li>
 <li><strong>Minimal PII</strong> — a username, a display name, and a synthetic internal address that receives no mail.</li>
@@ -851,7 +851,7 @@ html{scroll-behavior:smooth}
 
 <div class="good">
   <h4>The one thing still unproven</h4>
-  <p>The schema and its functions are exercised against real Postgres, and 364 tests cover the pure logic. What has never run is the layer that talks to Supabase over the network: the queries in <code>lib/repo/</code>, signing in, and reading an image out of Storage. The engineering reference has a ten-minute walkthrough that exercises nearly all of it.</p>
+  <p>The schema and its functions are exercised against real Postgres, and 374 tests cover the pure logic. What has never run is the layer that talks to Supabase over the network: the queries in <code>lib/repo/</code>, signing in, and reading an image out of Storage. The engineering reference has a ten-minute walkthrough that exercises nearly all of it.</p>
 </div>
 </div></section>
 

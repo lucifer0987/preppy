@@ -102,27 +102,27 @@ export default async function AdminHome({
           Upload a paper
         </Link>
         <Link href="/admin/papers"
-              className="rounded-control border-2 border-line-strong px-5 py-3 font-bold transition hover:border-accent">
+              className="btn btn-quiet hover:border-accent hover:text-accent">
           All papers
         </Link>
         <Link href="/admin/window"
-              className="rounded-control border-2 border-line-strong px-5 py-3 font-bold transition hover:border-accent">
+              className="btn btn-quiet hover:border-accent hover:text-accent">
           Nightly window
         </Link>
         <Link href="/admin/pattern"
-              className="rounded-control border-2 border-line-strong px-5 py-3 font-bold transition hover:border-accent">
+              className="btn btn-quiet hover:border-accent hover:text-accent">
           Paper pattern
         </Link>
         <Link href="/admin/users"
-              className="rounded-control border-2 border-line-strong px-5 py-3 font-bold transition hover:border-accent">
+              className="btn btn-quiet hover:border-accent hover:text-accent">
           People
         </Link>
         <Link href="/admin/attempts"
-              className="rounded-control border-2 border-line-strong px-5 py-3 font-bold transition hover:border-accent">
+              className="btn btn-quiet hover:border-accent hover:text-accent">
           Attempts
         </Link>
         <a href="/api/admin/export"
-           className="rounded-control border-2 border-line-strong px-5 py-3 font-bold transition hover:border-accent">
+           className="btn btn-quiet hover:border-accent hover:text-accent">
           Export question bank
         </a>
       </div>

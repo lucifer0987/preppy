@@ -70,7 +70,7 @@ export function PatternForm({ current, latestEntryClose }: {
       <div className="mt-5 rounded-control bg-surface-sunken p-4">
         <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">What a paper becomes</p>
         {!numbers || !sane ? (
-          <p className="mt-2 text-sm font-semibold text-notanswered">
+          <p className="mt-2 text-sm font-semibold text-bad">
             Every box needs a number: whole questions and minutes, marks above zero, a penalty of zero or more.
           </p>
         ) : (
@@ -87,12 +87,12 @@ export function PatternForm({ current, latestEntryClose }: {
               ))}
             </ul>
             {tooLong && (
-              <p className="mt-3 text-sm font-semibold text-notanswered">
+              <p className="mt-3 text-sm font-semibold text-bad">
                 {totals.minutes} minutes is longer than the {8 * 60} a single paper may run.
               </p>
             )}
             {!tooLong && overrunsTheDay && (
-              <p className="mt-3 text-sm font-semibold text-notanswered">
+              <p className="mt-3 text-sm font-semibold text-bad">
                 A {totals.minutes}-minute paper cannot finish before midnight if entry stays open as
                 late as it does now. Move the last entry time earlier on the window screen first.
               </p>
@@ -133,7 +133,7 @@ function Cell({ name, value, step, min, max, onChange, label, last }: {
       <input
         type="number" name={name} value={value} step={step} min={min} max={max} required
         aria-label={label} onChange={onChange}
-        className="w-20 rounded-xl border-2 border-line-strong px-2.5 py-1.5 text-base font-semibold tabular-nums"
+        className="field w-20 tabular-nums"
       />
     </td>
   )

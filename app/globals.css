@@ -112,6 +112,11 @@
   --warn: var(--color-warn-500);
   --bad: var(--color-bad-500);
   --gold: var(--color-gold-500);
+  /* Mark for review, and move on. Kept as tokens because they are used as
+     text and border colour on the one screen a student sits in for 45
+     minutes, and the fixed fills are too dark to read on a dark page. */
+  --mark: #7128bc;
+  --go: #26890c;
 
   --shadow-card: var(--shadow-low);
   --shadow-float: var(--shadow-mid);
@@ -145,6 +150,8 @@
     --warn: var(--color-warn-400);
     --bad: var(--color-bad-400);
     --gold: var(--color-gold-300);
+    --mark: #b98cf0;
+    --go: #4ec22e;
 
     --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4);
     --shadow-float: 0 8px 24px -8px rgb(0 0 0 / 0.6);
@@ -177,6 +184,9 @@
   --warn: var(--color-warn-400);
   --bad: var(--color-bad-400);
   --gold: var(--color-gold-300);
+  /* The test screen's two outline buttons, light enough to read on a dark page. */
+  --mark: #b98cf0;
+  --go: #4ec22e;
 
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4);
   --shadow-float: 0 8px 24px -8px rgb(0 0 0 / 0.6);
@@ -202,6 +212,8 @@
   --color-warn: var(--warn);
   --color-bad: var(--bad);
   --color-gold: var(--gold);
+  --color-mark: var(--mark);
+  --color-go: var(--go);
 }
 
 /*
@@ -307,10 +319,58 @@ h2, h3 { text-wrap: balance; }
   color: var(--text-on-brand);
   box-shadow: var(--shadow-brand);
 }
+/*
+  A button sitting on a brand panel. Fixed white on fixed violet in both themes,
+  because the panel under it is a fixed colour too -- a themed background here
+  turns dark in dark mode and the violet label disappears into it.
+*/
+@utility btn-invert {
+  background: #ffffff;
+  color: var(--color-brand-800);
+}
 @utility btn-quiet {
   background: var(--surface);
   color: var(--text);
   border: 1px solid var(--line-strong);
+}
+
+/*
+  Any text input, select or textarea.
+  
+  Background and colour are explicit rather than left to the browser: with
+  color-scheme following the theme, an unstyled input gets the user agent's dark
+  chrome and its own idea of what the text colour should be, which does not
+  necessarily match the page around it.
+*/
+@utility field {
+  width: 100%;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  padding: 0.6rem 0.8rem;
+  font: inherit;
+  line-height: 1.4;
+  transition: border-color .15s, box-shadow .15s;
+
+  &::placeholder { color: var(--text-faint); }
+  &:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 18%, transparent);
+  }
+  &:disabled { opacity: .55; cursor: default; }
+}
+
+/* A small fixed-brand badge: white on violet, the same in both themes. */
+@utility pill-brand {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: var(--color-brand-800);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
 }
 
 /* Status pill. The word carries the meaning; colour only reinforces it. */

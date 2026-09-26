@@ -45,8 +45,8 @@ describe('the answer key stays on the server', () => {
   it('lets a client component import types from the data layer, but never values', () => {
     // The other half of the rule. `import type` is erased before anything is
     // bundled, so a client file may name AttemptSnapshot; a value import would
-    // pull the server module -- and the service-role key with it -- into the
-    // browser. Writing it as `import type` rather than `import { type X }` also
+    // pull the server module -- and the secret key with it -- into the browser.
+    // Writing it as `import type` rather than `import { type X }` also
     // keeps it safe if verbatimModuleSyntax is ever turned on, which would make
     // the second form emit a real runtime import.
     const walk = (dir: string): string[] =>

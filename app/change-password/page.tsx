@@ -28,7 +28,7 @@ export default async function ChangePasswordPage() {
       </p>
 
       <div className="mt-4 flex gap-4 text-sm font-bold">
-        {!forced && <Link href="/dashboard" className="text-play-purple underline">Back</Link>}
+        {!forced && <Link href="/dashboard" className="text-accent underline">Back</Link>}
         <form action={logoutAction}>
           <button className="text-ink-soft underline">Log out</button>
         </form>

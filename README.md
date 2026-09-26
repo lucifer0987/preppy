@@ -26,7 +26,7 @@ network, nothing to install. Double-click, or `open docs/architecture.html`.
 
 ```bash
 npm install
-npm test          # 364 tests, no database needed
+npm test          # 374 tests, no database needed
 npm run dev       # http://localhost:3000
 ```
 
@@ -36,15 +36,43 @@ commands alone.
 
 ## Commands
 
+Every script in `package.json`. The `--` before a flag is npm's own: it means
+"pass the rest through to the script".
+
 ```bash
-npm run dev                    # develop
-npm run build:prod             # typecheck + tests + production build
-npm run build:local            # production build with source maps, for debugging
-npm test                       # 364 tests
-npm run check -- paper.json    # validate a paper, app not required
-npm run migrate                # apply pending database migrations (run after pulling)
-npm run migrate -- --status    # what has been applied, what has not
-npm run seed                   # create the accounts, print passwords once
+# every day
+npm run dev                     # dev server on :3000, reloads as you edit
+npm test                        # 374 tests, no database needed
+npm run typecheck               # types only, no build
+
+# the database
+npm run migrate                 # apply pending migrations — run after pulling
+npm run migrate -- --status     # what has landed and what has not; changes nothing
+npm run migrate -- --print      # print the SQL instead, to paste into Supabase
+npm run seed                    # create missing accounts, print passwords ONCE
+npm run seed -- --reset         # new passwords for all six, and sign every device out
+
+# papers
+npm run check -- paper.json     # validate a paper file; app not required
+npm run build:format            # rewrite format/template.json from the shipped pattern
+
+# builds
+npm run build:local             # preflight + build, source maps kept, for debugging
+npm run start:local             # serve that build
+npm run build:prod              # preflight + typecheck + tests + build, no source maps
+npm run start:prod              # serve the production build
+npm run build                   # alias for build:prod — this is what Vercel runs
+npm run start                   # alias for start:prod
+
+# odds and ends
+npm run secret                  # a random string for CRON_SECRET
+```
+
+Two useful things that are not scripts:
+
+```bash
+npx tsx --env-file=.env.local scripts/preflight.ts local   # is .env.local right?
+npx tsx scripts/check-bundle.ts                            # scan an existing build
 ```
 
 ## Layout
@@ -57,7 +85,7 @@ npm run seed                   # create the accounts, print passwords once
 | `lib/repo/` | The only place Supabase is called |
 | `supabase/migrations/` | The schema, in two numbered files: `0001_baseline.sql` and everything since. `npm run migrate` applies whatever your database is missing |
 | `format/` | A worked paper, a blank template, and a JSON Schema. Both papers state their own shape, so they keep validating whatever the default pattern is set to |
-| `tests/` | 364 tests, including the schema run on real Postgres |
+| `tests/` | 374 tests, including the schema run on real Postgres |
 | `docs/` | The three documents above |
 
 ## The look
@@ -75,10 +103,18 @@ does, and components address only the semantic names. **Never use `bg-white`,
 ## The one security rule
 
 **Never query Supabase from the browser.** Every read and write happens in
-server code holding the service-role key. A file starting with `'use client'`
-must not import anything under `lib/supabase/` or `lib/repo/`. Three things
-enforce it: `server-only` imports, row-level security denying everything by
-default, and a bundle scan that fails the build.
+server code holding the **secret key** — `sb_secret_…`, or the legacy
+`service_role` key it replaces. A file starting with `'use client'` must not
+import anything under `lib/supabase/` or `lib/repo/`; it may import a *type*
+from there, because type imports are erased before anything is bundled.
+
+Three things enforce it: `server-only` imports, row-level security denying
+everything by default, and a bundle scan that fails the build if the key or its
+name appears in `.next/static`.
+
+The browser does hold the **publishable key** (`sb_publishable_…`, formerly
+`anon`). That is by design and safe: with deny-all policies on every table it
+reads nothing on its own.
 
 ## Known limit
 

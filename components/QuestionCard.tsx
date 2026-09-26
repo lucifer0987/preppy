@@ -81,10 +81,10 @@ export function QuestionCard({
                 </span>
                 <span className="flex-1 leading-relaxed">{question.options[label]}</span>
                 {isCorrect && (
-                  <span className="chip shrink-0 border-answered/30 bg-answered/15 text-answered">Correct</span>
+                  <span className="chip shrink-0 border-answered/30 bg-answered/15 text-good">Correct</span>
                 )}
                 {isWrongPick && (
-                  <span className="chip shrink-0 border-notanswered/30 bg-notanswered/15 text-notanswered">
+                  <span className="chip shrink-0 border-notanswered/30 bg-notanswered/15 text-bad">
                     Your answer
                   </span>
                 )}

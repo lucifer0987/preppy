@@ -87,7 +87,7 @@ export default async function Home() {
         <div className="mt-10">
           <Link
             href="/login"
-            className="inline-block rounded-control bg-surface px-8 py-4 text-lg font-black text-play-purple transition hover:bg-surface/90"
+            className="btn btn-invert inline-block px-8 py-4 text-lg transition hover:bg-white/90"
           >
             Log in
           </Link>

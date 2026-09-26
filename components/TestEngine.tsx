@@ -559,7 +559,7 @@ function FullscreenGate({ exits, onReturn }: { exits: number; onReturn: () => vo
       <button
         onClick={onReturn}
         autoFocus
-        className="rounded-control bg-surface px-8 py-4 text-lg font-black text-play-purple"
+        className="btn btn-invert px-8 py-4 text-lg"
       >
         Go back to full screen
       </button>
@@ -612,7 +612,7 @@ function ConfirmDialog({
           <Row label="Not reached" value={tally.notReached} />
         </dl>
         <div className="mt-6 flex gap-2">
-          <button onClick={onCancel} autoFocus className="flex-1 rounded-control border-2 border-line-strong px-5 py-3 font-bold">
+          <button onClick={onCancel} autoFocus className="flex-1 btn btn-quiet px-5 py-3">
             Go back
           </button>
           <button onClick={onConfirm} className="flex-1 rounded-control bg-play-purple px-5 py-3 font-black text-white">
@@ -642,10 +642,12 @@ function Btn({
   tone?: 'primary' | 'mark' | 'next'
   className?: string
 }) {
+  // mark and go are tokens rather than the fixed palette fills: these are text
+  // and border colours, and the fills are too dark to read on a dark page.
   const style =
     tone === 'primary' ? 'bg-play-purple text-white hover:bg-play-purple-deep border-play-purple'
-    : tone === 'mark' ? 'border-marked text-marked hover:bg-marked/10'
-    : tone === 'next' ? 'border-play-green text-play-green hover:bg-play-green/10'
+    : tone === 'mark' ? 'border-mark text-mark hover:bg-mark/10'
+    : tone === 'next' ? 'border-go text-go hover:bg-go/10'
     : 'border-line-strong text-ink-soft hover:border-accent'
   return (
     <button

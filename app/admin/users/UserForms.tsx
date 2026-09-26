@@ -33,7 +33,7 @@ export function CreateUserForm() {
         <label className="block">
           <span className="eyebrow">Role</span>
           <select name="role" defaultValue="student"
-                  className="mt-1.5 w-full rounded-xl border-2 border-line bg-surface px-3 py-2.5">
+                  className="field mt-1.5">
             <option value="student">Student</option>
             <option value="admin">Admin</option>
           </select>
@@ -59,9 +59,9 @@ export function ResetPasswordForm({ userId, username }: { userId: string; userna
     <>
       <form action={action}>
         <input type="hidden" name="userId" value={userId} />
-        <button className="text-xs font-bold text-play-purple underline">Reset password</button>
+        <button className="text-xs font-bold text-accent underline">Reset password</button>
       </form>
-      {state.error && <p className="mt-1 text-xs font-semibold text-notanswered">{state.error}</p>}
+      {state.error && <p className="mt-1 text-xs font-semibold text-bad">{state.error}</p>}
       {state.credential && state.credential.username === username && (
         <Credential credential={state.credential} />
       )}
@@ -75,7 +75,7 @@ function Field({ name, label, placeholder }: { name: string; label: string; plac
       <span className="eyebrow">{label}</span>
       <input
         name={name} required placeholder={placeholder}
-        className="mt-1.5 w-full rounded-xl border-2 border-line bg-surface px-3 py-2.5
+        className="field mt-1.5
                    outline-none transition focus:border-play-purple"
       />
     </label>

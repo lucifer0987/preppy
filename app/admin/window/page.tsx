@@ -19,7 +19,7 @@ export default async function WindowPage() {
 
   return (
     <>
-      <Link href="/admin" className="text-sm font-bold text-play-purple">&larr; Admin</Link>
+      <Link href="/admin" className="text-sm font-bold text-accent">&larr; Admin</Link>
       <h1 className="mt-4 text-3xl font-black tracking-tight">Nightly window</h1>
       <p className="mt-1 text-ink-soft">
         The times a new paper is offered when you schedule it. Each paper keeps its own window, so
@@ -46,7 +46,7 @@ export default async function WindowPage() {
       <WindowForm current={current} attemptMinutes={attemptMinutes} />
 
       <p className="mt-6 text-sm">
-        <Link href="/admin/pattern" className="font-bold text-play-purple underline">
+        <Link href="/admin/pattern" className="font-bold text-accent underline">
           Paper pattern &rarr;
         </Link>{' '}
         <span className="text-ink-soft">
@@ -55,7 +55,7 @@ export default async function WindowPage() {
         </span>
       </p>
 
-      <section className="mt-6 rounded-card border-2 border-dashed border-line p-5">
+      <section className="mt-6 rounded-card border border-dashed border-line p-5">
         <h2 className="eyebrow">
           What changing these does not affect
         </h2>

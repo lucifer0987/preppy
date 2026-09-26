@@ -5,8 +5,12 @@ import { publicEnv } from '../env'
 
 /**
  * A request-scoped client used only for authentication: sign in, sign out and
- * reading who is logged in. Application data never goes through it — that is
- * the service-role client's job (see admin.ts).
+ * reading who is logged in. It holds the publishable key, which reads no
+ * application data on its own because every table denies by default. Data goes
+ * through the secret-key client instead (see admin.ts).
+ *
+ * "Middleware" below is proxy.ts: Next.js 16 renamed it, and it is what refreshes
+ * the session cookie a Server Component cannot write.
  */
 export async function authClient() {
   const store = await cookies()

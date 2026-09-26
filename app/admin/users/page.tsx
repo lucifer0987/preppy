@@ -14,7 +14,7 @@ export default async function UsersPage() {
 
   return (
     <>
-      <Link href="/admin" className="text-sm font-bold text-play-purple">&larr; Admin</Link>
+      <Link href="/admin" className="text-sm font-bold text-accent">&larr; Admin</Link>
       <h1 className="mt-4 text-3xl font-black tracking-tight">People</h1>
       <p className="mt-1 text-ink-soft">
         There is no sign-up. Accounts exist only because you created them.
@@ -43,7 +43,7 @@ export default async function UsersPage() {
                 <td className="py-3 pr-3">{u.displayName}</td>
                 <td className="py-3 pr-3">
                   {u.role === 'admin' ? (
-                    <span className="rounded-full bg-play-purple px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-white">
+                    <span className="pill-brand px-2 py-0.5 text-[10px] uppercase tracking-widest">
                       admin
                     </span>
                   ) : (
@@ -52,7 +52,7 @@ export default async function UsersPage() {
                 </td>
                 <td className="py-3 px-2 text-right tabular-nums">
                   {u.role === 'admin' ? '—' : (
-                    <Link href={`/admin/attempts?user=${u.id}`} className="font-bold text-play-purple underline"
+                    <Link href={`/admin/attempts?user=${u.id}`} className="font-bold text-accent underline"
                           aria-label={`${u.attemptCount} papers: see ${u.displayName}'s attempts`}>
                       {u.attemptCount}
                     </Link>
@@ -63,8 +63,8 @@ export default async function UsersPage() {
                 </td>
                 <td className="py-3 pr-3">
                   {u.isActive
-                    ? <span className="text-answered">active</span>
-                    : <span className="text-notanswered">inactive</span>}
+                    ? <span className="text-good">active</span>
+                    : <span className="text-bad">inactive</span>}
                   {u.mustChangePassword && (
                     <span className="block text-[10px] uppercase tracking-widest text-ink-soft">
                       must change password

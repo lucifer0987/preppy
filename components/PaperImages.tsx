@@ -27,12 +27,12 @@ function PaperImage({ testId, name }: { testId: string; name: string }) {
 
   if (failed) {
     return (
-      <div role="alert" className="flex flex-wrap items-center gap-3 rounded-xl border-2 border-dashed border-line-strong bg-surface-sunken px-4 py-6 text-sm">
+      <div role="alert" className="flex flex-wrap items-center gap-3 rounded-xl border border-dashed border-line-strong bg-surface-sunken px-4 py-6 text-sm">
         <span className="font-semibold">The figure &ldquo;{name}&rdquo; did not load.</span>
         <button
           type="button"
           onClick={() => { setFailed(false); setAttempt((n) => n + 1) }}
-          className="rounded-lg border-2 border-line-strong px-3 py-1 font-bold"
+          className="btn btn-quiet px-3 py-1"
         >
           Retry
         </button>

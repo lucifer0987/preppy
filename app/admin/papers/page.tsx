@@ -23,7 +23,7 @@ export default async function PapersPage() {
       </div>
 
       {papers.length === 0 ? (
-        <p className="mt-8 rounded-card border-2 border-dashed border-line-strong p-8 text-center text-ink-soft">
+        <p className="mt-8 rounded-card border border-dashed border-line-strong p-8 text-center text-ink-soft">
           No papers yet. Upload one to get started.
         </p>
       ) : (

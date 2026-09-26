@@ -214,7 +214,7 @@ file has to exist before anything can be written into it.</p>
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>node -v</b>            <i># needs v20 or newer</i>
 <b>npm install</b>
-<b>npm test</b>           <i># 364 passing means the code is sound</i></pre>
+<b>npm test</b>           <i># 374 passing means the code is sound</i></pre>
 </div>
 
 <h3>2 &middot; The Supabase project</h3>
@@ -229,7 +229,8 @@ after this writes into it.</p>
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>cp -n .env.example .env.local</b>   <i># -n so it cannot overwrite a filled-in one</i></pre>
 </div>
-<p>Four values, from two places in the dashboard:</p>
+<p>Four values, from two places in the dashboard. <code>CRON_SECRET</code> stays
+blank until you deploy.</p>
 <div class="tw"><table>
 <thead><tr><th>Line in <code>.env.local</code></th><th>Where</th></tr></thead>
 <tbody>
@@ -247,7 +248,10 @@ after this writes into it.</p>
   (<code>sb_publishable_...</code>, <code>sb_secret_...</code>) and the legacy pair
   it is replacing (long JWTs starting <code>eyJ</code>, labelled <code>anon</code>
   and <code>service_role</code>). Prefer the current ones. The app takes either
-  &mdash; fill in whichever pair you have and leave the other two lines blank.</p>
+  name for either slot, so fill in whichever pair you have.</p>
+  <p><code>.env.local</code> carries the current names as live lines with the
+  legacy names commented out beneath them. If yours are the legacy ones, swap
+  which of the two is commented.</p>
 </div>
 
 <div class="note never">
@@ -355,7 +359,7 @@ badge.</p>
 <h2><i>4</i>Shipping a change</h2>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
-<pre><b>npm run build:prod</b>      <i># preflight + typecheck + 364 tests + build</i>
+<pre><b>npm run build:prod</b>      <i># preflight + typecheck + 374 tests + build</i>
 <b>git add -A &amp;&amp; git commit -m "what changed"</b>
 <b>git push</b>                 <i># Vercel deploys by itself</i></pre>
 </div>
@@ -371,7 +375,7 @@ badge.</p>
 <p>A <strong>second</strong> Supabase project, <code>preppy-prod</code>. Never point your laptop at it.</p>
 
 <ol>
-<li>Same three dashboard steps as section 1, in the new project.</li>
+<li>Repeat steps 2, 4 and 5 of section 1 in the new project &mdash; create it, apply the two migrations, turn off email confirmation. Its keys go into Vercel rather than into <code>.env.local</code>.</li>
 <li><code>npm run secret</code> &rarr; copy the value.</li>
 <li>Push to GitHub, then import the repository into Vercel.</li>
 <li>In Vercel &rarr; <strong>Environment Variables</strong>, add four, all from <strong>preppy-prod</strong>:
@@ -387,7 +391,7 @@ badge.</p>
 <li>Seed production once:
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
-<pre><i># .env.prod.local holds the PRODUCTION url + service-role key</i>
+<pre><i># .env.prod.local holds the PRODUCTION url + secret key</i>
 <b>npx tsx --env-file=.env.prod.local supabase/seed.ts</b>
 <b>rm .env.prod.local</b></pre>
 </div>
@@ -402,23 +406,77 @@ badge.</p>
 
 <section id="c6"><div class="col">
 <h2><i>6</i>All commands</h2>
+
+<p class="sub">Every script in <code>package.json</code>, grouped by when you
+reach for it. The <code>--</code> before a flag is npm's, not the script's: it
+means "pass the rest through".</p>
+
+<h3>Every day</h3>
 <div class="tw"><table>
-<tr><th>Command</th><th>What it does</th></tr>
-<tr><td><code>npm run dev</code></td><td>Development server, reloads as you edit</td></tr>
-<tr><td><code>npm test</code></td><td>364 tests. No database needed</td></tr>
-<tr><td><code>npm run typecheck</code></td><td>Types only, no build</td></tr>
-<tr><td><code>npm run build:local</code></td><td>Production build with source maps, for debugging</td></tr>
-<tr><td><code>npm run start:local</code></td><td>Serves that build</td></tr>
-<tr><td><code>npm run build:prod</code></td><td>Typecheck + tests + build, no source maps</td></tr>
-<tr><td><code>npm run start:prod</code></td><td>Serves the production build</td></tr>
-<tr><td><code>npm run check -- &lt;file&gt;</code></td><td>Validates a paper, app not needed</td></tr>
-<tr><td><code>npm run seed</code></td><td>Creates the accounts, prints passwords once</td></tr>
-<tr><td><code>npm run seed -- --reset</code></td><td>Fresh passwords for everyone</td></tr>
-<tr><td><code>npm run migrate</code></td><td>Applies pending migrations</td></tr>
-<tr><td><code>npm run migrate -- --status</code></td><td>What is applied, what is pending</td></tr>
-<tr><td><code>npm run migrate -- --print</code></td><td>Prints the pending SQL instead of running it</td></tr>
-<tr><td><code>npm run secret</code></td><td>A random string for <code>CRON_SECRET</code></td></tr>
+<thead><tr><th>Command</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>npm run dev</code></td><td>Development server on port 3000, reloads as you edit. Restart it after editing <code>.env.local</code></td></tr>
+<tr><td><code>npm test</code></td><td>374 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm run typecheck</code></td><td>Types only, no build. Faster than a build when you just want to know it compiles</td></tr>
+</tbody>
 </table></div>
+
+<h3>The database</h3>
+<div class="tw"><table>
+<thead><tr><th>Command</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>npm run migrate</code></td><td>Applies every pending migration, in order. Run it after pulling new code</td></tr>
+<tr><td><code>npm run migrate -- --status</code></td><td>What has been applied and what has not. Changes nothing, safe any time</td></tr>
+<tr><td><code>npm run migrate -- --print</code></td><td>Prints the pending SQL instead of running it, for pasting into the Supabase SQL editor. Needs no password</td></tr>
+<tr><td><code>npm run seed</code></td><td>Creates any missing accounts and prints their passwords <strong>once</strong></td></tr>
+<tr><td><code>npm run seed -- --reset</code></td><td>New passwords for all six, reactivates them, and signs every device out. Use it if a password leaks</td></tr>
+</tbody>
+</table></div>
+
+<h3>Papers</h3>
+<div class="tw"><table>
+<thead><tr><th>Command</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>npm run check -- &lt;file&gt;</code></td><td>Validates a paper file and prints every problem with its path. The app does not need to be running</td></tr>
+<tr><td><code>npm run build:format</code></td><td>Rewrites <code>format/template.json</code> from the pattern in the code. You will rarely need it &mdash; for a template matching a pattern you have <em>changed</em>, use <strong>Download a blank template</strong> on the admin Paper pattern screen</td></tr>
+</tbody>
+</table></div>
+
+<h3>Builds</h3>
+<div class="tw"><table>
+<thead><tr><th>Command</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>npm run build:local</code></td><td>Preflight, then a build that keeps source maps so a stack trace names real files. For reproducing something locally</td></tr>
+<tr><td><code>npm run start:local</code></td><td>Serves that build on port 3000</td></tr>
+<tr><td><code>npm run build:prod</code></td><td>Preflight, typecheck, all 374 tests, then a build with no source maps. Any failure stops it</td></tr>
+<tr><td><code>npm run start:prod</code></td><td>Serves the production build</td></tr>
+<tr><td><code>npm run build</code></td><td>The same as <code>build:prod</code>. This is what Vercel runs</td></tr>
+<tr><td><code>npm run start</code></td><td>The same as <code>start:prod</code></td></tr>
+</tbody>
+</table></div>
+
+<h3>Odds and ends</h3>
+<div class="tw"><table>
+<thead><tr><th>Command</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>npm run secret</code></td><td>A random string for <code>CRON_SECRET</code></td></tr>
+<tr><td><code>npm install</code></td><td>Installs dependencies. Safe to re-run at any time</td></tr>
+</tbody>
+</table></div>
+
+<div class="note why">
+  <h4>Two useful things that are not npm scripts</h4>
+  <p>Preflight on its own, which is the quickest way to find out whether
+  <code>.env.local</code> is right. It names the variable and the dashboard page
+  for anything missing or wrong:</p>
+  <div class="term">
+    <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>npx tsx --env-file=.env.local scripts/preflight.ts local</b></pre>
+  </div>
+  <p>And the bundle scan, which normally runs as the last step of a build, against
+  a build you already have: <code>npx tsx scripts/check-bundle.ts</code>. It needs
+  something to look at and says so if there is nothing.</p>
+</div>
 </div></section>
 
 <section id="c7"><div class="col">

@@ -21,13 +21,13 @@ export default async function AttemptsPage({
 
   return (
     <>
-      <Link href="/admin" className="text-sm font-bold text-play-purple">&larr; Admin</Link>
+      <Link href="/admin" className="text-sm font-bold text-accent">&larr; Admin</Link>
       <h1 className="mt-4 text-3xl font-black tracking-tight">
         {person ? `${person.display_name}'s attempts` : 'Attempts'}
       </h1>
       <p className="mt-1 text-ink-soft">
         Score, duration and the two integrity counters. Nothing else is recorded.
-        {(user || test) && <> <Link href="/admin/attempts" className="font-bold text-play-purple underline">Show everyone</Link></>}
+        {(user || test) && <> <Link href="/admin/attempts" className="font-bold text-accent underline">Show everyone</Link></>}
       </p>
 
       {error && <p role="alert" className="mt-4 rounded-control bg-notanswered px-5 py-3 font-semibold text-white">{error}</p>}
@@ -38,7 +38,7 @@ export default async function AttemptsPage({
       )}
 
       {groups.length === 0 ? (
-        <p className="mt-8 rounded-card border-2 border-dashed border-line-strong p-8 text-center text-ink-soft">
+        <p className="mt-8 rounded-card border border-dashed border-line-strong p-8 text-center text-ink-soft">
           Nobody has sat a paper yet.
         </p>
       ) : (
@@ -83,16 +83,16 @@ export default async function AttemptsPage({
                         <td className="py-2.5 px-2 text-right font-bold">
                           {a.totalScore === null ? '—' : a.totalScore.toFixed(2)}
                         </td>
-                        <td className="py-2.5 px-2 text-right text-answered">{a.correct ?? '—'}</td>
+                        <td className="py-2.5 px-2 text-right text-good">{a.correct ?? '—'}</td>
                         <td className="py-2.5 px-2 text-right text-ink-soft">{a.attempted ?? '—'}</td>
                         <td className="py-2.5 px-2 text-right text-ink-soft">{a.notReached ?? '—'}</td>
                         <td className="py-2.5 px-2 text-right text-ink-soft">
                           {a.timeSpentSec === null ? '—' : `${Math.round(a.timeSpentSec / 60)}m`}
                         </td>
-                        <td className={`py-2.5 px-2 text-right ${noisy ? 'font-bold text-notanswered' : 'text-ink-soft'}`}>
+                        <td className={`py-2.5 px-2 text-right ${noisy ? 'font-bold text-bad' : 'text-ink-soft'}`}>
                           {a.fullscreenExits}
                         </td>
-                        <td className={`py-2.5 px-2 text-right ${noisy ? 'font-bold text-notanswered' : 'text-ink-soft'}`}>
+                        <td className={`py-2.5 px-2 text-right ${noisy ? 'font-bold text-bad' : 'text-ink-soft'}`}>
                           {a.tabSwitches}
                         </td>
                         <td className="py-2.5 pr-3 text-ink-soft">{describe(a.state)}</td>

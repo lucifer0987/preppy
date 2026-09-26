@@ -41,12 +41,12 @@ export function BeginButton() {
         type="submit"
         onClick={onClick}
         disabled={busy}
-        className="w-full rounded-control bg-play-purple px-8 py-5 text-xl font-black text-white transition hover:bg-play-purple-deep disabled:opacity-60"
+        className="btn btn-primary w-full px-8 py-5 text-xl hover:bg-accent-hover disabled:opacity-60"
       >
         {busy ? 'Starting…' : 'Begin'}
       </button>
       {denied && (
-        <p role="alert" className="mt-3 text-center text-sm font-semibold text-notanswered">
+        <p role="alert" className="mt-3 text-center text-sm font-semibold text-bad">
           Your browser did not allow full screen, so the test has not started. Allow it and press
           Begin again.
         </p>

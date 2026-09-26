@@ -26,7 +26,7 @@ export function KeyEditor({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="text-xs font-bold text-play-purple underline"
+        className="text-xs font-bold text-accent underline"
       >
         Correct this key
       </button>
@@ -34,7 +34,7 @@ export function KeyEditor({
   }
 
   return (
-    <form action={correctKeyAction} className="mt-2 rounded-control border-2 border-play-purple/30 bg-play-purple/5 p-4">
+    <form action={correctKeyAction} className="mt-2 rounded-control border border-accent/40 bg-accent-soft p-4">
       <input type="hidden" name="testId" value={testId} />
       <input type="hidden" name="questionId" value={questionId} />
       <p className="text-sm font-bold">Q{questionNumber}: the answer is</p>
@@ -45,8 +45,7 @@ export function KeyEditor({
               type="radio" name="answer" value={l} checked={choice === l}
               onChange={() => setChoice(l)} className="peer sr-only"
             />
-            <span className="block rounded-xl border-2 border-line-strong px-4 py-2 font-bold
-                             peer-checked:border-play-purple peer-checked:bg-play-purple peer-checked:text-white">
+            <span className="block rounded-control border border-line-strong bg-surface px-4 py-2 font-bold transition peer-checked:border-play-purple peer-checked:bg-play-purple peer-checked:text-white">
               {l}
             </span>
           </label>
@@ -57,11 +56,11 @@ export function KeyEditor({
       </p>
       <div className="mt-3 flex gap-2">
         <button type="button" onClick={() => setOpen(false)}
-                className="rounded-xl border-2 border-line-strong px-4 py-2 text-sm font-bold">
+                className="field">
           Cancel
         </button>
         <button type="submit" disabled={choice === current}
-                className="rounded-xl bg-play-purple px-4 py-2 text-sm font-black text-white disabled:opacity-40">
+                className="btn btn-primary px-4 py-2 text-sm disabled:opacity-40">
           Change key and rescore
         </button>
       </div>

@@ -46,7 +46,7 @@ export function WindowForm(
       <div className="mt-5 rounded-control bg-surface-sunken p-4">
         <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">What students will see</p>
         {problem ? (
-          <p className="mt-2 text-sm font-semibold text-notanswered">{problem}</p>
+          <p className="mt-2 text-sm font-semibold text-bad">{problem}</p>
         ) : (
           <ul className="mt-2 space-y-1 text-sm">
             <li><strong>{labels!.opens}</strong> &mdash; paper unlocks</li>
@@ -109,8 +109,7 @@ function Box(props: {
     <input
       {...rest}
       type="number" name={name} value={value} min={0} max={max} required onChange={onChange}
-      className="w-20 rounded-xl border-2 border-line bg-surface px-3 py-2 text-center text-lg
-                 font-bold tabular-nums outline-none transition focus:border-play-purple"
+      className="field w-20 text-center text-lg font-bold tabular-nums"
     />
   )
 }

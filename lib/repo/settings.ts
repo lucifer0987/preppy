@@ -1,6 +1,7 @@
 import 'server-only'
 import { cache } from 'react'
 import { db } from '../supabase/admin'
+import { isConfigured } from '../env'
 import { DEFAULT_WINDOW, windowProblem, type WindowSettings } from '../time'
 import {
   DEFAULT_PATTERN, SECTION_CODES, SECTION_NAMES, patternTotals, type Pattern, type SectionCode,
@@ -37,6 +38,12 @@ function settingsUnavailable(table: string, message: string): void {
 }
 
 export const getWindow = cache(async (): Promise<WindowSettings> => {
+  // Before setup there is no database to ask, and db() throws for the missing
+  // key. The shipped default is the honest answer, and it is what the splash
+  // page needs in order to say when a paper would normally open. Without this
+  // the front page 500s on a fresh clone, which is the first thing anyone sees.
+  if (!isConfigured()) return DEFAULT_WINDOW
+
   const { data, error } = await db()
     .from('app_settings')
     .select('open_hour, open_minute, entry_close_hour, entry_close_minute')
@@ -65,6 +72,8 @@ export const getWindow = cache(async (): Promise<WindowSettings> => {
  * everybody's papers are already written to.
  */
 export const getPattern = cache(async (): Promise<Pattern> => {
+  if (!isConfigured()) return DEFAULT_PATTERN
+
   const { data, error } = await db()
     .from('default_sections')
     .select('code, position, question_count, duration_sec, marks_correct, marks_negative')
@@ -159,6 +168,7 @@ export async function savePattern(next: Pattern, adminId: string): Promise<void>
 
 /** Who last changed the pattern, and when: the most recent of the four rows. */
 export async function getPatternMeta(): Promise<{ updatedAt: string | null; updatedBy: string | null }> {
+  if (!isConfigured()) return { updatedAt: null, updatedBy: null }
   const { data } = await db()
     .from('default_sections')
     .select('updated_at, profiles:updated_by(display_name)')
@@ -190,6 +200,7 @@ export async function saveWindow(next: WindowSettings, adminId: string): Promise
 }
 
 export async function getWindowMeta(): Promise<{ updatedAt: string | null; updatedBy: string | null }> {
+  if (!isConfigured()) return { updatedAt: null, updatedBy: null }
   const { data } = await db()
     .from('app_settings')
     .select('updated_at, profiles:updated_by(display_name)')

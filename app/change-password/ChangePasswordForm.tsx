@@ -15,7 +15,7 @@ export function ChangePasswordForm() {
       <Field label="New password again" name="confirm" autoComplete="new-password" />
 
       {state.error && (
-        <p role="alert" className="rounded-xl bg-notanswered/10 px-4 py-3 text-sm font-semibold text-notanswered">
+        <p role="alert" className="rounded-xl bg-notanswered/10 px-4 py-3 text-sm font-semibold text-bad">
           {state.error}
         </p>
       )}
@@ -33,8 +33,7 @@ function Field({
       <span className="eyebrow">{label}</span>
       <input
         type="password" name={name} autoComplete={autoComplete} autoFocus={autoFocus} required
-        className="mt-1.5 w-full rounded-xl border-2 border-line bg-surface px-4 py-3 text-lg
-                   outline-none transition focus:border-play-purple"
+        className="field mt-1.5 text-lg"
       />
     </label>
   )

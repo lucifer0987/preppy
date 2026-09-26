@@ -23,7 +23,7 @@ export default async function ArchivePage() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
-      <Link href="/dashboard" className="text-sm font-bold text-play-purple">&larr; Dashboard</Link>
+      <Link href="/dashboard" className="text-sm font-bold text-accent">&larr; Dashboard</Link>
       <h1 className="mt-4 text-3xl font-black tracking-tight">Past papers</h1>
       <p className="mt-1 text-ink-soft">
         Every paper that has closed, with answers and solutions. Open one whether or not you sat it.
@@ -34,7 +34,7 @@ export default async function ArchivePage() {
           Past papers could not be loaded just now. Try again in a moment. ({failure})
         </p>
       ) : rows.length === 0 ? (
-        <p className="mt-8 rounded-card border-2 border-dashed border-line-strong p-8 text-center text-ink-soft">
+        <p className="mt-8 rounded-card border border-dashed border-line-strong p-8 text-center text-ink-soft">
           No papers have closed yet. They appear here from midnight on the night they run.
         </p>
       ) : (
@@ -55,7 +55,7 @@ export default async function ArchivePage() {
                       </span>
                       <span className="font-bold">{r.score?.toFixed(2)}</span>
                       {r.rank !== null ? (
-                        <span className="rounded-full bg-play-purple px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-white">
+                        <span className="pill-brand px-2.5 py-1 text-[10px] uppercase tracking-widest">
                           {ordinal(r.rank)} of {r.cohortSize}
                         </span>
                       ) : (

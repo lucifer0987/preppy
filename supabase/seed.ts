@@ -11,6 +11,7 @@
  * email to send them to, so copy them before closing the terminal.
  */
 import { createClient, type SupabaseClient, type User } from '@supabase/supabase-js'
+import { firstSet } from '../lib/env'
 import { generatePassword } from '../lib/password'
 import { usernameToEmail } from '../lib/username'
 
@@ -45,19 +46,22 @@ async function endSessions(admin: SupabaseClient, userId: string, username: stri
 }
 
 async function main() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKey = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !serviceKey) {
+  // firstSet, not ??: .env.example ships the alternative names as blank lines,
+  // and a blank would otherwise shadow the name that does have the key in it.
+  const url = firstSet(process.env.NEXT_PUBLIC_SUPABASE_URL)
+  const secretKey = firstSet(process.env.SUPABASE_SECRET_KEY, process.env.SUPABASE_SERVICE_ROLE_KEY)
+  if (!url || !secretKey) {
     console.error(
-      'Missing NEXT_PUBLIC_SUPABASE_URL, or SUPABASE_SECRET_KEY / SUPABASE_SERVICE_ROLE_KEY.\n' +
-      'Put them in .env.local, then run:  npm run seed\n' +
+      'Missing NEXT_PUBLIC_SUPABASE_URL, or SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY).\n' +
+      'Both are on Supabase -> Settings -> API Keys. Put them in .env.local, then:\n' +
+      '  npm run seed\n' +
       'See docs/setup.html.',
     )
     process.exit(2)
   }
 
   const reset = process.argv.includes('--reset')
-  const admin = createClient(url, serviceKey, { auth: { persistSession: false } })
+  const admin = createClient(url, secretKey, { auth: { persistSession: false } })
   const created: { username: string; password: string; role: string }[] = []
 
   for (const person of COHORT) {

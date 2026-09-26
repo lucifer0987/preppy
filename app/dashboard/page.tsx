@@ -110,7 +110,7 @@ export default async function Dashboard({
               />
             </div>
             <Link href={`/test/${attempt.id}`}
-                  className="mt-4 inline-block rounded-control bg-surface px-7 py-3.5 font-black text-play-purple">
+                  className="btn btn-invert mt-4 inline-block px-7 py-3.5">
               Resume test
             </Link>
           </>
@@ -137,7 +137,7 @@ export default async function Dashboard({
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
               <Link href={`/test/${attempt.id}/done`}
-                    className="inline-block rounded-control bg-surface px-7 py-3.5 font-black text-play-purple">
+                    className="btn btn-invert inline-block px-7 py-3.5">
                 See your result
               </Link>
               {paperClosed(openPaper!.window, now) && (
@@ -167,7 +167,7 @@ export default async function Dashboard({
               <Countdown targetIso={entryClosesAt(openPaper!.window).toISOString()} nowIso={nowIso} label="Entry closes in" />
             </div>
             <Link href={`/test/start?test=${tonight.id}`}
-                  className="mt-4 inline-block rounded-control bg-surface px-7 py-3.5 font-black text-play-purple">
+                  className="btn btn-invert mt-4 inline-block px-7 py-3.5">
               Start test
             </Link>
           </>
@@ -205,7 +205,7 @@ export default async function Dashboard({
       <section className="card p-6" aria-labelledby="archive-panel">
         <div className="flex items-baseline justify-between gap-4">
           <h2 id="archive-panel" className="eyebrow">Past papers</h2>
-          <Link href="/archive" className="text-sm font-bold text-play-purple">All papers &rarr;</Link>
+          <Link href="/archive" className="text-sm font-bold text-accent">All papers &rarr;</Link>
         </div>
         {archive === null ? (
           <p className="mt-3 text-sm text-ink-soft">Past papers could not be loaded just now.</p>
@@ -215,7 +215,7 @@ export default async function Dashboard({
           <ul className="mt-3 divide-y divide-black/10">
             {archive.slice(0, 5).map((a) => (
               <li key={a.testId}>
-                <Link href={`/archive/${a.testId}`} className="flex flex-wrap items-center gap-3 py-2.5 text-sm hover:text-play-purple">
+                <Link href={`/archive/${a.testId}`} className="flex flex-wrap items-center gap-3 py-2.5 text-sm hover:text-accent">
                   <span className="font-bold">{formatIstDate(a.date)}</span>
                   <span className="ml-auto flex items-center gap-3 tabular-nums">
                     {a.attemptId ? (
@@ -238,7 +238,7 @@ export default async function Dashboard({
       <section className="card p-6" aria-labelledby="board-panel">
         <div className="flex items-baseline justify-between gap-4 px-1">
           <h2 id="board-panel" className="eyebrow">Leaderboard</h2>
-          <Link href="/leaderboard" className="text-sm font-bold text-play-purple">Filters and podium &rarr;</Link>
+          <Link href="/leaderboard" className="text-sm font-bold text-accent">Filters and podium &rarr;</Link>
         </div>
         <div className="mt-3">
           {board === null

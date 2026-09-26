@@ -13,7 +13,7 @@ export function UploadForm() {
 
   return (
     <>
-      <form action={action} className="mt-6 rounded-card border-2 border-dashed border-line-strong bg-surface p-6">
+      <form action={action} className="mt-6 rounded-card border border-dashed border-line-strong bg-surface p-6">
         <label className="block">
           <span className="eyebrow">Paper file</span>
           <input
@@ -63,7 +63,7 @@ export function UploadForm() {
 
 function IssueList({ title, tone, issues }: { title: string; tone: 'error' | 'warning'; issues: Issue[] }) {
   if (!issues.length) return null
-  const accent = tone === 'error' ? 'text-notanswered' : 'text-play-yellow'
+  const accent = tone === 'error' ? 'text-bad' : 'text-warn'
   return (
     <section className="mt-4 rounded-control bg-surface p-5">
       <h2 className={`text-xs font-bold uppercase tracking-widest ${accent}`}>

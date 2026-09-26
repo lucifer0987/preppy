@@ -218,7 +218,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <div><dt>SQL functions</dt><dd>11</dd></div>
     <div><dt>Migrations</dt><dd>2</dd></div>
     <div><dt>Modules</dt><dd>30<small>lib/</small></dd></div>
-    <div><dt>Tests</dt><dd>364</dd></div>
+    <div><dt>Tests</dt><dd>374</dd></div>
     <div><dt>Runtime deps</dt><dd>8</dd></div>
   </dl>
 </header>
@@ -237,7 +237,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <p>That is a deliberate size. The system serves six accounts. Every extra moving part would be something that can break mid-paper while five people wait, in exchange for capacity nobody needs.</p>
 
 <figure>
-<svg viewBox="0 0 760 330" role="img" aria-label="The browser talks only to the Next.js server, which holds the service-role key and is the only thing that talks to Supabase Postgres, Auth and Storage.">
+<svg viewBox="0 0 760 330" role="img" aria-label="The browser talks only to the Next.js server, which holds the secret key and is the only thing that talks to Supabase Postgres, Auth and Storage.">
   <defs>
     <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
@@ -261,7 +261,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
   <text x="350" y="114" text-anchor="middle" font-size="11" fill="currentColor" opacity=".7">route handlers, cron</text>
   <rect x="270" y="132" width="160" height="34" rx="6" fill="#0E767F" opacity=".14"/>
   <text x="350" y="148" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor">holds the</text>
-  <text x="350" y="161" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor">service-role key</text>
+  <text x="350" y="161" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor">secret key</text>
   <text x="350" y="190" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".6">all business logic</text>
   <text x="350" y="206" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".6">lives here</text>
 
@@ -288,7 +288,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
   <line x1="382" y1="268" x2="352" y2="304" stroke="#94202B" stroke-width="2.5"/>
   <text x="400" y="296" font-size="11.5" font-weight="600" fill="#94202B">the browser never reaches Supabase directly</text>
 </svg>
-<figcaption><b>One rule shapes the whole system.</b> Every database read and write happens in server code holding the service-role key. The browser is handed HTML and JSON, never a database connection. Section 2 covers why, and what backs it up when someone forgets.</figcaption>
+<figcaption><b>One rule shapes the whole system.</b> Every database read and write happens in server code holding the secret key. The browser is handed HTML and JSON, never a database connection. Section 2 covers why, and what backs it up when someone forgets.</figcaption>
 </figure>
 
 <h3>What each piece does</h3>
@@ -303,7 +303,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 
 <div class="note why">
   <h4>Why no separate backend</h4>
-  <p>A Next.js server action <em>is</em> a backend endpoint: it runs on the server, it is POST-only, and it carries an origin check. Splitting the same logic into a second service would add a network hop, a second deploy, and a second place for the service-role key to live, and would buy nothing at this size.</p>
+  <p>A Next.js server action <em>is</em> a backend endpoint: it runs on the server, it is POST-only, and it carries an origin check. Splitting the same logic into a second service would add a network hop, a second deploy, and a second place for the secret key to live, and would buy nothing at this size.</p>
 </div>
 </div></section>
 
@@ -317,7 +317,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
   <p><strong>Never query Supabase from the browser.</strong> If a file starts with <code>'use client'</code>, it must not import anything under <code>lib/supabase/</code> or <code>lib/repo/</code>.</p>
 </div>
 
-<p>The service-role key bypasses every access rule in the database. It lives in a server-only environment variable and must never reach a browser. Three independent mechanisms keep it there, so forgetting the rule is caught rather than shipped:</p>
+<p>The secret key &mdash; <code>sb_secret_...</code>, or the legacy <code>service_role</code> key it replaces &mdash; bypasses every access rule in the database. Both resolve to the same <code>service_role</code> Postgres role, which carries <code>BYPASSRLS</code>. It lives in a server-only environment variable and must never reach a browser. Three independent mechanisms keep it there, so forgetting the rule is caught rather than shipped:</p>
 
 <div class="tw"><table>
 <tr><th>Guard</th><th>Where</th><th>What happens if you slip</th></tr>
@@ -326,7 +326,9 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td><code>scripts/check-bundle.ts</code></td><td>Runs after every build</td><td>Scans the emitted client files for the key and fails the build</td></tr>
 </table></div>
 
-<p>That third one is why <code>npm run build</code> ends with a line like <code>check-bundle: 27 client files scanned, no service-role key found.</code> It is a belt on top of two braces, and it costs a second.</p>
+<p>That third one is why <code>npm run build</code> ends with a line like <code>check-bundle: 55 client files scanned, no secret key found.</code> The file count moves with the build; what matters is the second half. It is a belt on top of two braces, and it costs a second.</p>
+
+<p>The scan looks for the variable name, the <code>sb_secret_</code> prefix, and &mdash; when the build can see the key &mdash; the key's own value. That last one is the finding that actually matters, and it only works if the key is in the environment, which is why <code>package.json</code> passes <code>--env-file-if-exists</code> to that script and not only to preflight. Without it the scan says so rather than implying it checked more than it did.</p>
 
 <h3>Who may do what</h3>
 <p>Authorisation is checked on the server on every request, never by hiding a link. <code>lib/guard.ts</code> holds the page guards so the rules cannot drift apart between routes:</p>
@@ -473,7 +475,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
   <rect x="20" y="160" width="470" height="76" rx="8" fill="none" stroke="#0E767F" stroke-width="2.5"/>
   <text x="38" y="184" font-size="13.5" font-weight="700" fill="currentColor">Pure domain logic</text>
   <text x="38" y="203" font-size="10.5" fill="currentColor" opacity=".7">time &middot; attempt &middot; scoring &middot; leaderboard &middot; paper &middot; csv &middot; images</text>
-  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 364 tests live here</text>
+  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 374 tests live here</text>
 
   <rect x="20" y="252" width="470" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
   <text x="38" y="276" font-size="13.5" font-weight="600" fill="currentColor">Repository</text>
@@ -981,7 +983,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <div class="tw"><table>
 <tr><th>Concern</th><th>How it is handled</th></tr>
 <tr><td>Passwords</td><td>Hashed and managed by Supabase Auth. No custom crypto exists in this codebase</td></tr>
-<tr><td>Database access</td><td>Server-side only, service-role key, RLS deny-all as backstop, build-time bundle scan</td></tr>
+<tr><td>Database access</td><td>Server-side only, secret key, RLS deny-all as backstop, build-time bundle scan</td></tr>
 <tr><td>Answer keys</td><td>Never selected by any query on the live test path</td></tr>
 <tr><td>Paper images</td><td>Private bucket. Served through <code>/api/images</code>, which checks who is asking and whether the paper is open</td></tr>
 <tr><td>Brute force</td><td>Rate limits counted in the database, so they hold across serverless instances</td></tr>
@@ -1020,7 +1022,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 
 <div class="tw"><table>
 <tr><th>Layer</th><th>Status</th></tr>
-<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 364 tests, no database needed</td></tr>
+<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 374 tests, no database needed</td></tr>
 <tr><td>The schema, its functions, triggers and indexes</td><td><strong>Tested against real Postgres.</strong> <code>tests/schema.test.ts</code> applies every migration to an in-process Postgres and exercises each function and guard. <code>tests/migrate.test.ts</code> proves the chain is ordered and that a second run changes nothing</td></tr>
 <tr><td>The queries in <code>lib/repo/</code></td><td><strong>Typechecked only.</strong> The PostgREST calls have never run against a live server</td></tr>
 <tr><td>Supabase Auth and Storage</td><td><strong>Typechecked only</strong></td></tr>
@@ -1028,7 +1030,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 
 <div class="note care">
   <h4>So the gap is narrower than it looks, but it is real</h4>
-  <p>The dangerous part &mdash; the SQL that must be atomic &mdash; is exercised as SQL. What has never run is the layer that talks to Supabase over the network: the <code>.from().select()</code> calls, signing in, and reading an image out of Storage. Section 17 is a walkthrough that exercises nearly all of it in ten minutes. Do it before a paper night that counts.</p>
+  <p>The dangerous part &mdash; the SQL that must be atomic &mdash; is exercised as SQL. What has never run is the layer that talks to Supabase over the network: the <code>.from().select()</code> calls, signing in, and reading an image out of Storage. Section 18 is a walkthrough that exercises nearly all of it in ten minutes. Do it before a paper night that counts.</p>
   <p>That gap is not theoretical. Three bugs of the same shape have already been found by reading rather than by running: a query that selected fewer columns than the code then read off the row. Each produced a window of <code>undefined</code>, which every check answers &ldquo;no&rdquo; to and every date arithmetic turns into <code>Invalid Date</code> &mdash; a briefing page that hid <strong>Begin</strong> from every student, and a live test screen whose hard stop and section deadlines were all <code>NaN</code>. Nothing typechecked wrong, because the row was cast to the shape the code wanted.</p>
   <p>The defence now is <code>paperWindowOf</code>: every window is built through it, and it throws if a column is missing rather than returning a window nobody can use. The rule it enforces is worth stating plainly &mdash; <strong>never cast a database row to a shape wider than the columns you selected</strong>.</p>
 </div>
@@ -1176,7 +1178,7 @@ corner of an eye without pulling attention off the question.</p>
     <text x="179" y="209" text-anchor="middle" font-weight="600">typecheck</text>
     <line x1="226" y1="205" x2="238" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="238" y="186" width="94" height="38" rx="6" fill="none" stroke="#94202B" stroke-width="2"/>
-    <text x="285" y="209" text-anchor="middle" font-weight="600">364 tests</text>
+    <text x="285" y="209" text-anchor="middle" font-weight="600">374 tests</text>
     <line x1="332" y1="205" x2="344" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="344" y="186" width="84" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
     <text x="386" y="209" text-anchor="middle" font-weight="600">build</text>
@@ -1201,11 +1203,15 @@ corner of an eye without pulling attention off the question.</p>
 <tr><td><code>npm run start:local</code></td><td><span class="pill local">rare</span></td><td>Serves that build on port 3000</td></tr>
 <tr><td><code>npm run build:prod</code></td><td><span class="pill prod">before shipping</span></td><td>Typecheck, all tests, then build without source maps</td></tr>
 <tr><td><code>npm run start:prod</code></td><td><span class="pill prod">on the host</span></td><td>Serves the production build</td></tr>
-<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>364 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>374 tests. No database needed, about a second</td></tr>
 <tr><td><code>npm run typecheck</code></td><td><span class="pill both">anytime</span></td><td>Checks types without building</td></tr>
 <tr><td><code>npm run seed</code></td><td><span class="pill both">setup</span></td><td>Creates the accounts, prints passwords once</td></tr>
 <tr><td><code>npm run secret</code></td><td><span class="pill both">setup</span></td><td>Prints a random string for CRON_SECRET</td></tr>
-<tr><td><code>npm run check &lt;file&gt;</code></td><td><span class="pill both">anytime</span></td><td>Validates a paper from the terminal, app not required</td></tr>
+<tr><td><code>npm run migrate</code></td><td><span class="pill both">setup, and after pulling</span></td><td>Applies pending migrations. <code>-- --status</code> to look without changing, <code>-- --print</code> for the SQL</td></tr>
+<tr><td><code>npm run build</code></td><td><span class="pill both">on the host</span></td><td>An alias for <code>build:prod</code>. This is the one Vercel runs</td></tr>
+<tr><td><code>npm run start</code></td><td><span class="pill both">on the host</span></td><td>An alias for <code>start:prod</code></td></tr>
+<tr><td><code>npm run build:format</code></td><td><span class="pill both">rare</span></td><td>Rewrites <code>format/template.json</code> from the shipped pattern. For a template matching a pattern you changed, use the admin console instead</td></tr>
+<tr><td><code>npm run check -- &lt;file&gt;</code></td><td><span class="pill both">anytime</span></td><td>Validates a paper from the terminal, app not required. The <code>--</code> is npm's: it passes the filename through</td></tr>
 </table></div>
 
 <div class="note do">
@@ -1325,7 +1331,7 @@ corner of an eye without pulling attention off the question.</p>
 <b>npm install</b></pre>
 </div>
 <p>Downloads everything into a <code>node_modules</code> folder. Safe to re-run at any time.</p>
-<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>364 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
+<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>374 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
 </li>
 
 <li>
@@ -1372,13 +1378,16 @@ two places in the Supabase dashboard.</p>
   <thead><tr><th>Generation</th><th>Looks like</th><th>Use</th></tr></thead>
   <tbody>
   <tr><td><strong>Current</strong></td><td><code>sb_publishable_...</code> and <code>sb_secret_...</code></td><td>Prefer these. The older pair is being retired</td></tr>
-  <tr><td>Legacy</td><td>Long JWTs starting <code>eyJ</code>, labelled <code>anon</code> and <code>service_role</code></td><td>Still fine. Put them in the <code>..._ANON_KEY</code> and <code>..._SERVICE_ROLE_KEY</code> lines instead</td></tr>
+  <tr><td>Legacy</td><td>Long JWTs starting <code>eyJ</code>, labelled <code>anon</code> and <code>service_role</code></td><td>Still fine, and still what many projects show</td></tr>
   </tbody>
   </table></div>
-  <p>The app accepts either, so fill in whichever pair your dashboard offers and
-  leave the other two lines blank. A secret key resolves to the same
-  <code>service_role</code> database role the old key did, so nothing about the
-  access model changes.</p>
+  <p>The app accepts either name for either slot, so fill in whichever pair your
+  dashboard offers. <code>.env.local</code> has the current names as live lines and
+  the legacy names commented out just below them; if yours are the legacy ones,
+  comment out the line you are not using and uncomment the one you are.</p>
+  <p>A secret key resolves to the same <code>service_role</code> Postgres role the
+  old key did, so nothing about the access model changes &mdash; it is the same
+  privilege under a new name.</p>
 </div>
 <div class="tw"><table>
 <tr><th>Line</th><th>Paste from</th><th>What it is</th></tr>
@@ -1616,7 +1625,7 @@ landed and what has not, at any time.</p>
 </tbody>
 </table></div>
 
-<p>It needs <code>DATABASE_URL</code> in <code>.env.local</code>, from the <strong>Connect</strong> button at the top of the Supabase project dashboard. Choose the <strong>Session pooler</strong> &mdash; port 5432, username <code>postgres.[REF]</code>. The direct connection is IPv6-only without the paid add-on and will not be reachable from most networks; the transaction pooler on 6543 has no prepared statements, which the runner uses. Section 13 lays the three out side by side.</p>
+<p>It needs <code>DATABASE_URL</code> in <code>.env.local</code>, from the <strong>Connect</strong> button at the top of the Supabase project dashboard. Choose the <strong>Session pooler</strong> &mdash; port 5432, username <code>postgres.[REF]</code>. The direct connection is IPv6-only without the paid add-on and will not be reachable from most networks; the transaction pooler on 6543 has no prepared statements, which the runner uses. Section 14 lays the three out side by side.</p>
 
 <p>Without <code>DATABASE_URL</code> the runner does not fail &mdash; it prints the SQL to paste into the Supabase SQL editor, each block ending with the line that records it.</p>
 
@@ -1667,7 +1676,7 @@ landed and what has not, at any time.</p>
 <p>Check it before opening the app at all:</p>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
-<pre><b>npm run check my-paper.json</b>
+<pre><b>npm run check -- my-paper.json</b>
 
 <i>  Quantitative Aptitude    15 q | 12 min | +1/-0.25 | 15/15 solved
   Reasoning Ability        15 q | 12 min | +1/-0.25 | 15/15 solved
@@ -1729,7 +1738,7 @@ landed and what has not, at any time.</p>
 <li>Authentication &rarr; Email &rarr; <strong>Confirm email off</strong>.</li>
 </ul>
 <p><strong>Check it worked:</strong> Table Editor shows ten tables with RLS badges, exactly as dev did.</p>
-<p>Keep its <strong>Settings &rarr; API</strong> page open. You need all three keys again, and they are <em>different</em> from your dev keys.</p>
+<p>Keep its <strong>Settings &rarr; API Keys</strong> page open. You need the project URL and both keys again, and they are <em>different</em> from your dev ones &mdash; a key from one project does not work on another.</p>
 </li>
 
 <li>
@@ -1759,7 +1768,7 @@ landed and what has not, at any time.</p>
 <li>
 <h4>Import into Vercel</h4>
 <p>At <a href="https://vercel.com">vercel.com</a>, sign in with GitHub, then <strong>Add New &rarr; Project</strong> and pick the repository. Vercel recognises Next.js by itself; leave the build settings alone.</p>
-<p><strong>Before pressing Deploy</strong>, expand <strong>Environment Variables</strong> and add four. Every one comes from <code>preppy-prod</code>, not dev:</p>
+<p><strong>Before pressing Deploy</strong>, expand <strong>Environment Variables</strong> and add four. Every one comes from <code>preppy-prod</code>, not dev &mdash; a key from one project does not work on another. Use <em>one</em> name per row, whichever generation of key you have; there is no need to add both spellings.</p>
 <div class="tw"><table>
 <tr><th>Name</th><th>Value</th></tr>
 <tr><td><code>NEXT_PUBLIC_SUPABASE_URL</code></td><td>preppy-prod &rarr; Settings &rarr; API Keys</td></tr>
@@ -1767,7 +1776,7 @@ landed and what has not, at any time.</p>
 <tr><td><code>SUPABASE_SECRET_KEY</code><br><small>or <code>..._SERVICE_ROLE_KEY</code></small></td><td>preppy-prod &rarr; a secret key<br><small>or its legacy service_role key</small></td></tr>
 <tr><td><code>CRON_SECRET</code></td><td>The string from step 2</td></tr>
 </table></div>
-<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 364 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
+<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 374 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
 <p><strong>Check it worked:</strong> the deployment goes green and the URL shows the countdown page.</p>
 </li>
 
@@ -1783,7 +1792,7 @@ landed and what has not, at any time.</p>
 
 <li>
 <h4>Create the production accounts</h4>
-<p>The seed script talks to whichever database its environment points at, so point it at production for exactly one command. Make a temporary file <code>.env.prod.local</code> holding the <em>production</em> URL and service-role key:</p>
+<p>The seed script talks to whichever database its environment points at, so point it at production for exactly one command. Make a temporary file <code>.env.prod.local</code> holding the <em>production</em> URL and secret key:</p>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>npx tsx --env-file=.env.prod.local supabase/seed.ts</b>
@@ -1864,12 +1873,12 @@ landed and what has not, at any time.</p>
 <div class="tw"><table>
 <tr><th>Symptom</th><th>Cause and fix</th></tr>
 <tr><td><strong>"Not configured yet" on the login page</strong></td><td><code>.env.local</code> is missing or incomplete. Check all three values, then <strong>restart the server</strong> &mdash; env changes are not picked up while it runs</td></tr>
-<tr><td><strong>Login says the password is wrong, and it is not</strong></td><td>Almost always email confirmation still on. Section 13, step 4. Then <code>npm run seed -- --reset</code></td></tr>
+<tr><td><strong>Login says the password is wrong, and it is not</strong></td><td>Almost always email confirmation still on. Section 14, step 5. Then <code>npm run seed -- --reset</code></td></tr>
 <tr><td><strong>The build refuses with "Cannot build for production"</strong></td><td>Working as intended. It names the missing variable and where to find it</td></tr>
 <tr><td><strong>Seeding fails with a database error</strong></td><td>The tables are not there. Run <code>npm run migrate</code>, or <code>npm run migrate -- --status</code> to see what is missing</td></tr>
 <tr><td><strong>The nightly job did not run</strong></td><td>Press <strong>Finalise open attempts now</strong> on the admin home; it is idempotent. Then check <code>CRON_SECRET</code> is set in Vercel</td></tr>
 <tr><td><strong>A paper will not delete</strong></td><td>Somebody has a counted attempt on it. A database trigger is refusing, because deleting would leave scores pointing at questions that no longer exist. Void the attempts first if you really mean it</td></tr>
-<tr><td><strong>Upload rejects the file</strong></td><td>The report names the exact path and line. <code>npm run check your-paper.json</code> gives the same report in the terminal</td></tr>
+<tr><td><strong>Upload rejects the file</strong></td><td>The report names the exact path and line. <code>npm run check -- your-paper.json</code> gives the same report in the terminal</td></tr>
 <tr><td><strong>A student is stuck on a finished paper</strong></td><td>Opening it scores it automatically. If genuinely stuck, run the nightly job manually</td></tr>
 <tr><td><strong>The leaderboard is missing a paper</strong></td><td>It takes a paper in when that paper closes, which is its last-entry time plus its own running time. Before then it is deliberately absent</td></tr>
 <tr><td><strong>Everything is slow</strong></td><td>Check the Supabase region. A project on another continent adds a few hundred milliseconds to every round trip, and a page makes several</td></tr>
@@ -1891,7 +1900,7 @@ landed and what has not, at any time.</p>
 <ol>
 <li><strong>Which database am I talking to?</strong> Check the URL in <code>.env.local</code> against the project name in Supabase.</li>
 <li><strong>Did the schema actually apply?</strong> Table Editor, ten tables, RLS badges.</li>
-<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 364 pass, the logic is fine and the problem is configuration or a query.</li>
+<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 374 pass, the logic is fine and the problem is configuration or a query.</li>
 </ol>
 
 <p class="end">

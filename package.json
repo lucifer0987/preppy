@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build:local": "tsx --env-file-if-exists=.env.local scripts/preflight.ts local && cross-env APP_ENV=local next build && tsx scripts/check-bundle.ts",
+    "build:local": "tsx --env-file-if-exists=.env.local scripts/preflight.ts local && cross-env APP_ENV=local next build && tsx --env-file-if-exists=.env.local scripts/check-bundle.ts",
     "start:local": "cross-env APP_ENV=local next start -p 3000",
-    "build:prod": "tsx --env-file-if-exists=.env.local scripts/preflight.ts prod && npm run typecheck && npm run test && cross-env APP_ENV=production next build && tsx scripts/check-bundle.ts",
+    "build:prod": "tsx --env-file-if-exists=.env.local scripts/preflight.ts prod && npm run typecheck && npm run test && cross-env APP_ENV=production next build && tsx --env-file-if-exists=.env.local scripts/check-bundle.ts",
     "start:prod": "cross-env APP_ENV=production next start -p 3000",
     "build": "npm run build:prod",
     "start": "npm run start:prod",

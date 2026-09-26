@@ -126,10 +126,10 @@ main().catch((e) => {
     )
   } else if (/password authentication failed|SASL|SCRAM/i.test(message)) {
     console.error(
-      '  The database rejected the password. It is the database password set when\n' +
-      '  the project was created, not your Supabase account password and not the\n' +
-      '  service-role key. Reset it under Settings -> Database if it is lost, and\n' +
-      '  remember to URL-encode any @ : / or # in it.\n',
+      '  The database rejected the password. It is the DATABASE password set when\n' +
+      '  the project was created -- not your Supabase account password, and not an\n' +
+      '  API key of any kind. Reset it under Settings -> Database if it is lost, and\n' +
+      '  URL-encode any @ : / or # in it or the address will not parse.\n',
     )
   } else {
     console.error('  Nothing from the failing migration was kept. Fix it and run again.\n')
