@@ -1247,18 +1247,31 @@ figcaption b{color:var(--ink-2); font-weight:600}
 </li>
 
 <li>
-<h4>Create the tables</h4>
-<p>Left sidebar &rarr; <strong>SQL Editor</strong> &rarr; <strong>New query</strong>.</p>
-<p>An empty Supabase project has no tables in it. The two files in
-<code>supabase/migrations/</code> put them there, and a small program called the
-<em>runner</em> applies them for you. There are two ways to do it, and they end
-up in exactly the same place.</p>
-
-<p><strong>Either</strong> let the runner talk to the database itself. Copy the
-connection string from the <strong>Connect</strong> button at the top of your
-project dashboard, and put it in <code>.env.local</code> as
-<code>DATABASE_URL</code> with your database password filled in where it says
-<code>[YOUR-PASSWORD]</code>.</p>
+<h4>Create your settings file, and fill it in</h4>
+<p>Everything the app needs to reach Supabase lives in one file called
+<code>.env.local</code>. It does not exist yet &mdash; there is an example to copy.
+Make it now, because every step after this one writes into it.</p>
+<p>In the terminal:</p>
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>cp .env.example .env.local</b></pre>
+</div>
+<p>Now open <code>.env.local</code> in a text editor. It has five lines, and you
+fill in four of them from two places in the Supabase dashboard.</p>
+<p><strong>First, the three API keys.</strong> In Supabase: <strong>Settings</strong>
+(gear icon) &rarr; <strong>API</strong>.</p>
+<div class="tw"><table>
+<tr><th>Line</th><th>Paste from</th><th>What it is</th></tr>
+<tr><td><code>NEXT_PUBLIC_SUPABASE_URL</code></td><td>Project URL</td><td>Which project to talk to</td></tr>
+<tr><td><code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code></td><td>anon public</td><td>A public key. Safe in a browser; reads nothing on its own because of RLS</td></tr>
+<tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code></td><td>service_role</td><td>The master key. Bypasses every access rule</td></tr>
+<tr><td><code>CRON_SECRET</code></td><td>leave blank for now</td><td>Only needed in production</td></tr>
+<tr><td><code>DATABASE_URL</code></td><td><strong>Connect</strong> button &rarr; Session pooler</td><td>Only used by <code>npm run migrate</code>, never by the app itself. See below</td></tr>
+</table></div>
+<p><strong>Second, <code>DATABASE_URL</code>.</strong> Press
+<strong>Connect</strong> at the top of the project dashboard (not under
+Settings &mdash; it moved), and copy the string with your database password
+filled in where it says <code>[YOUR-PASSWORD]</code>.</p>
 
 <div class="note care">
   <h4>Take the Session pooler, not the direct connection</h4>
@@ -1279,7 +1292,30 @@ project dashboard, and put it in <code>.env.local</code> as
   <p>If <code>npm run migrate</code> hangs or says the host is unreachable, this is almost always why, and the runner says so when it happens.</p>
 </div>
 
-<p>Then:</p>
+<div class="note never">
+  <h4>The service_role key</h4>
+  <p>It bypasses every access rule in the database. It belongs only in <code>.env.local</code>, which git already ignores. Never paste it into a chat, a browser console, a screenshot, or any file under <code>app/</code> or <code>components/</code>. Every build scans the browser bundle for it and fails if it is there.</p>
+</div>
+<p><strong>Check it worked:</strong></p>
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>npx tsx --env-file=.env.local scripts/preflight.ts local</b>
+<i>  preflight (local): environment looks right.
+    note: CRON_SECRET is not set. The nightly job cannot run, which is
+    fine locally.</i></pre>
+</div>
+<p>If a key is wrong or missing it names which one and where to find it.</p>
+</li>
+
+<li>
+<h4>Create the tables</h4>
+<p>An empty Supabase project has no tables in it. The two files in
+<code>supabase/migrations/</code> put them there, and a small program called the
+<em>runner</em> applies them for you. There are two ways to do it, and they end
+up in exactly the same place.</p>
+
+<p><strong>Either</strong> let the runner talk to the database itself, using the
+<code>DATABASE_URL</code> you set in the last step:</p>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>npm run migrate</b>
@@ -1292,8 +1328,9 @@ project dashboard, and put it in <code>.env.local</code> as
 </div>
 
 <p><strong>Or</strong>, if you would rather not keep a database password on your
-laptop, ask it to print the SQL and paste that into the Supabase
-<strong>SQL Editor</strong> instead &mdash; one file at a time, in order:</p>
+laptop at all, leave <code>DATABASE_URL</code> blank and have the runner print
+the SQL instead. Paste it into Supabase under <strong>SQL Editor</strong> &rarr;
+<strong>New query</strong> &mdash; one file at a time, in order:</p>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>npm run migrate -- --print</b></pre>
@@ -1327,37 +1364,6 @@ landed and what has not, at any time.</p>
   <h4>Skip this and login fails in a way that misleads you</h4>
   <p>Accounts are created fine, but every sign-in is refused as unconfirmed &mdash; and the login form deliberately says only "wrong username or password", so it looks like the password is wrong when it is not. If you ever see that with a password you know is right, come back here first.</p>
 </div>
-</li>
-
-<li>
-<h4>Copy the three keys</h4>
-<p>In Supabase: <strong>Settings</strong> (gear icon) &rarr; <strong>API</strong>. Leave that tab open.</p>
-<p>In the terminal:</p>
-<div class="term">
-  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
-<pre><b>cp .env.example .env.local</b></pre>
-</div>
-<p>Open <code>.env.local</code> in a text editor. It has four lines; fill in the first three from that Supabase tab:</p>
-<div class="tw"><table>
-<tr><th>Line</th><th>Paste from</th><th>What it is</th></tr>
-<tr><td><code>NEXT_PUBLIC_SUPABASE_URL</code></td><td>Project URL</td><td>Which project to talk to</td></tr>
-<tr><td><code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code></td><td>anon public</td><td>A public key. Safe in a browser; reads nothing on its own because of RLS</td></tr>
-<tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code></td><td>service_role</td><td>The master key. Bypasses every access rule</td></tr>
-<tr><td><code>CRON_SECRET</code></td><td>leave blank for now</td><td>Only needed in production</td></tr>
-</table></div>
-<div class="note never">
-  <h4>The service_role key</h4>
-  <p>It bypasses every access rule in the database. It belongs only in <code>.env.local</code>, which git already ignores. Never paste it into a chat, a browser console, a screenshot, or any file under <code>app/</code> or <code>components/</code>. Every build scans the browser bundle for it and fails if it is there.</p>
-</div>
-<p><strong>Check it worked:</strong></p>
-<div class="term">
-  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
-<pre><b>npx tsx --env-file=.env.local scripts/preflight.ts local</b>
-<i>  preflight (local): environment looks right.
-    note: CRON_SECRET is not set. The nightly job cannot run, which is
-    fine locally.</i></pre>
-</div>
-<p>If a key is wrong or missing it names which one and where to find it.</p>
 </li>
 
 <li>

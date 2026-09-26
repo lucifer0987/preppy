@@ -206,52 +206,111 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <section id="c1"><div class="col">
 <h2><i>1</i>First time, local</h2>
 
+<p class="sub">In order. Each step needs the one before it &mdash; the settings
+file has to exist before anything can be written into it.</p>
+
+<h3>1 &middot; The code</h3>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
-<pre><b>node -v</b>                 <i># needs v20 or newer</i>
+<pre><b>node -v</b>            <i># needs v20 or newer</i>
 <b>npm install</b>
-<b>npm test</b>                <i># 364 passing means the code is sound</i></pre>
+<b>npm test</b>           <i># 364 passing means the code is sound</i></pre>
 </div>
 
-<p>Then in the Supabase dashboard:</p>
-<ol>
-<li><strong>New project</strong>, named <code>preppy-dev</code>, nearest region.</li>
-<li>Apply the schema. Press <strong>Connect</strong> at the top of the project dashboard, choose the <strong>Session pooler</strong>, and put that string into <code>.env.local</code> as <code>DATABASE_URL</code> with your database password filled in. Then <code>npm run migrate</code>.<br>
-<strong>Session pooler, specifically.</strong> The direct connection is IPv6-only without the paid add-on, so on a normal IPv4 network it cannot be reached at all; the transaction pooler on 6543 has no prepared statements. The session pooler's username has the project ref in it &mdash; <code>postgres.[REF]@aws-0-[region].pooler.supabase.com:5432</code> &mdash; which is how you tell them apart.<br>
-No connection string? <code>npm run migrate -- --print</code> prints the SQL to paste into the <strong>SQL Editor</strong> instead, in order.<br>
-Either way you should end with eleven tables, each showing an <strong>RLS enabled</strong> badge.</li>
-<li><strong>Authentication &rarr; Sign In / Providers &rarr; Email</strong> &rarr; turn <strong>Confirm email</strong> off.</li>
-</ol>
+<h3>2 &middot; The Supabase project</h3>
+<p><strong>New project</strong>, named <code>preppy-dev</code>, nearest region.
+Set a database password and keep it &mdash; it cannot be recovered, and step 3
+needs it.</p>
 
-<div class="note why">
-  <h4>Catching up a database made before migrations existed</h4>
-  <p>There are two files: <code>0001_baseline.sql</code>, which your database already has, and <code>0002_since_baseline.sql</code>, which it does not. But the baseline was applied by hand, before any of this existed, so nothing was recorded and <code>npm run migrate -- --status</code> reports <em>both</em> as pending. Expected, not a problem. Run <code>npm run migrate</code> anyway &mdash; every file is written to be safe to run twice, so the baseline passes straight through and gets recorded, and only the second file changes anything. After that one run the list is accurate for good.</p>
+<h3>3 &middot; The settings file</h3>
+<p>It does not exist yet. Copy the example, then fill it in &mdash; everything
+after this writes into it.</p>
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>cp .env.example .env.local</b></pre>
 </div>
+<p>Four values, from two places in the dashboard:</p>
+<div class="tw"><table>
+<thead><tr><th>Line in <code>.env.local</code></th><th>Where</th></tr></thead>
+<tbody>
+<tr><td><code>NEXT_PUBLIC_SUPABASE_URL</code></td><td rowspan="3"><strong>Settings</strong> &rarr; <strong>API</strong></td></tr>
+<tr><td><code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code></td></tr>
+<tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code></td></tr>
+<tr><td><code>DATABASE_URL</code></td><td><strong>Connect</strong> button at the top &rarr; <strong>Session pooler</strong></td></tr>
+<tr><td><code>CRON_SECRET</code></td><td>leave blank; production only</td></tr>
+</tbody>
+</table></div>
 
 <div class="note care">
-  <h4>Step 3 is not optional</h4>
-  <p>Skip it and every login is refused as unconfirmed &mdash; but the form only says "wrong username or password", so it looks like the password is wrong when it is not.</p>
+  <h4>Session pooler, specifically</h4>
+  <p>The <strong>Connect</strong> panel offers three and only one is right here.
+  The <strong>direct connection</strong> is IPv6-only without the paid add-on, so
+  on a normal IPv4 network it cannot be reached at all. The
+  <strong>transaction pooler</strong> on 6543 has no prepared statements, which
+  <code>npm run migrate</code> uses. The session pooler is IPv4 on every plan and
+  supports everything a migration needs.</p>
+  <p>You can tell it by the username, which carries the project ref:
+  <code>postgres.<b>[REF]</b>@aws-0-[region].<b>pooler</b>.supabase.com:5432</code>.
+  URL-encode any <code>@ : /</code> or <code>#</code> in the password.</p>
 </div>
 
-<p>Back in the terminal:</p>
+<p>Check it:</p>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
-<pre><b>cp .env.example .env.local</b>
+<pre><b>npx tsx --env-file=.env.local scripts/preflight.ts local</b>
+<i>  preflight (local): environment looks right.</i></pre>
+</div>
 
-<i># fill in three values from Supabase -> Settings -> API:
-#   NEXT_PUBLIC_SUPABASE_URL        Project URL
-#   NEXT_PUBLIC_SUPABASE_ANON_KEY   anon public
-#   SUPABASE_SERVICE_ROLE_KEY       service_role  </i><u>(secret)</u><i>
-# leave CRON_SECRET blank; it is only needed in production</i>
+<h3>4 &middot; The tables</h3>
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>npm run migrate</b>
 
-<b>npx tsx --env-file=.env.local scripts/preflight.ts local</b>   <i># checks the keys</i>
-<b>npm run seed</b>            <i># prints passwords </i><u>ONCE</u><i> - copy them</i>
-<b>npm run dev</b>             <i># http://localhost:3000</i></pre>
+<i>  Applying 2 migrations...
+    applied  0001_baseline.sql
+    applied  0002_since_baseline.sql</i></pre>
+</div>
+<p>No <code>DATABASE_URL</code>? <code>npm run migrate -- --print</code> prints the
+SQL to paste into <strong>SQL Editor</strong> &rarr; <strong>New query</strong>
+instead, one file at a time, in order. Either way you should end with
+<strong>eleven tables</strong>, each showing an <strong>RLS enabled</strong>
+badge.</p>
+
+<div class="note why">
+  <h4>Why it says both files are pending</h4>
+  <p>There are two: <code>0001_baseline.sql</code>, which your database already
+  has, and <code>0002_since_baseline.sql</code>, which it does not. But the
+  baseline was applied by hand, before any of this existed, so nothing was
+  recorded and <code>--status</code> reports <em>both</em> as pending. Expected.
+  Run <code>npm run migrate</code> anyway &mdash; every file is written to be safe
+  to run twice, so the baseline passes straight through and gets recorded, and
+  only the second file changes anything. After that one run the list is accurate
+  for good.</p>
+</div>
+
+<h3>5 &middot; Email confirmation off</h3>
+<p><strong>Authentication</strong> &rarr; <strong>Sign In / Providers</strong>
+&rarr; <strong>Email</strong> &rarr; turn <strong>Confirm email</strong> off.</p>
+
+<div class="note care">
+  <h4>This one is not optional</h4>
+  <p>Skip it and every login is refused as unconfirmed &mdash; but the form only
+  says "wrong username or password", so it looks like the password is wrong when
+  it is not.</p>
+</div>
+
+<h3>6 &middot; Accounts, and run it</h3>
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>npm run seed</b>          <i># prints passwords <b>ONCE</b> - copy them</i>
+<b>npm run dev</b>           <i># http://localhost:3000</i></pre>
 </div>
 
 <div class="note never">
   <h4>The service_role key</h4>
-  <p>It bypasses every access rule in the database. It belongs only in <code>.env.local</code>, which git already ignores. Never paste it anywhere else.</p>
+  <p>It bypasses every access rule in the database. It belongs only in
+  <code>.env.local</code>, which git already ignores. Never paste it anywhere
+  else.</p>
 </div>
 </div></section>
 
