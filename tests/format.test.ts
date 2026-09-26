@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import Ajv from 'ajv/dist/2020.js'
 import { FIELDS, readPaper, readQuestion, summarise } from '../lib/paper'
-import { PATTERN, SECTION_CODES } from '../lib/types'
+import { DEFAULT_PATTERN, SECTION_CODES, patternBands, patternTotals, type Pattern } from '../lib/types'
 
 const sampleJson = readFileSync('format/sample.json', 'utf8')
 const templateJson = readFileSync('format/template.json', 'utf8')
@@ -103,8 +103,9 @@ describe('the shipped format kit', () => {
 
   it('numbers every question inside its section band', () => {
     const p = ok(sampleJson).paper!
+      const bands = patternBands(DEFAULT_PATTERN)
     for (const s of p.sections) {
-      const band = PATTERN[s.code]
+      const band = bands.find((x) => x.code === s.code)!
       for (const q of s.questions) {
         expect(q.number).toBeGreaterThanOrEqual(band.from)
         expect(q.number).toBeLessThanOrEqual(band.to)
@@ -226,11 +227,16 @@ describe('blocking errors', () => {
     expect(ok(mutate((p) => { p.sections[0].directions[0].table.rows[0].push('extra') })).codes).toContain('TABLE_ROW_WIDTH')
   })
 
-  it('rejects sections that add up to more than the 45-minute window', () => {
-    const r = ok(mutate((p) => { p.sections[3].durationMinutes = 20 }))
-    expect(r.codes).toContain('DURATION_TOTAL')
-    // Shorter is fine: nobody is cut short by the hard stop.
-    expect(ok(mutate((p) => { p.sections[3].durationMinutes = 10 })).codes).not.toContain('DURATION_TOTAL')
+  it('accepts a paper longer than the default, and rejects one no day could hold', () => {
+    // Whether a paper fits its night is settled when it is scheduled, against
+    // the window chosen there. The validator only stops a typo.
+    expect(ok(mutate((p) => { p.sections[3].durationMinutes = 20 })).codes).not.toContain('DURATION_TOTAL')
+    expect(ok(mutate((p) => { p.sections[3].durationMinutes = 170 })).codes).not.toContain('DURATION_TOTAL')
+
+    const tooLong = ok(mutate((p) => {
+      for (const s of p.sections) s.durationMinutes = 180
+    }))
+    expect(tooLong.codes).toContain('DURATION_TOTAL')
   })
 
   it('warns, without blocking, about a date that has passed', () => {
@@ -365,7 +371,10 @@ describe('one question on its own', () => {
     expect(codes({ ...q(), options: { ...q().options, B: '' } })).toContain('OPTION_EMPTY')
     expect(codes({ ...q(), solution: 'Replace with the worked explanation. Optional.' })).toContain('PLACEHOLDER_TEXT')
     expect(codes({ ...q(), soluton: 'x' })).toContain('UNKNOWN_FIELD')
-    expect(codes(q(), 'PK')).toContain('NUMBER_OUT_OF_BAND')
+    // Not the band, though: editing one question cannot know where its section
+    // starts, and the editor writes only text, options and solution -- the
+    // number comes from the stored row and cannot be changed.
+    expect(codes(q(), 'PK')).not.toContain('NUMBER_OUT_OF_BAND')
   })
 
   it('checks images against those already stored', () => {
@@ -395,10 +404,104 @@ describe('warnings do not block', () => {
   })
 })
 
-describe('the pattern itself', () => {
-  it('adds up to 55 questions and 45 minutes', () => {
-    expect(Object.keys(PATTERN).sort()).toEqual([...SECTION_CODES].sort())
-    expect(Object.values(PATTERN).reduce((a, s) => a + s.questions, 0)).toBe(55)
-    expect(Object.values(PATTERN).reduce((a, s) => a + s.minutes, 0)).toBe(45)
+describe('a pattern other than the default', () => {
+  // 40 questions in 60 minutes, marked +2 / -0.5. The sample paper is 55-in-45,
+  // so under this pattern it should be wrong in exactly the ways it differs.
+  const OTHER: Pattern = [
+    { code: 'QUANT', questions: 10, minutes: 15, marksCorrect: 2, marksNegative: 0.5 },
+    { code: 'REASONING', questions: 10, minutes: 15, marksCorrect: 2, marksNegative: 0.5 },
+    { code: 'ENGLISH', questions: 10, minutes: 15, marksCorrect: 2, marksNegative: 0.5 },
+    { code: 'PK', questions: 10, minutes: 15, marksCorrect: 2, marksNegative: 0.5 },
+  ]
+
+  it('adds up the way it says', () => {
+    const t = patternTotals(OTHER)
+    expect([t.questions, t.minutes, t.maxMarks, t.minMarks]).toEqual([40, 60, 80, -20])
+    expect(patternBands(OTHER).map((b) => [b.from, b.to]))
+      .toEqual([[1, 10], [11, 20], [21, 30], [31, 40]])
+  })
+
+  it('judges the sample paper against it, not against 55-in-45', () => {
+    const r = ok(sampleJson, { pattern: OTHER })
+    expect(r.codes).toContain('SECTION_COUNT')
+    expect(r.codes).toContain('TOTAL_COUNT')
+    expect(r.publishable).toBe(false)
+    // Q15 is fine in QUANT under the default, but QUANT now ends at Q10.
+    expect(r.codes).toContain('NUMBER_OUT_OF_BAND')
+  })
+
+  it('accepts a paper built to it', () => {
+    const built = mutate((p) => {
+      let n = 1
+      p.sections.forEach((s: any, i: number) => {
+        s.questionCount = 10
+        s.durationMinutes = 15
+        s.marksCorrect = 2
+        s.marksNegative = 0.5
+        delete s.directions
+        s.questions = Array.from({ length: 10 }, () => ({
+          ...JSON.parse(JSON.stringify(p.sections[i].questions[0])), number: n++,
+        }))
+      })
+    })
+    const r = ok(built, { pattern: OTHER })
+    expect(r.issues.filter((i) => i.severity === 'error')).toEqual([])
+    expect(r.publishable).toBe(true)
+    expect(r.paper!.sections.every((s) => s.questionCount === 10)).toBe(true)
+  })
+
+  it('still catches a section whose array does not match its own stated count', () => {
+    // The safety net: questionCount says 10, the file ships 9.
+    const built = mutate((p) => {
+      let n = 1
+      p.sections.forEach((s: any, i: number) => {
+        s.questionCount = 10
+        s.durationMinutes = 15
+        delete s.directions
+        const many = i === 0 ? 9 : 10
+        s.questions = Array.from({ length: many }, () => ({
+          ...JSON.parse(JSON.stringify(p.sections[i].questions[0])), number: n++,
+        }))
+      })
+    })
+    const r = ok(built, { pattern: OTHER })
+    expect(r.codes).toContain('SECTION_COUNT')
+    expect(r.issues.find((i) => i.code === 'SECTION_COUNT')!.message).toMatch(/its own "questionCount" says 10/)
+  })
+
+  it('reads counts from the file even with no pattern supplied', () => {
+    // questionCount wins over the default, so a paper is self-describing.
+    const built = mutate((p) => {
+      p.sections[2].questionCount = 11
+      p.sections[2].questions.push({
+        ...JSON.parse(JSON.stringify(p.sections[2].questions[0])), number: 41,
+      })
+      // Everything after English shifts up by one.
+      for (const q of p.sections[3].questions) q.number += 1
+    })
+    const r = ok(built)
+    expect(r.codes).not.toContain('SECTION_COUNT')
+    expect(r.codes).not.toContain('NUMBER_OUT_OF_BAND')
+    expect(r.publishable).toBe(true)
+  })
+})
+
+describe('the default pattern', () => {
+  it('is what the product shipped with: 55 questions in 45 minutes', () => {
+    expect(DEFAULT_PATTERN.map((s) => s.code)).toEqual(SECTION_CODES)
+    const t = patternTotals(DEFAULT_PATTERN)
+    expect(t.questions).toBe(55)
+    expect(t.minutes).toBe(45)
+    expect(t.maxMarks).toBe(55)
+    expect(t.minMarks).toBe(-13.75)
+  })
+
+  it('derives question bands from the counts, with no gaps', () => {
+    expect(patternBands(DEFAULT_PATTERN)).toEqual([
+      { code: 'QUANT', from: 1, to: 15 },
+      { code: 'REASONING', from: 16, to: 30 },
+      { code: 'ENGLISH', from: 31, to: 40 },
+      { code: 'PK', from: 41, to: 55 },
+    ])
   })
 })

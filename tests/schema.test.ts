@@ -128,6 +128,76 @@ describe('save_paper', () => {
   })
 })
 
+describe("a paper's own length", () => {
+  it('is the sum of its sections, kept by trigger', async () => {
+    const { id } = await savePaper('2027-02-01')
+    // The sample paper is the default pattern: 12 + 12 + 9 + 12 minutes.
+    const row = await one<{ n: number }>('select attempt_sec n from tests where id = $1', [id])
+    expect(row.n).toBe(45 * 60)
+  })
+
+  it('follows a section whose duration changes', async () => {
+    const { id } = await savePaper('2027-02-02')
+    await db.query(
+      `update sections set duration_sec = duration_sec + 300 where test_id = $1 and code = 'ENGLISH'`, [id])
+    expect((await one<{ n: number }>('select attempt_sec n from tests where id=$1', [id])).n).toBe(50 * 60)
+  })
+
+  it('follows a section being removed', async () => {
+    const { id } = await savePaper('2027-02-03')
+    await db.query(`delete from sections where test_id = $1 and code = 'ENGLISH'`, [id])
+    expect((await one<{ n: number }>('select attempt_sec n from tests where id=$1', [id])).n).toBe(36 * 60)
+  })
+
+  it('decides the hard stop, so a longer paper needs an earlier entry close', async () => {
+    const { id } = await savePaper('2027-02-04', 'Long one')
+    // 90 minutes. Entry closing at 23:15 would run it to 00:45 the next day.
+    await db.query(`update sections set duration_sec = 30 * 60 where test_id = $1`, [id])
+    expect((await one<{ n: number }>('select attempt_sec n from tests where id=$1', [id])).n).toBe(120 * 60)
+
+    expect(await fails(
+      `update tests set status='SCHEDULED', opens_at_min=1320, entry_closes_at_min=1395 where id=$1`, [id]))
+      .toMatch(/tests_window_within_the_day/)
+
+    // 22:00 entry close leaves exactly the two hours it needs.
+    expect(await fails(
+      `update tests set status='SCHEDULED', opens_at_min=1200, entry_closes_at_min=1320 where id=$1`, [id]))
+      .toBeNull()
+  })
+
+  it('lets a draft be any length, whatever window it happens to carry', async () => {
+    // The default window fits 45 minutes. A 2-hour draft must still upload.
+    const { id } = await savePaper('2027-02-05', 'Draft long one')
+    expect(await fails(`update sections set duration_sec = 30 * 60 where test_id = $1`, [id])).toBeNull()
+    const row = await one<{ s: string; n: number }>('select status s, attempt_sec n from tests where id=$1', [id])
+    expect([row.s, row.n]).toEqual(['DRAFT', 120 * 60])
+  })
+})
+
+describe('the default pattern', () => {
+  it('starts as the pattern the product shipped with', async () => {
+    const { rows } = await db.query<{ code: string; q: number; d: number; c: string; n: string }>(
+      `select code, question_count q, duration_sec d, marks_correct::text c, marks_negative::text n
+         from default_sections order by position`)
+    expect(rows.map((r) => [r.code, r.q, r.d / 60])).toEqual([
+      ['QUANT', 15, 12], ['REASONING', 15, 12], ['ENGLISH', 10, 9], ['PK', 15, 12],
+    ])
+    expect(rows.every((r) => Number(r.c) === 1 && Number(r.n) === 0.25)).toBe(true)
+    expect(rows.reduce((a, r) => a + r.q, 0)).toBe(55)
+    expect(rows.reduce((a, r) => a + r.d, 0)).toBe(45 * 60)
+  })
+
+  it('can be changed, and refuses nonsense', async () => {
+    expect(await fails(`update default_sections set question_count = 20, duration_sec = 15 * 60 where code = 'ENGLISH'`))
+      .toBeNull()
+    expect(await fails(`update default_sections set question_count = 0 where code = 'ENGLISH'`)).toMatch(/question_count/)
+    expect(await fails(`update default_sections set marks_correct = 0 where code = 'ENGLISH'`)).toMatch(/marks_correct/)
+    expect(await fails(`update default_sections set marks_negative = -1 where code = 'ENGLISH'`)).toMatch(/marks_negative/)
+    expect(await fails(`update default_sections set duration_sec = 30 where code = 'ENGLISH'`)).toMatch(/duration_sec/)
+    await db.query(`update default_sections set question_count = 10, duration_sec = 9 * 60 where code = 'ENGLISH'`)
+  })
+})
+
 describe('one paper at a time', () => {
   it('refuses a second counted attempt while another is still open', async () => {
     // Two papers can run in one day now, and a student sitting both at once
@@ -361,12 +431,12 @@ describe('the configurable window', () => {
       .toMatch(/window_opens_before_it_closes/)
   })
 
-  it('refuses an entry close that would run an attempt past midnight', async () => {
-    // 23:16 + 45 minutes is 00:01 the next day, which would put the attempt on
-    // the wrong date for the archive, the board and the nightly job.
-    expect(await fails(`update app_settings set entry_close_hour=23, entry_close_minute=16 where id`))
-      .toMatch(/window_ends_within_the_day/)
-    // 23:15 exactly is the last one that fits.
+  it('no longer decides on its own whether an attempt fits the day', async () => {
+    // It cannot: how long an attempt runs is now the default pattern's total,
+    // which lives in default_sections. So 23:16 is accepted here and refused by
+    // windowProblem in lib/time.ts, which knows the total. What the row can
+    // still say is that an entry close must be a time of day at all.
+    expect(await fails(`update app_settings set entry_close_hour=23, entry_close_minute=16 where id`)).toBeNull()
     expect(await fails(`update app_settings set entry_close_hour=23, entry_close_minute=15 where id`)).toBeNull()
   })
 

@@ -6,7 +6,6 @@ import { getArchive, getLeaderboard } from '../../lib/repo/leaderboard'
 import { ordinal } from '../../lib/leaderboard'
 import { LeaderboardTable } from '../../components/LeaderboardTable'
 import { logoutAction } from '../login/actions'
-import { TOTAL_MINUTES, TOTAL_QUESTIONS } from '../../lib/types'
 import {
   canStartAttempt, defaultPaperWindow, entryClosesAt, formatIstDate, istDate, opensAt,
   paperClosed, paperLabels, type PaperWindow,
@@ -162,7 +161,10 @@ export default async function Dashboard({
             <p className="mt-2 text-2xl font-black">{tonight.title ?? 'Daily mock'}</p>
             <p className="mt-1 text-white/70">{formatIstDate(today)}</p>
             <p className="mt-3 text-sm font-semibold tabular-nums">
-              {TOTAL_QUESTIONS} questions &middot; {TOTAL_MINUTES} minutes &middot; +1 correct, &minus;0.25 wrong
+              {openPaper.shape.questions} questions &middot; {openPaper.shape.minutes} minutes
+              {openPaper.shape.marking
+                ? <> &middot; +{openPaper.shape.marking.correct} correct, &minus;{openPaper.shape.marking.negative} wrong</>
+                : <> &middot; marking varies by section</>}
             </p>
             <p className="mt-4 text-sm text-white/70">
               Time left to enter (entry closes at{' '}

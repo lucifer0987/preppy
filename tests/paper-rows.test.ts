@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { paperToRows, rowsToPaper, savePaperPayload } from '../lib/paper-rows'
 import { readPaper } from '../lib/paper'
-import { PATTERN } from '../lib/types'
+import { DEFAULT_PATTERN, patternOf } from '../lib/types'
 
 const load = (f: string) => {
   const r = readPaper(readFileSync(f, 'utf8'))
@@ -22,7 +22,7 @@ describe('paper -> rows', () => {
   it('stores durations in seconds', () => {
     const rows = paperToRows(sample)
     const english = rows.sections.find((s) => s.code === 'ENGLISH')!
-    expect(english.duration_sec).toBe(PATTERN.ENGLISH.minutes * 60)
+    expect(english.duration_sec).toBe(patternOf(DEFAULT_PATTERN, 'ENGLISH')!.minutes * 60)
     expect(rows.sections.reduce((a, s) => a + s.duration_sec, 0)).toBe(45 * 60)
   })
 

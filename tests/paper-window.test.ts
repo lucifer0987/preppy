@@ -7,8 +7,9 @@ const { PAPER_WINDOW_COLUMNS, paperWindowOf } = await import('../lib/repo/papers
 
 describe('building a window from a row', () => {
   it('reads the three columns', () => {
-    expect(paperWindowOf({ date: '2026-11-01', opens_at_min: 360, entry_closes_at_min: 420 }))
-      .toEqual({ date: '2026-11-01', opensAtMin: 360, entryClosesAtMin: 420 })
+    expect(paperWindowOf({
+      date: '2026-11-01', opens_at_min: 360, entry_closes_at_min: 420, attempt_sec: 45 * 60,
+    })).toEqual({ date: '2026-11-01', opensAtMin: 360, entryClosesAtMin: 420, attemptMinutes: 45 })
   })
 
   it('refuses a row whose select forgot the window columns', () => {
@@ -17,10 +18,15 @@ describe('building a window from a row', () => {
     // the paper looked like one that never opens.
     expect(() => paperWindowOf({ date: '2026-11-01' })).toThrow(/window columns/)
     expect(() => paperWindowOf({ date: '2026-11-01', opens_at_min: 360 })).toThrow(/window columns/)
+    // Including the one added last: a paper read without its length would get
+    // a hard stop of Invalid Date, and every section deadline would be NaN.
+    expect(() => paperWindowOf({
+      date: '2026-11-01', opens_at_min: 360, entry_closes_at_min: 420,
+    })).toThrow(/window columns/)
   })
 
   it('names the columns a select needs', () => {
-    for (const c of ['date', 'opens_at_min', 'entry_closes_at_min']) {
+    for (const c of ['date', 'opens_at_min', 'entry_closes_at_min', 'attempt_sec']) {
       expect(PAPER_WINDOW_COLUMNS).toContain(c)
     }
   })

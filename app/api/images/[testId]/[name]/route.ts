@@ -22,7 +22,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ testId:
   if (!IMAGE_NAME_PATTERN.test(name) || !type) return new Response('Not found.', { status: 404 })
 
   if (user.role !== 'admin') {
-    const { data: test } = await db().from('tests').select('date, status, opens_at_min, entry_closes_at_min').eq('id', testId).maybeSingle()
+    const { data: test } = await db().from('tests').select('date, status, opens_at_min, entry_closes_at_min, attempt_sec').eq('id', testId).maybeSingle()
     const open = test && test.status === 'SCHEDULED'
       && Date.now() >= opensAt(paperWindowOf(test)).getTime()
     if (!open) return new Response('Not found.', { status: 404 })

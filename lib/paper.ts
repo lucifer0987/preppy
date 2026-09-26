@@ -2,11 +2,13 @@ import { IMAGE_NAME_PATTERN } from './images'
 import {
   FORMAT_NAME,
   FORMAT_VERSION,
+  DEFAULT_PATTERN,
   OPTION_LABELS,
-  PATTERN,
   SECTION_CODES,
-  TOTAL_QUESTIONS,
+  patternBands,
+  patternOf,
   type Issue,
+  type Pattern,
   type OptionLabel,
   type Paper,
   type SectionCode,
@@ -26,10 +28,21 @@ export interface ReadOptions {
   takenDates?: string[]
   /** Today's IST date. When given, a paper dated earlier is warned about. */
   today?: string
+  /**
+   * The shape a section is expected to have when its own entry does not say.
+   * Defaults to what the product shipped with; the admin console can change it.
+   */
+  pattern?: Pattern
 }
 
-/** Every section together must fit the attempt window (lib/time.ts WINDOW). */
-const MAX_TOTAL_MINUTES = 45
+/**
+ * A ceiling, not the rule. Whether a paper fits its night is decided when it is
+ * scheduled, against the window chosen there -- `paperWindowProblem` in
+ * lib/time.ts and the `tests_window_within_the_day` constraint. This only keeps
+ * a typo from producing a paper longer than any day could hold, and matches the
+ * `tests_attempt_sec_sane` check in the database.
+ */
+const MAX_TOTAL_MINUTES = 8 * 60
 
 export interface ReadResult {
   paper: Paper | null
@@ -46,7 +59,7 @@ const MIN_QUESTION_CHARS = 10
  */
 export const FIELDS = {
   document: ['format', 'version', 'date', 'title', 'sections'],
-  section: ['code', 'durationMinutes', 'marksCorrect', 'marksNegative', 'directions', 'questions'],
+  section: ['code', 'questionCount', 'durationMinutes', 'marksCorrect', 'marksNegative', 'directions', 'questions'],
   directions: ['from', 'to', 'text', 'table', 'images'],
   table: ['headers', 'rows'],
   question: ['number', 'text', 'options', 'answer', 'solution', 'tag', 'difficulty', 'images'],
@@ -150,6 +163,32 @@ export function readPaper(rawText: string, opts: ReadOptions = {}): ReadResult {
     return { paper: null, issues }
   }
 
+  const pattern = opts.pattern ?? DEFAULT_PATTERN
+
+  /**
+   * What each section is expected to hold, resolved before a single question is
+   * checked -- a question's number only means something once you know where its
+   * section starts. A section states its own `questionCount` when it differs
+   * from the pattern; where it does not, the pattern decides.
+   */
+  const expected: Pattern = SECTION_CODES.map((code, i) => {
+    const base = patternOf(pattern, code)
+    const raw = sections[i]
+    const declared = raw && typeof raw === 'object' && !Array.isArray(raw)
+      ? (raw as Record<string, unknown>)['questionCount']
+      : undefined
+    return {
+      code,
+      questions: typeof declared === 'number' && Number.isInteger(declared) && declared > 0
+        ? declared
+        : base?.questions ?? 0,
+      minutes: base?.minutes ?? 0,
+      marksCorrect: base?.marksCorrect ?? 1,
+      marksNegative: base?.marksNegative ?? 0.25,
+    }
+  })
+  const bands = patternBands(expected)
+
   const seenCodes: SectionCode[] = []
   const allNumbers: { n: number; path: string }[] = []
   let total = 0
@@ -183,9 +222,12 @@ export function readPaper(rawText: string, opts: ReadOptions = {}): ReadResult {
     }
 
     const minutes = s['durationMinutes']
-    totalMinutes += typeof minutes === 'number' && Number.isFinite(minutes) ? minutes : PATTERN[sc].minutes
+    totalMinutes += typeof minutes === 'number' && Number.isFinite(minutes)
+      ? minutes
+      : patternOf(expected, sc)?.minutes ?? 0
 
-    for (const [key, min, max] of [['durationMinutes', 1, 180], ['marksCorrect', 0.01, 10], ['marksNegative', 0, 10]] as const) {
+    for (const [key, min, max] of [['questionCount', 1, 200], ['durationMinutes', 1, 180],
+                                   ['marksCorrect', 0.01, 10], ['marksNegative', 0, 10]] as const) {
       const v = s[key]
       if (v === undefined) continue
       if (typeof v !== 'number' || !Number.isFinite(v)) {
@@ -201,16 +243,20 @@ export function readPaper(rawText: string, opts: ReadOptions = {}): ReadResult {
       err(`${sp}.questions`, 'QUESTIONS_MISSING', `Section ${sc} has no "questions" array.`)
       return
     }
-    const expected = PATTERN[sc].questions
-    if (questions.length !== expected) {
+    const want = patternOf(expected, sc)?.questions ?? 0
+    if (questions.length !== want) {
+      const declared = s['questionCount'] !== undefined
       err(`${sp}.questions`, 'SECTION_COUNT',
-        `Section ${sc} has ${questions.length} question(s); the pattern expects ${expected}.`)
+        `Section ${sc} has ${questions.length} question(s); `
+        + (declared
+          ? `its own "questionCount" says ${want}.`
+          : `the pattern expects ${want}. Set "questionCount" on this section if it really differs.`))
     }
     total += questions.length
 
     questions.forEach((rawQ, qi) => {
       const qp = `${sp}.questions[${qi}]`
-      const n = checkQuestion(rawQ, qp, sc, ctx)
+      const n = checkQuestion(rawQ, qp, sc, ctx, bands.find((b) => b.code === sc))
       if (n !== null) allNumbers.push({ n, path: `${qp}.number` })
     })
 
@@ -260,14 +306,13 @@ export function readPaper(rawText: string, opts: ReadOptions = {}): ReadResult {
         `Question numbers jump from Q${prev} to Q${cur}. ${cur - prev - 1} question(s) are missing.`)
     }
   }
-  if (total !== TOTAL_QUESTIONS) {
-    err('sections', 'TOTAL_COUNT', `The paper has ${total} questions; the pattern expects ${TOTAL_QUESTIONS}.`)
+  const wantTotal = expected.reduce((n, e) => n + e.questions, 0)
+  if (total !== wantTotal) {
+    err('sections', 'TOTAL_COUNT', `The paper has ${total} questions; this pattern expects ${wantTotal}.`)
   }
-  // Entry closes 45 minutes before the midnight hard stop, so longer sections
-  // would be cut short for anyone who starts late (FR-4.1).
   if (totalMinutes > MAX_TOTAL_MINUTES) {
     err('sections', 'DURATION_TOTAL',
-      `The sections add up to ${totalMinutes} minutes; the nightly window gives every attempt ${MAX_TOTAL_MINUTES}.`)
+      `The sections add up to ${totalMinutes} minutes, longer than the ${MAX_TOTAL_MINUTES} a single day can hold.`)
   }
 
   // ---- images
@@ -294,7 +339,9 @@ export function readQuestion(
 }
 
 /** Checks one question; returns its number when it has a usable one. */
-function checkQuestion(rawQ: unknown, qp: string, sc: SectionCode, ctx: Ctx): number | null {
+function checkQuestion(
+  rawQ: unknown, qp: string, sc: SectionCode, ctx: Ctx, band?: { from: number; to: number },
+): number | null {
   const { err, warn } = ctx
   if (typeof rawQ !== 'object' || rawQ === null || Array.isArray(rawQ)) {
     err(qp, 'QUESTION_TYPE', 'Each question must be an object.')
@@ -309,8 +356,7 @@ function checkQuestion(rawQ: unknown, qp: string, sc: SectionCode, ctx: Ctx): nu
     err(`${qp}.number`, 'NUMBER_MISSING', `"number" must be a whole number, got ${JSON.stringify(number)}.`)
   } else {
     result = number
-    const band = PATTERN[sc]
-    if (number < band.from || number > band.to) {
+    if (band && (number < band.from || number > band.to)) {
       err(`${qp}.number`, 'NUMBER_OUT_OF_BAND',
         `Q${number} is in section ${sc}, which must hold Q${band.from}-Q${band.to}.`)
     }

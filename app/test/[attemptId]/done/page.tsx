@@ -41,7 +41,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
   // result, so only affected students see the notice (FR-6.9.3).
   const { data: attempt } = await client
     .from('attempts')
-    .select('id, user_id, test_id, state, is_dry_run, total_score, section_scores, attempted, correct, wrong, skipped, not_reached, time_spent_sec, fullscreen_exits, tab_switches, rescored_at, tests(date, title, status, opens_at_min, entry_closes_at_min)')
+    .select('id, user_id, test_id, state, is_dry_run, total_score, section_scores, attempted, correct, wrong, skipped, not_reached, time_spent_sec, fullscreen_exits, tab_switches, rescored_at, tests(date, title, status, opens_at_min, entry_closes_at_min, attempt_sec)')
     .eq('id', attemptId)
     .maybeSingle()
 

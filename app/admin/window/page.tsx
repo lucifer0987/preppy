@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { getWindow, getWindowMeta } from '../../../lib/repo/settings'
-import { ATTEMPT_MINUTES, windowLabels } from '../../../lib/time'
+import { defaultAttemptMinutes, getWindow, getWindowMeta } from '../../../lib/repo/settings'
+import { windowLabels } from '../../../lib/time'
 import { WindowForm } from './WindowForm'
 
 export const dynamic = 'force-dynamic'
@@ -8,7 +8,10 @@ export const dynamic = 'force-dynamic'
 export default async function WindowPage() {
   const current = await getWindow()
   const meta = await getWindowMeta()
-  const labels = windowLabels(current)
+  // How long a paper built to the current default pattern runs: it is what
+  // decides the hard stop, so the latest entry close depends on it.
+  const attemptMinutes = await defaultAttemptMinutes()
+  const labels = windowLabels(current, attemptMinutes)
 
   return (
     <>
@@ -26,7 +29,7 @@ export default async function WindowPage() {
           {labels.opens} &rarr; {labels.closes}
         </p>
         <p className="mt-1 text-white/70">
-          Everyone is finished by {labels.hardStop}. One paper runs {ATTEMPT_MINUTES} minutes.
+          Everyone is finished by {labels.hardStop}. A paper on the default pattern runs {attemptMinutes} minutes.
         </p>
         {meta.updatedAt && (
           <p className="mt-3 text-xs text-white/50">
@@ -36,7 +39,17 @@ export default async function WindowPage() {
         )}
       </section>
 
-      <WindowForm current={current} />
+      <WindowForm current={current} attemptMinutes={attemptMinutes} />
+
+      <p className="mt-6 text-sm">
+        <Link href="/admin/pattern" className="font-bold text-play-purple underline">
+          Paper pattern &rarr;
+        </Link>{' '}
+        <span className="text-ink-soft">
+          questions, minutes and marking per section. Changing the pattern changes how long a
+          paper runs, and so the latest entry close these times may use.
+        </span>
+      </p>
 
       <section className="mt-6 rounded-3xl border-2 border-dashed border-black/10 p-5">
         <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">
@@ -46,7 +59,7 @@ export default async function WindowPage() {
           <li>Papers already scheduled keep the window they were given.</li>
           <li>An attempt already running keeps the deadline it started with.</li>
           <li>Each paper's answers unlock, and it joins the leaderboard, at its own closing time.</li>
-          <li>The daily job still runs at 3 AM.</li>
+          <li>The daily job still runs at 1 AM.</li>
         </ul>
       </section>
     </>

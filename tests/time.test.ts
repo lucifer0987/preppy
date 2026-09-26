@@ -9,7 +9,7 @@ import {
 const ist = (date: string, hh: number, mm: number) => istInstant(date, hh, mm)
 const D = '2026-09-26'
 /** The default window, on D. */
-const W = { date: D, opensAtMin: 22 * 60, entryClosesAtMin: 23 * 60 + 15 }
+const W = { date: D, opensAtMin: 22 * 60, entryClosesAtMin: 23 * 60 + 15, attemptMinutes: 45 }
 
 describe('IST conversion', () => {
   it('maps a UTC instant to the right IST calendar date', () => {
@@ -103,7 +103,7 @@ describe('which paper is live', () => {
   })
 
   it('leaves two papers on one day independent', () => {
-    const morning = { date: D, opensAtMin: 6 * 60, entryClosesAtMin: 7 * 60 }
+    const morning = { date: D, opensAtMin: 6 * 60, entryClosesAtMin: 7 * 60, attemptMinutes: 45 }
     const evening = W
     // 07:30: the morning paper's entry has closed but attempts run to 07:45.
     expect(windowState(morning, ist(D, 7, 30))).toBe('ENTRY_CLOSED')
@@ -128,7 +128,7 @@ describe('answers and the board wait for the paper, not the day (FR-4.3)', () =>
   it('opens a morning paper that same morning, not at midnight', () => {
     // The whole point of moving off the calendar day: a paper that ran at
     // breakfast is reviewable by mid-morning.
-    const morning = { date: D, opensAtMin: 6 * 60, entryClosesAtMin: 7 * 60 }
+    const morning = { date: D, opensAtMin: 6 * 60, entryClosesAtMin: 7 * 60, attemptMinutes: 45 }
     expect(paperClosed(morning, ist(D, 7, 44))).toBe(false)
     expect(paperClosed(morning, ist(D, 7, 45))).toBe(true)
   })
@@ -155,8 +155,8 @@ describe('date helpers', () => {
 })
 
 describe('two papers in one day', () => {
-  const morning = { date: D, opensAtMin: 6 * 60, entryClosesAtMin: 7 * 60 }
-  const evening = { date: D, opensAtMin: 22 * 60, entryClosesAtMin: 23 * 60 }
+  const morning = { date: D, opensAtMin: 6 * 60, entryClosesAtMin: 7 * 60, attemptMinutes: 45 }
+  const evening = { date: D, opensAtMin: 22 * 60, entryClosesAtMin: 23 * 60, attemptMinutes: 45 }
 
   it('does not call well-separated windows an overlap', () => {
     expect(windowsOverlap(morning, evening)).toBe(false)
@@ -165,13 +165,13 @@ describe('two papers in one day', () => {
   it('counts the running time, not just entry, when judging an overlap', () => {
     // Entry closes at 07:00 but attempts run to 07:45, so a paper opening at
     // 07:30 clashes even though entry never overlaps.
-    const tooSoon = { date: D, opensAtMin: 7 * 60 + 30, entryClosesAtMin: 8 * 60 }
+    const tooSoon = { date: D, opensAtMin: 7 * 60 + 30, entryClosesAtMin: 8 * 60, attemptMinutes: 45 }
     expect(windowsOverlap(morning, tooSoon)).toBe(true)
     expect(windowsOverlap(tooSoon, morning)).toBe(true)
   })
 
   it('allows one to start exactly as the other finishes', () => {
-    const after = { date: D, opensAtMin: 7 * 60 + 45, entryClosesAtMin: 8 * 60 + 30 }
+    const after = { date: D, opensAtMin: 7 * 60 + 45, entryClosesAtMin: 8 * 60 + 30, attemptMinutes: 45 }
     expect(windowsOverlap(morning, after)).toBe(false)
   })
 
@@ -181,7 +181,7 @@ describe('two papers in one day', () => {
 })
 
 describe('a configurable window', () => {
-  const morning = { date: D, opensAtMin: 6 * 60, entryClosesAtMin: 7 * 60 + 30 }
+  const morning = { date: D, opensAtMin: 6 * 60, entryClosesAtMin: 7 * 60 + 30, attemptMinutes: 45 }
 
   it('opens and closes where it is told', () => {
     expect(windowState(morning, ist(D, 5, 59))).toBe('BEFORE_OPEN')
@@ -209,7 +209,8 @@ describe('a configurable window', () => {
 })
 
 describe('which windows are allowed', () => {
-  const win = (opensAtMin: number, entryClosesAtMin: number) => ({ date: D, opensAtMin, entryClosesAtMin })
+  const win = (opensAtMin: number, entryClosesAtMin: number, attemptMinutes = 45) =>
+    ({ date: D, opensAtMin, entryClosesAtMin, attemptMinutes })
 
   it('accepts the default', () => {
     expect(paperWindowProblem(win(22 * 60, 23 * 60 + 15))).toBeNull()
@@ -223,7 +224,10 @@ describe('which windows are allowed', () => {
   it('refuses an entry close that would run an attempt past midnight', () => {
     // The whole reason for the limit: an attempt finishing on the next
     // calendar day would sit on the wrong date for the archive and the board.
-    expect(paperWindowProblem(win(22 * 60, 23 * 60 + 16))).toMatch(/Entry must close by 11:15 PM/)
+    expect(paperWindowProblem(win(22 * 60, 23 * 60 + 16))).toMatch(/45-minute paper must close entry by 11:15 PM/)
+    // A longer paper has to close entry earlier, and the message says which.
+    expect(paperWindowProblem(win(20 * 60, 23 * 60, 90))).toMatch(/90-minute paper must close entry by 10:30 PM/)
+    expect(paperWindowProblem(win(20 * 60, 22 * 60 + 30, 90))).toBeNull()
     expect(paperWindowProblem(win(22 * 60, 23 * 60 + 15))).toBeNull()
   })
 

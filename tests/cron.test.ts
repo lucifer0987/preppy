@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { ATTEMPT_MINUTES, paperWindowProblem } from '../lib/time'
+import { DEFAULT_ATTEMPT_MINUTES, paperWindowProblem } from '../lib/time'
 
 const IST_OFFSET_MINUTES = 5 * 60 + 30
 const vercel = JSON.parse(readFileSync(`${import.meta.dirname}/../vercel.json`, 'utf8'))
@@ -33,10 +33,20 @@ describe('the nightly finalise job', () => {
   it('fires after the last moment a paper from the day before can still be running', () => {
     // A paper must let its last entrant finish before midnight, so the latest
     // hard stop any paper can have is midnight exactly.
-    const latestEntryClose = 24 * 60 - ATTEMPT_MINUTES
-    expect(paperWindowProblem({ opensAtMin: 0, entryClosesAtMin: latestEntryClose })).toBeNull()
-    expect(paperWindowProblem({ opensAtMin: 0, entryClosesAtMin: latestEntryClose + 1 })).not.toBeNull()
-    expect(latestEntryClose + ATTEMPT_MINUTES).toBe(24 * 60)
+    const latestEntryClose = 24 * 60 - DEFAULT_ATTEMPT_MINUTES
+    expect(paperWindowProblem({ opensAtMin: 0, entryClosesAtMin: latestEntryClose, attemptMinutes: DEFAULT_ATTEMPT_MINUTES })).toBeNull()
+    expect(paperWindowProblem({ opensAtMin: 0, entryClosesAtMin: latestEntryClose + 1, attemptMinutes: DEFAULT_ATTEMPT_MINUTES })).not.toBeNull()
+    expect(latestEntryClose + DEFAULT_ATTEMPT_MINUTES).toBe(24 * 60)
+
+    // And it is not a fact about 45 minutes: whatever a paper's length, the rule
+    // forces its hard stop to land on or before midnight, so a job after
+    // midnight is after every paper dated the day before.
+    for (const len of [20, 45, 90, 180, 8 * 60]) {
+      const latest = 24 * 60 - len
+      expect(paperWindowProblem({ opensAtMin: 0, entryClosesAtMin: latest, attemptMinutes: len })).toBeNull()
+      expect(paperWindowProblem({ opensAtMin: 0, entryClosesAtMin: latest + 1, attemptMinutes: len })).not.toBeNull()
+      expect(latest + len).toBe(24 * 60)
+    }
 
     // The job runs after that, on the next IST day.
     const [minute, hour] = vercel.crons[0].schedule.split(' ').map(Number)

@@ -12,7 +12,7 @@ import { existsSync } from 'node:fs'
 import { basename } from 'node:path'
 import { readPaper, summarise } from '../lib/paper'
 import { istDate } from '../lib/time'
-import { PATTERN, SECTION_NAMES, type Issue, type SectionCode } from '../lib/types'
+import { DEFAULT_PATTERN, SECTION_NAMES, patternOf, type Issue, type SectionCode } from '../lib/types'
 
 const T = process.stdout.isTTY
 const E = String.fromCharCode(27)
@@ -77,7 +77,7 @@ async function main() {
     let totalMin = 0
     for (const s of paper.sections) {
       const code = s.code as SectionCode
-      const mins = s.durationMinutes ?? PATTERN[code].minutes
+      const mins = s.durationMinutes ?? patternOf(DEFAULT_PATTERN, code)?.minutes ?? 0
       const dirs = s.directions?.length ?? 0
       const tables = s.directions?.filter((d) => d.table).length ?? 0
       const solved = s.questions.filter((q) => q.solution).length

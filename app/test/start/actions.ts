@@ -25,7 +25,7 @@ export async function beginAction(formData: FormData) {
     redirect(`/test/start?test=${encodeURIComponent(testId)}&error=${encodeURIComponent(message)}`)
 
   const { data: test } = await db()
-    .from('tests').select('id, status, date, opens_at_min, entry_closes_at_min').eq('id', testId).maybeSingle()
+    .from('tests').select('id, status, date, opens_at_min, entry_closes_at_min, attempt_sec').eq('id', testId).maybeSingle()
   if (!test) redirect('/dashboard')
 
   // The admin can never hold a counted attempt (FR-5.2).

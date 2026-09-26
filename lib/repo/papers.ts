@@ -3,23 +3,25 @@ import { deletePaperImages } from './images'
 import { selectAll } from './select-all'
 import { db } from '../supabase/admin'
 
-/** The three columns every window needs, and the shape the app uses. */
-export const PAPER_WINDOW_COLUMNS = 'date, opens_at_min, entry_closes_at_min'
+/** The four columns every window needs, and the shape the app uses. */
+export const PAPER_WINDOW_COLUMNS = 'date, opens_at_min, entry_closes_at_min, attempt_sec'
 
 export function paperWindowOf(row: Record<string, unknown>): PaperWindow {
   const date = row['date']
   const opensAtMin = row['opens_at_min']
   const entryClosesAtMin = row['entry_closes_at_min']
+  const attemptSec = row['attempt_sec']
   // A select that forgot PAPER_WINDOW_COLUMNS would otherwise yield a window of
   // undefined, every window check would quietly answer "no", and the paper
   // would read as one that simply never opens -- a blocked student and nothing
   // in the logs. Say it instead.
-  if (typeof date !== 'string' || typeof opensAtMin !== 'number' || typeof entryClosesAtMin !== 'number') {
+  if (typeof date !== 'string' || typeof opensAtMin !== 'number'
+      || typeof entryClosesAtMin !== 'number' || typeof attemptSec !== 'number') {
     throw new Error(
       'That paper was read without its window columns. Select PAPER_WINDOW_COLUMNS alongside the rest.',
     )
   }
-  return { date, opensAtMin, entryClosesAtMin }
+  return { date, opensAtMin, entryClosesAtMin, attemptMinutes: Math.round(attemptSec / 60) }
 }
 import { paperToRows, rowsToPaper, savePaperPayload, type PaperRows } from '../paper-rows'
 import { readQuestion, summarise } from '../paper'
@@ -286,6 +288,8 @@ export interface PaperLock {
   date: string
   status: 'DRAFT' | 'SCHEDULED'
   state: WindowState
+  /** The window this paper carries, including how long one attempt runs. */
+  window: PaperWindow
   realAttempts: number
   canSchedule: boolean
   canUnschedule: boolean
@@ -296,17 +300,14 @@ export interface PaperLock {
 
 export async function paperLock(id: string): Promise<PaperLock | null> {
   const { data: test, error } = await db()
-    .from('tests').select('date, status, opens_at_min, entry_closes_at_min').eq('id', id).maybeSingle()
+    .from('tests').select(`status, ${PAPER_WINDOW_COLUMNS}`).eq('id', id).maybeSingle()
   if (error) throw new Error(`Could not load the paper: ${error.message}`)
   if (!test) return null
 
   const date = test.date as string
   const status = test.status as 'DRAFT' | 'SCHEDULED'
-  const state = windowState({
-    date,
-    opensAtMin: test.opens_at_min as number,
-    entryClosesAtMin: test.entry_closes_at_min as number,
-  })
+  const window = paperWindowOf(test)
+  const state = windowState(window)
   const realAttempts = await countRealAttempts(id)
   const opened = state !== 'BEFORE_OPEN'
 
@@ -321,6 +322,7 @@ export async function paperLock(id: string): Promise<PaperLock | null> {
     date,
     status,
     state,
+    window,
     realAttempts,
     // Any draft: the admin assigns the night when scheduling it.
     canSchedule: status === 'DRAFT',
@@ -364,11 +366,15 @@ export async function schedulePaper(
     throw new Error(`${target} is not a date.`)
   }
 
-  const fallback = defaultPaperWindow(target, await getWindow())
+  // The length is the paper's, not a choice made here: it is the sum of its
+  // sections. Only the two times are being picked, and paperWindowProblem then
+  // checks that this paper's length still fits inside the day.
+  const fallback = defaultPaperWindow(target, await getWindow(), lock.window.attemptMinutes)
   const window: PaperWindow = {
     date: target,
     opensAtMin: times?.opensAtMin ?? fallback.opensAtMin,
     entryClosesAtMin: times?.entryClosesAtMin ?? fallback.entryClosesAtMin,
+    attemptMinutes: lock.window.attemptMinutes,
   }
 
   const problem = paperWindowProblem(window)
@@ -420,15 +426,11 @@ async function overlappingPaper(
 ): Promise<{ title: string | null; labels: string } | null> {
   const { data } = await db()
     .from('tests')
-    .select('id, title, date, opens_at_min, entry_closes_at_min')
+    .select(`id, title, ${PAPER_WINDOW_COLUMNS}`)
     .eq('date', window.date).eq('status', 'SCHEDULED').neq('id', excludeId)
 
   for (const t of data ?? []) {
-    const other: PaperWindow = {
-      date: t.date as string,
-      opensAtMin: t.opens_at_min as number,
-      entryClosesAtMin: t.entry_closes_at_min as number,
-    }
+    const other = paperWindowOf(t)
     if (windowsOverlap(window, other)) {
       const l = paperLabels(other)
       return { title: (t.title as string | null) ?? null, labels: `${l.opens} to ${l.hardStop}` }
@@ -538,11 +540,42 @@ export async function updateQuestionContent(
  * paper" is no longer a date lookup: it is whichever scheduled paper the clock
  * currently sits inside, and whichever opens soonest after that.
  */
+/** A paper's own shape, for the surfaces that used to print constants. */
+export interface PaperShape {
+  questions: number
+  minutes: number
+  /** Null when the sections do not all mark the same way. */
+  marking: { correct: number; negative: number } | null
+}
+
+export interface UpcomingPaper {
+  id: string
+  title: string | null
+  window: PaperWindow
+  shape: PaperShape
+}
+
 export interface UpcomingPapers {
   /** Open for entry now, or running with entry closed. */
-  live: { id: string; title: string | null; window: PaperWindow; state: WindowState } | null
+  live: (UpcomingPaper & { state: WindowState }) | null
   /** The soonest paper that has not opened yet. */
-  next: { id: string; title: string | null; window: PaperWindow } | null
+  next: UpcomingPaper | null
+}
+
+/** The totals a paper actually carries, from its own section rows. */
+export function shapeOf(sections: readonly Record<string, unknown>[], window: PaperWindow): PaperShape {
+  let questions = 0
+  const marks = new Set<string>()
+  for (const s of sections) {
+    questions += (s['question_count'] as number) ?? 0
+    marks.add(`${Number(s['marks_correct'])}/${Number(s['marks_negative'])}`)
+  }
+  const only = marks.size === 1 ? [...marks][0]!.split('/').map(Number) : null
+  return {
+    questions,
+    minutes: window.attemptMinutes,
+    marking: only ? { correct: only[0]!, negative: only[1]! } : null,
+  }
 }
 
 export async function upcomingPapers(now = new Date()): Promise<UpcomingPapers> {
@@ -551,13 +584,22 @@ export async function upcomingPapers(now = new Date()): Promise<UpcomingPapers> 
   // entry close + 45 minutes to land inside the paper's own IST day, so no
   // paper dated before today can still be running.
   const rows = await selectAll<Record<string, unknown>>('papers', (from, to) =>
-    db().from('tests').select(`id, title, ${PAPER_WINDOW_COLUMNS}`)
+    db().from('tests')
+      .select(`id, title, ${PAPER_WINDOW_COLUMNS}, sections(question_count, marks_correct, marks_negative)`)
       .eq('status', 'SCHEDULED')
       .gte('date', today)
       .order('date').range(from, to))
 
   const papers = rows
-    .map((r) => ({ id: r['id'] as string, title: (r['title'] as string | null) ?? null, window: paperWindowOf(r) }))
+    .map((r) => {
+      const window = paperWindowOf(r)
+      return {
+        id: r['id'] as string,
+        title: (r['title'] as string | null) ?? null,
+        window,
+        shape: shapeOf((r['sections'] ?? []) as Record<string, unknown>[], window),
+      }
+    })
     .sort((a, b) => opensAt(a.window).getTime() - opensAt(b.window).getTime())
 
   let live: UpcomingPapers['live'] = null

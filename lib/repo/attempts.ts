@@ -6,7 +6,7 @@ import {
   type AttemptStatus, type SectionEndReason, type SectionProgress,
 } from '../attempt'
 import { scoreAttempt, type ResponseInput } from '../scoring'
-import { getPaperById } from './papers'
+import { getPaperById, paperWindowOf } from './papers'
 import type { OptionLabel, PaperQuestion, SectionCode } from '../types'
 
 /**
@@ -83,7 +83,7 @@ export interface AttemptCore {
 export async function loadAttemptCore(attemptId: string): Promise<AttemptCore | null> {
   const { data: a, error } = await db()
     .from('attempts')
-    .select('id, user_id, test_id, state, is_dry_run, started_at, fullscreen_exits, tab_switches, tests(date), attempt_sections(section_id, started_at, ended_at, end_reason, sections(code, position, duration_sec))')
+    .select('id, user_id, test_id, state, is_dry_run, started_at, fullscreen_exits, tab_switches, tests(date, opens_at_min, entry_closes_at_min, attempt_sec), attempt_sections(section_id, started_at, ended_at, end_reason, sections(code, position, duration_sec))')
     .eq('id', attemptId)
     .maybeSingle()
   // A failed read is not "no such attempt": callers treat null as gone.
@@ -108,13 +108,11 @@ export async function loadAttemptCore(attemptId: string): Promise<AttemptCore | 
   }
   rows.sort((x, y) => x.position - y.position)
 
-  const t = a.tests as unknown as { date: string; opens_at_min: number; entry_closes_at_min: number }
-  const testDate = t.date
-  const paperWindow = {
-    date: t.date,
-    opensAtMin: t.opens_at_min,
-    entryClosesAtMin: t.entry_closes_at_min,
-  }
+  // Through paperWindowOf, not by hand: built by hand, a select that drops the
+  // window columns yields a hard stop of Invalid Date and every section deadline
+  // becomes NaN -- on the live test screen, silently.
+  const paperWindow = paperWindowOf(a.tests as unknown as Record<string, unknown>)
+  const testDate = paperWindow.date
   const isDryRun = a.is_dry_run as boolean
   const startedAt = new Date(a.started_at as string)
   return {

@@ -6,7 +6,7 @@ import {
 import { hardStopAt, istInstant } from '../lib/time'
 
 const D = '2026-09-26'
-const W = { date: D, opensAtMin: 22 * 60, entryClosesAtMin: 23 * 60 + 15 }
+const W = { date: D, opensAtMin: 22 * 60, entryClosesAtMin: 23 * 60 + 15, attemptMinutes: 45 }
 const at = (hh: number, mm: number, ss = 0) =>
   new Date(istInstant(D, hh, mm).getTime() + ss * 1000)
 const HARD_STOP = istInstant(D, 23, 59)

@@ -210,7 +210,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>node -v</b>                 <i># needs v20 or newer</i>
 <b>npm install</b>
-<b>npm test</b>                <i># 308 passing means the code is sound</i></pre>
+<b>npm test</b>                <i># 321 passing means the code is sound</i></pre>
 </div>
 
 <p>Then in the Supabase dashboard:</p>
@@ -218,7 +218,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <li><strong>New project</strong>, named <code>preppy-dev</code>, nearest region.</li>
 <li>Apply the schema. Put the connection string from <strong>Settings &rarr; Database &rarr; Connection string &rarr; URI</strong> into <code>.env.local</code> as <code>DATABASE_URL</code>, password filled in, then <code>npm run migrate</code>. Use the direct connection on <strong>port 5432</strong>; a pooler URI on 6543 is transaction-mode and can trip the client.<br>
 No connection string? <code>npm run migrate -- --print</code> prints the SQL to paste into the <strong>SQL Editor</strong> instead, in order.<br>
-Either way you should end with ten tables, each showing an <strong>RLS enabled</strong> badge.</li>
+Either way you should end with eleven tables, each showing an <strong>RLS enabled</strong> badge.</li>
 <li><strong>Authentication &rarr; Sign In / Providers &rarr; Email</strong> &rarr; turn <strong>Confirm email</strong> off.</li>
 </ol>
 
@@ -270,14 +270,14 @@ Either way you should end with ten tables, each showing an <strong>RLS enabled</
 <pre><b>npm run check -- my-paper.json</b>          <i># validate before opening the app</i>
 <b>npm run check -- my-paper.json --images ./img</b></pre>
 </div>
-<p>Then in the app: <strong>Admin &rarr; Upload a paper</strong> &rarr; read the preview &rarr; <strong>Schedule</strong>. You choose its date and times on the schedule form; <strong>Admin &rarr; Nightly window</strong> only sets what is offered by default. More than one paper can run in a day if their windows do not overlap. Copy <code>format/sample.json</code> as your starting point. The format is specified in <a href="architecture.html#s7">architecture.html section 7</a>.</p>
+<p>Then in the app: <strong>Admin &rarr; Upload a paper</strong> &rarr; read the preview &rarr; <strong>Schedule</strong>. You choose its date and times on the schedule form; <strong>Admin &rarr; Nightly window</strong> only sets what is offered by default, and <strong>Admin &rarr; Paper pattern</strong> what a section holds when the file does not say. More than one paper can run in a day if their windows do not overlap. Copy <code>format/sample.json</code> as your starting point. The format is specified in <a href="architecture.html#s7">architecture.html section 7</a>.</p>
 </div></section>
 
 <section id="c4"><div class="col">
 <h2><i>4</i>Shipping a change</h2>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
-<pre><b>npm run build:prod</b>      <i># preflight + typecheck + 308 tests + build</i>
+<pre><b>npm run build:prod</b>      <i># preflight + typecheck + 321 tests + build</i>
 <b>git add -A &amp;&amp; git commit -m "what changed"</b>
 <b>git push</b>                 <i># Vercel deploys by itself</i></pre>
 </div>
@@ -327,7 +327,7 @@ Either way you should end with ten tables, each showing an <strong>RLS enabled</
 <div class="tw"><table>
 <tr><th>Command</th><th>What it does</th></tr>
 <tr><td><code>npm run dev</code></td><td>Development server, reloads as you edit</td></tr>
-<tr><td><code>npm test</code></td><td>308 tests. No database needed</td></tr>
+<tr><td><code>npm test</code></td><td>321 tests. No database needed</td></tr>
 <tr><td><code>npm run typecheck</code></td><td>Types only, no build</td></tr>
 <tr><td><code>npm run build:local</code></td><td>Production build with source maps, for debugging</td></tr>
 <tr><td><code>npm run start:local</code></td><td>Serves that build</td></tr>
@@ -360,7 +360,7 @@ Either way you should end with ten tables, each showing an <strong>RLS enabled</
 <p>Three questions answer most problems:</p>
 <ol>
 <li><strong>Which database am I talking to?</strong> Compare the URL in <code>.env.local</code> with the project name in Supabase.</li>
-<li><strong>Did the schema apply?</strong> Table Editor: ten tables, RLS badges.</li>
+<li><strong>Did the schema apply?</strong> Table Editor: eleven tables, RLS badges.</li>
 <li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those pass, it is configuration, not logic.</li>
 </ol>
 

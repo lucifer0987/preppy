@@ -8,7 +8,7 @@
  * one and change the other; tests/format.test.ts fails if they drift.
  */
 import { writeFile } from 'node:fs/promises'
-import { OPTION_LABELS, PATTERN, SECTION_CODES } from '../lib/types'
+import { DEFAULT_PATTERN, OPTION_LABELS, SECTION_CODES, patternBands, patternOf } from '../lib/types'
 
 /** A complete skeleton: right sections, right counts, right numbering, placeholder text. */
 function buildTemplate() {
@@ -28,12 +28,15 @@ function buildTemplate() {
     date: '2026-01-01',
     title: 'Daily Mock NNN',
     sections: SECTION_CODES.map((code) => {
-      const band = PATTERN[code]
+      // The template ships the default pattern; a paper that differs says so
+      // with its own questionCount and durationMinutes.
+      const shape = patternOf(DEFAULT_PATTERN, code)!
+      const band = patternBands(DEFAULT_PATTERN).find((b) => b.code === code)!
       const section: Record<string, unknown> = {
         code,
-        durationMinutes: band.minutes,
-        marksCorrect: 1,
-        marksNegative: 0.25,
+        durationMinutes: shape.minutes,
+        marksCorrect: shape.marksCorrect,
+        marksNegative: shape.marksNegative,
       }
       if (code === 'QUANT') {
         section['directions'] = [{
@@ -46,7 +49,7 @@ function buildTemplate() {
           },
         }]
       }
-      section['questions'] = Array.from({ length: band.questions }, (_, i) => placeholder(band.from + i))
+      section['questions'] = Array.from({ length: shape.questions }, (_, i) => placeholder(band.from + i))
       return section
     }),
   }

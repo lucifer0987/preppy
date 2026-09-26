@@ -6,10 +6,11 @@ export const dynamic = 'force-dynamic'
 
 /**
  * Runs once a day at 01:00 IST (19:30 UTC), scheduled in vercel.json. Every
- * paper dated yesterday has hard-stopped by then: entry closes at 23:15 at the
- * latest and an attempt runs 45 minutes, so midnight is the furthest a paper
- * can reach. A paper scheduled for the small hours of the morning is swept by
- * the next day's run, or sooner by the admin's manual button on /admin.
+ * paper dated yesterday has hard-stopped by then, whatever length it was:
+ * `tests_window_within_the_day` forces entry close plus the paper's own running
+ * time to land inside its own IST day, so midnight is the furthest any paper can
+ * reach. A paper scheduled for the small hours of the morning is swept by the
+ * next day's run, or sooner by the admin's manual button on /admin.
  *
  * Vercel Cron is the only caller: it presents CRON_SECRET as a bearer token.
  * A signed-in admin does not come through here. A cookie-authenticated GET is

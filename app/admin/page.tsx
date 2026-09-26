@@ -25,7 +25,7 @@ export default async function AdminHome({
   const { password } = await searchParams
   const today = istDate()
   const { data: tonight } = await db()
-    .from('tests').select('id, date, title, status, opens_at_min, entry_closes_at_min').eq('date', today)
+    .from('tests').select('id, date, title, status, opens_at_min, entry_closes_at_min, attempt_sec').eq('date', today)
   const { count: userCount } = await db()
     .from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student')
 
@@ -108,6 +108,10 @@ export default async function AdminHome({
         <Link href="/admin/window"
               className="rounded-2xl border-2 border-black/15 px-5 py-3 font-bold transition hover:border-black/30">
           Nightly window
+        </Link>
+        <Link href="/admin/pattern"
+              className="rounded-2xl border-2 border-black/15 px-5 py-3 font-bold transition hover:border-black/30">
+          Paper pattern
         </Link>
         <Link href="/admin/users"
               className="rounded-2xl border-2 border-black/15 px-5 py-3 font-bold transition hover:border-black/30">

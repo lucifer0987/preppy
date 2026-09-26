@@ -4,7 +4,7 @@ import { useActionState, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { saveWindowAction } from './actions'
 import { emptyWindowForm } from './state'
-import { ATTEMPT_MINUTES, formatIstTime, windowLabels, windowProblem, type WindowSettings } from '../../../lib/time'
+import { formatIstTime, windowLabels, windowProblem, type WindowSettings } from '../../../lib/time'
 
 /**
  * Editing the nightly window.
@@ -13,13 +13,15 @@ import { ATTEMPT_MINUTES, formatIstTime, windowLabels, windowProblem, type Windo
  * `windowProblem` the server and the database use, so a window that will be
  * refused says so before you submit it.
  */
-export function WindowForm({ current }: { current: WindowSettings }) {
+export function WindowForm(
+  { current, attemptMinutes }: { current: WindowSettings; attemptMinutes: number },
+) {
   const [state, action] = useActionState(saveWindowAction, emptyWindowForm)
   const [draft, setDraft] = useState<WindowSettings>(current)
 
-  const problem = windowProblem(draft)
-  const labels = problem ? null : windowLabels(draft)
-  const latestClose = 24 * 60 - ATTEMPT_MINUTES
+  const problem = windowProblem(draft, attemptMinutes)
+  const labels = problem ? null : windowLabels(draft, attemptMinutes)
+  const latestClose = 24 * 60 - attemptMinutes
 
   const set = (k: keyof WindowSettings) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setDraft({ ...draft, [k]: Number(e.target.value) })
@@ -37,7 +39,7 @@ export function WindowForm({ current }: { current: WindowSettings }) {
           label="Last moment to start" hourName="entryCloseHour" minuteName="entryCloseMinute"
           hour={draft.entryCloseHour} minute={draft.entryCloseMinute}
           onHour={set('entryCloseHour')} onMinute={set('entryCloseMinute')}
-          hint={`Anyone starting before this still gets the full ${ATTEMPT_MINUTES} minutes.`}
+          hint={`Anyone starting before this still gets the full ${attemptMinutes} minutes.`}
         />
       </div>
 

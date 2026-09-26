@@ -8,6 +8,8 @@
  * lets all civil-time arithmetic use one offset instead of a timezone library.
  */
 
+import { DEFAULT_PATTERN, patternTotals } from './types'
+
 export const IST_OFFSET_MINUTES = 330
 
 /**
@@ -41,20 +43,31 @@ export const DEFAULT_WINDOW: WindowSettings = {
 }
 
 /** Length of one attempt, in minutes. The four sections must add up to this. */
-export const ATTEMPT_MINUTES = 45
+/**
+ * How long one attempt runs *by default* -- the total of the pattern the
+ * product shipped with. A paper carries its own length (`PaperWindow.attemptMinutes`,
+ * from `tests.attempt_sec`); this is only the fallback for a window being
+ * offered before any paper is in hand.
+ */
+export const DEFAULT_ATTEMPT_MINUTES = patternTotals(DEFAULT_PATTERN).minutes
 
 const minutesOf = (h: number, m: number) => h * 60 + m
 
-/** Entry close plus one paper. Derived, never stored. */
-export function hardStopMinutes(w: WindowSettings): number {
-  return minutesOf(w.entryCloseHour, w.entryCloseMinute) + ATTEMPT_MINUTES
+/**
+ * Entry close plus one paper. Derived, never stored.
+ *
+ * @param attemptMinutes How long the paper runs. The defaults screen has no
+ *                       paper in hand, so it passes the default pattern's total.
+ */
+export function hardStopMinutes(w: WindowSettings, attemptMinutes = DEFAULT_ATTEMPT_MINUTES): number {
+  return minutesOf(w.entryCloseHour, w.entryCloseMinute) + attemptMinutes
 }
 
 /**
  * Why this window cannot be used, or null. The same rules the database
  * enforces, so the admin form can explain a refusal before submitting it.
  */
-export function windowProblem(w: WindowSettings): string | null {
+export function windowProblem(w: WindowSettings, attemptMinutes = DEFAULT_ATTEMPT_MINUTES): string | null {
   for (const [h, m, what] of [
     [w.openHour, w.openMinute, 'opening'],
     [w.entryCloseHour, w.entryCloseMinute, 'closing'],
@@ -65,8 +78,8 @@ export function windowProblem(w: WindowSettings): string | null {
   if (minutesOf(w.openHour, w.openMinute) >= minutesOf(w.entryCloseHour, w.entryCloseMinute)) {
     return 'Entry must open before it closes.'
   }
-  if (hardStopMinutes(w) > 24 * 60) {
-    const latest = 24 * 60 - ATTEMPT_MINUTES
+  if (hardStopMinutes(w, attemptMinutes) > 24 * 60) {
+    const latest = 24 * 60 - attemptMinutes
     return `Entry must close by ${formatIstTime(Math.floor(latest / 60), latest % 60)}, `
       + `so the last person to start still finishes before midnight.`
   }
@@ -140,14 +153,24 @@ export interface PaperWindow {
   date: string
   opensAtMin: number
   entryClosesAtMin: number
+  /**
+   * How long one attempt at this paper runs: the sum of its sections, from
+   * `tests.attempt_sec`. Required rather than optional, because a window whose
+   * length quietly defaulted to 45 would give a 90-minute paper the wrong hard
+   * stop and cut its last entrant off halfway.
+   */
+  attemptMinutes: number
 }
 
 /** The default window a new paper is offered, from the global setting. */
-export function defaultPaperWindow(date: string, w: WindowSettings): PaperWindow {
+export function defaultPaperWindow(
+  date: string, w: WindowSettings, attemptMinutes = DEFAULT_ATTEMPT_MINUTES,
+): PaperWindow {
   return {
     date,
     opensAtMin: minutesOf(w.openHour, w.openMinute),
     entryClosesAtMin: minutesOf(w.entryCloseHour, w.entryCloseMinute),
+    attemptMinutes,
   }
 }
 
@@ -160,7 +183,7 @@ export const entryClosesAt = (p: PaperWindow) => istInstant(p.date, 0, p.entryCl
  * from midnight so a stop of exactly 24:00 stays on the paper's own date.
  */
 export const hardStopAt = (p: PaperWindow) =>
-  istInstant(p.date, 0, p.entryClosesAtMin + ATTEMPT_MINUTES)
+  istInstant(p.date, 0, p.entryClosesAtMin + p.attemptMinutes)
 
 /** Where a paper sits relative to now. */
 export function windowState(p: PaperWindow, at: Date = new Date()): WindowState {
@@ -196,13 +219,13 @@ export function paperClosed(p: PaperWindow, at: Date = new Date()): boolean {
  * refuses.
  */
 export function attemptDeadline(p: PaperWindow, startedAt: Date): Date {
-  const ownDeadline = startedAt.getTime() + ATTEMPT_MINUTES * 60_000
+  const ownDeadline = startedAt.getTime() + p.attemptMinutes * 60_000
   return new Date(Math.min(ownDeadline, hardStopAt(p).getTime()))
 }
 
 /** The times a paper shows, for display. */
 export function paperLabels(p: PaperWindow): { opens: string; closes: string; hardStop: string } {
-  const stop = p.entryClosesAtMin + ATTEMPT_MINUTES
+  const stop = p.entryClosesAtMin + p.attemptMinutes
   return {
     opens: formatIstTime(Math.floor(p.opensAtMin / 60), p.opensAtMin % 60),
     closes: formatIstTime(Math.floor(p.entryClosesAtMin / 60), p.entryClosesAtMin % 60),
@@ -212,23 +235,24 @@ export function paperLabels(p: PaperWindow): { opens: string; closes: string; ha
 }
 
 /** The default times, for the settings form. A paper's own use paperLabels. */
-export function windowLabels(w: WindowSettings): { opens: string; closes: string; hardStop: string } {
-  return paperLabels({
-    date: '1970-01-01',
-    opensAtMin: minutesOf(w.openHour, w.openMinute),
-    entryClosesAtMin: minutesOf(w.entryCloseHour, w.entryCloseMinute),
-  })
+export function windowLabels(
+  w: WindowSettings, attemptMinutes = DEFAULT_ATTEMPT_MINUTES,
+): { opens: string; closes: string; hardStop: string } {
+  return paperLabels(defaultPaperWindow('1970-01-01', w, attemptMinutes))
 }
 
 /** Why this paper window cannot be used, or null. Mirrors the SQL constraint. */
-export function paperWindowProblem(p: Pick<PaperWindow, 'opensAtMin' | 'entryClosesAtMin'>): string | null {
+export function paperWindowProblem(
+  p: Pick<PaperWindow, 'opensAtMin' | 'entryClosesAtMin' | 'attemptMinutes'>,
+): string | null {
   for (const [v, what] of [[p.opensAtMin, 'opening'], [p.entryClosesAtMin, 'closing']] as const) {
     if (!Number.isInteger(v) || v < 0 || v > 1439) return `The ${what} time is not a time of day.`
   }
   if (p.opensAtMin >= p.entryClosesAtMin) return 'Entry must open before it closes.'
-  if (p.entryClosesAtMin + ATTEMPT_MINUTES > 24 * 60) {
-    const latest = 24 * 60 - ATTEMPT_MINUTES
-    return `Entry must close by ${formatIstTime(Math.floor(latest / 60), latest % 60)}, `
+  if (p.entryClosesAtMin + p.attemptMinutes > 24 * 60) {
+    const latest = 24 * 60 - p.attemptMinutes
+    return `A ${p.attemptMinutes}-minute paper must close entry by `
+      + `${formatIstTime(Math.floor(latest / 60), latest % 60)}, `
       + `so the last person to start still finishes before midnight.`
   }
   return null
@@ -237,8 +261,8 @@ export function paperWindowProblem(p: Pick<PaperWindow, 'opensAtMin' | 'entryClo
 /** Two papers whose windows overlap, so a student cannot sit both. */
 export function windowsOverlap(a: PaperWindow, b: PaperWindow): boolean {
   if (a.date !== b.date) return false
-  return a.opensAtMin < b.entryClosesAtMin + ATTEMPT_MINUTES
-      && b.opensAtMin < a.entryClosesAtMin + ATTEMPT_MINUTES
+  return a.opensAtMin < b.entryClosesAtMin + b.attemptMinutes
+      && b.opensAtMin < a.entryClosesAtMin + a.attemptMinutes
 }
 
 export function addDays(date: string, days: number): string {

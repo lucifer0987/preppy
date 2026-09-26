@@ -46,7 +46,7 @@ async function finaliseOverdue(now: Date, userId: string | null): Promise<Finali
   // ever a handful, and a date filter would miss dry runs of future papers.
   let query = client
     .from('attempts')
-    .select('id, is_dry_run, started_at, tests!inner(date, opens_at_min, entry_closes_at_min, sections(duration_sec))')
+    .select('id, is_dry_run, started_at, tests!inner(date, opens_at_min, entry_closes_at_min, attempt_sec, sections(duration_sec))')
     .eq('state', 'IN_PROGRESS')
   if (userId) query = query.eq('user_id', userId)
   const { data: attempts, error } = await query
@@ -56,7 +56,10 @@ async function finaliseOverdue(now: Date, userId: string | null): Promise<Finali
   const report: FinaliseReport = { scanned: (attempts ?? []).length, finalised: [], failed: [] }
 
   for (const a of attempts ?? []) {
-    const test = a.tests as unknown as { date: string; opens_at_min: number; entry_closes_at_min: number; sections: { duration_sec: number }[] } | null
+    const test = a.tests as unknown as {
+      date: string; opens_at_min: number; entry_closes_at_min: number; attempt_sec: number
+      sections: { duration_sec: number }[]
+    } | null
     if (!test) continue
     const hardStop = attemptHardStop({
       isDryRun: a.is_dry_run as boolean,
@@ -64,6 +67,7 @@ async function finaliseOverdue(now: Date, userId: string | null): Promise<Finali
         date: test.date,
         opensAtMin: test.opens_at_min,
         entryClosesAtMin: test.entry_closes_at_min,
+        attemptMinutes: Math.round(test.attempt_sec / 60),
       },
       startedAt: new Date(a.started_at as string),
       sections: test.sections.map((s) => ({ durationSec: s.duration_sec })),

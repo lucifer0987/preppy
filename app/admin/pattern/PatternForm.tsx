@@ -1,0 +1,151 @@
+'use client'
+
+import { useActionState, useState } from 'react'
+import { useFormStatus } from 'react-dom'
+import { savePatternAction } from './actions'
+import { emptyPatternForm } from './state'
+import { patternBands, patternTotals, SECTION_NAMES, type Pattern, type SectionPattern } from '../../../lib/types'
+
+/**
+ * Editing the default paper pattern.
+ *
+ * The totals underneath recompute as you type, including the question numbers
+ * each section would hold, so the effect of a change is visible before it is
+ * saved. The four sections themselves are fixed -- they are the exam's, not a
+ * setting -- so only their numbers are editable.
+ */
+export function PatternForm({ current, latestEntryClose }: {
+  current: Pattern
+  /** What the saved window closes entry at, in minutes, to warn about a clash. */
+  latestEntryClose: number
+}) {
+  const [state, action] = useActionState(savePatternAction, emptyPatternForm)
+  const [draft, setDraft] = useState<Pattern>(current)
+
+  const totals = patternTotals(draft)
+  const bands = patternBands(draft)
+  const numbers = draft.every((s) => Number.isInteger(s.questions) && s.questions > 0)
+  const sane = draft.every((s) =>
+    Number.isInteger(s.minutes) && s.minutes > 0 && s.marksCorrect > 0 && s.marksNegative >= 0)
+
+  // The hard stop is entry close plus the paper's length, so a longer pattern
+  // can leave the saved window impossible. Say so here rather than at save.
+  const overrunsTheDay = latestEntryClose + totals.minutes > 24 * 60
+  const tooLong = totals.minutes > 8 * 60
+
+  const set = (code: string, k: keyof SectionPattern) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setDraft(draft.map((s) => s.code === code ? { ...s, [k]: Number(e.target.value) } : s))
+
+  return (
+    <form action={action} className="mt-4 rounded-3xl bg-white p-5">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[34rem] border-collapse text-sm">
+          <thead>
+            <tr className="text-left text-[10px] font-bold uppercase tracking-widest text-ink-soft">
+              <th className="pb-2 pr-3">Section</th>
+              <th className="pb-2 pr-3">Questions</th>
+              <th className="pb-2 pr-3">Minutes</th>
+              <th className="pb-2 pr-3">Correct</th>
+              <th className="pb-2">Wrong</th>
+            </tr>
+          </thead>
+          <tbody>
+            {draft.map((s) => (
+              <tr key={s.code} className="border-t border-black/10">
+                <td className="py-2.5 pr-3 font-semibold">{SECTION_NAMES[s.code]}</td>
+                <Cell name={`${s.code}.questions`} value={s.questions} step={1} min={1} max={200}
+                      onChange={set(s.code, 'questions')} label={`${s.code} questions`} />
+                <Cell name={`${s.code}.minutes`} value={s.minutes} step={1} min={1} max={180}
+                      onChange={set(s.code, 'minutes')} label={`${s.code} minutes`} />
+                <Cell name={`${s.code}.marksCorrect`} value={s.marksCorrect} step={0.25} min={0.25} max={10}
+                      onChange={set(s.code, 'marksCorrect')} label={`${s.code} marks for a correct answer`} />
+                <Cell name={`${s.code}.marksNegative`} value={s.marksNegative} step={0.25} min={0} max={10}
+                      onChange={set(s.code, 'marksNegative')} label={`${s.code} penalty for a wrong answer`} last />
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="mt-5 rounded-2xl bg-black/[0.04] p-4">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">What a paper becomes</p>
+        {!numbers || !sane ? (
+          <p className="mt-2 text-sm font-semibold text-notanswered">
+            Every box needs a number: whole questions and minutes, marks above zero, a penalty of zero or more.
+          </p>
+        ) : (
+          <>
+            <p className="mt-2 text-sm font-semibold tabular-nums">
+              {totals.questions} questions &middot; {totals.minutes} minutes &middot;{' '}
+              {totals.maxMarks} marks at best, {totals.minMarks} at worst
+            </p>
+            <ul className="mt-2 space-y-1 text-sm tabular-nums text-ink-soft">
+              {bands.map((b) => (
+                <li key={b.code}>
+                  {SECTION_NAMES[b.code]} holds Q{b.from}&ndash;Q{b.to}
+                </li>
+              ))}
+            </ul>
+            {tooLong && (
+              <p className="mt-3 text-sm font-semibold text-notanswered">
+                {totals.minutes} minutes is longer than the {8 * 60} a single paper may run.
+              </p>
+            )}
+            {!tooLong && overrunsTheDay && (
+              <p className="mt-3 text-sm font-semibold text-notanswered">
+                A {totals.minutes}-minute paper cannot finish before midnight if entry stays open as
+                late as it does now. Move the last entry time earlier on the window screen first.
+              </p>
+            )}
+          </>
+        )}
+      </div>
+
+      {state.error && (
+        <p role="alert" className="mt-4 rounded-2xl bg-notanswered px-4 py-3 text-sm font-semibold text-white">
+          {state.error}
+        </p>
+      )}
+      {state.saved && !state.error && (
+        <p className="mt-4 rounded-2xl bg-answered px-4 py-3 text-sm font-semibold text-white">
+          Saved. Papers already uploaded keep the shape they were given.
+        </p>
+      )}
+
+      <Save disabled={!numbers || !sane || tooLong} />
+      <p className="mt-3 text-xs text-ink-soft">
+        This is the shape a paper is given when its file does not say. A file may state its own{' '}
+        <code>questionCount</code>, <code>durationMinutes</code>, <code>marksCorrect</code> and{' '}
+        <code>marksNegative</code> per section, and those always win.
+      </p>
+    </form>
+  )
+}
+
+function Cell({ name, value, step, min, max, onChange, label, last }: {
+  name: string; value: number; step: number; min: number; max: number
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; label: string; last?: boolean
+}) {
+  return (
+    <td className={`py-2.5 ${last ? '' : 'pr-3'}`}>
+      <input
+        type="number" name={name} value={value} step={step} min={min} max={max} required
+        aria-label={label} onChange={onChange}
+        className="w-20 rounded-xl border-2 border-black/15 px-2.5 py-1.5 text-base font-semibold tabular-nums"
+      />
+    </td>
+  )
+}
+
+function Save({ disabled }: { disabled: boolean }) {
+  const { pending } = useFormStatus()
+  return (
+    <button
+      disabled={disabled || pending}
+      className="mt-4 rounded-2xl bg-play-purple px-7 py-3 font-black text-white transition
+                 hover:bg-play-purple-deep disabled:opacity-50"
+    >
+      {pending ? 'Saving...' : 'Save pattern'}
+    </button>
+  )
+}

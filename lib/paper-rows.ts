@@ -1,4 +1,4 @@
-import { PATTERN, type Paper, type PaperQuestion, type SectionCode } from './types'
+import { DEFAULT_PATTERN, patternOf, type Paper, type Pattern, type PaperQuestion, type SectionCode } from './types'
 
 /**
  * Pure translation between the JSON paper format and database rows.
@@ -57,19 +57,24 @@ export interface PaperRows {
   questions: QuestionRow[]
 }
 
-export function paperToRows(paper: Paper): PaperRows {
+/**
+ * @param pattern What a section falls back to when the file omits its minutes
+ *                or marking. The paper itself always wins; this only fills
+ *                gaps, so a file that states everything ignores it entirely.
+ */
+export function paperToRows(paper: Paper, pattern: Pattern = DEFAULT_PATTERN): PaperRows {
   const sections: SectionRow[] = []
   const directionBlocks: DirectionBlockRow[] = []
   const questions: QuestionRow[] = []
 
   paper.sections.forEach((section, index) => {
-    const pattern = PATTERN[section.code]
+    const fallback = patternOf(pattern, section.code)
     sections.push({
       code: section.code,
       position: index + 1,
-      duration_sec: Math.round((section.durationMinutes ?? pattern.minutes) * 60),
-      marks_correct: section.marksCorrect ?? 1,
-      marks_negative: section.marksNegative ?? 0.25,
+      duration_sec: Math.round((section.durationMinutes ?? fallback?.minutes ?? 0) * 60),
+      marks_correct: section.marksCorrect ?? fallback?.marksCorrect ?? 1,
+      marks_negative: section.marksNegative ?? fallback?.marksNegative ?? 0.25,
       question_count: section.questions.length,
     })
 

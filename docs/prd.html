@@ -355,7 +355,7 @@ html{scroll-behavior:smooth}
   <p><strong>48 s/q</strong> for Quant, Reasoning and PK is an exact match for IBPS SO Prelims, and more generous than SO Mains Professional Knowledge at 45 s/q. English at 54 s/q carries margin for comprehension passages.</p>
 </div>
 <h3>Marking</h3>
-<div class="fr"><p><b class="id">FR-3.3</b><strong>+1</strong> correct, <strong>−0.25</strong> wrong, <strong>0</strong> unattempted. Maximum <strong>+55.00</strong>, minimum <strong>−13.75</strong>.</p></div>
+<div class="fr"><p><b class="id">FR-3.3</b>Set per section, so configurable per paper. Shipped default <strong>+1</strong> correct, <strong>−0.25</strong> wrong, <strong>0</strong> unattempted &mdash; a maximum of <strong>+55.00</strong> and a minimum of <strong>−13.75</strong> on the shipped pattern.</p></div>
 <ul>
 <li>Two decimals, displayed signed when negative.</li>
 <li>A question left <strong>Marked for Review</strong> with no option selected is unattempted and scores 0.</li>
@@ -689,7 +689,7 @@ html{scroll-behavior:smooth}
 <!-- 9 -->
 <section id="s9"><div class="col">
 <h2><i>09</i>Data model</h2>
-<p><strong>Eight tables</strong>, plus <code>app_settings</code> and <code>rate_limits</code> for the throttles in §13. Dropped from v1.1: <code>options</code> (now a JSON column), <code>integrity_events</code>, <code>leaderboard_snapshots</code>, <code>admin_audit_log</code>.</p>
+<p><strong>Eight tables</strong>, plus <code>app_settings</code>, <code>default_sections</code> and <code>rate_limits</code> for the throttles in §13. Dropped from v1.1: <code>options</code> (now a JSON column), <code>integrity_events</code>, <code>leaderboard_snapshots</code>, <code>admin_audit_log</code>.</p>
 <div class="tw"><table>
 <tr><th>Table</th><th>Key fields</th></tr>
 <tr><td><code>profiles</code></td><td>id (= auth.users.id) · username (unique, lower) · display_name · role · is_active · must_change_password · sound_enabled · created_at</td></tr>
@@ -850,7 +850,7 @@ html{scroll-behavior:smooth}
 
 <div class="good">
   <h4>The one thing still unproven</h4>
-  <p>The schema and its functions are exercised against real Postgres, and 308 tests cover the pure logic. What has never run is the layer that talks to Supabase over the network: the queries in <code>lib/repo/</code>, signing in, and reading an image out of Storage. The engineering reference has a ten-minute walkthrough that exercises nearly all of it.</p>
+  <p>The schema and its functions are exercised against real Postgres, and 321 tests cover the pure logic. What has never run is the layer that talks to Supabase over the network: the queries in <code>lib/repo/</code>, signing in, and reading an image out of Storage. The engineering reference has a ten-minute walkthrough that exercises nearly all of it.</p>
 </div>
 </div></section>
 

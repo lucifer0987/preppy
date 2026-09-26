@@ -3,9 +3,9 @@ import { redirect } from 'next/navigation'
 import { Countdown } from '../components/Countdown'
 import { currentUser } from '../lib/auth'
 import { isConfigured } from '../lib/env'
-import { PATTERN, SECTION_NAMES, SECTION_CODES, TOTAL_MINUTES, TOTAL_QUESTIONS } from '../lib/types'
+import { SECTION_NAMES, patternTotals, uniformMarking } from '../lib/types'
 import { opensAt, paperLabels, windowLabels } from '../lib/time'
-import { getWindow } from '../lib/repo/settings'
+import { defaultAttemptMinutes, getPattern, getWindow } from '../lib/repo/settings'
 import { upcomingPapers } from '../lib/repo/papers'
 
 /**
@@ -28,7 +28,12 @@ export default async function Home() {
   // The next actual paper if one is scheduled; otherwise the usual times, so
   // the page still says when a paper would normally open.
   const { next } = isConfigured() ? await upcomingPapers(now) : { next: null }
-  const labels = next ? paperLabels(next.window) : windowLabels(testWindow)
+  const labels = next ? paperLabels(next.window) : windowLabels(testWindow, await defaultAttemptMinutes())
+  // The shape a paper takes, from the configured default pattern rather than a
+  // constant, so this page tells the truth after the pattern is changed.
+  const pattern = await getPattern()
+  const totals = patternTotals(pattern)
+  const marking = uniformMarking(pattern)
 
   return (
     <main className="min-h-dvh bg-play-purple text-white">
@@ -49,7 +54,7 @@ export default async function Home() {
             <Countdown targetIso={(next ? opensAt(next.window) : new Date(now.getTime() + 86_400_000)).toISOString()} nowIso={now.toISOString()} />
           </div>
           <p className="mt-4 text-sm text-white/70">
-            Opens {labels.opens}. Last entry {labels.closes}, so everyone gets the full {TOTAL_MINUTES} minutes.
+            Opens {labels.opens}. Last entry {labels.closes}, so everyone gets the full {totals.minutes} minutes.
           </p>
         </section>
 
@@ -58,17 +63,20 @@ export default async function Home() {
             Tonight&rsquo;s pattern
           </h2>
           <ul className="mt-3 space-y-1.5">
-            {SECTION_CODES.map((code) => (
-              <li key={code} className="flex items-baseline justify-between gap-4 text-sm">
-                <span className="font-semibold">{SECTION_NAMES[code]}</span>
+            {pattern.map((s) => (
+              <li key={s.code} className="flex items-baseline justify-between gap-4 text-sm">
+                <span className="font-semibold">{SECTION_NAMES[s.code]}</span>
                 <span className="tabular-nums text-white/70">
-                  {PATTERN[code].questions} q &middot; {PATTERN[code].minutes} min
+                  {s.questions} q &middot; {s.minutes} min
                 </span>
               </li>
             ))}
           </ul>
           <p className="mt-4 border-t border-white/20 pt-3 text-sm font-semibold tabular-nums">
-            {TOTAL_QUESTIONS} questions &middot; {TOTAL_MINUTES} minutes &middot; +1 correct, &minus;0.25 wrong
+            {totals.questions} questions &middot; {totals.minutes} minutes
+            {marking
+              ? <> &middot; +{marking.correct} correct, &minus;{marking.negative} wrong</>
+              : <> &middot; marking varies by section</>}
           </p>
         </section>
 
