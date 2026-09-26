@@ -430,7 +430,10 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
       )}
 
       <header className="sticky top-0 z-30 flex flex-wrap items-center gap-3 bg-play-purple px-4 py-3 text-white">
-        <span className="font-black">{SECTION_NAMES[section.code]}</span>
+        {/* The section name is this screen's title, and it was a span, so a
+            45-minute exam had no heading structure at all. TestEngine remounts
+            per section, so this correctly changes as the student moves on. */}
+        <h1 className="font-black">{SECTION_NAMES[section.code]}</h1>
         <span className="text-sm text-white/70 tabular-nums">
           Question {index + 1} of {section.questions.length}
         </span>

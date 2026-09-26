@@ -8,7 +8,7 @@ import { PAPER_WINDOW_COLUMNS, paperWindowOf } from '../../../lib/repo/papers'
 import { beginAction } from './actions'
 import { BeginButton } from './BeginButton'
 import { entryRefusal } from './entry'
-import { BackLink, Flash } from '../../../components/Page'
+import { BackLink, Flash, PageHeader } from '../../../components/Page'
 import { ThemeToggle } from '../../../components/ThemeToggle'
 
 export const dynamic = 'force-dynamic'
@@ -58,8 +58,10 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
         <ThemeToggle />
       </div>
 
-      <h1 className="mt-4 text-4xl font-black tracking-tight">{test.title ?? 'Daily mock'}</h1>
-      <p className="mt-1 text-ink-soft">{formatIstDate(test.date as string)}</p>
+      <PageHeader
+        title={test.title ?? 'Daily mock'}
+        meta={<span className="numeral">{formatIstDate(test.date as string)}</span>}
+      />
 
       {isDryRun && (
         <Flash tone="warn" className="mt-4 text-sm">

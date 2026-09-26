@@ -127,9 +127,12 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
       />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="eyebrow">
+        {/* The page's only h1. Six h2 sections followed it with nothing above
+            them, so navigating this page by heading never said which paper it
+            was. It keeps the eyebrow's look; only the element changes. */}
+        <h1 className="eyebrow">
           {test.title ?? 'Daily mock'} &middot; {formatIstDate(test.date)}
-        </p>
+        </h1>
         <span className="flex items-center gap-1">
           <SoundToggle initial={user.soundEnabled} compact />
           <ThemeToggle />
