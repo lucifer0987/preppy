@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import Ajv from 'ajv/dist/2020.js'
 import { FIELDS, readPaper, readQuestion, summarise } from '../lib/paper'
-import { DEFAULT_PATTERN, SECTION_CODES, patternBands, patternTotals, type Pattern } from '../lib/types'
+import {
+  DEFAULT_PATTERN, SECTION_CODES, patternBands, patternTotals, uniformMarking, type Pattern,
+} from '../lib/types'
 
 const sampleJson = readFileSync('format/sample.json', 'utf8')
 const templateJson = readFileSync('format/template.json', 'utf8')
@@ -404,6 +406,84 @@ describe('warnings do not block', () => {
   })
 })
 
+describe('a file whose sections are out of order', () => {
+  it('is refused, and each section is still measured against its own target', () => {
+    // Order is a blocking error on its own. What matters here is that the
+    // counts are read by code: matched by position, QUANT would be checked
+    // against English's ten and every section would report a spurious size.
+    const swapped = mutate((p) => {
+      const [q, r, e, k] = p.sections
+      p.sections = [e, r, q, k]
+    })
+    const r = ok(swapped)
+    expect(r.codes).toContain('SECTION_ORDER')
+    expect(r.codes).not.toContain('SECTION_COUNT')
+    expect(r.codes).not.toContain('TOTAL_COUNT')
+  })
+})
+
+describe('the shipped files stand on their own', () => {
+  // They state questionCount, durationMinutes and the marking, so they are
+  // judged on what they say rather than on whatever the console's default
+  // pattern has been changed to. Without that, changing the pattern would
+  // make the sample paper we tell people to copy stop validating.
+  const ODD: Pattern = [
+    { code: 'QUANT', questions: 7, minutes: 20, marksCorrect: 3, marksNegative: 1 },
+    { code: 'REASONING', questions: 7, minutes: 20, marksCorrect: 3, marksNegative: 1 },
+    { code: 'ENGLISH', questions: 7, minutes: 20, marksCorrect: 3, marksNegative: 1 },
+    { code: 'PK', questions: 7, minutes: 20, marksCorrect: 3, marksNegative: 1 },
+  ]
+
+  it('sample.json is publishable under any default pattern', () => {
+    for (const pattern of [DEFAULT_PATTERN, ODD]) {
+      const r = ok(sampleJson, { pattern })
+      expect(r.issues.filter((i) => i.severity === 'error')).toEqual([])
+      expect(r.publishable).toBe(true)
+    }
+  })
+
+  it('template.json fails only on its placeholders, under any default pattern', () => {
+    for (const pattern of [DEFAULT_PATTERN, ODD]) {
+      const codes = new Set(ok(templateJson, { pattern }).issues
+        .filter((i) => i.severity === 'error').map((i) => i.code))
+      expect(codes).toEqual(new Set(['PLACEHOLDER_TEXT']))
+    }
+  })
+
+  it('states a count that matches the array it ships', () => {
+    for (const src of [sampleJson, templateJson]) {
+      for (const s of JSON.parse(src).sections) {
+        expect(s.questionCount).toBe(s.questions.length)
+      }
+    }
+  })
+})
+
+describe('describing a pattern', () => {
+  it('reports one marking scheme when every section shares it', () => {
+    expect(uniformMarking(DEFAULT_PATTERN)).toEqual({ correct: 1, negative: 0.25 })
+  })
+
+  it('reports none when a single section differs', () => {
+    const mixed = DEFAULT_PATTERN.map((s, i) => i === 2 ? { ...s, marksCorrect: 2 } : s)
+    expect(uniformMarking(mixed)).toBeNull()
+  })
+
+  it('rounds the totals rather than carrying floating-point noise', () => {
+    // 0.1 a mark over 55 questions is the classic case: summed naively this is
+    // 5.500000000000001, and a leaderboard that shows it looks broken.
+    const tenths = DEFAULT_PATTERN.map((s) => ({ ...s, marksCorrect: 0.1, marksNegative: 0.1 }))
+    const t = patternTotals(tenths)
+    expect(t.maxMarks).toBe(5.5)
+    expect(t.minMarks).toBe(-5.5)
+  })
+
+  it('has nothing to say about an empty pattern', () => {
+    expect(uniformMarking([])).toBeNull()
+    expect(patternTotals([])).toEqual({ questions: 0, minutes: 0, maxMarks: 0, minMarks: 0 })
+  })
+})
+
 describe('a pattern other than the default', () => {
   // 40 questions in 60 minutes, marked +2 / -0.5. The sample paper is 55-in-45,
   // so under this pattern it should be wrong in exactly the ways it differs.
@@ -421,13 +501,23 @@ describe('a pattern other than the default', () => {
       .toEqual([[1, 10], [11, 20], [21, 30], [31, 40]])
   })
 
-  it('judges the sample paper against it, not against 55-in-45', () => {
-    const r = ok(sampleJson, { pattern: OTHER })
+  it('judges a paper that does not state its own counts', () => {
+    // Strip questionCount and the pattern decides; the sample keeps its 55
+    // questions, so under a 40-question pattern it is wrong in exactly the
+    // ways it differs.
+    const silent = mutate((p) => {
+      for (const s of p.sections) delete s.questionCount
+    })
+    const r = ok(silent, { pattern: OTHER })
     expect(r.codes).toContain('SECTION_COUNT')
     expect(r.codes).toContain('TOTAL_COUNT')
     expect(r.publishable).toBe(false)
     // Q15 is fine in QUANT under the default, but QUANT now ends at Q10.
     expect(r.codes).toContain('NUMBER_OUT_OF_BAND')
+
+    // And says how to fix it, since the file is the place to say so.
+    expect(r.issues.find((i) => i.code === 'SECTION_COUNT')!.message)
+      .toMatch(/Set "questionCount" on this section/)
   })
 
   it('accepts a paper built to it', () => {

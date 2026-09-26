@@ -112,7 +112,9 @@ export function PatternForm({ current, latestEntryClose }: {
         </p>
       )}
 
-      <Save disabled={!numbers || !sane || tooLong} />
+      {/* Disabled for the same reasons the server refuses, so the button never
+          promises something that will come back as an error. */}
+      <Save disabled={!numbers || !sane || tooLong || overrunsTheDay} />
       <p className="mt-3 text-xs text-ink-soft">
         This is the shape a paper is given when its file does not say. A file may state its own{' '}
         <code>questionCount</code>, <code>durationMinutes</code>, <code>marksCorrect</code> and{' '}

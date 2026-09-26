@@ -28,12 +28,17 @@ function buildTemplate() {
     date: '2026-01-01',
     title: 'Daily Mock NNN',
     sections: SECTION_CODES.map((code) => {
-      // The template ships the default pattern; a paper that differs says so
-      // with its own questionCount and durationMinutes.
+      // The template ships the pattern the product came with. An admin who has
+      // changed the console's default wants a template built to that instead.
       const shape = patternOf(DEFAULT_PATTERN, code)!
       const band = patternBands(DEFAULT_PATTERN).find((b) => b.code === code)!
       const section: Record<string, unknown> = {
         code,
+        // Stated, not implied. A file that names its own shape validates the
+        // same way whatever the console's default pattern has been changed to,
+        // and the count still has to match the array, so a lost question is
+        // caught either way.
+        questionCount: shape.questions,
         durationMinutes: shape.minutes,
         marksCorrect: shape.marksCorrect,
         marksNegative: shape.marksNegative,

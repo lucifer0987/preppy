@@ -164,6 +164,9 @@ export function rowsToPaper(rows: PaperRows): Paper {
 
         return {
           code: section.code,
+          // Carried back out, so an exported paper still states its own shape
+          // and can be re-read whatever the default pattern has become.
+          questionCount: section.question_count,
           durationMinutes: section.duration_sec / 60,
           marksCorrect: section.marks_correct,
           marksNegative: section.marks_negative,

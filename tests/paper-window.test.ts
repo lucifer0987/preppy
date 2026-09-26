@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 vi.mock('server-only', () => ({}))
 vi.mock('../lib/supabase/admin', () => ({ db: () => { throw new Error('not used') } }))
 
-const { PAPER_WINDOW_COLUMNS, paperWindowOf } = await import('../lib/repo/papers')
+const { PAPER_WINDOW_COLUMNS, paperWindowOf, shapeOf } = await import('../lib/repo/papers')
 
 describe('building a window from a row', () => {
   it('reads the three columns', () => {
@@ -29,5 +29,36 @@ describe('building a window from a row', () => {
     for (const c of ['date', 'opens_at_min', 'entry_closes_at_min', 'attempt_sec']) {
       expect(PAPER_WINDOW_COLUMNS).toContain(c)
     }
+  })
+})
+
+describe('the shape a paper carries', () => {
+  const w = { date: '2026-11-01', opensAtMin: 1320, entryClosesAtMin: 1395, attemptMinutes: 45 }
+  const sec = (question_count: number, marks_correct: number, marks_negative: number) =>
+    ({ question_count, marks_correct, marks_negative })
+
+  it('adds up the questions and takes the minutes from the window', () => {
+    const s = shapeOf([sec(15, 1, 0.25), sec(15, 1, 0.25), sec(10, 1, 0.25), sec(15, 1, 0.25)], w)
+    expect([s.questions, s.minutes]).toEqual([55, 45])
+    expect(s.marking).toEqual({ correct: 1, negative: 0.25 })
+  })
+
+  it('says nothing about marking when the sections disagree', () => {
+    const s = shapeOf([sec(10, 1, 0.25), sec(10, 2, 0.5)], w)
+    expect(s.marking).toBeNull()
+    expect(s.questions).toBe(20)
+  })
+
+  it('treats numeric strings from the database as the numbers they are', () => {
+    // Postgres numeric(4,2) arrives as a string through PostgREST, so "1.00"
+    // and 1 must not read as two different marking schemes.
+    const s = shapeOf(
+      [{ question_count: 10, marks_correct: '1.00', marks_negative: '0.25' }, sec(10, 1, 0.25)], w)
+    expect(s.marking).toEqual({ correct: 1, negative: 0.25 })
+  })
+
+  it('has nothing to say about a paper with no sections', () => {
+    const s = shapeOf([], w)
+    expect([s.questions, s.minutes, s.marking]).toEqual([0, 45, null])
   })
 })

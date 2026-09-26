@@ -171,9 +171,13 @@ export function readPaper(rawText: string, opts: ReadOptions = {}): ReadResult {
    * section starts. A section states its own `questionCount` when it differs
    * from the pattern; where it does not, the pattern decides.
    */
-  const expected: Pattern = SECTION_CODES.map((code, i) => {
+  const expected: Pattern = SECTION_CODES.map((code) => {
     const base = patternOf(pattern, code)
-    const raw = sections[i]
+    // By code, not by position. A file with its sections out of order is
+    // refused anyway, but reading the count off whatever happened to be in slot
+    // one would report each section's size against another section's target.
+    const raw = sections.find((x) =>
+      x && typeof x === 'object' && !Array.isArray(x) && (x as Record<string, unknown>)['code'] === code)
     const declared = raw && typeof raw === 'object' && !Array.isArray(raw)
       ? (raw as Record<string, unknown>)['questionCount']
       : undefined

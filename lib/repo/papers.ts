@@ -544,7 +544,12 @@ export async function updateQuestionContent(
 export interface PaperShape {
   questions: number
   minutes: number
-  /** Null when the sections do not all mark the same way. */
+  /**
+   * The marking, when every section marks the same way. Null when they differ
+   * -- and also when there are no sections at all, since then there is nothing
+   * to state. Such a paper cannot be sat anyway: start_attempt raises
+   * NO_SECTIONS for it.
+   */
   marking: { correct: number; negative: number } | null
 }
 

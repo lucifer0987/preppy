@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getPattern, getWindow } from '../../../lib/repo/settings'
+import { getPattern, getPatternMeta, getWindow } from '../../../lib/repo/settings'
 import { patternTotals, SECTION_NAMES } from '../../../lib/types'
 import { PatternForm } from './PatternForm'
 
@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function PatternPage() {
   const current = await getPattern()
+  const meta = await getPatternMeta()
   const window = await getWindow()
   const totals = patternTotals(current)
   const latestEntryClose = window.entryCloseHour * 60 + window.entryCloseMinute
@@ -36,6 +37,12 @@ export default async function PatternPage() {
             </li>
           ))}
         </ul>
+        {meta.updatedAt && (
+          <p className="mt-3 text-xs text-white/50">
+            Last changed {new Date(meta.updatedAt).toLocaleString('en-IN')}
+            {meta.updatedBy ? ` by ${meta.updatedBy}` : ''}
+          </p>
+        )}
       </section>
 
       <PatternForm current={current} latestEntryClose={latestEntryClose} />

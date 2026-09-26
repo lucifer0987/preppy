@@ -6,6 +6,7 @@
   "sections": [
     {
       "code": "QUANT",
+      "questionCount": 15,
       "durationMinutes": 12,
       "marksCorrect": 1,
       "marksNegative": 0.25,
@@ -265,6 +266,7 @@
     },
     {
       "code": "REASONING",
+      "questionCount": 15,
       "durationMinutes": 12,
       "marksCorrect": 1,
       "marksNegative": 0.25,
@@ -498,6 +500,7 @@
     },
     {
       "code": "ENGLISH",
+      "questionCount": 10,
       "durationMinutes": 9,
       "marksCorrect": 1,
       "marksNegative": 0.25,
@@ -656,6 +659,7 @@
     },
     {
       "code": "PK",
+      "questionCount": 15,
       "durationMinutes": 12,
       "marksCorrect": 1,
       "marksNegative": 0.25,

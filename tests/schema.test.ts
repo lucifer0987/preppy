@@ -174,6 +174,38 @@ describe("a paper's own length", () => {
   })
 })
 
+describe("keeping a paper's length in step", () => {
+  it('survives the paper being deleted, sections and all', async () => {
+    // The sections cascade, so the trigger fires once per section while the
+    // tests row it wants to update is already on its way out.
+    const { id } = await savePaper('2027-03-01', 'To delete')
+    expect(await fails('delete from tests where id = $1', [id])).toBeNull()
+    expect((await one<{ n: string }>('select count(*)::text n from tests where id=$1', [id])).n).toBe('0')
+  })
+
+  it('handles a section moving to another paper', async () => {
+    const a = await savePaper('2027-03-02', 'Paper A')
+    const b = await savePaper('2027-03-03', 'Paper B')
+    // One section per code per paper, so B has to give up its own English
+    // section before it can take A's.
+    await db.query(`delete from sections where test_id = $1 and code = 'ENGLISH'`, [b.id])
+    await db.query(`update sections set test_id = $2 where test_id = $1 and code = 'ENGLISH'`, [a.id, b.id])
+    const rows = await db.query<{ id: string; n: number }>(
+      'select id, attempt_sec n from tests where id = any($1)', [[a.id, b.id]])
+    const byId = new Map(rows.rows.map((r) => [r.id, r.n]))
+    // A lost nine minutes and B is whole again. Both rows have to follow, and
+    // before 0006 only the paper the section moved *to* did.
+    expect(byId.get(a.id)).toBe(36 * 60)
+    expect(byId.get(b.id)).toBe(45 * 60)
+  })
+
+  it('falls back to the shipped length for a paper with no sections at all', async () => {
+    const { id } = await savePaper('2027-03-04', 'No sections')
+    await db.query('delete from sections where test_id = $1', [id])
+    expect((await one<{ n: number }>('select attempt_sec n from tests where id=$1', [id])).n).toBe(45 * 60)
+  })
+})
+
 describe('the default pattern', () => {
   it('starts as the pattern the product shipped with', async () => {
     const { rows } = await db.query<{ code: string; q: number; d: number; c: string; n: string }>(
