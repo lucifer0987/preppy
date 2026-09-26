@@ -255,7 +255,7 @@ html{scroll-behavior:smooth}
 <header class="mast">
   <p class="eyebrow"><b>Product Requirements</b><i class="dot"></i>v2.0<i class="dot"></i>Phases 1 and 2 shipped<i class="dot"></i>Record, not forecast</p>
   <h1>Preppy</h1>
-  <p class="lede">A closed-cohort daily mock-test platform for IBPS Specialist Officer (IT) aspirants. A 55-question paper unlocks in a window set when it is scheduled, and a day may hold more than one, scored on the real marking scheme, ranked on a leaderboard that <em>never resets</em>.</p>
+  <p class="lede">A closed-cohort daily mock-test platform for IBPS Specialist Officer (IT) aspirants. A paper unlocks in a window set when it is scheduled, and a day may hold more than one, scored on the real marking scheme, ranked on a leaderboard that <em>never resets</em>.</p>
   <p class="lede" style="margin-top:14px;font-size:17px">Phases 1 and 2 are built. This document now records <strong>what exists and why</strong>, including the decisions that changed during the build. For how it is put together and how to run it, see the <a href="architecture.html">engineering reference</a>.</p>
   <dl class="meta">
     <div><dt>Owner</dt><dd>Gaurav Kumar</dd></div>
@@ -340,7 +340,7 @@ html{scroll-behavior:smooth}
 <!-- 3 -->
 <section id="s3"><div class="col">
 <h2><i>03</i>Pattern &amp; scoring</h2>
-<div class="fr"><p><b class="id">FR-3.1</b>Every daily test is exactly 55 questions across 4 sections in 45 minutes, with an independent timer per section.</p></div>
+<div class="fr"><p><b class="id">FR-3.1</b>Four sections, in a fixed order, each with an independent timer. The questions, minutes and marking per section are configurable &mdash; from the admin console for what a paper is given by default, or in the paper's own file. Shipped default: 55 questions across the four in 45 minutes.</p></div>
 <div class="tw"><table>
 <tr><th style="width:36px">#</th><th>Section</th><th>Code</th><th class="n">Q</th><th class="n">Time</th><th class="n">Sec/q</th></tr>
 <tr><td>1</td><td><i class="sec-dot" style="background:var(--k-blue)"></i>Quantitative Aptitude</td><td><code>QUANT</code></td><td class="n">15</td><td class="n">12:00</td><td class="n">48</td></tr>
@@ -850,7 +850,7 @@ html{scroll-behavior:smooth}
 
 <div class="good">
   <h4>The one thing still unproven</h4>
-  <p>The schema and its functions are exercised against real Postgres, and 321 tests cover the pure logic. What has never run is the layer that talks to Supabase over the network: the queries in <code>lib/repo/</code>, signing in, and reading an image out of Storage. The engineering reference has a ten-minute walkthrough that exercises nearly all of it.</p>
+  <p>The schema and its functions are exercised against real Postgres, and 336 tests cover the pure logic. What has never run is the layer that talks to Supabase over the network: the queries in <code>lib/repo/</code>, signing in, and reading an image out of Storage. The engineering reference has a ten-minute walkthrough that exercises nearly all of it.</p>
 </div>
 </div></section>
 

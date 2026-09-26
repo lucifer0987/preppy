@@ -214,10 +214,10 @@ figcaption b{color:var(--ink-2); font-weight:600}
   <dl class="facts">
     <div><dt>Routes</dt><dd>21</dd></div>
     <div><dt>Tables</dt><dd>11</dd></div>
-    <div><dt>SQL functions</dt><dd>10</dd></div>
-    <div><dt>Migrations</dt><dd>5</dd></div>
+    <div><dt>SQL functions</dt><dd>11</dd></div>
+    <div><dt>Migrations</dt><dd>6</dd></div>
     <div><dt>Modules</dt><dd>29<small>lib/</small></dd></div>
-    <div><dt>Tests</dt><dd>321</dd></div>
+    <div><dt>Tests</dt><dd>336</dd></div>
     <div><dt>Runtime deps</dt><dd>8</dd></div>
   </dl>
 </header>
@@ -468,7 +468,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
   <rect x="20" y="160" width="470" height="76" rx="8" fill="none" stroke="#0E767F" stroke-width="2.5"/>
   <text x="38" y="184" font-size="13.5" font-weight="700" fill="currentColor">Pure domain logic</text>
   <text x="38" y="203" font-size="10.5" fill="currentColor" opacity=".7">time &middot; attempt &middot; scoring &middot; leaderboard &middot; paper &middot; csv &middot; images</text>
-  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 321 tests live here</text>
+  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 336 tests live here</text>
 
   <rect x="20" y="252" width="470" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
   <text x="38" y="276" font-size="13.5" font-weight="600" fill="currentColor">Repository</text>
@@ -616,7 +616,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><th>Function</th><th>Why it cannot be application code</th></tr>
 <tr><td><code>start_attempt</code></td><td>Creates the attempt and opens its first section together. A half-started attempt has no valid state</td></tr>
 <tr><td><code>finish_attempt</code></td><td>Locks the row, refuses to double-score, and rejects a submission carrying a stale <code>key_version</code></td></tr>
-<tr><td><code>save_paper</code></td><td>Writes a test, its sections, blocks and 55 questions atomically. A half-written paper would go live with questions missing</td></tr>
+<tr><td><code>save_paper</code></td><td>Writes a test, its sections, its directions blocks and every question atomically. A half-written paper would go live with questions missing</td></tr>
 <tr><td><code>apply_rescore</code></td><td>Rewrites every affected attempt in one statement and stamps the paper</td></tr>
 <tr><td><code>rate_limit_hit</code></td><td>Counting must be shared. A serverless host runs many instances and each would keep its own count</td></tr>
 <tr><td><code>revoke_user_sessions</code></td><td>Reaches into <code>auth.sessions</code>, which needs elevated rights</td></tr>
@@ -634,8 +634,9 @@ figcaption b{color:var(--ink-2); font-weight:600}
 </table></div>
 
 <div class="note why">
-  <h4>Two triggers that say no</h4>
+  <h4>Two triggers that say no, and one that keeps up</h4>
   <p>A paper with real attempts against it cannot be deleted, and cannot be moved back to draft. Both are enforced by database triggers rather than UI checks, because the consequence &mdash; scores pointing at questions that no longer exist &mdash; is unrecoverable.</p>
+  <p>The third, <code>sync_attempt_sec</code>, keeps <code>tests.attempt_sec</code> equal to the sum of the paper's sections through every insert, duration change, move and delete. It is a trigger rather than a line in <code>save_paper</code> because <code>save_paper</code> being the only writer is true today, not a guarantee &mdash; and a length that silently disagrees with the sections it summarises shows up as a student losing time.</p>
 </div>
 </div></section>
 
@@ -766,8 +767,8 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <h3>Where to start</h3>
 <div class="tw"><table>
 <tr><th>File in <code>format/</code></th><th>What it is</th></tr>
-<tr><td><code>sample.json</code></td><td>A complete worked paper with a DI table, a seating puzzle and a reading passage. <strong>Copy this one.</strong> Swap the content question by question; the numbering, bands and structure are already right</td></tr>
-<tr><td><code>template.json</code></td><td>A blank skeleton, 55 questions numbered correctly, if you would rather fill in placeholders. The checker refuses any placeholder left in, so an unedited template can never go live</td></tr>
+<tr><td><code>sample.json</code></td><td>A complete worked paper with a DI table, a seating puzzle and a reading passage. Copy this one. Swap the content question by question; the numbering, bands and structure are already right, and it states its own shape, so it keeps validating whatever the default pattern is changed to</td></tr>
+<tr><td><code>template.json</code></td><td>A blank skeleton numbered correctly for the pattern the product shipped with, if you would rather fill in placeholders. The checker refuses any placeholder left in, so an unedited template can never go live. If you have changed the default pattern, run <code>npm run build:format</code> after editing <code>DEFAULT_PATTERN</code>, or start from <code>sample.json</code> and adjust the counts</td></tr>
 <tr><td><code>schema.json</code></td><td>A JSON Schema. Point your editor at it and mistakes are underlined as you type</td></tr>
 </table></div>
 
@@ -1014,7 +1015,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 
 <div class="tw"><table>
 <tr><th>Layer</th><th>Status</th></tr>
-<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 321 tests, no database needed</td></tr>
+<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 336 tests, no database needed</td></tr>
 <tr><td>The schema, its functions, triggers and indexes</td><td><strong>Tested against real Postgres.</strong> <code>tests/schema.test.ts</code> applies every migration to an in-process Postgres and exercises each function and guard. <code>tests/migrate.test.ts</code> proves the chain is ordered and that a second run changes nothing</td></tr>
 <tr><td>The queries in <code>lib/repo/</code></td><td><strong>Typechecked only.</strong> The PostgREST calls have never run against a live server</td></tr>
 <tr><td>Supabase Auth and Storage</td><td><strong>Typechecked only</strong></td></tr>
@@ -1023,6 +1024,8 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <div class="note care">
   <h4>So the gap is narrower than it looks, but it is real</h4>
   <p>The dangerous part &mdash; the SQL that must be atomic &mdash; is exercised as SQL. What has never run is the layer that talks to Supabase over the network: the <code>.from().select()</code> calls, signing in, and reading an image out of Storage. Section 17 is a walkthrough that exercises nearly all of it in ten minutes. Do it before a paper night that counts.</p>
+  <p>That gap is not theoretical. Three bugs of the same shape have already been found by reading rather than by running: a query that selected fewer columns than the code then read off the row. Each produced a window of <code>undefined</code>, which every check answers &ldquo;no&rdquo; to and every date arithmetic turns into <code>Invalid Date</code> &mdash; a briefing page that hid <strong>Begin</strong> from every student, and a live test screen whose hard stop and section deadlines were all <code>NaN</code>. Nothing typechecked wrong, because the row was cast to the shape the code wanted.</p>
+  <p>The defence now is <code>paperWindowOf</code>: every window is built through it, and it throws if a column is missing rather than returning a window nobody can use. The rule it enforces is worth stating plainly &mdash; <strong>never cast a database row to a shape wider than the columns you selected</strong>.</p>
 </div>
 </div></section>
 
@@ -1075,7 +1078,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <text x="179" y="209" text-anchor="middle" font-weight="600">typecheck</text>
     <line x1="226" y1="205" x2="238" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="238" y="186" width="94" height="38" rx="6" fill="none" stroke="#94202B" stroke-width="2"/>
-    <text x="285" y="209" text-anchor="middle" font-weight="600">321 tests</text>
+    <text x="285" y="209" text-anchor="middle" font-weight="600">336 tests</text>
     <line x1="332" y1="205" x2="344" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="344" y="186" width="84" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
     <text x="386" y="209" text-anchor="middle" font-weight="600">build</text>
@@ -1100,7 +1103,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td><code>npm run start:local</code></td><td><span class="pill local">rare</span></td><td>Serves that build on port 3000</td></tr>
 <tr><td><code>npm run build:prod</code></td><td><span class="pill prod">before shipping</span></td><td>Typecheck, all tests, then build without source maps</td></tr>
 <tr><td><code>npm run start:prod</code></td><td><span class="pill prod">on the host</span></td><td>Serves the production build</td></tr>
-<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>321 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>336 tests. No database needed, about a second</td></tr>
 <tr><td><code>npm run typecheck</code></td><td><span class="pill both">anytime</span></td><td>Checks types without building</td></tr>
 <tr><td><code>npm run seed</code></td><td><span class="pill both">setup</span></td><td>Creates the accounts, prints passwords once</td></tr>
 <tr><td><code>npm run secret</code></td><td><span class="pill both">setup</span></td><td>Prints a random string for CRON_SECRET</td></tr>
@@ -1217,7 +1220,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <b>npm install</b></pre>
 </div>
 <p>Downloads everything into a <code>node_modules</code> folder. Safe to re-run at any time.</p>
-<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>321 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
+<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>336 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
 </li>
 
 <li>
@@ -1242,7 +1245,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>npm run migrate</b>
 
-<i>  Applying 5 migrations...
+<i>  Applying 6 migrations...
     applied  0001_baseline.sql
     applied  0002_test_window.sql</i></pre>
 </div>
@@ -1419,6 +1422,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td><code>0003_per_paper_window.sql</code></td><td>A window per paper, and more than one paper a day</td></tr>
 <tr><td><code>0004_drafts_share_a_day.sql</code></td><td>Made that index partial, so two drafts for one day can both be uploaded</td></tr>
 <tr><td><code>0005_configurable_pattern.sql</code></td><td><code>default_sections</code> plus <code>tests.attempt_sec</code>: questions, minutes and marking per section, and each paper's own running time</td></tr>
+<tr><td><code>0006_pattern_audit.sql</code></td><td>Who last changed the pattern, and a <code>sync_attempt_sec</code> that follows a section moving between papers rather than only the paper it moved to</td></tr>
 </tbody>
 </table></div>
 
@@ -1507,7 +1511,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <h3>The rest of the console</h3>
 <div class="tw"><table>
 <tr><th>Screen</th><th>For</th></tr>
-<tr><td>Admin home</td><td>Leads with tonight's status: <strong>Scheduled</strong> or <strong>Not scheduled</strong>. Also has <strong>Finalise open attempts now</strong>, the manual run of the nightly job</td></tr>
+<tr><td>Admin home</td><td>Leads with today's papers &mdash; each with its window and whether it is a draft, waiting, open, closed to entry or finished &mdash; or says there is none. Also has <strong>Finalise open attempts now</strong>, the manual run of the nightly job</td></tr>
 <tr><td>Papers</td><td>Everything drafted or published. Open one to preview, correct an answer key, or dry-run it</td></tr>
 <tr><td>Attempts</td><td>Every attempt with score, duration and the two integrity counters. Void one here if you must</td></tr>
 <tr><td>People</td><td>Create accounts singly or by pasting a CSV. Reset passwords. Deactivate without losing history</td></tr>
@@ -1518,7 +1522,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 
 <div class="note care">
   <h4>There is no automated reminder</h4>
-  <p>With no email configured there is nowhere to send one. The admin home shows tonight's status the moment you open it; for the reminder itself, a recurring 9:45 PM alarm on your phone does the job with no code.</p>
+  <p>With no email configured there is nowhere to send one. The admin home shows tonight's status the moment you open it; for the reminder itself, a recurring alarm on your phone, set for a quarter of an hour before the paper opens, does the job with no code.</p>
 </div>
 </div></section>
 
@@ -1576,7 +1580,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code></td><td>preppy-prod &rarr; service_role</td></tr>
 <tr><td><code>CRON_SECRET</code></td><td>The string from step 2</td></tr>
 </table></div>
-<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 321 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
+<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 336 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
 <p><strong>Check it worked:</strong> the deployment goes green and the URL shows the countdown page.</p>
 </li>
 
@@ -1700,7 +1704,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <ol>
 <li><strong>Which database am I talking to?</strong> Check the URL in <code>.env.local</code> against the project name in Supabase.</li>
 <li><strong>Did the schema actually apply?</strong> Table Editor, ten tables, RLS badges.</li>
-<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 321 pass, the logic is fine and the problem is configuration or a query.</li>
+<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 336 pass, the logic is fine and the problem is configuration or a query.</li>
 </ol>
 
 <p class="end">
