@@ -15,6 +15,8 @@ import { Celebration, type CelebrationLevel } from '../../../../components/Celeb
 import { CountUp } from '../../../../components/CountUp'
 import { ResultSound } from '../../../../components/ResultSound'
 import { SoundToggle } from '../../../../components/SoundToggle'
+import { ThemeToggle } from '../../../../components/ThemeToggle'
+import { Flash, TableShell, Th } from '../../../../components/Page'
 
 export const dynamic = 'force-dynamic'
 
@@ -128,14 +130,17 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
         <p className="eyebrow">
           {test.title ?? 'Daily mock'} &middot; {formatIstDate(test.date)}
         </p>
-        <SoundToggle initial={user.soundEnabled} compact />
+        <span className="flex items-center gap-1">
+          <SoundToggle initial={user.soundEnabled} compact />
+          <ThemeToggle />
+        </span>
       </div>
 
       {attempt.rescored_at && counted && (
-        <p className="mt-4 rounded-control bg-play-yellow/20 px-5 py-4 text-sm font-semibold">
+        <Flash tone="warn" className="mt-4 text-sm">
           An answer key on this paper was corrected after it ran, and your score changed as a
           result. The score below is the corrected one.
-        </p>
+        </Flash>
       )}
 
       <section className="mt-4 rounded-card bg-play-purple p-8 text-center text-white">
@@ -170,7 +175,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
       </section>
 
       {standing && standing.board.after !== null && (
-        <section className="mt-4 rounded-card bg-surface p-5">
+        <section className="mt-4 card p-5">
           <h2 className="eyebrow">Leaderboard</h2>
           <p className="mt-2 text-sm">
             <BoardDelta before={standing.board.before} after={standing.board.after} of={standing.board.of} />
@@ -178,44 +183,50 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
         </section>
       )}
 
-      <section className="mt-4 overflow-x-auto rounded-card bg-surface p-5">
+      <section className="mt-4">
         <h2 className="eyebrow">By section</h2>
-        <table className="mt-3 w-full border-collapse text-sm tabular-nums">
-          <thead>
-            <tr className="text-left text-[10px] uppercase tracking-widest text-ink-soft">
-              <th className="py-2 pr-3 font-bold">Section</th>
-              <th className="py-2 px-2 text-right font-bold">Score</th>
-              <th className="py-2 px-2 text-right font-bold">Attempted</th>
-              <th className="py-2 px-2 text-right font-bold">Right</th>
-              <th className="py-2 px-2 text-right font-bold">Wrong</th>
-              <th className="py-2 px-2 text-right font-bold">Skipped</th>
-              <th className="py-2 px-2 text-right font-bold">Not reached</th>
-              <th className="py-2 px-2 text-right font-bold">Accuracy</th>
-              <th className="py-2 pl-2 text-right font-bold">Time used</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sections.map((s) => (
-              <tr key={s.code} className="border-t border-line">
-                <td className="py-2 pr-3 font-semibold">{SECTION_NAMES[s.code as SectionCode]}</td>
-                <td className="py-2 px-2 text-right font-bold">{s.score.toFixed(2)}</td>
-                <td className="py-2 px-2 text-right">{s.attempted}</td>
-                <td className="py-2 px-2 text-right text-good">{s.correct}</td>
-                <td className="py-2 px-2 text-right text-bad">{s.wrong}</td>
-                <td className="py-2 px-2 text-right">{s.skipped}</td>
-                <td className="py-2 px-2 text-right">{s.notReached}</td>
-                <td className="py-2 px-2 text-right">
-                  {s.accuracyPct === null ? '—' : `${s.accuracyPct.toFixed(0)}%`}
-                </td>
-                <td className="py-2 pl-2 text-right">{clock(timeByCode.get(s.code) ?? null)}</td>
+        {/* Nine columns of digits: the shared shell scrolls sideways on a phone
+            rather than making the whole page do it. */}
+        <div className="mt-3">
+          <TableShell minWidth="48rem">
+            <thead>
+              <tr className="border-b border-line">
+                <Th>Section</Th>
+                <Th align="right">Score</Th>
+                <Th align="right">Attempted</Th>
+                <Th align="right">Right</Th>
+                <Th align="right">Wrong</Th>
+                <Th align="right">Skipped</Th>
+                <Th align="right">Not reached</Th>
+                <Th align="right">Accuracy</Th>
+                <Th align="right">Time used</Th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="numeral">
+              {sections.map((s) => (
+                <tr key={s.code} className="border-b border-line last:border-0">
+                  <td className="px-3 py-2.5 font-display font-semibold">
+                    {SECTION_NAMES[s.code as SectionCode]}
+                  </td>
+                  <td className="px-3 py-2.5 text-right font-bold">{s.score.toFixed(2)}</td>
+                  <td className="px-3 py-2.5 text-right">{s.attempted}</td>
+                  <td className="px-3 py-2.5 text-right font-semibold text-good-ink">{s.correct}</td>
+                  <td className="px-3 py-2.5 text-right font-semibold text-bad-ink">{s.wrong}</td>
+                  <td className="px-3 py-2.5 text-right text-ink-soft">{s.skipped}</td>
+                  <td className="px-3 py-2.5 text-right text-ink-soft">{s.notReached}</td>
+                  <td className="px-3 py-2.5 text-right">
+                    {s.accuracyPct === null ? '—' : `${s.accuracyPct.toFixed(0)}%`}
+                  </td>
+                  <td className="px-3 py-2.5 text-right">{clock(timeByCode.get(s.code) ?? null)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </TableShell>
+        </div>
       </section>
 
       {sections.some((s) => pacingVerdict(s)) && (
-        <section className="mt-4 rounded-card bg-surface p-5">
+        <section className="mt-4 card p-5">
           <h2 className="eyebrow">Pacing</h2>
           <ul className="mt-3 space-y-2 text-sm">
             {sections.map((s) => {
@@ -231,7 +242,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
       )}
 
       {slowest.some((s) => s.questions.length) && (
-        <section className="mt-4 rounded-card bg-surface p-5">
+        <section className="mt-4 card p-5">
           <h2 className="eyebrow">Where the time went</h2>
           <p className="mt-1 text-xs text-ink-soft">Your three slowest questions in each section.</p>
           <ul className="mt-3 space-y-2 text-sm tabular-nums">
@@ -245,7 +256,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
         </section>
       )}
 
-      <section className="mt-4 rounded-card bg-surface p-5">
+      <section className="mt-4 card p-5">
         <h2 className="eyebrow">Full screen</h2>
         <p className="mt-2 text-sm tabular-nums">
           Left full screen <strong>{attempt.fullscreen_exits}</strong>{' '}
@@ -254,12 +265,12 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
         </p>
       </section>
 
-      <section className="mt-4 rounded-card bg-surface p-5">
+      <section className="mt-4 card p-5">
         <h2 className="eyebrow">Answers</h2>
         {unlocked && test.status === 'SCHEDULED' ? (
           <Link
             href={`/archive/${testId}`}
-            className="mt-3 inline-block rounded-control bg-play-purple px-5 py-2.5 text-sm font-black text-white"
+            className="btn btn-primary mt-3 px-5 py-2.5 text-sm"
           >
             Review your answers
           </Link>
@@ -274,7 +285,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
 
       <Link
         href="/dashboard"
-        className="mt-8 inline-block rounded-control bg-play-purple px-6 py-3 font-black text-white"
+        className="btn btn-primary mt-8"
       >
         Back to dashboard
       </Link>
@@ -294,7 +305,7 @@ function BoardDelta({ before, after, of }: { before: number | null; after: numbe
   return (
     <>
       All-time rank {ordinal(before)} &rarr; <strong>{ordinal(after)}</strong> of {of}{' '}
-      <span className={up ? 'text-good' : 'text-bad'}>
+      <span className={up ? 'text-good-ink' : 'text-bad-ink'}>
         ({up ? 'up' : 'down'} {Math.abs(before - after)})
       </span>
     </>

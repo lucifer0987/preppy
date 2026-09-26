@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { AppShell } from '../../components/AppShell'
+import { PageHeader, Flash } from '../../components/Page'
 import { requireUser } from '../../lib/guard'
 import { boardPapers, getLeaderboard, getPaperStandings } from '../../lib/repo/leaderboard'
 import { LeaderboardTable } from '../../components/LeaderboardTable'
@@ -37,16 +39,15 @@ export default async function LeaderboardPage({
 
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10">
-      <Link href="/dashboard" className="text-sm font-bold text-accent">&larr; Dashboard</Link>
-      <h1 className="mt-4 text-3xl font-black tracking-tight">Leaderboard</h1>
-      <p className="mt-1 text-ink-soft">
-        Cumulative points across every paper. It never resets, and takes in each night&rsquo;s paper
-        once it closes.
-      </p>
+    <AppShell user={user} current="leaderboard">
+    <main className="mx-auto max-w-5xl px-5 pt-6">
+      <PageHeader
+        title="Leaderboard"
+        lede="Cumulative points across every paper. It never resets, and takes each paper in once that paper closes."
+      />
 
-      <div className="mt-5 flex flex-wrap items-center gap-2">
-        <nav className="flex flex-wrap gap-2" aria-label="Window">
+      <div className="card mt-6 flex flex-wrap items-center gap-x-4 gap-y-3 p-3">
+        <nav className="flex flex-wrap gap-1" aria-label="Window">
           {/* Counted in papers, not days: a day may hold more than one, so the
                 label says which. */}
             {([['All time', undefined], ['Last 7 papers', '7'], ['Last 30 papers', '30']] as const)
@@ -56,8 +57,10 @@ export default async function LeaderboardPage({
               href={value ? `/leaderboard?window=${value}` : '/leaderboard'}
               aria-current={!test && (value ?? undefined) === win ? 'page' : undefined}
               className={[
-                'rounded-full px-4 py-2 text-sm font-bold transition',
-                !test && (value ?? undefined) === win ? 'bg-play-purple text-white' : 'bg-surface text-ink-soft hover:bg-surface-sunken',
+                'rounded-full px-4 py-2 text-sm font-semibold transition',
+                !test && (value ?? undefined) === win
+                  ? 'bg-accent-soft text-accent'
+                  : 'text-ink-soft hover:bg-surface-sunken hover:text-ink',
               ].join(' ')}
             >
               {label}
@@ -83,10 +86,10 @@ export default async function LeaderboardPage({
 
       <div className="mt-6">
         {failure ? (
-          <p role="alert" className="rounded-card bg-notanswered p-6 font-semibold text-white">
+          <Flash tone="bad">
             The leaderboard could not be loaded just now. Nothing has been lost; try again in a
             moment. ({failure})
-          </p>
+          </Flash>
         ) : test ? (
           <PaperRankList standings={standings} meUserId={user.id} />
         ) : (
@@ -100,6 +103,7 @@ export default async function LeaderboardPage({
         </p>
       )}
     </main>
+    </AppShell>
   )
 }
 
@@ -125,7 +129,7 @@ function PaperRankList({
     )
   }
   return (
-    <div className="overflow-x-auto rounded-card bg-surface p-5">
+    <div className="overflow-x-auto card p-5">
       <h2 className="eyebrow">{formatIstDate(standings.date)}</h2>
       <table className="mt-3 w-full border-collapse text-sm tabular-nums">
         <thead>
@@ -140,7 +144,7 @@ function PaperRankList({
           {standings.rows.map((row) => {
             const me = row.userId === meUserId
             return (
-              <tr key={row.userId} className={`border-t border-line ${me ? 'bg-play-purple/10 font-semibold' : ''}`}>
+              <tr key={row.userId} className={`border-t border-line ${me ? 'bg-accent/10 font-semibold' : ''}`}>
                 <td className="py-2.5 pr-2 font-bold">{ordinal(row.rank)}</td>
                 <td className="py-2.5 pr-3">
                   {row.displayName}

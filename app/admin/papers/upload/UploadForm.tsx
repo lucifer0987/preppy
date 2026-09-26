@@ -5,6 +5,7 @@ import { useFormStatus } from 'react-dom'
 import { uploadAction } from './actions'
 import { emptyUpload } from './state'
 import type { Issue } from '../../../../lib/types'
+import { Flash } from '../../../../components/Page'
 
 export function UploadForm() {
   const [state, action] = useActionState(uploadAction, emptyUpload)
@@ -49,9 +50,9 @@ export function UploadForm() {
       </form>
 
       {state.fatal && (
-        <p role="alert" className="mt-4 rounded-control bg-notanswered px-5 py-4 font-semibold text-white">
+        <Flash tone="bad" className="mt-4">
           {state.fatal}
-        </p>
+        </Flash>
       )}
 
       <IssueList title="Blocking errors" tone="error" issues={errors} />
@@ -63,7 +64,7 @@ export function UploadForm() {
 
 function IssueList({ title, tone, issues }: { title: string; tone: 'error' | 'warning'; issues: Issue[] }) {
   if (!issues.length) return null
-  const accent = tone === 'error' ? 'text-bad' : 'text-warn'
+  const accent = tone === 'error' ? 'text-bad-ink' : 'text-warn-ink'
   return (
     <section className="mt-4 rounded-control bg-surface p-5">
       <h2 className={`text-xs font-bold uppercase tracking-widest ${accent}`}>
@@ -94,8 +95,7 @@ function Submit() {
     <button
       type="submit"
       disabled={pending}
-      className="mt-5 rounded-control bg-play-purple px-6 py-3 font-black text-white
-                 transition hover:bg-play-purple-deep disabled:opacity-60"
+      className="btn btn-primary mt-5"
     >
       {pending ? 'Reading...' : 'Check this paper'}
     </button>

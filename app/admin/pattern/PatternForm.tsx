@@ -5,6 +5,7 @@ import { useFormStatus } from 'react-dom'
 import { savePatternAction } from './actions'
 import { emptyPatternForm } from './state'
 import { patternBands, patternTotals, SECTION_NAMES, type Pattern, type SectionPattern } from '../../../lib/types'
+import { Flash } from '../../../components/Page'
 
 /**
  * Editing the default paper pattern.
@@ -37,7 +38,7 @@ export function PatternForm({ current, latestEntryClose }: {
     setDraft(draft.map((s) => s.code === code ? { ...s, [k]: Number(e.target.value) } : s))
 
   return (
-    <form action={action} className="mt-4 rounded-card bg-surface p-5">
+    <form action={action} className="mt-4 card p-5">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[34rem] border-collapse text-sm">
           <thead>
@@ -70,7 +71,7 @@ export function PatternForm({ current, latestEntryClose }: {
       <div className="mt-5 rounded-control bg-surface-sunken p-4">
         <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">What a paper becomes</p>
         {!numbers || !sane ? (
-          <p className="mt-2 text-sm font-semibold text-bad">
+          <p className="mt-2 text-sm font-semibold text-bad-ink">
             Every box needs a number: whole questions and minutes, marks above zero, a penalty of zero or more.
           </p>
         ) : (
@@ -87,12 +88,12 @@ export function PatternForm({ current, latestEntryClose }: {
               ))}
             </ul>
             {tooLong && (
-              <p className="mt-3 text-sm font-semibold text-bad">
+              <p className="mt-3 text-sm font-semibold text-bad-ink">
                 {totals.minutes} minutes is longer than the {8 * 60} a single paper may run.
               </p>
             )}
             {!tooLong && overrunsTheDay && (
-              <p className="mt-3 text-sm font-semibold text-bad">
+              <p className="mt-3 text-sm font-semibold text-bad-ink">
                 A {totals.minutes}-minute paper cannot finish before midnight if entry stays open as
                 late as it does now. Move the last entry time earlier on the window screen first.
               </p>
@@ -102,14 +103,14 @@ export function PatternForm({ current, latestEntryClose }: {
       </div>
 
       {state.error && (
-        <p role="alert" className="mt-4 rounded-control bg-notanswered px-4 py-3 text-sm font-semibold text-white">
+        <Flash tone="bad" className="mt-4">
           {state.error}
-        </p>
+        </Flash>
       )}
       {state.saved && !state.error && (
-        <p className="mt-4 rounded-control bg-answered px-4 py-3 text-sm font-semibold text-white">
+        <Flash tone="good" className="mt-4">
           Saved. Papers already uploaded keep the shape they were given.
-        </p>
+        </Flash>
       )}
 
       {/* Disabled for the same reasons the server refuses, so the button never
@@ -144,8 +145,7 @@ function Save({ disabled }: { disabled: boolean }) {
   return (
     <button
       disabled={disabled || pending}
-      className="mt-4 rounded-control bg-play-purple px-7 py-3 font-black text-white transition
-                 hover:bg-play-purple-deep disabled:opacity-50"
+      className="btn btn-primary mt-4 px-7"
     >
       {pending ? 'Saving...' : 'Save pattern'}
     </button>

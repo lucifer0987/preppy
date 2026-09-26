@@ -17,7 +17,7 @@ export function LoginForm() {
       {state.error && (
         <p role="alert"
            className="flex items-start gap-2.5 rounded-control border border-bad/30 bg-bad/10 px-4 py-3
-                      text-sm font-semibold text-bad">
+                      text-sm font-semibold text-bad-ink">
           <svg viewBox="0 0 20 20" aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 fill-current">
             <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 4a1 1 0 011 1v4a1 1 0 11-2 0V7a1 1 0 011-1zm0 9.5a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5z"/>
           </svg>

@@ -52,6 +52,7 @@
   --color-slate-300: #d5cee1;
   --color-slate-400: #a99fbb;
   --color-slate-500: #7b7189;
+  --color-slate-550: #6b6178;
   --color-slate-600: #5a5169;
   --color-slate-700: #423a50;
   --color-slate-800: #2b2437;
@@ -59,10 +60,13 @@
   --color-slate-950: #110d18;
 
   /* ---- states. Kept away from the four option hues on purpose. */
+  --color-good-800:  #166534;
   --color-good-500:  #16a34a;
   --color-good-400:  #2bbd63;
+  --color-warn-800:  #92400e;
   --color-warn-500:  #d97706;
   --color-warn-400:  #f0a02a;
+  --color-bad-800:   #991b1b;
   --color-bad-500:   #dc2626;
   --color-bad-400:   #f05252;
 
@@ -97,7 +101,9 @@
 
   --text: var(--color-slate-900);
   --text-soft: var(--color-slate-600);
-  --text-faint: var(--color-slate-500);
+  /* slate-500 was 4.11:1 on --page, and this is the colour every eyebrow and
+     table header uses, so the smallest text in the app was the least legible. */
+  --text-faint: var(--color-slate-550);
   --text-on-brand: #ffffff;
 
   --line: var(--color-slate-200);
@@ -111,12 +117,25 @@
   --good: var(--color-good-500);
   --warn: var(--color-warn-500);
   --bad: var(--color-bad-500);
-  --gold: var(--color-gold-500);
+  /* A status colour bright enough to fill a shape is too bright to read as
+     words on a 10% wash of itself: good-500 on its own tint is 2.65:1. These
+     are the same three hues taken deep enough to clear AA as text, and they
+     flip to the light end in dark mode where the ground is dark. */
+  --good-ink: var(--color-good-800);
+  --warn-ink: var(--color-warn-800);
+  --bad-ink: var(--color-bad-800);
+  /* Gold is a pale hue, so the light theme takes it deep enough to read as
+     words on white: gold-500 was 2.27:1 on --page. Dark keeps the bright one,
+     where a pale gold is exactly right. Only ever used as text. */
+  --gold: var(--color-gold-700);
   /* Mark for review, and move on. Kept as tokens because they are used as
      text and border colour on the one screen a student sits in for 45
      minutes, and the fixed fills are too dark to read on a dark page. */
   --mark: #7128bc;
-  --go: #26890c;
+  /* Both are borders and text, never fills, so they are chosen against the
+     lightest ground they sit on. The old #26890c read 4.02:1 on the page
+     ground, where the test engine's Next button sits, so it went deeper. */
+  --go: #1b6e07;
 
   --shadow-card: var(--shadow-low);
   --shadow-float: var(--shadow-mid);
@@ -142,6 +161,10 @@
     --line-strong: #3f3654;
 
     --accent: var(--color-brand-400);
+    /* On a light violet fill, white is 3.15:1 -- below AA. The deep brand
+       violet on the same fill is 5.47:1. The primary button is the main
+       action on every form, so it cannot be the one thing that fails. */
+    --text-on-brand: var(--color-brand-950);
     --accent-hover: var(--color-brand-300);
     --accent-soft: #241a3d;
     --accent-text: var(--color-brand-300);
@@ -149,6 +172,9 @@
     --good: var(--color-good-400);
     --warn: var(--color-warn-400);
     --bad: var(--color-bad-400);
+    --good-ink: var(--color-good-400);
+    --warn-ink: var(--color-warn-400);
+    --bad-ink: var(--color-bad-400);
     --gold: var(--color-gold-300);
     --mark: #b98cf0;
     --go: #4ec22e;
@@ -176,6 +202,10 @@
   --line-strong: #3f3654;
 
   --accent: var(--color-brand-400);
+  /* On a light violet fill, white is 3.15:1 -- below AA. The deep brand
+     violet on the same fill is 5.47:1. The primary button is the main
+     action on every form, so it cannot be the one thing that fails. */
+  --text-on-brand: var(--color-brand-950);
   --accent-hover: var(--color-brand-300);
   --accent-soft: #241a3d;
   --accent-text: var(--color-brand-300);
@@ -183,6 +213,9 @@
   --good: var(--color-good-400);
   --warn: var(--color-warn-400);
   --bad: var(--color-bad-400);
+  --good-ink: var(--color-good-400);
+  --warn-ink: var(--color-warn-400);
+  --bad-ink: var(--color-bad-400);
   --gold: var(--color-gold-300);
   /* The test screen's two outline buttons, light enough to read on a dark page. */
   --mark: #b98cf0;
@@ -211,6 +244,9 @@
   --color-good: var(--good);
   --color-warn: var(--warn);
   --color-bad: var(--bad);
+  --color-good-ink: var(--good-ink);
+  --color-warn-ink: var(--warn-ink);
+  --color-bad-ink: var(--bad-ink);
   --color-gold: var(--gold);
   --color-mark: var(--mark);
   --color-go: var(--go);
@@ -312,12 +348,33 @@ h2, h3 { text-wrap: balance; }
   font-family: var(--font-display);
   font-weight: 700;
   line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
   transition: background-color .15s, border-color .15s, color .15s, transform .12s, box-shadow .15s;
+
+  /* A press should be felt. 1px is enough to read as a button and small
+     enough not to shift the words around it. */
+  &:active { transform: translateY(1px); }
+
+  /* Every one of these replaced a hand-rolled button that disabled itself
+     while its form was submitting, so the state has to survive the move. */
+  &:disabled, &[aria-disabled="true"] {
+    opacity: .55;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    &:active { transform: none; }
+  }
 }
 @utility btn-primary {
   background: var(--accent);
   color: var(--text-on-brand);
   box-shadow: var(--shadow-brand);
+
+  &:hover:not(:disabled) { background: var(--accent-hover); }
 }
 /*
   A button sitting on a brand panel. Fixed white on fixed violet in both themes,
@@ -327,11 +384,20 @@ h2, h3 { text-wrap: balance; }
 @utility btn-invert {
   background: #ffffff;
   color: var(--color-brand-800);
+
+  /* Sits on a violet panel in both themes, so it does not take a theme token. */
+  &:hover:not(:disabled) { background: var(--color-brand-50); }
 }
 @utility btn-quiet {
   background: var(--surface);
   color: var(--text);
   border: 1px solid var(--line-strong);
+
+  &:hover:not(:disabled) {
+    background: var(--surface-sunken);
+    border-color: var(--accent);
+    color: var(--accent-text);
+  }
 }
 
 /*

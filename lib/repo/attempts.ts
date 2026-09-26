@@ -1,6 +1,5 @@
 import 'server-only'
 import { db } from '../supabase/admin'
-import { getWindow } from './settings'
 import {
   advanceSection, attemptHardStop, attemptStatus, closeForSubmit, rollForward, timeSpentSec, writablePositions,
   type AttemptStatus, type SectionEndReason, type SectionProgress,

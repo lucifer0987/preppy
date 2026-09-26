@@ -15,7 +15,7 @@ export function ChangePasswordForm() {
       <Field label="New password again" name="confirm" autoComplete="new-password" />
 
       {state.error && (
-        <p role="alert" className="rounded-xl bg-notanswered/10 px-4 py-3 text-sm font-semibold text-bad">
+        <p role="alert" className="rounded-xl bg-notanswered/10 px-4 py-3 text-sm font-semibold text-bad-ink">
           {state.error}
         </p>
       )}
@@ -44,8 +44,7 @@ function Submit() {
   return (
     <button
       type="submit" disabled={pending}
-      className="w-full rounded-control bg-play-purple px-6 py-4 text-lg font-black text-white
-                 transition hover:bg-play-purple-deep disabled:opacity-60"
+      className="btn btn-primary w-full px-6 py-4 text-lg"
     >
       {pending ? 'Changing...' : 'Change password'}
     </button>

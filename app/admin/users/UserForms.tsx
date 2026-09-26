@@ -4,6 +4,7 @@ import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { createUserAction, resetPasswordAction } from './actions'
 import { emptyUserAction } from './state'
+import { Flash } from '../../../components/Page'
 
 /** A password is shown once. There is no email on file to send it to. */
 function Credential({ credential }: { credential: { username: string; password: string } }) {
@@ -27,7 +28,7 @@ export function CreateUserForm() {
 
   return (
     <>
-      <form action={action} className="mt-4 grid gap-3 rounded-card bg-surface p-5 sm:grid-cols-[1fr_1fr_auto_auto]">
+      <form action={action} className="mt-4 grid gap-3 card p-5 sm:grid-cols-[1fr_1fr_auto_auto]">
         <Field name="username" label="Username" placeholder="student6" />
         <Field name="displayName" label="Display name" placeholder="Student Six" />
         <label className="block">
@@ -43,9 +44,9 @@ export function CreateUserForm() {
         </div>
       </form>
       {state.error && (
-        <p role="alert" className="mt-3 rounded-control bg-notanswered px-5 py-3 font-semibold text-white">
+        <Flash tone="bad" className="mt-3">
           {state.error}
-        </p>
+        </Flash>
       )}
       {state.credential && <Credential credential={state.credential} />}
     </>
@@ -61,7 +62,7 @@ export function ResetPasswordForm({ userId, username }: { userId: string; userna
         <input type="hidden" name="userId" value={userId} />
         <button className="text-xs font-bold text-accent underline">Reset password</button>
       </form>
-      {state.error && <p className="mt-1 text-xs font-semibold text-bad">{state.error}</p>}
+      {state.error && <p className="mt-1 text-xs font-semibold text-bad-ink">{state.error}</p>}
       {state.credential && state.credential.username === username && (
         <Credential credential={state.credential} />
       )}
@@ -87,8 +88,7 @@ function Submit({ label, pendingLabel }: { label: string; pendingLabel: string }
   return (
     <button
       type="submit" disabled={pending}
-      className="w-full rounded-xl bg-play-purple px-5 py-2.5 font-black text-white
-                 transition hover:bg-play-purple-deep disabled:opacity-60"
+      className="btn btn-primary w-full px-5 py-2.5"
     >
       {pending ? pendingLabel : label}
     </button>

@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { AppShell } from '../../../components/AppShell'
+import { BackLink, PageHeader } from '../../../components/Page'
 import { notFound } from 'next/navigation'
 import { requireUser } from '../../../lib/guard'
 import { db } from '../../../lib/supabase/admin'
@@ -6,7 +8,7 @@ import { getPaperById } from '../../../lib/repo/papers'
 import { QuestionCard } from '../../../components/QuestionCard'
 import { DirectionsBlock } from '../../../components/DirectionsBlock'
 import { SECTION_NAMES, type OptionLabel, type SectionCode } from '../../../lib/types'
-import { formatIstDate, paperClosed, paperLabels } from '../../../lib/time'
+import { formatIstDate, paperClosed } from '../../../lib/time'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,14 +37,21 @@ export default async function ArchiveDetail({
   if (!paperClosed(record.window)) {
     return (
       <main className="mx-auto max-w-xl px-6 py-16 text-center">
-        <h1 className="text-3xl font-black">Sealed until midnight</h1>
-        <p className="mt-3 text-ink-soft">
-          Answers and solutions for {formatIstDate(paper.date)} unlock at midnight, for everyone at
-          the same moment.
-        </p>
-        <Link href="/archive" className="mt-6 inline-block font-bold text-accent underline">
-          Back to past papers
-        </Link>
+        <div className="card p-8 text-center">
+          <span className="grid h-12 w-12 place-items-center rounded-full bg-accent-soft mx-auto">
+            <svg viewBox="0 0 20 20" aria-hidden="true" className="h-5 w-5 fill-accent">
+              <path d="M10 1.5a4 4 0 00-4 4V8H5.5A1.5 1.5 0 004 9.5v7A1.5 1.5 0 005.5 18h9a1.5 1.5 0 001.5-1.5v-7A1.5 1.5 0 0014.5 8H14V5.5a4 4 0 00-4-4zm-2 4a2 2 0 114 0V8H8V5.5z" />
+            </svg>
+          </span>
+          <h1 className="mt-4 text-2xl font-black tracking-tight">Not open yet</h1>
+          <p className="mx-auto mt-2 max-w-md text-ink-soft">
+            Answers and solutions for {formatIstDate(paper.date)} unlock when the paper closes, for
+            everyone at the same moment. Nobody sees them early, including whoever finished first.
+          </p>
+          <Link href="/archive" className="btn btn-quiet mt-6 inline-flex">
+            Back to past papers
+          </Link>
+        </div>
       </main>
     )
   }
@@ -77,10 +86,14 @@ export default async function ArchiveDetail({
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-10">
-      <Link href="/archive" className="text-sm font-bold text-accent">&larr; Past papers</Link>
-      <h1 className="mt-4 text-3xl font-black tracking-tight">{paper.title ?? 'Daily mock'}</h1>
-      <p className="mt-1 text-ink-soft">{formatIstDate(paper.date)}</p>
+    <AppShell user={user} current="archive">
+    <main className="mx-auto max-w-4xl px-5 pt-6">
+      <BackLink href="/archive">Past papers</BackLink>
+      <PageHeader
+        title={paper.title ?? 'Daily mock'}
+        meta={<span className="numeral">{formatIstDate(paper.date)}</span>}
+        lede="Every question with its key and worked solution. Yours are marked where you answered."
+      />
 
       <nav className="mt-5 flex flex-wrap gap-2" aria-label="Filter by section">
         {[['All sections', undefined] as const, ...paper.sections.map((s) => [SECTION_NAMES[s.code as SectionCode], s.code] as const)].map(
@@ -123,7 +136,7 @@ export default async function ArchiveDetail({
                 )
                 const r = mine.get(question.number)
                 return (
-                  <li key={question.number} className="rounded-card bg-surface p-5">
+                  <li key={question.number} className="card p-5">
                     {block && <DirectionsBlock block={block} testId={testId} />}
                     {attempt && (
                       <p className="mb-3 flex flex-wrap gap-x-3 text-[11px] font-bold uppercase tracking-widest text-ink-soft">
@@ -147,6 +160,7 @@ export default async function ArchiveDetail({
         )
       })}
     </main>
+    </AppShell>
   )
 }
 

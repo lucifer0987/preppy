@@ -1072,6 +1072,39 @@ eighteen pages.</p>
   which is most of them.</p>
 </div>
 
+<h3>A fill colour is not a text colour</h3>
+<p>This is the one rule in the system that is not obvious, and breaking it is
+invisible to whoever does it.</p>
+
+<p>A status colour bright enough to fill a shape is too light to read as words on
+a pale background. Amber on white is the clearest case: <code>--warn</code> is a
+good fill and a 2.84:1 text colour, where the standard for body text is 4.5:1. So
+each status colour comes as a pair:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Token</th><th>Use it for</th><th>Do not use it for</th></tr></thead>
+<tbody>
+<tr><td><code>--good</code> / <code>--warn</code> / <code>--bad</code></td><td>Fills, borders, tinted washes (<code>bg-bad/10</code>, <code>border-warn/35</code>)</td><td>Text</td></tr>
+<tr><td><code>--good-ink</code> / <code>--warn-ink</code> / <code>--bad-ink</code></td><td>Text, on a page or a card or one of those washes</td><td>Fills. On a dark theme it <em>is</em> the light shade</td></tr>
+</tbody>
+</table></div>
+
+<p>In light mode the <code>-ink</code> half is the deep shade of the same hue; in
+dark mode both halves are the same light shade, because there the ground is dark
+and the bright colour already reads. <code>--gold</code> and <code>--go</code> are
+text-only and already carry their deep light-mode value, so they need no pair.</p>
+
+<div class="note care">
+  <h4>Measure against the ground the thing actually sits on</h4>
+  <p>The exam header and the landing page are the same deep violet in
+  <em>both</em> themes, so anything sitting on them takes fixed colours, never
+  semantic tokens. The section timer is the example worth remembering: it used
+  <code>--bad</code>, which lightens in dark mode, and that put white text on a
+  light red at 3.48:1 &mdash; on the one number a student is watching. It now uses
+  <code>bad-500</code> from the raw scale, and holds in both themes because its
+  background never moves.</p>
+</div>
+
 <h3>Three typefaces, three jobs</h3>
 <div class="tw"><table>
 <thead><tr><th>Face</th><th>For</th><th>Why that one</th></tr></thead>
@@ -1098,7 +1131,9 @@ the logo and the accessibility rule are one decision rather than two.</p>
 <div class="tw"><table>
 <thead><tr><th>File</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>app/globals.css</code></td><td>The whole system: scales, semantic tokens, both themes, and the <code>card</code> / <code>eyebrow</code> / <code>btn</code> / <code>chip</code> / <code>numeral</code> primitives</td></tr>
+<tr><td><code>app/globals.css</code></td><td>The whole system: scales, semantic tokens, all three theme states, and the primitives &mdash; <code>card</code>, <code>eyebrow</code>, <code>numeral</code>, <code>chip</code>, <code>field</code>, <code>pill-brand</code>, and <code>btn</code> with <code>btn-primary</code> / <code>btn-invert</code> / <code>btn-quiet</code>. <code>btn</code> owns the press, disabled and reduced-motion states, so a button never re-implements them</td></tr>
+<tr><td><code>components/Page.tsx</code></td><td>The furniture every inner page was drawing by hand: <code>PageHeader</code>, <code>BackLink</code>, <code>Stat</code>, <code>TableShell</code>, <code>Th</code>, <code>Empty</code>, <code>StatusChip</code>, and <code>Flash</code> for the line a page shows after something happened</td></tr>
+<tr><td><code>components/ThemeToggle.tsx</code></td><td>The three-state theme switch, in the header of every shell</td></tr>
 <tr><td><code>components/AppShell.tsx</code></td><td>The frame every signed-in student page sits in. Each of them drew its own header before, so the way back differed page to page</td></tr>
 <tr><td><code>components/Wordmark.tsx</code></td><td>The mark, drawn as SVG so it scales and takes the theme with it</td></tr>
 <tr><td><code>app/admin/layout.tsx</code></td><td>The admin shell, and the outer half of the admin authorisation check</td></tr>
@@ -1120,12 +1155,34 @@ corner of an eye without pulling attention off the question.</p>
   first.</p>
 </div>
 
-<div class="note why">
-  <h4>Dark mode has no switch yet</h4>
-  <p>It follows the operating system. All three states are wired &mdash; explicit
-  light, explicit dark, and the un-stamped default that most people are in &mdash;
-  so adding a toggle later is a button that sets <code>data-theme</code> on the
-  root element, not a restyle.</p>
+<h3>The theme switch, and its three states</h3>
+<p><code>components/ThemeToggle.tsx</code> cycles three states, not two, and the
+third one is the important one:</p>
+
+<div class="tw"><table>
+<thead><tr><th>State</th><th>What is on the root element</th><th>What decides the colours</th></tr></thead>
+<tbody>
+<tr><td><strong>Match my computer</strong> (the default)</td><td>Nothing. No <code>data-theme</code> at all</td><td><code>prefers-color-scheme</code>, so the phone's or laptop's own setting</td></tr>
+<tr><td><strong>Light</strong></td><td><code>data-theme="light"</code></td><td>The bare <code>:root</code> palette, even on a machine set to dark</td></tr>
+<tr><td><strong>Dark</strong></td><td><code>data-theme="dark"</code></td><td>The dark palette, even on a machine set to light</td></tr>
+</tbody>
+</table></div>
+
+<p>The choice is kept in <code>localStorage</code> under <code>preppy-theme</code>,
+and "match my computer" is stored by <em>removing</em> the key rather than writing
+the word &mdash; the un-stamped element is what hands control back to the
+operating system.</p>
+
+<div class="note care">
+  <h4>Why there is a script in the &lt;head&gt;</h4>
+  <p><code>app/layout.tsx</code> injects four lines that read that key and set the
+  attribute <em>before</em> the first paint. Without it, a student who chose dark
+  gets one white frame on every navigation, because the server has no way to know
+  what is in their browser's storage. That script is the only inline JavaScript in
+  the app, and this is what it buys.</p>
+  <p>The button itself renders an empty square until it has mounted, for the same
+  reason in reverse: before mount it cannot know which of the three states is
+  current, and one frame of the wrong icon is worse than one frame of nothing.</p>
 </div>
 </div></section>
 

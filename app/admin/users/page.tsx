@@ -5,6 +5,7 @@ import { formatIstDate, istDate } from '../../../lib/time'
 import { CreateUserForm, ResetPasswordForm } from './UserForms'
 import { BulkImport } from './BulkImport'
 import { toggleActiveAction } from './actions'
+import { BackLink, PageHeader } from '../../../components/Page'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,16 +15,13 @@ export default async function UsersPage() {
 
   return (
     <>
-      <Link href="/admin" className="text-sm font-bold text-accent">&larr; Admin</Link>
-      <h1 className="mt-4 text-3xl font-black tracking-tight">People</h1>
-      <p className="mt-1 text-ink-soft">
-        There is no sign-up. Accounts exist only because you created them.
-      </p>
+      <BackLink href="/admin">Admin</BackLink>
+      <PageHeader title="People" lede="Six accounts, no self-service. You create them, you reset them, and a deactivated one keeps its history." />
 
       <CreateUserForm />
       <BulkImport />
 
-      <div className="mt-8 overflow-x-auto rounded-card bg-surface p-5">
+      <div className="mt-8 overflow-x-auto card p-5">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="text-left text-[10px] uppercase tracking-widest text-ink-soft">
@@ -63,8 +61,8 @@ export default async function UsersPage() {
                 </td>
                 <td className="py-3 pr-3">
                   {u.isActive
-                    ? <span className="text-good">active</span>
-                    : <span className="text-bad">inactive</span>}
+                    ? <span className="text-good-ink">active</span>
+                    : <span className="text-bad-ink">inactive</span>}
                   {u.mustChangePassword && (
                     <span className="block text-[10px] uppercase tracking-widest text-ink-soft">
                       must change password

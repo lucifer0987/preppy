@@ -1,9 +1,13 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { requireUser } from '../../lib/guard'
 import { getArchive } from '../../lib/repo/leaderboard'
 import { formatIstDate } from '../../lib/time'
 import { ordinal } from '../../lib/leaderboard'
+import { AppShell } from '../../components/AppShell'
+import { Empty, PageHeader, Stat, StatRow, StatusChip } from '../../components/Page'
 
+export const metadata: Metadata = { title: 'Past papers' }
 export const dynamic = 'force-dynamic'
 
 /**
@@ -21,58 +25,88 @@ export default async function ArchivePage() {
     failure = (e as Error).message
   }
 
-  return (
-    <main className="mx-auto max-w-3xl px-6 py-10">
-      <Link href="/dashboard" className="text-sm font-bold text-accent">&larr; Dashboard</Link>
-      <h1 className="mt-4 text-3xl font-black tracking-tight">Past papers</h1>
-      <p className="mt-1 text-ink-soft">
-        Every paper that has closed, with answers and solutions. Open one whether or not you sat it.
-      </p>
+  // Worth stating at the top: the gap between what has run and what you sat is
+  // the whole point of this page.
+  const sat = rows.filter((r) => r.attemptId)
+  const best = sat.reduce<number | null>((m, r) => {
+    const s = r.score ?? null
+    return s === null ? m : m === null || s > m ? s : m
+  }, null)
+  const podiums = sat.filter((r) => r.rank !== null && r.rank <= 3).length
 
-      {failure ? (
-        <p role="alert" className="mt-8 rounded-card bg-notanswered p-6 font-semibold text-white">
-          Past papers could not be loaded just now. Try again in a moment. ({failure})
-        </p>
-      ) : rows.length === 0 ? (
-        <p className="mt-8 rounded-card border border-dashed border-line-strong p-8 text-center text-ink-soft">
-          No papers have closed yet. They appear here from midnight on the night they run.
-        </p>
-      ) : (
-        <ul className="mt-6 space-y-2">
-          {rows.map((r) => (
-            <li key={r.testId}>
-              <Link
-                href={`/archive/${r.testId}`}
-                className="flex flex-wrap items-center gap-4 rounded-control bg-surface px-5 py-4 transition hover:bg-surface-sunken"
-              >
-                <span className="font-bold">{formatIstDate(r.date)}</span>
-                <span className="text-ink-soft">{r.title ?? 'Daily mock'}</span>
-                <span className="ml-auto flex items-center gap-3 text-sm tabular-nums">
-                  {r.attemptId ? (
-                    <>
-                      <span className="rounded-full bg-answered px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-white">
-                        Attempted
-                      </span>
-                      <span className="font-bold">{r.score?.toFixed(2)}</span>
-                      {r.rank !== null ? (
-                        <span className="pill-brand px-2.5 py-1 text-[10px] uppercase tracking-widest">
-                          {ordinal(r.rank)} of {r.cohortSize}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-ink-soft">rank at 12:01 AM</span>
-                      )}
-                    </>
-                  ) : (
-                    <span className="rounded-full bg-surface-sunken border border-line px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-ink-soft">
-                      Not attempted
+  return (
+    <AppShell user={user} current="archive">
+      <main className="mx-auto max-w-5xl px-5 pt-6">
+        <PageHeader
+          title="Past papers"
+          lede="Every paper that has closed, with its answers and solutions. Open one whether or not you sat it."
+        />
+
+        {!failure && rows.length > 0 && (
+          <StatRow>
+            <Stat label="Papers closed" value={rows.length} />
+            <Stat label="You sat" value={sat.length}
+                  hint={rows.length > sat.length ? `${rows.length - sat.length} missed` : 'every one'} />
+            <Stat label="Best score" value={best === null ? '—' : best.toFixed(2)} tone="accent" />
+            <Stat label="Top three finishes" value={podiums} tone={podiums > 0 ? 'good' : 'default'} />
+          </StatRow>
+        )}
+
+        {failure ? (
+          <p role="alert" className="mt-6 rounded-card border border-bad/30 bg-bad/10 p-5 font-semibold text-bad-ink">
+            Past papers could not be loaded just now. Try again in a moment.
+            <span className="mt-1 block text-sm font-normal text-ink-soft">{failure}</span>
+          </p>
+        ) : rows.length === 0 ? (
+          <div className="mt-6">
+            <Empty>
+              No papers have closed yet. Each one appears here the moment it closes, which is its
+              last-entry time plus however long it runs.
+            </Empty>
+          </div>
+        ) : (
+          <ul className="mt-6 space-y-2">
+            {rows.map((r) => (
+              <li key={r.testId}>
+                <Link
+                  href={`/archive/${r.testId}`}
+                  className="group card flex flex-wrap items-center gap-x-4 gap-y-2 p-4 transition
+                             hover:border-accent/50 hover:shadow-float"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate font-bold text-ink">{r.title ?? 'Daily mock'}</span>
+                    <span className="numeral mt-0.5 block text-xs text-ink-faint">
+                      {formatIstDate(r.date)}
                     </span>
-                  )}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </main>
+                  </span>
+
+                  <span className="ml-auto flex flex-wrap items-center gap-2.5">
+                    {r.attemptId ? (
+                      <>
+                        {r.rank !== null && r.rank <= 3 && (
+                          <span className="numeral text-sm font-bold text-gold">{ordinal(r.rank)}</span>
+                        )}
+                        <span className="numeral text-lg font-bold text-ink">{r.score?.toFixed(2)}</span>
+                        {r.rank !== null ? (
+                          <StatusChip tone="done">{ordinal(r.rank)} of {r.cohortSize}</StatusChip>
+                        ) : (
+                          <span className="text-xs text-ink-faint">rank once it closes</span>
+                        )}
+                      </>
+                    ) : (
+                      <StatusChip tone="draft">Not attempted</StatusChip>
+                    )}
+                    <svg viewBox="0 0 16 16" aria-hidden="true"
+                         className="h-3.5 w-3.5 fill-ink-faint transition group-hover:fill-accent">
+                      <path d="M8.3 2.3a1 1 0 000 1.4L11.6 7H2a1 1 0 100 2h9.6l-3.3 3.3a1 1 0 101.4 1.4l5-5a1 1 0 000-1.4l-5-5a1 1 0 00-1.4 0z" />
+                    </svg>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </main>
+    </AppShell>
   )
 }

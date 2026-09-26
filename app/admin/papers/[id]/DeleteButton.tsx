@@ -13,7 +13,7 @@ export function DeleteButton({ id, label }: { id: string; label: string }) {
   if (!confirming) {
     return (
       <button type="button" onClick={() => setConfirming(true)}
-              className="text-sm font-bold text-bad underline">
+              className="text-sm font-bold text-bad-ink underline">
         Delete this paper
       </button>
     )

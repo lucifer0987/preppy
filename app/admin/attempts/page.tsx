@@ -5,6 +5,7 @@ import { formatIstDate } from '../../../lib/time'
 import { deleteDryRunAction, voidAttemptAction } from './actions'
 import { ConfirmButton } from './ConfirmButton'
 import { db } from '../../../lib/supabase/admin'
+import { BackLink, PageHeader, Flash } from '../../../components/Page'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,20 +22,20 @@ export default async function AttemptsPage({
 
   return (
     <>
-      <Link href="/admin" className="text-sm font-bold text-accent">&larr; Admin</Link>
-      <h1 className="mt-4 text-3xl font-black tracking-tight">
-        {person ? `${person.display_name}'s attempts` : 'Attempts'}
-      </h1>
-      <p className="mt-1 text-ink-soft">
-        Score, duration and the two integrity counters. Nothing else is recorded.
-        {(user || test) && <> <Link href="/admin/attempts" className="font-bold text-accent underline">Show everyone</Link></>}
-      </p>
+      <BackLink href="/admin">Admin</BackLink>
+      <PageHeader
+        title={person ? `${person.display_name}\u2019s attempts` : 'Attempts'}
+        lede="Score, duration and the two integrity counters. Nothing else is recorded."
+        actions={(user || test)
+          ? <Link href="/admin/attempts" className="btn btn-quiet">Show everyone</Link>
+          : undefined}
+      />
 
-      {error && <p role="alert" className="mt-4 rounded-control bg-notanswered px-5 py-3 font-semibold text-white">{error}</p>}
+      {error && <Flash tone="bad" className="mt-4">{error}</Flash>}
       {done && (
-        <p className="mt-4 rounded-control bg-answered px-5 py-3 font-semibold text-white">
+        <Flash tone="good" className="mt-4">
           {done === 'voided' ? 'Voided. It no longer counts on the leaderboard.' : 'Dry run deleted.'}
-        </p>
+        </Flash>
       )}
 
       {groups.length === 0 ? (
@@ -51,7 +52,7 @@ export default async function AttemptsPage({
               </span>
             </h2>
 
-            <div className="mt-3 overflow-x-auto rounded-card bg-surface p-5">
+            <div className="mt-3 overflow-x-auto card p-5">
               <table className="w-full border-collapse text-sm tabular-nums">
                 <thead>
                   <tr className="text-left text-[10px] uppercase tracking-widest text-ink-soft">
@@ -83,16 +84,16 @@ export default async function AttemptsPage({
                         <td className="py-2.5 px-2 text-right font-bold">
                           {a.totalScore === null ? '—' : a.totalScore.toFixed(2)}
                         </td>
-                        <td className="py-2.5 px-2 text-right text-good">{a.correct ?? '—'}</td>
+                        <td className="py-2.5 px-2 text-right text-good-ink">{a.correct ?? '—'}</td>
                         <td className="py-2.5 px-2 text-right text-ink-soft">{a.attempted ?? '—'}</td>
                         <td className="py-2.5 px-2 text-right text-ink-soft">{a.notReached ?? '—'}</td>
                         <td className="py-2.5 px-2 text-right text-ink-soft">
                           {a.timeSpentSec === null ? '—' : `${Math.round(a.timeSpentSec / 60)}m`}
                         </td>
-                        <td className={`py-2.5 px-2 text-right ${noisy ? 'font-bold text-bad' : 'text-ink-soft'}`}>
+                        <td className={`py-2.5 px-2 text-right ${noisy ? 'font-bold text-bad-ink' : 'text-ink-soft'}`}>
                           {a.fullscreenExits}
                         </td>
-                        <td className={`py-2.5 px-2 text-right ${noisy ? 'font-bold text-bad' : 'text-ink-soft'}`}>
+                        <td className={`py-2.5 px-2 text-right ${noisy ? 'font-bold text-bad-ink' : 'text-ink-soft'}`}>
                           {a.tabSwitches}
                         </td>
                         <td className="py-2.5 pr-3 text-ink-soft">{describe(a.state)}</td>

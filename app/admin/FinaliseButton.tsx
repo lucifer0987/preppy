@@ -3,6 +3,7 @@
 import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { finaliseNowAction, type FinaliseState } from './finalise'
+import { Flash } from '../../components/Page'
 
 const initial: FinaliseState = { error: null, summary: null }
 
@@ -21,13 +22,13 @@ export function FinaliseButton() {
         <Submit />
       </form>
       {state.error ? (
-        <p role="alert" className="mt-3 rounded-control bg-notanswered px-5 py-3 text-sm font-semibold text-white">
+        <Flash tone="bad" className="mt-3">
           {state.error}
-        </p>
+        </Flash>
       ) : state.summary ? (
-        <p role="status" className="mt-3 rounded-control bg-answered px-5 py-3 text-sm font-semibold text-white">
+        <Flash tone="good" className="mt-3">
           {state.summary}
-        </p>
+        </Flash>
       ) : null}
     </div>
   )
@@ -39,7 +40,7 @@ function Submit() {
     <button
       type="submit"
       disabled={pending}
-      className="rounded-control bg-play-purple px-5 py-2.5 font-black text-white transition disabled:opacity-60"
+      className="btn btn-primary px-5 py-2.5"
     >
       {pending ? 'Finalising...' : 'Finalise open attempts now'}
     </button>

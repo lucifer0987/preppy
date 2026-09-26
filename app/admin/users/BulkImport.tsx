@@ -5,6 +5,7 @@ import { useFormStatus } from 'react-dom'
 import { bulkCreateAction } from './actions'
 import { emptyBulk } from './state'
 import { MAX_BULK_ROWS, credentialsToCsv } from '../../../lib/csv'
+import { Flash } from '../../../components/Page'
 
 const SAMPLE = `username,display_name,role
 student6,Student Six,student
@@ -23,7 +24,7 @@ export function BulkImport() {
   }
 
   return (
-    <section className="mt-4 rounded-card bg-surface p-5">
+    <section className="mt-4 card p-5">
       <div className="flex items-baseline justify-between gap-4">
         <h2 className="font-black">Bulk import</h2>
         <button onClick={() => setOpen(false)} className="text-sm font-bold text-ink-soft underline">
@@ -44,9 +45,9 @@ export function BulkImport() {
       </form>
 
       {state.error && (
-        <p role="alert" className="mt-3 rounded-control bg-notanswered px-5 py-3 font-semibold text-white">
+        <Flash tone="bad" className="mt-3">
           {state.error}
-        </p>
+        </Flash>
       )}
 
       {state.problems.length > 0 && (
@@ -81,7 +82,7 @@ export function BulkImport() {
 
       {state.failed.length > 0 && (
         <div className="mt-3 rounded-control bg-notanswered/10 p-4">
-          <p className="text-xs font-bold uppercase tracking-widest text-bad">
+          <p className="text-xs font-bold uppercase tracking-widest text-bad-ink">
             {state.failed.length} could not be created
           </p>
           <ul className="mt-2 space-y-1 text-sm">
@@ -113,7 +114,7 @@ function Credentials({ rows }: { rows: { username: string; password: string }[] 
       <pre className="mt-2 overflow-x-auto rounded-xl bg-surface-sunken p-3 font-mono text-sm">{csv}</pre>
       <a
         href={href} download="preppy-accounts.csv"
-        className="mt-3 inline-block rounded-xl bg-surface px-4 py-2 text-sm font-black text-good"
+        className="mt-3 inline-block rounded-xl bg-surface px-4 py-2 text-sm font-black text-good-ink"
       >
         Download as CSV
       </a>
@@ -129,8 +130,7 @@ function Submit() {
   return (
     <button
       type="submit" disabled={pending}
-      className="mt-3 rounded-xl bg-play-purple px-5 py-2.5 font-black text-white
-                 transition hover:bg-play-purple-deep disabled:opacity-60"
+      className="btn btn-primary mt-3 px-5 py-2.5"
     >
       {pending ? 'Creating...' : 'Create these accounts'}
     </button>

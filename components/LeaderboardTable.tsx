@@ -173,7 +173,7 @@ function Movement({ value }: { value: number | null }) {
   const up = value > 0
   return (
     <span className={`numeral inline-flex items-center gap-0.5 text-xs font-bold
-                      ${up ? 'text-good' : 'text-bad'}`}
+                      ${up ? 'text-good-ink' : 'text-bad-ink'}`}
           aria-label={`${up ? 'up' : 'down'} ${Math.abs(value)}`}>
       <svg viewBox="0 0 10 10" aria-hidden="true" className="h-2.5 w-2.5 fill-current">
         {up ? <path d="M5 1 L9.5 8 H0.5 Z" /> : <path d="M5 9 L0.5 2 H9.5 Z" />}

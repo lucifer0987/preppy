@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   addDays, canStartAttempt, DEFAULT_WINDOW, entryClosesAt, formatIstDate,
-  formatIstTime, hardStopAt, istDate, istInstant, opensAt, paperClosed, paperLabels,
+  formatIstTime, hardStopAt, istDate, istInstant, opensAt, paperClosed,
   paperWindowProblem, windowLabels, windowState, windowsOverlap,
 } from '../lib/time'
 import { attemptHardStop } from '../lib/attempt'

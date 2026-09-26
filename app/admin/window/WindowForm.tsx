@@ -5,6 +5,7 @@ import { useFormStatus } from 'react-dom'
 import { saveWindowAction } from './actions'
 import { emptyWindowForm } from './state'
 import { formatIstTime, windowLabels, windowProblem, type WindowSettings } from '../../../lib/time'
+import { Flash } from '../../../components/Page'
 
 /**
  * Editing the nightly window.
@@ -27,7 +28,7 @@ export function WindowForm(
     setDraft({ ...draft, [k]: Number(e.target.value) })
 
   return (
-    <form action={action} className="mt-4 rounded-card bg-surface p-5">
+    <form action={action} className="mt-4 card p-5">
       <div className="grid gap-5 sm:grid-cols-2">
         <TimeField
           label="Papers unlock at" hourName="openHour" minuteName="openMinute"
@@ -46,7 +47,7 @@ export function WindowForm(
       <div className="mt-5 rounded-control bg-surface-sunken p-4">
         <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">What students will see</p>
         {problem ? (
-          <p className="mt-2 text-sm font-semibold text-bad">{problem}</p>
+          <p className="mt-2 text-sm font-semibold text-bad-ink">{problem}</p>
         ) : (
           <ul className="mt-2 space-y-1 text-sm">
             <li><strong>{labels!.opens}</strong> &mdash; paper unlocks</li>
@@ -62,14 +63,14 @@ export function WindowForm(
       </div>
 
       {state.error && (
-        <p role="alert" className="mt-4 rounded-control bg-notanswered px-5 py-3 font-semibold text-white">
+        <Flash tone="bad" className="mt-4">
           {state.error}
-        </p>
+        </Flash>
       )}
       {state.saved && !state.error && (
-        <p role="status" className="mt-4 rounded-control bg-answered px-5 py-3 font-semibold text-white">
+        <Flash tone="good" className="mt-4">
           Saved. Every page shows the new times from now on.
-        </p>
+        </Flash>
       )}
 
       <Submit disabled={problem !== null} />
@@ -119,8 +120,7 @@ function Submit({ disabled }: { disabled: boolean }) {
   return (
     <button
       type="submit" disabled={pending || disabled}
-      className="mt-5 rounded-control bg-play-purple px-6 py-3 font-black text-white
-                 transition hover:bg-play-purple-deep disabled:opacity-40"
+      className="btn btn-primary mt-5"
     >
       {pending ? 'Saving...' : 'Save these times'}
     </button>

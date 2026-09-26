@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { requireUser } from '../../../lib/guard'
 import { db } from '../../../lib/supabase/admin'
@@ -9,6 +8,8 @@ import { PAPER_WINDOW_COLUMNS, paperWindowOf } from '../../../lib/repo/papers'
 import { beginAction } from './actions'
 import { BeginButton } from './BeginButton'
 import { entryRefusal } from './entry'
+import { BackLink, Flash } from '../../../components/Page'
+import { ThemeToggle } from '../../../components/ThemeToggle'
 
 export const dynamic = 'force-dynamic'
 
@@ -52,25 +53,26 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
-      <Link href={isDryRun ? `/admin/papers/${testId}` : '/dashboard'} className="text-sm font-bold text-accent">
-        &larr; Back
-      </Link>
+      <div className="flex items-center justify-between gap-3">
+        <BackLink href={isDryRun ? `/admin/papers/${testId}` : '/dashboard'}>Back</BackLink>
+        <ThemeToggle />
+      </div>
 
       <h1 className="mt-4 text-4xl font-black tracking-tight">{test.title ?? 'Daily mock'}</h1>
       <p className="mt-1 text-ink-soft">{formatIstDate(test.date as string)}</p>
 
       {isDryRun && (
-        <p className="mt-4 rounded-control bg-play-yellow/20 px-5 py-4 text-sm font-semibold">
+        <Flash tone="warn" className="mt-4 text-sm">
           This is a dry run. It uses the real engine and the real timers, but it is never counted
           and never appears on the leaderboard.
-        </p>
+        </Flash>
       )}
 
       {error && (
-        <p role="alert" className="mt-4 rounded-control bg-notanswered px-5 py-4 font-semibold text-white">{error}</p>
+        <Flash tone="bad" className="mt-4">{error}</Flash>
       )}
 
-      <section className="mt-6 rounded-card bg-surface p-6">
+      <section className="mt-6 card p-6">
         <h2 className="eyebrow">The pattern</h2>
         <ul className="mt-3 space-y-1.5">
           {sections.map((s) => (
@@ -95,7 +97,7 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
         )}
       </section>
 
-      <section className="mt-4 rounded-card bg-surface p-6">
+      <section className="mt-4 card p-6">
         <h2 className="eyebrow">Before you begin</h2>
         <ul className="mt-3 space-y-2.5 text-sm">
           <li><strong>Sections run in order and only forward.</strong> Once you leave a section you cannot return to it.</li>

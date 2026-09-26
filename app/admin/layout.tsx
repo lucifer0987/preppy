@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { ThemeToggle } from '../../components/ThemeToggle'
 import { Wordmark } from '../../components/Wordmark'
 import { requireAdmin } from '../../lib/guard'
 import { logoutAction } from '../login/actions'
@@ -36,6 +37,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </Link>
 
           <div className="ml-auto flex items-center gap-2">
+            <ThemeToggle />
             <Link href="/dashboard"
                   className="rounded-full px-3 py-1.5 text-sm font-semibold text-ink-soft transition
                              hover:bg-surface-sunken hover:text-ink">
@@ -49,7 +51,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               <span className="text-sm font-semibold text-ink">{user.username}</span>
             </span>
             <form action={logoutAction}>
-              <button className="rounded-full p-2 text-ink-faint transition hover:bg-surface-sunken hover:text-bad"
+              <button className="rounded-full p-2 text-ink-faint transition hover:bg-surface-sunken hover:text-bad-ink"
                       aria-label="Log out" title="Log out">
                 <svg viewBox="0 0 20 20" aria-hidden="true" className="h-4 w-4 fill-current">
                   <path d="M12 3a1 1 0 011 1v1a1 1 0 11-2 0V5H5v10h6v-.5a1 1 0 112 0V16a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1h8z"/>

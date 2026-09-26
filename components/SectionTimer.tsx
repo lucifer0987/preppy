@@ -65,9 +65,15 @@ export function SectionTimer({
       className={[
         'numeral inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-lg font-bold',
         'transition-colors',
-        urgent ? 'border-transparent bg-bad text-white motion-safe:animate-[pulseurgent_1.4s_ease-in-out_infinite]'
-          : soon ? 'border-warn/40 bg-warn/10 text-warn'
-          : 'border-line bg-surface text-ink',
+        // Fixed colours, not theme tokens. This clock sits on the exam header,
+        // which is the same deep violet in light and dark, so a token that
+        // flips with the theme is measured against the wrong ground: --bad
+        // lightens to bad-400 in dark and put white on it at 3.48:1, and
+        // --warn darkens to warn-500 in light and read 3.43:1 on the violet.
+        // Both now hold in both themes, because the ground never moves.
+        urgent ? 'border-transparent bg-bad-500 text-white motion-safe:animate-[pulseurgent_1.4s_ease-in-out_infinite]'
+          : soon ? 'border-warn-400/45 bg-warn-400/10 text-warn-400'
+          : 'border-white/25 bg-white/10 text-white',
       ].join(' ')}
     >
       <svg viewBox="0 0 20 20" aria-hidden="true" className="h-4 w-4 fill-current opacity-80">

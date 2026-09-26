@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { AppShell } from '../../components/AppShell'
 import { requireUser } from '../../lib/guard'
-import { db } from '../../lib/supabase/admin'
 import { findAttempt, loadAttempt } from '../../lib/repo/attempts'
 import { getArchive, getLeaderboard } from '../../lib/repo/leaderboard'
 import { ordinal } from '../../lib/leaderboard'
@@ -14,6 +13,7 @@ import { getWindow } from '../../lib/repo/settings'
 import { upcomingPapers } from '../../lib/repo/papers'
 import { Countdown } from '../../components/Countdown'
 import { StreakBadge } from '../../components/StreakBadge'
+import { Flash } from '../../components/Page'
 
 export const dynamic = 'force-dynamic'
 
@@ -40,7 +40,6 @@ export default async function Dashboard({
   // whichever opens next, rather than a lookup by date.
   const { live: openPaper, next: nextPaper } = await upcomingPapers(now)
   const tonight = openPaper ? { id: openPaper.id, date: openPaper.window.date, title: openPaper.title } : null
-  const state = openPaper ? openPaper.state : 'BEFORE_OPEN'
   const labels = paperLabels(openPaper?.window ?? nextPaper?.window ?? defaultPaperWindow(today, await getWindow()))
   const live = Boolean(openPaper)
 
@@ -82,9 +81,9 @@ export default async function Dashboard({
       </header>
 
       {password === 'changed' && (
-        <p className="mt-6 rounded-control bg-answered px-5 py-4 font-semibold text-white">
+        <Flash tone="good" className="mt-6">
           Password changed.
-        </p>
+        </Flash>
       )}
 
       <section className="relative mt-8 overflow-hidden rounded-card bg-surface-invert p-6 text-white
@@ -242,7 +241,7 @@ export default async function Dashboard({
         </div>
         <div className="mt-3">
           {board === null
-            ? <p className="rounded-card bg-surface p-6 text-sm text-ink-soft">The leaderboard could not be loaded just now.</p>
+            ? <p className="card p-6 text-sm text-ink-soft">The leaderboard could not be loaded just now.</p>
             : <LeaderboardTable rows={board} meUserId={user.id} compact />}
         </div>
       </section>

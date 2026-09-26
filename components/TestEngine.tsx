@@ -466,7 +466,7 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
       )}
 
       <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_240px]">
-        <main className="min-w-0 select-none rounded-card bg-surface p-6">
+        <main className="min-w-0 select-none card p-6">
           {/* Shown on every question in the group, not just the first (FR-6.4.10). */}
           {question.directions && (
             <DirectionsBlock
@@ -515,7 +515,7 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
           </p>
         </main>
 
-        <aside className="rounded-card bg-surface p-5 lg:sticky lg:top-24 lg:self-start">
+        <aside className="card p-5 lg:sticky lg:top-24 lg:self-start">
           <QuestionPalette
             states={states}
             current={question.number}
@@ -596,7 +596,7 @@ function ConfirmDialog({
   return (
     <div role="dialog" aria-modal="true" aria-labelledby="confirm-title"
          className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-6">
-      <div ref={panel} className="w-full max-w-md rounded-card bg-surface p-6">
+      <div ref={panel} className="w-full max-w-md card p-6">
         <h2 id="confirm-title" className="text-2xl font-black">
           {isLast ? 'End the test?' : `Leave ${sectionName}?`}
         </h2>
@@ -615,7 +615,7 @@ function ConfirmDialog({
           <button onClick={onCancel} autoFocus className="flex-1 btn btn-quiet px-5 py-3">
             Go back
           </button>
-          <button onClick={onConfirm} className="flex-1 rounded-control bg-play-purple px-5 py-3 font-black text-white">
+          <button onClick={onConfirm} className="btn btn-primary flex-1">
             {isLast ? 'End test' : 'Next section'}
           </button>
         </div>

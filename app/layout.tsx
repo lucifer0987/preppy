@@ -53,9 +53,26 @@ export const viewport: Viewport = {
   ],
 }
 
+/**
+ * Stamps the saved theme on <html> before the first paint.
+ *
+ * It has to be an inline script in the head: anything that runs after hydration
+ * paints the wrong theme first, and a white flash on the way into a dark page at
+ * five to ten is worse than no toggle at all.
+ *
+ * "system" writes no attribute, which is what leaves prefers-color-scheme in
+ * charge -- the CSS is built around that being the un-stamped default. Wrapped in
+ * try/catch because localStorage throws outright in a locked-down browser.
+ */
+const THEME_SCRIPT = `try{var t=localStorage.getItem('preppy-theme');
+if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}`
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${archivo.variable} ${plex.variable} ${plexMono.variable}`}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="min-h-dvh antialiased">{children}</body>
     </html>
   )

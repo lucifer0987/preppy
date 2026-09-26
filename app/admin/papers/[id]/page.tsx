@@ -15,7 +15,9 @@ import { KeyEditor } from './KeyEditor'
 import { QuestionEditor } from './QuestionEditor'
 import { DeleteButton } from './DeleteButton'
 import { getItemStats } from '../../../../lib/repo/rescore'
+import { BackLink, PageHeader, StatusChip } from '../../../../components/Page'
 import { OPTION_LABELS, type OptionLabel, type PaperQuestion } from '../../../../lib/types'
+import { Flash } from '../../../../components/Page'
 
 export const dynamic = 'force-dynamic'
 
@@ -67,96 +69,102 @@ export default async function PaperPreview(
     : lock.state === 'BEFORE_OPEN' ? 'Scheduled'
     : lock.state === 'CLOSED' ? 'Finished'
     : 'Live now'
+  const badgeTone =
+    badge === 'Draft' ? 'draft' as const
+    : badge === 'Scheduled' ? 'waiting' as const
+    : badge === 'Finished' ? 'done' as const
+    : 'live' as const
 
   return (
     <>
-      <Link href="/admin/papers" className="text-sm font-bold text-accent">&larr; Papers</Link>
+      <BackLink href="/admin/papers">Papers</BackLink>
 
       {q['error'] && (
-        <p role="alert" className="mt-4 rounded-control bg-notanswered px-5 py-4 font-semibold text-white">
+        <Flash tone="bad" className="mt-4">
           {q['error']}
-        </p>
+        </Flash>
       )}
       {q['new'] && (
-        <p className="mt-4 rounded-control bg-answered px-5 py-4 font-semibold text-white">
+        <Flash tone="good" className="mt-4">
           {q['replaced']
             ? 'Replaced the earlier draft for this date. Read it through below, then schedule it.'
             : 'Saved as a draft. Read it through below, then schedule it.'}
-        </p>
+        </Flash>
       )}
       {q['rescored'] && (
-        <p className="mt-4 rounded-control bg-answered px-5 py-4 font-semibold text-white">
+        <Flash tone="good" className="mt-4">
           Q{q['rescored']} changed from {q['from']} to {q['to']}. {q['of']} attempt
           {q['of'] === '1' ? '' : 's'} rescored, {q['changed']} score
           {q['changed'] === '1' ? '' : 's'} moved.
-        </p>
+        </Flash>
       )}
       {q['scheduled'] && (
-        <p className="mt-4 rounded-control bg-answered px-5 py-4 font-semibold text-white">
+        <Flash tone="good" className="mt-4">
           Scheduled. It unlocks at {paperLabels(record.window).opens} on {formatIstDate(paper.date)}.
-        </p>
+        </Flash>
       )}
 
-      <header className="mt-4 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight">{paper.title ?? 'Untitled paper'}</h1>
-          <p className="mt-1 text-ink-soft">
-            {formatIstDate(paper.date)} &middot; {totalQuestions} questions &middot; {totalMinutes} minutes
-          </p>
-          {scheduled && (
-            <p className="mt-1 text-sm font-semibold tabular-nums text-ink-soft">
-              Opens {paperLabels(record.window).opens} &middot; last start{' '}
-              {paperLabels(record.window).closes} &middot; everyone finished by{' '}
-              {paperLabels(record.window).hardStop}
-            </p>
+      <PageHeader
+        title={paper.title ?? 'Untitled paper'}
+        meta={
+          <>
+            <span className="numeral">{formatIstDate(paper.date)}</span> &middot;{' '}
+            <span className="numeral">{totalQuestions}</span> questions &middot;{' '}
+            <span className="numeral">{totalMinutes}</span> minutes
+            {scheduled && (
+              <span className="mt-1 block font-semibold">
+                Opens <span className="numeral">{paperLabels(record.window).opens}</span> &middot; last
+                start <span className="numeral">{paperLabels(record.window).closes}</span> &middot;
+                everyone finished by <span className="numeral">{paperLabels(record.window).hardStop}</span>
+              </span>
+            )}
+          </>
+        }
+        actions={<StatusChip tone={badgeTone}>{badge}</StatusChip>}
+      />
+
+      <section className="card mt-6 p-5">
+        <div className="flex flex-wrap items-center gap-3">
+          {lock.canSchedule && (
+            <a href="#schedule" className="btn btn-primary">
+              Read it through, then schedule at the end &darr;
+            </a>
+          )}
+          {lock.canUnschedule && (
+            <form action={unscheduleAction}>
+              <input type="hidden" name="id" value={id} />
+              <button className="btn btn-quiet">Move back to draft</button>
+            </form>
+          )}
+          {/* Deliberately not btn-quiet: that utility now owns its own hover
+              colours, and they would fight the green this button keeps. */}
+          <Link
+            href={`/test/start?test=${id}`}
+            className="btn border border-go/60 bg-surface text-go transition hover:bg-go/10"
+          >
+            Dry run
+          </Link>
+          {lock.canDelete && (
+            <div className="ml-auto">
+              <DeleteButton id={id} label={`the paper for ${formatIstDate(paper.date)}`} />
+            </div>
           )}
         </div>
-        <span
-          className={`rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-white
-                      ${badge === 'Draft' ? 'bg-ink-soft' : badge === 'Live now' ? 'bg-notanswered' : 'bg-answered'}`}
-        >
-          {badge}
-        </span>
-      </header>
-
-      <section className="mt-6 flex flex-wrap items-center gap-3 rounded-control bg-surface p-5">
-        {lock.canSchedule && (
-          <a href="#schedule" className="rounded-control bg-play-purple px-6 py-3 font-black text-white transition hover:bg-play-purple-deep">
-            Read it through, then schedule at the end &darr;
-          </a>
-        )}
-        {lock.canUnschedule && (
-          <form action={unscheduleAction}>
-            <input type="hidden" name="id" value={id} />
-            <button className="btn btn-quiet px-6 py-3 hover:border-accent hover:text-accent">
-              Move back to draft
-            </button>
-          </form>
-        )}
         {lock.reason && (
-          <p className="text-sm font-semibold text-ink-soft">{lock.reason}</p>
+          <p className="mt-3 text-sm font-semibold text-ink-soft">{lock.reason}</p>
         )}
-        <p className="basis-full text-xs text-ink-soft">
+        <p className="mt-4 border-t border-line pt-3 text-xs text-ink-soft">
           A dry run uses the real engine and the real timers. It is never counted and never
           reaches the leaderboard (FR-5.2).
         </p>
-        <Link
-          href={`/test/start?test=${id}`}
-          className="rounded-control btn btn-quiet border-go px-6 py-3 text-go transition hover:bg-go/10"
-        >
-          Dry run
-        </Link>
-        {lock.canDelete && (
-          <div className="ml-auto">
-            <DeleteButton id={id} label={`the paper for ${formatIstDate(paper.date)}`} />
-          </div>
-        )}
       </section>
 
       {missingImages.length > 0 && (
-        <section role="alert" className="mt-6 rounded-card bg-notanswered px-5 py-4 text-white">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-white/70">Images missing</h2>
-          <p className="mt-1 text-sm">
+        <section role="alert" className="mt-6 rounded-card border border-bad/35 bg-bad/10 p-5">
+          <h2 className="font-display text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-bad-ink">
+            Images missing
+          </h2>
+          <p className="mt-1.5 text-sm text-ink">
             {missingImages.map(([n, qs]) => `${n} (Q${qs.join(', Q')})`).join('; ')}. Students would see a
             placeholder. Upload the paper again with {missingImages.length === 1 ? 'this file' : 'these files'}.
           </p>
@@ -164,11 +172,11 @@ export default async function PaperPreview(
       )}
 
       {flagged.length > 0 && (
-        <section className="mt-6 rounded-card bg-notanswered px-5 py-4 text-white">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-white/70">
+        <section className="mt-6 rounded-card border border-warn/35 bg-warn/10 p-5">
+          <h2 className="font-display text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-warn-ink">
             Worth a second look
           </h2>
-          <p className="mt-1 text-sm">
+          <p className="mt-1.5 text-sm text-ink">
             {flagged.map((f) => `Q${f.number}`).join(', ')}{' '}
             {flagged.length === 1 ? 'was' : 'were'} answered correctly by under 10% of the students
             who tried {flagged.length === 1 ? 'it' : 'them'}. That is usually a wrong key rather
@@ -195,7 +203,7 @@ export default async function PaperPreview(
               const block = section.directions?.find((b) => question.number >= b.from && question.number <= b.to)
               const isFirstOfBlock = block && question.number === block.from
               return (
-                <li key={question.number} className="rounded-card bg-surface p-5">
+                <li key={question.number} className="card p-5">
                   {isFirstOfBlock && <DirectionsBlock block={block} testId={id} />}
                   <QuestionCard question={question} testId={id} reveal disabled />
                   <ItemFooter
@@ -211,7 +219,7 @@ export default async function PaperPreview(
       ))}
 
       {lock.canSchedule && (
-        <form id="schedule" action={scheduleAction} className="mt-10 rounded-card bg-surface p-6">
+        <form id="schedule" action={scheduleAction} className="mt-10 card p-6">
           <input type="hidden" name="id" value={id} />
           <h2 className="text-xl font-black">Schedule this paper</h2>
           <p className="mt-1 text-sm text-ink-soft">
@@ -247,7 +255,7 @@ export default async function PaperPreview(
             <input type="checkbox" name="reviewed" value="yes" required className="mt-1 h-4 w-4" />
             <span>I have read all {totalQuestions} questions above, with their keys and solutions.</span>
           </label>
-          <button className="mt-5 rounded-control bg-play-purple px-6 py-3 font-black text-white transition hover:bg-play-purple-deep">
+          <button className="btn btn-primary mt-5">
             Schedule it
           </button>
         </form>

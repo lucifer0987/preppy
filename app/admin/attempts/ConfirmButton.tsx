@@ -17,7 +17,7 @@ export function ConfirmButton({
   const [asking, setAsking] = useState(false)
   if (!asking) {
     return (
-      <button type="button" onClick={() => setAsking(true)} className="text-xs font-bold text-bad underline">
+      <button type="button" onClick={() => setAsking(true)} className="text-xs font-bold text-bad-ink underline">
         {label}
       </button>
     )

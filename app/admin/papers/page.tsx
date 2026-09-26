@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { listPapers } from '../../../lib/repo/papers'
 import { formatIstDate, istDate, paperLabels, windowState } from '../../../lib/time'
 import { requireAdmin } from '../../../lib/guard'
+import { BackLink, PageHeader } from '../../../components/Page'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,16 +13,16 @@ export default async function PapersPage() {
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-3xl font-black tracking-tight">Papers</h1>
-        <Link
-          href="/admin/papers/upload"
-          className="rounded-control bg-play-purple px-5 py-2.5 font-black text-white transition hover:bg-play-purple-deep"
-        >
-          Upload a paper
-        </Link>
-      </div>
-
+      <BackLink href="/admin">Admin</BackLink>
+      <PageHeader
+        title="Papers"
+        lede="Everything drafted or published. Open one to preview it, correct a key, or rehearse it as a dry run."
+        actions={
+          <Link href="/admin/papers/upload" className="btn btn-primary hover:bg-accent-hover">
+            Upload a paper
+          </Link>
+        }
+      />
       {papers.length === 0 ? (
         <p className="mt-8 rounded-card border border-dashed border-line-strong p-8 text-center text-ink-soft">
           No papers yet. Upload one to get started.

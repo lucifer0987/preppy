@@ -3,6 +3,7 @@ import { requireAdmin } from '../../../lib/guard'
 import { defaultAttemptMinutes, getWindow, getWindowMeta } from '../../../lib/repo/settings'
 import { windowLabels } from '../../../lib/time'
 import { WindowForm } from './WindowForm'
+import { BackLink, PageHeader } from '../../../components/Page'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,15 +20,10 @@ export default async function WindowPage() {
 
   return (
     <>
-      <Link href="/admin" className="text-sm font-bold text-accent">&larr; Admin</Link>
-      <h1 className="mt-4 text-3xl font-black tracking-tight">Nightly window</h1>
-      <p className="mt-1 text-ink-soft">
-        The times a new paper is offered when you schedule it. Each paper keeps its own window, so
-        changing these does not move anything already scheduled &mdash; and a day can hold more than
-        one paper as long as their windows do not overlap.
-      </p>
+      <BackLink href="/admin">Admin</BackLink>
+      <PageHeader title="Nightly window" lede="The times a new paper is offered when you schedule it. Each paper keeps its own." />
 
-      <section className="mt-6 rounded-card bg-play-purple p-6 text-white">
+      <section className="mt-6 rounded-card bg-surface-invert p-6 text-white shadow-high">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">Offered by default</p>
         <p className="mt-2 text-2xl font-black">
           {labels.opens} &rarr; {labels.closes}

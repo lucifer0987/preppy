@@ -46,7 +46,7 @@ export function BeginButton() {
         {busy ? 'Starting…' : 'Begin'}
       </button>
       {denied && (
-        <p role="alert" className="mt-3 text-center text-sm font-semibold text-bad">
+        <p role="alert" className="mt-3 text-center text-sm font-semibold text-bad-ink">
           Your browser did not allow full screen, so the test has not started. Allow it and press
           Begin again.
         </p>

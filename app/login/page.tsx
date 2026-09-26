@@ -6,6 +6,7 @@ import { isConfigured } from '../../lib/env'
 import { getPattern } from '../../lib/repo/settings'
 import { patternTotals, uniformMarking } from '../../lib/types'
 import { LoginForm } from './LoginForm'
+import { ThemeToggle } from '../../components/ThemeToggle'
 import { Wordmark } from '../../components/Wordmark'
 
 export const metadata: Metadata = { title: 'Log in' }
@@ -85,8 +86,11 @@ export default async function LoginPage({
       {/* The form half. */}
       <div className="flex flex-col justify-center px-6 py-14 sm:px-12">
         <div className="mx-auto w-full max-w-sm">
-          <div className="lg:hidden">
-            <Wordmark />
+          <div className="flex items-center justify-between">
+            <div className="lg:hidden">
+              <Wordmark />
+            </div>
+            <div className="ml-auto"><ThemeToggle /></div>
           </div>
 
           <h1 className="mt-8 text-4xl font-black tracking-tight lg:mt-0">Log in</h1>

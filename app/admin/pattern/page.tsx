@@ -3,6 +3,7 @@ import { requireAdmin } from '../../../lib/guard'
 import { getPattern, getPatternMeta, getWindow } from '../../../lib/repo/settings'
 import { patternTotals, SECTION_NAMES } from '../../../lib/types'
 import { PatternForm } from './PatternForm'
+import { BackLink, PageHeader } from '../../../components/Page'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,15 +19,10 @@ export default async function PatternPage() {
 
   return (
     <>
-      <Link href="/admin" className="text-sm font-bold text-accent">&larr; Admin</Link>
-      <h1 className="mt-4 text-3xl font-black tracking-tight">Paper pattern</h1>
-      <p className="mt-1 text-ink-soft">
-        How many questions each section holds, how long it runs, and what a right or wrong answer is
-        worth. This is the shape a paper takes when its file does not say otherwise &mdash; papers
-        already uploaded keep the shape they were given.
-      </p>
+      <BackLink href="/admin">Admin</BackLink>
+      <PageHeader title="Paper pattern" lede="What a paper is given when its file does not say. Papers already uploaded keep their own shape." />
 
-      <section className="mt-6 rounded-card bg-play-purple p-6 text-white">
+      <section className="mt-6 rounded-card bg-surface-invert p-6 text-white shadow-high">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">A paper on this pattern</p>
         <p className="mt-2 text-2xl font-black tabular-nums">
           {totals.questions} questions &middot; {totals.minutes} minutes
@@ -51,7 +47,7 @@ export default async function PatternPage() {
 
       <PatternForm current={current} latestEntryClose={latestEntryClose} />
 
-      <section className="mt-6 rounded-card bg-surface p-5">
+      <section className="mt-6 card p-5">
         <h2 className="eyebrow">Start a paper from this pattern</h2>
         <p className="mt-2 text-sm text-ink-soft">
           A blank file with the right sections, counts, numbering and marking, and placeholder text
@@ -60,8 +56,7 @@ export default async function PatternPage() {
         </p>
         <a
           href="/api/admin/template"
-          className="mt-3 inline-block rounded-control bg-play-purple px-6 py-3 font-black text-white
-                     transition hover:bg-play-purple-deep"
+          className="btn btn-primary mt-3"
         >
           Download a blank template
         </a>
