@@ -210,14 +210,15 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <header class="mast">
   <p class="eyebrow"><b>Engineering reference</b><i class="dot"></i>Preppy<i class="dot"></i>Phases 1 &amp; 2 complete</p>
   <h1>How Preppy is built,<br>and how to run it</h1>
-  <p class="lede">A nightly mock-test platform for IBPS Specialist Officer (IT) candidates. This document is in two halves: <strong>how the system works</strong>, for when you need to reason about it, and <strong>how to set it up and run it</strong>, written for someone who does not write web code.</p>
+  <p class="lede">A daily mock-test platform for IBPS Specialist Officer (IT) candidates. This document is in two halves: <strong>how the system works</strong>, for when you need to reason about it, and <strong>how to set it up and run it</strong>, written for someone who does not write web code.</p>
   <dl class="facts">
     <div><dt>Routes</dt><dd>20</dd></div>
-    <div><dt>Tables</dt><dd>9</dd></div>
+    <div><dt>Tables</dt><dd>10</dd></div>
     <div><dt>SQL functions</dt><dd>10</dd></div>
-    <div><dt>Modules</dt><dd>28<small>lib/</small></dd></div>
-    <div><dt>Tests</dt><dd>263</dd></div>
-    <div><dt>Runtime deps</dt><dd>7</dd></div>
+    <div><dt>Migrations</dt><dd>4</dd></div>
+    <div><dt>Modules</dt><dd>29<small>lib/</small></dd></div>
+    <div><dt>Tests</dt><dd>308</dd></div>
+    <div><dt>Runtime deps</dt><dd>8</dd></div>
   </dl>
 </header>
 
@@ -232,7 +233,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 
 <p>Preppy is <strong>one Next.js application talking to one Supabase project</strong>. There is no separate backend service, no queue, no cache layer, and no second database. Everything is TypeScript.</p>
 
-<p>That is a deliberate size. The system serves six accounts. Every extra moving part would be something that can break at 10 PM while five people wait, in exchange for capacity nobody needs.</p>
+<p>That is a deliberate size. The system serves six accounts. Every extra moving part would be something that can break mid-paper while five people wait, in exchange for capacity nobody needs.</p>
 
 <figure>
 <svg viewBox="0 0 760 330" role="img" aria-label="The browser talks only to the Next.js server, which holds the service-role key and is the only thing that talks to Supabase Postgres, Auth and Storage.">
@@ -343,54 +344,58 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <p>The whole product runs on one repeating 24-hour cycle. Understanding this is most of understanding the system.</p>
 
 <figure>
-<svg viewBox="0 0 760 236" role="img" aria-label="Timeline: the paper unlocks at 10 PM, entry closes at 11:15 PM, every attempt hard-stops at 11:59 PM, and one scheduled job runs at 12:05 AM.">
+<svg viewBox="0 0 820 300" role="img" aria-label="One IST day on a timeline. A morning paper opens at 6:00 AM, closes entry at 7:00 and runs to 7:45. An evening paper opens at 10:00 PM, closes entry at 11:15 and runs to midnight. A single scheduled job runs at 1:00 AM the next day.">
   <defs>
     <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
     </marker>
   </defs>
 
-  <line x1="40" y1="120" x2="726" y2="120" stroke="currentColor" stroke-width="1.5" marker-end="url(#a2)"/>
+  <!-- lane: morning paper -->
+  <rect x="233" y="78" width="29" height="22" rx="4" fill="#0E767F" opacity=".22"/>
+  <rect x="262" y="78" width="21" height="22" rx="4" fill="currentColor" opacity=".08"/>
+  <text x="297" y="86" font-size="11.5" font-weight="700" fill="currentColor">Morning paper</text>
+  <text x="297" y="100" font-size="11" fill="currentColor" opacity=".75">opens 6:00 &middot; entry closes 7:00 &middot; last attempt ends 7:45</text>
 
-  <rect x="96" y="108" width="330" height="24" rx="5" fill="#0E767F" opacity=".18"/>
-  <text x="261" y="124" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor">entry open &mdash; 75 minutes</text>
+  <!-- lane: evening paper -->
+  <rect x="694" y="140" width="36" height="22" rx="4" fill="#0E767F" opacity=".22"/>
+  <rect x="730" y="140" width="21" height="22" rx="4" fill="currentColor" opacity=".08"/>
+  <text x="684" y="148" font-size="11.5" font-weight="700" fill="currentColor" text-anchor="end">Evening paper</text>
+  <text x="684" y="162" font-size="11" fill="currentColor" opacity=".75" text-anchor="end">opens 10:00 PM &middot; entry closes 11:15 &middot; last attempt ends 12:00</text>
 
-  <rect x="426" y="108" width="176" height="24" rx="5" fill="currentColor" opacity=".08"/>
-  <text x="514" y="124" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".75">finishing only</text>
-
-  <g font-size="11" fill="currentColor">
-    <line x1="96" y1="96" x2="96" y2="146" stroke="#0E767F" stroke-width="2.5"/>
-    <text x="96" y="86" text-anchor="middle" font-weight="700" font-size="13">10:00 PM</text>
-    <text x="96" y="166" text-anchor="middle" opacity=".75">paper unlocks</text>
-
-    <line x1="426" y1="96" x2="426" y2="146" stroke="#0E767F" stroke-width="2.5"/>
-    <text x="426" y="86" text-anchor="middle" font-weight="700" font-size="13">11:15 PM</text>
-    <text x="426" y="166" text-anchor="middle" opacity=".75">last entry</text>
-    <text x="426" y="181" text-anchor="middle" opacity=".55" font-size="10">no new starts</text>
-
-    <line x1="602" y1="96" x2="602" y2="146" stroke="#94202B" stroke-width="2.5"/>
-    <text x="602" y="86" text-anchor="middle" font-weight="700" font-size="13">11:59 PM</text>
-    <text x="602" y="166" text-anchor="middle" opacity=".75">hard stop</text>
-
-    <line x1="662" y1="104" x2="662" y2="138" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
-    <text x="662" y="86" text-anchor="middle" font-weight="600" font-size="12">12:00</text>
-    <text x="662" y="166" text-anchor="middle" opacity=".75" font-size="10">answers</text>
-    <text x="662" y="179" text-anchor="middle" opacity=".75" font-size="10">unlock</text>
-
-    <line x1="706" y1="104" x2="706" y2="138" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
-    <text x="706" y="86" text-anchor="middle" font-weight="600" font-size="12">12:05</text>
-    <text x="706" y="166" text-anchor="middle" opacity=".75" font-size="10">the job</text>
+  <!-- droppers to the axis -->
+  <g stroke="currentColor" stroke-width="1" opacity=".3">
+    <line x1="233" y1="100" x2="233" y2="222"/><line x1="283" y1="100" x2="283" y2="222"/>
+    <line x1="694" y1="162" x2="694" y2="222"/><line x1="751" y1="162" x2="751" y2="222"/>
   </g>
 
-  <path d="M426 56 L426 44 L602 44 L602 56" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".5"/>
-  <text x="514" y="36" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".7">44-minute tail: the 11:14 entrant still gets a full 45 minutes</text>
+  <!-- the axis -->
+  <line x1="60" y1="222" x2="800" y2="222" stroke="currentColor" stroke-width="1.5" marker-end="url(#a2)"/>
+  <g font-size="10.5" fill="currentColor" opacity=".7" text-anchor="middle">
+    <line x1="60"  y1="217" x2="60"  y2="227" stroke="currentColor" stroke-width="1.5"/><text x="60"  y="243">12 AM</text>
+    <line x1="233" y1="217" x2="233" y2="227" stroke="currentColor" stroke-width="1.5"/><text x="233" y="243">6 AM</text>
+    <line x1="406" y1="217" x2="406" y2="227" stroke="currentColor" stroke-width="1.5"/><text x="406" y="243">12 PM</text>
+    <line x1="578" y1="217" x2="578" y2="227" stroke="currentColor" stroke-width="1.5"/><text x="578" y="243">6 PM</text>
+    <line x1="751" y1="217" x2="751" y2="227" stroke="currentColor" stroke-width="1.5"/><text x="751" y="243">12 AM</text>
+  </g>
 
-  <text x="40" y="214" font-size="11" fill="currentColor" opacity=".65">Derived from the clock on read &mdash; cannot fail</text>
-  <line x1="332" y1="210" x2="352" y2="210" stroke="currentColor" stroke-width="1.5"/>
-  <text x="362" y="214" font-size="11" fill="currentColor" opacity=".65">Scheduled job &mdash; can fail, and is re-runnable</text>
-  <line x1="646" y1="210" x2="666" y2="210" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <!-- midnight boundary and the one job -->
+  <line x1="751" y1="60" x2="751" y2="222" stroke="currentColor" stroke-width="1" stroke-dasharray="2 3" opacity=".45"/>
+  <line x1="780" y1="186" x2="780" y2="232" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="800" y="180" font-size="11" font-weight="700" fill="currentColor" text-anchor="end">1:00 AM</text>
+  <text x="800" y="194" font-size="10.5" fill="currentColor" opacity=".75" text-anchor="end">the only job</text>
+
+  <!-- legend -->
+  <g font-size="10.5" fill="currentColor" opacity=".65">
+    <rect x="60" y="270" width="16" height="9" rx="2" fill="#0E767F" opacity=".22"/>
+    <text x="84" y="278">entry open</text>
+    <rect x="160" y="270" width="16" height="9" rx="2" fill="currentColor" opacity=".08"/>
+    <text x="184" y="278">finishing only &mdash; no new starts</text>
+    <line x1="392" y1="274" x2="412" y2="274" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text x="420" y="278">the one scheduled job; everything else is derived on read</text>
+  </g>
 </svg>
-<figcaption><b>Only one thing on this timeline is a scheduled job.</b> Unlocking at 10 PM, closing entry at 11:15, and opening the archive at midnight are all computed from the clock whenever a page is read, so there is nothing to miss. The 12:05 job exists solely to score an attempt somebody abandoned.</figcaption>
+<figcaption><b>Each paper carries its own window, and a day may hold more than one.</b> Nothing on this timeline is a scheduled job except the 1:00 AM one: a paper unlocking, entry closing, and the archive opening are all computed from the clock as a page is read, so there is nothing to miss. The job exists solely to score an attempt somebody walked away from. Both windows here are examples &mdash; the only fixed rule is that entry close plus 45 minutes must land inside the same day.</figcaption>
 </figure>
 
 <h3>Every paper carries its own window</h3>
@@ -422,14 +427,21 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <p>A paper that ran at breakfast is therefore reviewable by mid-morning, rather than waiting for a midnight that has nothing to do with it.</p>
 
 <h3>Why almost nothing is scheduled</h3>
-<p>A job that must fire at 10 PM for the product to work is a job that will one day not fire. Instead, <code>lib/time.ts</code> answers <em>&ldquo;is this paper open right now?&rdquo;</em> from the current time every time a page loads. India has never observed daylight saving, so IST is a fixed UTC+05:30 and all of it is plain arithmetic with one offset.</p>
+<p>A job that must fire the moment a paper opens for the product to work is a job that will one day not fire. Instead, <code>lib/time.ts</code> answers <em>&ldquo;is this paper open right now?&rdquo;</em> from the current time every time a page loads. India has never observed daylight saving, so IST is a fixed UTC+05:30 and all of it is plain arithmetic with one offset.</p>
 
-<p>The 44-minute tail between last entry and the hard stop is not slack. A student starting at 11:14 PM gets their full 45 minutes, which lands exactly on 11:59. Nobody ever sits a shortened paper.</p>
+<p>The 45-minute tail between last entry and the hard stop is not slack. A student starting one minute before entry closes still gets their full 45 minutes; the hard stop is defined as exactly that. Nobody ever sits a shortened paper.</p>
 
-<div class="note care">
-  <h4>Changing the times</h4>
-  <p>They live in one object, <code>WINDOW</code> in <code>lib/time.ts</code>. Change them there and the whole system follows &mdash; the countdown, the entry check, the hard stop and the briefing text. Twenty-two tests pin the boundaries, so a mistake shows up as a red test rather than a locked-out student.</p>
-</div>
+<h3>Changing the times</h3>
+<p>There are two levels, and they do different jobs.</p>
+<div class="tw"><table>
+<thead><tr><th>Level</th><th>Where</th><th>What it affects</th></tr></thead>
+<tbody>
+<tr><td><strong>This paper's window</strong></td><td>The schedule form on the paper's own admin page</td><td>Only that paper. Set when you schedule it.</td></tr>
+<tr><td><strong>The default offered</strong></td><td>Admin console &rarr; <strong>Nightly window</strong>, stored in <code>app_settings</code></td><td>What the schedule form is pre-filled with next time. Never moves a paper already scheduled.</td></tr>
+</tbody>
+</table></div>
+<p>Neither is a code change any more. <code>lib/time.ts</code> still owns the arithmetic &mdash; <code>opensAt</code>, <code>entryClosesAt</code>, <code>hardStopAt</code>, <code>windowState</code> &mdash; but the numbers reach it from the database. <code>DEFAULT_WINDOW</code> in that file is only the fallback used before anyone has saved a setting.</p>
+<p>The boundaries are pinned by tests, so a mistake surfaces as a red test rather than a locked-out student.</p>
 </div></section>
 
 <section id="s4"><div class="col">
@@ -456,7 +468,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
   <rect x="20" y="160" width="470" height="76" rx="8" fill="none" stroke="#0E767F" stroke-width="2.5"/>
   <text x="38" y="184" font-size="13.5" font-weight="700" fill="currentColor">Pure domain logic</text>
   <text x="38" y="203" font-size="10.5" fill="currentColor" opacity=".7">time &middot; attempt &middot; scoring &middot; leaderboard &middot; paper &middot; csv &middot; images</text>
-  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 263 tests live here</text>
+  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 308 tests live here</text>
 
   <rect x="20" y="252" width="470" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
   <text x="38" y="276" font-size="13.5" font-weight="600" fill="currentColor">Repository</text>
@@ -501,10 +513,10 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <section id="s5"><div class="col">
 <h2><i>5</i>The database</h2>
 
-<p>Nine tables. Eight hold the product; one holds rate-limit counters.</p>
+<p>Ten tables. Eight hold the product, one holds the default window, one holds rate-limit counters.</p>
 
 <figure>
-<svg viewBox="0 0 760 420" role="img" aria-label="Entity diagram. Profiles and tests are the two roots. Tests own sections, which own direction blocks and questions. Attempts join a profile to a test and own attempt sections and responses.">
+<svg viewBox="0 0 760 420" role="img" aria-label="Entity diagram. Profiles and tests are the two roots. Tests own sections, which own direction blocks and questions. Attempts join a profile to a test and own attempt sections and responses. Rate limits and app settings stand apart, referenced by nothing.">
   <defs>
     <marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
@@ -519,8 +531,8 @@ figcaption b{color:var(--ink-2); font-weight:600}
 
     <rect x="300" y="18" width="150" height="62" rx="7" fill="none" stroke="currentColor" stroke-width="2"/>
     <text x="312" y="38" font-weight="700" font-size="12.5">tests</text>
-    <text x="312" y="55" font-size="10" opacity=".65">date (unique), status</text>
-    <text x="312" y="70" font-size="10" opacity=".65">key_version</text>
+    <text x="312" y="55" font-size="10" opacity=".65">date, status, key_version</text>
+    <text x="312" y="70" font-size="10" opacity=".65">opens_at_min, entry_closes_at_min</text>
 
     <rect x="300" y="110" width="150" height="56" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
     <text x="312" y="130" font-weight="600">sections</text>
@@ -553,6 +565,11 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <text x="512" y="38" font-weight="600">rate_limits</text>
     <text x="512" y="55" font-size="10" opacity=".65">key, hits, reset_at</text>
     <text x="512" y="70" font-size="10" opacity=".65">stands apart</text>
+
+    <rect x="500" y="110" width="150" height="56" rx="7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="512" y="130" font-weight="600">app_settings</text>
+    <text x="512" y="147" font-size="10" opacity=".65">default window</text>
+    <text x="512" y="160" font-size="10" opacity=".65">one row, stands apart</text>
   </g>
 
   <line x1="375" y1="80" x2="375" y2="108" stroke="currentColor" stroke-width="1.5" marker-end="url(#a4)"/>
@@ -597,6 +614,17 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td><code>apply_rescore</code></td><td>Rewrites every affected attempt in one statement and stamps the paper</td></tr>
 <tr><td><code>rate_limit_hit</code></td><td>Counting must be shared. A serverless host runs many instances and each would keep its own count</td></tr>
 <tr><td><code>revoke_user_sessions</code></td><td>Reaches into <code>auth.sessions</code>, which needs elevated rights</td></tr>
+</table></div>
+
+<h3>Rules the database will not let you break</h3>
+<p>Three of the rules that make more than one paper a day safe are indexes and constraints, not application checks &mdash; so they hold even against a hand-written <code>update</code> in the SQL editor.</p>
+<div class="tw"><table>
+<thead><tr><th>Constraint</th><th>On</th><th>What it prevents</th></tr></thead>
+<tbody>
+<tr><td><code>tests_one_scheduled_per_date_and_opening</code></td><td><code>tests</code></td><td>Two <em>scheduled</em> papers opening at the same minute of the same day. Partial on <code>status = 'SCHEDULED'</code>, so drafts for one day may sit side by side while you prepare them.</td></tr>
+<tr><td><code>attempts_one_live_per_user</code></td><td><code>attempts</code></td><td>A student sitting two counted papers at once, which would split 45 minutes across two clocks. Partial, so an admin's dry run never blocks anyone.</td></tr>
+<tr><td><code>tests_window_within_the_day</code></td><td><code>tests</code></td><td>Entry closing so late that the last entrant's 45 minutes spill past midnight, onto a date the archive and the board do not key on.</td></tr>
+</tbody>
 </table></div>
 
 <div class="note why">
@@ -852,7 +880,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <li>Plain names only: letters, digits, <code>.</code>, <code>-</code>, <code>_</code>, ending in <code>.png</code>, <code>.jpg</code>, <code>.webp</code> or <code>.gif</code>. <code>di-chart-1.png</code> works; <code>DI chart (1).png</code> does not.</li>
 <li>Under 2 MB each, and 10 MB for the paper and all its images together.</li>
 <li>Every name the paper lists must be uploaded, or it will not publish. To check locally: <code>npm run check -- paper.json --images &lt;folder&gt;</code></li>
-<li>Students can load an image only once the paper opens at 10 PM.</li>
+<li>Students can load an image only once its paper has opened.</li>
 </ul>
 
 <h3>Plain JSON only</h3>
@@ -905,10 +933,15 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td>Ranking</td><td>Cumulative total score, all time. Dry runs excluded, which excludes the admin by construction</td></tr>
 <tr><td>Tie-breaks, in order</td><td>Higher total, then higher accuracy, then less time taken, then who started earlier</td></tr>
 <tr><td>Ties</td><td>Genuinely tied rows share a rank</td></tr>
-<tr><td>Streaks</td><td>Consecutive papers attempted, counting back from the most recent. A night with no paper never breaks one</td></tr>
-<tr><td>Windows</td><td>All time, last 7, last 30</td></tr>
+<tr><td>Streaks</td><td>Consecutive <em>days</em> attended, counting back from the most recent day that held a paper. Sitting any paper counts for the day, so a second paper you skip does not break the run. A day with no paper never breaks one either</td></tr>
+<tr><td>Windows</td><td>All time, last 7, last 30 &mdash; counted in <em>papers</em>, not days, so on a two-paper day &ldquo;Last 7&rdquo; spans three and a half days</td></tr>
 <tr><td>A new member</td><td>Starts at zero. The last-30 view is the one that stays meaningful for them</td></tr>
 </table></div>
+
+<div class="note why">
+  <h4>Why a paper is keyed <code>2026-11-01#1320</code></h4>
+  <p>A date used to identify a paper. Now that a day can hold several, the board keys on <strong><code>YYYY-MM-DD#MMMM</code></strong> &mdash; the date, then the minute it opens, zero-padded. It stays sortable as plain text, so &ldquo;the most recent paper&rdquo; is still just the largest key, and the streak reads the date half back off it.</p>
+</div>
 
 <div class="note care">
   <h4>A cap that would have bitten quietly</h4>
@@ -949,11 +982,12 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><th>If this happens</th><th>Then</th></tr>
 <tr><td>A student refreshes, or the browser crashes</td><td>They resume at the same question with the correct time left. Time that passed is not refunded</td></tr>
 <tr><td>Their network drops</td><td>A banner appears, answers queue locally and flush on reconnect, the timer keeps running</td></tr>
-<tr><td>They close the laptop and never come back</td><td>The attempt is scored either by the 12:05 job or the next time anyone opens it, whichever is first</td></tr>
+<tr><td>They close the laptop and never come back</td><td>The attempt is scored either by the 1:00 AM job or the next time anyone opens it, whichever is first</td></tr>
+<tr><td>They walk away from the morning paper, then come back for the evening one</td><td>Starting the second paper scores the abandoned first one on the spot and proceeds. Only one counted attempt may be open at a time, and waiting for the 1:00 AM job to clear it would have locked them out all day</td></tr>
 <tr><td>The nightly job does not fire</td><td>Nothing is lost. It is idempotent and re-runnable from a button in the admin console</td></tr>
 <tr><td>You publish no paper</td><td>The dashboard says so, and <strong>nobody's streak breaks</strong></td></tr>
 <tr><td>You publish a wrong answer key</td><td>Correct it and rescore. Students are told why their score moved</td></tr>
-<tr><td>Supabase is down at 10 PM</td><td>The site cannot serve. There is no fallback, and at this size that is the accepted trade</td></tr>
+<tr><td>Supabase is down when a paper opens</td><td>The site cannot serve. There is no fallback, and at this size that is the accepted trade</td></tr>
 <tr><td>A student changes their computer clock</td><td>Nothing. The server owns the clock</td></tr>
 <tr><td>Two people open the same account</td><td>Starting a paper signs the other out</td></tr>
 </table></div>
@@ -963,7 +997,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 
 <div class="tw"><table>
 <tr><th>Layer</th><th>Status</th></tr>
-<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 263 tests, no database needed</td></tr>
+<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 308 tests, no database needed</td></tr>
 <tr><td>The schema, its functions, triggers and indexes</td><td><strong>Tested against real Postgres.</strong> <code>tests/schema.test.ts</code> applies every migration to an in-process Postgres and exercises each function and guard. <code>tests/migrate.test.ts</code> proves the chain is ordered and that a second run changes nothing</td></tr>
 <tr><td>The queries in <code>lib/repo/</code></td><td><strong>Typechecked only.</strong> The PostgREST calls have never run against a live server</td></tr>
 <tr><td>Supabase Auth and Storage</td><td><strong>Typechecked only</strong></td></tr>
@@ -1024,7 +1058,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <text x="179" y="209" text-anchor="middle" font-weight="600">typecheck</text>
     <line x1="226" y1="205" x2="238" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="238" y="186" width="94" height="38" rx="6" fill="none" stroke="#94202B" stroke-width="2"/>
-    <text x="285" y="209" text-anchor="middle" font-weight="600">263 tests</text>
+    <text x="285" y="209" text-anchor="middle" font-weight="600">308 tests</text>
     <line x1="332" y1="205" x2="344" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="344" y="186" width="84" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
     <text x="386" y="209" text-anchor="middle" font-weight="600">build</text>
@@ -1049,7 +1083,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td><code>npm run start:local</code></td><td><span class="pill local">rare</span></td><td>Serves that build on port 3000</td></tr>
 <tr><td><code>npm run build:prod</code></td><td><span class="pill prod">before shipping</span></td><td>Typecheck, all tests, then build without source maps</td></tr>
 <tr><td><code>npm run start:prod</code></td><td><span class="pill prod">on the host</span></td><td>Serves the production build</td></tr>
-<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>263 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>308 tests. No database needed, about a second</td></tr>
 <tr><td><code>npm run typecheck</code></td><td><span class="pill both">anytime</span></td><td>Checks types without building</td></tr>
 <tr><td><code>npm run seed</code></td><td><span class="pill both">setup</span></td><td>Creates the accounts, prints passwords once</td></tr>
 <tr><td><code>npm run secret</code></td><td><span class="pill both">setup</span></td><td>Prints a random string for CRON_SECRET</td></tr>
@@ -1166,7 +1200,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <b>npm install</b></pre>
 </div>
 <p>Downloads everything into a <code>node_modules</code> folder. Safe to re-run at any time.</p>
-<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>263 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
+<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>308 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
 </li>
 
 <li>
@@ -1191,7 +1225,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>npm run migrate</b>
 
-<i>  Applying 2 migrations...
+<i>  Applying 4 migrations...
     applied  0001_baseline.sql
     applied  0002_test_window.sql</i></pre>
 </div>
@@ -1212,7 +1246,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td>Indexes</td><td>8</td><td>Speed, and one-counted-attempt-per-person</td></tr>
 <tr><td>Access rules</td><td>9</td><td>Row Level Security on every table</td></tr>
 </table></div>
-<p><strong>Check it worked:</strong> open <strong>Table Editor</strong>. You should see nine tables, each with an <strong>RLS enabled</strong> badge. That badge is intentional &mdash; it means nothing can read those tables except your own server.</p>
+<p><strong>Check it worked:</strong> open <strong>Table Editor</strong>. You should see ten tables, each with an <strong>RLS enabled</strong> badge. That badge is intentional &mdash; it means nothing can read those tables except your own server.</p>
 <div class="note do">
   <h4>Safe to run twice</h4>
   <p>The whole file is written to be re-runnable: it creates nothing that already exists and replaces functions in place. If you are ever unsure whether it applied, run it again. There is a test that proves this &mdash; <em>"applies twice without error"</em>.</p>
@@ -1358,11 +1392,41 @@ figcaption b{color:var(--ink-2); font-weight:600}
   <p>The Supabase SQL editor does not ask twice, and there is no undo. The project name is in the top-left of the dashboard. Read it before pressing Run on anything that deletes.</p>
 </div>
 
+<h3>How migrations work</h3>
+<p>The schema is a numbered, forward-only chain in <code>supabase/migrations/</code>. Nothing else defines it.</p>
+<div class="tw"><table>
+<thead><tr><th>File</th><th>What it did</th></tr></thead>
+<tbody>
+<tr><td><code>0001_baseline.sql</code></td><td>The whole schema as it stood the day migrations arrived &mdash; ten tables, ten functions, two triggers, RLS</td></tr>
+<tr><td><code>0002_test_window.sql</code></td><td><code>app_settings</code>: the default window, editable from the admin console</td></tr>
+<tr><td><code>0003_per_paper_window.sql</code></td><td>A window per paper, and more than one paper a day</td></tr>
+<tr><td><code>0004_drafts_share_a_day.sql</code></td><td>Made that index partial, so two drafts for one day can both be uploaded</td></tr>
+</tbody>
+</table></div>
+
+<p>The baseline is not special to the runner &mdash; it is simply file number one. Each database keeps a <code>schema_migrations</code> table of the versions it has applied; the runner diffs that against the files on disk and applies the difference in filename order. <strong>Each file runs in its own transaction, with its tracking insert inside it</strong>, so a migration either lands completely and is recorded, or does not land at all. A failure leaves you on the last complete version, never half-way through one.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Command</th><th>Does</th></tr></thead>
+<tbody>
+<tr><td><code>npm run migrate</code></td><td>Applies everything pending</td></tr>
+<tr><td><code>npm run migrate -- --status</code></td><td>Lists what has landed and what has not</td></tr>
+<tr><td><code>npm run migrate -- --print</code></td><td>Prints the pending SQL instead of running it</td></tr>
+</tbody>
+</table></div>
+
+<p>It needs <code>DATABASE_URL</code> in <code>.env.local</code> &mdash; Supabase &rarr; <strong>Settings</strong> &rarr; <strong>Database</strong> &rarr; <strong>Connection string</strong>, the URI one, with the password filled in. Use the direct connection on port 5432; a pooler URI on 6543 is transaction-mode and the client's prepared statements can trip on it. Without <code>DATABASE_URL</code> the runner does not fail &mdash; it prints the SQL to paste into the Supabase SQL editor, each block ending with the insert that records it.</p>
+
+<div class="note why">
+  <h4>Bringing a database that predates migrations up to date</h4>
+  <p>If the schema was first applied by hand, there is no <code>schema_migrations</code> table, so <code>--status</code> reports <em>every</em> file as pending &mdash; including ones already there. That is expected. Run <code>npm run migrate</code> anyway: every migration is written to be safe twice over (<code>if not exists</code>, <code>create or replace</code>, guarded <code>do $$</code> blocks), the already-applied files pass through harmlessly and get recorded, and only the genuinely new ones change anything. A test exists purely to prove the whole chain survives that.</p>
+</div>
+
 <h3>Changing the structure later</h3>
-<p><strong>Write a new migration. Never edit one that has been applied.</strong> A file that has already run on production will not run again, so editing it changes what a fresh database gets and leaves production behind.</p>
+<p><strong>Write a new migration. Never edit one that has been applied.</strong> A file that has already run will not run again, so editing it changes what a fresh database gets and leaves the existing one behind &mdash; and the two drift apart silently.</p>
 
 <div class="term">
-  <div class="term-bar"><i></i><i></i><i></i><span>supabase/migrations/0003_whatever_it_is.sql</span></div>
+  <div class="term-bar"><i></i><i></i><i></i><span>supabase/migrations/0005_whatever_it_is.sql</span></div>
 <pre><b>begin;</b>
 
 <i>-- Safe to run twice, like every migration here.</i>
@@ -1371,10 +1435,9 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <b>commit;</b></pre>
 </div>
 
-<p>Number it one higher than the last, then <code>npm run migrate</code> against <code>preppy-dev</code>, check the app still works, and only then against production.</p>
+<p>Number it one higher than the last, run it against <code>preppy-dev</code>, check the app still works, and only then against production.</p>
 
-<p>There are no down migrations. Reversing a schema change correctly is rare, and a rollback file that has never been run is a false promise. To undo something, write the next migration.</p>
-<p>Run it on <code>preppy-dev</code> first, check the app still works, and only then on production.</p>
+<p>There are no down migrations. Reversing a schema change correctly is rare, and a rollback file that has never been run is a false promise. To undo something, write the next migration &mdash; which is exactly what <code>0004</code> is: <code>0003</code> created an index that turned out to be too strict, and <code>0004</code> replaced it.</p>
 
 <h3>Backups</h3>
 <div class="tw"><table>
@@ -1419,7 +1482,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 </li>
 <li>
 <h4>Schedule it</h4>
-<p>Press <strong>Schedule</strong> on the preview screen. That is the only place the button exists, so a paper cannot go live without somebody having looked at it. It unlocks at 10 PM on its own date.</p>
+<p>Press <strong>Schedule</strong> on the preview screen. That is the only place the button exists, so a paper cannot go live without somebody having looked at it. It unlocks at the time you set on the schedule form, on its own date.</p>
 </li>
 </ol>
 
@@ -1455,7 +1518,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <li>Apply the migrations: <code>npm run migrate</code> pointed at the new project, or <code>npm run migrate -- --print</code> and paste into its SQL Editor.</li>
 <li>Authentication &rarr; Email &rarr; <strong>Confirm email off</strong>.</li>
 </ul>
-<p><strong>Check it worked:</strong> Table Editor shows nine tables with RLS badges, exactly as dev did.</p>
+<p><strong>Check it worked:</strong> Table Editor shows ten tables with RLS badges, exactly as dev did.</p>
 <p>Keep its <strong>Settings &rarr; API</strong> page open. You need all three keys again, and they are <em>different</em> from your dev keys.</p>
 </li>
 
@@ -1494,7 +1557,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code></td><td>preppy-prod &rarr; service_role</td></tr>
 <tr><td><code>CRON_SECRET</code></td><td>The string from step 2</td></tr>
 </table></div>
-<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 263 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
+<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 308 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
 <p><strong>Check it worked:</strong> the deployment goes green and the URL shows the countdown page.</p>
 </li>
 
@@ -1617,8 +1680,8 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <p>Three questions answer most problems:</p>
 <ol>
 <li><strong>Which database am I talking to?</strong> Check the URL in <code>.env.local</code> against the project name in Supabase.</li>
-<li><strong>Did the schema actually apply?</strong> Table Editor, nine tables, RLS badges.</li>
-<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 263 pass, the logic is fine and the problem is configuration or a query.</li>
+<li><strong>Did the schema actually apply?</strong> Table Editor, ten tables, RLS badges.</li>
+<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 308 pass, the logic is fine and the problem is configuration or a query.</li>
 </ol>
 
 <p class="end">

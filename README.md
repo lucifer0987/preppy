@@ -1,8 +1,9 @@
 # Preppy
 
-Daily mock-test platform for IBPS Specialist Officer (IT) candidates. Every
-night at 10 PM a 55-question paper unlocks, scored on the real marking scheme,
-ranked on a leaderboard that never resets.
+Daily mock-test platform for IBPS Specialist Officer (IT) candidates. A
+55-question paper unlocks in a window you set when you schedule it — a day may
+hold more than one — scored on the real marking scheme, ranked on a leaderboard
+that never resets.
 
 Closed cohort: 5 students and 1 admin. Next.js and Supabase, TypeScript
 throughout. Phases 1 and 2 are complete.
@@ -22,7 +23,7 @@ network, nothing to install. Double-click, or `open docs/architecture.html`.
 
 ```bash
 npm install
-npm test          # 263 tests, no database needed
+npm test          # 308 tests, no database needed
 npm run dev       # http://localhost:3000
 ```
 
@@ -36,7 +37,7 @@ commands alone.
 npm run dev                    # develop
 npm run build:prod             # typecheck + tests + production build
 npm run build:local            # production build with source maps, for debugging
-npm test                       # 263 tests
+npm test                       # 308 tests
 npm run check -- paper.json    # validate a paper, app not required
 npm run migrate                # apply pending database migrations
 npm run seed                   # create the accounts, print passwords once
@@ -52,7 +53,7 @@ npm run seed                   # create the accounts, print passwords once
 | `lib/repo/` | The only place Supabase is called |
 | `supabase/migrations/` | The schema, as a numbered chain. `npm run migrate` applies it |
 | `format/` | A worked paper, a blank template, and a JSON Schema |
-| `tests/` | 263 tests, including the schema run on real Postgres |
+| `tests/` | 308 tests, including the schema run on real Postgres |
 | `docs/` | The three documents above |
 
 ## The one security rule
@@ -70,20 +71,3 @@ that talks to Supabase over the network — the queries in `lib/repo/`, signing
 in, and reading an image out of Storage — has never run. **docs/architecture.html
 section 17** is a ten-minute walkthrough that exercises nearly all of it. Do
 that before a paper night that counts.
-
-
-
-
-
-
-
-Passwords are shown once. Copy them now.
-
-  USERNAME    ROLE     PASSWORD
-  -----------------------------------
-  admin       admin    d5cm-m1dr-rbfx
-  student1    student  g6zs-qww7-wj72
-  student2    student  sykz-kdea-rnbs
-  student3    student  665k-1f45-y5rh
-  student4    student  2kbq-qgqm-03gr
-  student5    student  28a2-pp10-kvvs
