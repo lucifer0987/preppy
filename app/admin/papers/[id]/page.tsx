@@ -93,7 +93,7 @@ export default async function PaperPreview(
       )}
       {q['scheduled'] && (
         <p className="mt-4 rounded-2xl bg-answered px-5 py-4 font-semibold text-white">
-          Scheduled. It unlocks at {paperLabels(defaultWindow).opens} on {formatIstDate(paper.date)}.
+          Scheduled. It unlocks at {paperLabels(record.window).opens} on {formatIstDate(paper.date)}.
         </p>
       )}
 
@@ -103,6 +103,13 @@ export default async function PaperPreview(
           <p className="mt-1 text-ink-soft">
             {formatIstDate(paper.date)} &middot; {totalQuestions} questions &middot; {totalMinutes} minutes
           </p>
+          {scheduled && (
+            <p className="mt-1 text-sm font-semibold tabular-nums text-ink-soft">
+              Opens {paperLabels(record.window).opens} &middot; last start{' '}
+              {paperLabels(record.window).closes} &middot; everyone finished by{' '}
+              {paperLabels(record.window).hardStop}
+            </p>
+          )}
         </div>
         <span
           className={`rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-white
@@ -208,7 +215,7 @@ export default async function PaperPreview(
           <input type="hidden" name="id" value={id} />
           <h2 className="text-xl font-black">Schedule this paper</h2>
           <p className="mt-1 text-sm text-ink-soft">
-            It unlocks at {paperLabels(defaultWindow).opens} on the night you choose. Until then you can move it back to draft.
+            Pick the night and the window below. Until it opens you can still move it back to draft.
           </p>
           <label className="mt-4 block text-xs font-bold uppercase tracking-widest text-ink-soft">
             Night
