@@ -27,7 +27,11 @@ export default async function Home() {
   const testWindow = await getWindow()
   // The next actual paper if one is scheduled; otherwise the usual times, so
   // the page still says when a paper would normally open.
-  const { next } = isConfigured() ? await upcomingPapers(now) : { next: null }
+  // Decorative on this page: it turns "a paper opens at 10 PM" into a countdown
+  // to the real one. A signed-out visitor is better served by the usual times
+  // than by an error page, so a failure here is logged and stepped over -- the
+  // dashboard, where a student needs the truth, still fails loudly.
+  const { next } = isConfigured() ? await upcomingPapers(now).catch(nextUnavailable) : { next: null }
   const labels = next ? paperLabels(next.window) : windowLabels(testWindow, await defaultAttemptMinutes())
   // The shape a paper takes, from the configured default pattern rather than a
   // constant, so this page tells the truth after the pattern is changed.
@@ -94,4 +98,21 @@ export default async function Home() {
       </div>
     </main>
   )
+}
+
+/**
+ * The home page without a paper lookup. Named rather than inlined so the reason
+ * stays next to the message, and so the two migration cases read the same way
+ * as the settings ones.
+ */
+function nextUnavailable(e: Error): { next: null } {
+  const missing = /schema cache|does not exist/i.test(e.message)
+  console.error(
+    missing
+      ? '[home] The papers table is missing columns this build expects, so the countdown is ' +
+        'showing the default window.\n' +
+        '       Apply the pending migration:  npm run migrate'
+      : `[home] Could not read the next paper: ${e.message}`,
+  )
+  return { next: null }
 }

@@ -14,6 +14,28 @@ import {
  * the admin console must take effect on the next page load, not whenever some
  * timer expires.
  */
+/**
+ * A settings read that failed.
+ *
+ * The app carries on with the shipped defaults rather than going down, which is
+ * right -- but the reason is almost always one thing, and "Could not find the
+ * table in the schema cache" does not say what to do about it. So this names
+ * the fix instead of repeating the symptom.
+ */
+function settingsUnavailable(table: string, message: string): void {
+  const missing = /schema cache|does not exist|relation .* does not exist/i.test(message)
+  if (missing) {
+    console.error(
+      `[settings] The "${table}" table is not in your database yet, so the app is using the ` +
+      'shipped defaults.\n' +
+      '           Apply the pending migration:  npm run migrate\n' +
+      '           (npm run migrate -- --status shows what is outstanding.)',
+    )
+    return
+  }
+  console.error(`[settings] Could not read ${table}: ${message}`)
+}
+
 export const getWindow = cache(async (): Promise<WindowSettings> => {
   const { data, error } = await db()
     .from('app_settings')
@@ -23,7 +45,7 @@ export const getWindow = cache(async (): Promise<WindowSettings> => {
   // A settings read that fails must not take the site down: falling back to
   // the documented default keeps papers opening at the time everyone expects.
   if (error || !data) {
-    if (error) console.error('[settings]', error.message)
+    if (error) settingsUnavailable('app_settings', error.message)
     return DEFAULT_WINDOW
   }
 
@@ -49,7 +71,7 @@ export const getPattern = cache(async (): Promise<Pattern> => {
     .order('position')
 
   if (error || !data?.length) {
-    if (error) console.error('[settings]', error.message)
+    if (error) settingsUnavailable('default_sections', error.message)
     return DEFAULT_PATTERN
   }
 
