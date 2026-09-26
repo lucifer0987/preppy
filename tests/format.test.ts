@@ -459,6 +459,33 @@ describe('the shipped files stand on their own', () => {
   })
 })
 
+describe('marks the database can actually keep', () => {
+  it('accepts anything with two decimal places or fewer', () => {
+    for (const v of [1, 0.5, 0.25, 0.33, 2.75, 10]) {
+      expect(ok(mutate((p) => { p.sections[0].marksCorrect = v })).codes).not.toContain('MARKS_PRECISION')
+    }
+  })
+
+  it('refuses more precision than numeric(4,2) can hold', () => {
+    // Stored, 0.125 becomes 0.13 and every score is computed from that. A file
+    // that says one thing while the paper does another is worse than a refusal.
+    for (const v of [0.125, 1.005, 0.333]) {
+      const r = ok(mutate((p) => { p.sections[0].marksCorrect = v }))
+      expect(r.codes, String(v)).toContain('MARKS_PRECISION')
+      expect(r.publishable).toBe(false)
+    }
+    expect(ok(mutate((p) => { p.sections[2].marksNegative = 0.005 })).codes).toContain('MARKS_PRECISION')
+  })
+
+  it('is not fooled by binary floating point', () => {
+    // 0.07 * 100 is 7.000000000000001, and 0.29 * 100 is 28.999999999999996.
+    for (const v of [0.07, 0.29, 0.57, 1.15, 4.35]) {
+      expect(ok(mutate((p) => { p.sections[0].marksCorrect = v })).codes, String(v))
+        .not.toContain('MARKS_PRECISION')
+    }
+  })
+})
+
 describe('describing a pattern', () => {
   it('reports one marking scheme when every section shares it', () => {
     expect(uniformMarking(DEFAULT_PATTERN)).toEqual({ correct: 1, negative: 0.25 })

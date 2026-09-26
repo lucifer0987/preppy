@@ -88,6 +88,14 @@ export function patternProblem(pattern: Pattern): string | null {
     }
     if (!(s.marksCorrect > 0) || s.marksCorrect > 10) return `${n}: marks for a correct answer must be above 0 and at most 10.`
     if (s.marksNegative < 0 || s.marksNegative > 10) return `${n}: the penalty must be between 0 and 10.`
+    // The columns are numeric(4,2): more precision than that is silently lost,
+    // and every score afterwards uses the rounded figure.
+    for (const [v, what] of [[s.marksCorrect, 'Marks for a correct answer'],
+                             [s.marksNegative, 'The penalty']] as const) {
+      if (Math.abs(v * 100 - Math.round(v * 100)) >= 1e-9) {
+        return `${n}: ${what.toLowerCase()} is kept to two decimal places, so ${v} cannot be stored exactly.`
+      }
+    }
   }
   const { minutes } = patternTotals(pattern)
   if (minutes > 8 * 60) return `The sections add up to ${minutes} minutes, longer than the ${8 * 60} a paper may run.`

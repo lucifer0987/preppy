@@ -50,6 +50,15 @@ describe('what the server will accept as a pattern', () => {
     expect(patternProblem(justFits)).toBeNull()
   })
 
+  it('refuses marks the column cannot hold exactly', () => {
+    expect(patternProblem(withPk({ marksCorrect: 0.125 }))).toMatch(/two decimal places/)
+    expect(patternProblem(withPk({ marksNegative: 0.333 }))).toMatch(/two decimal places/)
+    // And is not fooled by binary floating point.
+    for (const v of [0.07, 0.29, 1.15]) {
+      expect(patternProblem(withPk({ marksCorrect: v })), String(v)).toBeNull()
+    }
+  })
+
   it('names the section at fault, so the admin knows which box to fix', () => {
     const mixed = DEFAULT_PATTERN.map((s) => s.code === 'ENGLISH' ? { ...s, minutes: 0 } : s)
     expect(patternProblem(mixed)).toMatch(/^English Language:/)

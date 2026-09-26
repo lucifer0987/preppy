@@ -44,6 +44,9 @@ export interface ReadOptions {
  */
 const MAX_TOTAL_MINUTES = 8 * 60
 
+/** Exactly representable by numeric(4,2), which is what the columns are. */
+const isTwoDecimals = (v: number) => Math.abs(v * 100 - Math.round(v * 100)) < 1e-9
+
 export interface ReadResult {
   paper: Paper | null
   issues: Issue[]
@@ -238,6 +241,12 @@ export function readPaper(rawText: string, opts: ReadOptions = {}): ReadResult {
         err(`${sp}.${key}`, 'NUMBER_TYPE', `"${key}" must be a number, got ${JSON.stringify(v)}.`)
       } else if (v < min || v > max) {
         err(`${sp}.${key}`, 'NUMBER_RANGE', `"${key}" is ${v}, outside the allowed ${min}-${max}.`)
+      } else if (key.startsWith('marks') && !isTwoDecimals(v)) {
+        // marks_correct and marks_negative are numeric(4,2). Stored, 0.125
+        // becomes 0.13 and every score is computed from that, so a file saying
+        // one thing while the paper does another must be refused, not rounded.
+        err(`${sp}.${key}`, 'MARKS_PRECISION',
+          `"${key}" is ${v}; marks are kept to two decimal places, so use at most two (${v.toFixed(2)}).`)
       }
     }
 
