@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { requireAdmin } from '../../../lib/guard'
 import { defaultAttemptMinutes, getWindow, getWindowMeta } from '../../../lib/repo/settings'
 import { windowLabels } from '../../../lib/time'
 import { WindowForm } from './WindowForm'
@@ -6,6 +7,9 @@ import { WindowForm } from './WindowForm'
 export const dynamic = 'force-dynamic'
 
 export default async function WindowPage() {
+  // The layout checks too, but a layout does not re-run on every
+  // navigation, so the page is where the guarantee actually lives.
+  await requireAdmin()
   const current = await getWindow()
   const meta = await getWindowMeta()
   // How long a paper built to the current default pattern runs: it is what

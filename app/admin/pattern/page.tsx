@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { requireAdmin } from '../../../lib/guard'
 import { getPattern, getPatternMeta, getWindow } from '../../../lib/repo/settings'
 import { patternTotals, SECTION_NAMES } from '../../../lib/types'
 import { PatternForm } from './PatternForm'
@@ -6,6 +7,9 @@ import { PatternForm } from './PatternForm'
 export const dynamic = 'force-dynamic'
 
 export default async function PatternPage() {
+  // The layout checks too, but a layout does not re-run on every
+  // navigation, so the page is where the guarantee actually lives.
+  await requireAdmin()
   const current = await getPattern()
   const meta = await getPatternMeta()
   const window = await getWindow()

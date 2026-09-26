@@ -1,7 +1,7 @@
 import { actionUser } from '../../../../../lib/guard'
 import { IMAGE_NAME_PATTERN, imageType } from '../../../../../lib/images'
 import { db } from '../../../../../lib/supabase/admin'
-import { readPaperImage } from '../../../../../lib/repo/images'
+import { PAPER_ID_PATTERN, readPaperImage } from '../../../../../lib/repo/images'
 import { opensAt } from '../../../../../lib/time'
 import { paperWindowOf } from '../../../../../lib/repo/papers'
 
@@ -20,6 +20,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ testId:
   const { testId, name } = await params
   const type = imageType(name)
   if (!IMAGE_NAME_PATTERN.test(name) || !type) return new Response('Not found.', { status: 404 })
+  // Checked here so a malformed id is a plain 404 rather than an exception from
+  // the storage layer, which guards the same thing one level down.
+  if (!PAPER_ID_PATTERN.test(testId)) return new Response('Not found.', { status: 404 })
 
   if (user.role !== 'admin') {
     const { data: test } = await db().from('tests').select('date, status, opens_at_min, entry_closes_at_min, attempt_sec').eq('id', testId).maybeSingle()
