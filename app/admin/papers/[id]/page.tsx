@@ -4,7 +4,8 @@ import { getPaperById, paperLock } from '../../../../lib/repo/papers'
 import { QuestionCard } from '../../../../components/QuestionCard'
 import { DirectionsBlock } from '../../../../components/DirectionsBlock'
 import { SECTION_NAMES, type SectionCode } from '../../../../lib/types'
-import { formatIstDate, istDate, windowState, addDays } from '../../../../lib/time'
+import { formatIstDate, istDate, windowLabels, windowState, addDays } from '../../../../lib/time'
+import { getWindow } from '../../../../lib/repo/settings'
 import { listPaperImages } from '../../../../lib/repo/images'
 import { requireAdmin } from '../../../../lib/guard'
 import { scheduleAction, unscheduleAction } from './actions'
@@ -45,11 +46,12 @@ export default async function PaperPreview(
   const missingImages = stored === null ? [] : [...referenced.entries()].filter(([n]) => !stored.includes(n))
   const totalQuestions = paper.sections.reduce((n, s) => n + s.questions.length, 0)
   const totalMinutes = paper.sections.reduce((n, s) => n + (s.durationMinutes ?? 0), 0)
+  const testWindow = await getWindow()
   // The night the schedule form offers: the paper's own, or tomorrow's if that
   // has already opened.
-  const defaultDate = windowState(paper.date) === 'BEFORE_OPEN'
+  const defaultDate = windowState(paper.date, testWindow) === 'BEFORE_OPEN'
     ? paper.date
-    : (windowState(istDate()) === 'BEFORE_OPEN' ? istDate() : addDays(istDate(), 1))
+    : (windowState(istDate(), testWindow) === 'BEFORE_OPEN' ? istDate() : addDays(istDate(), 1))
   const statByNumber = new Map(stats.map((s) => [s.number, s]))
   const flagged = stats.filter((s) => s.suspicious)
   const scheduled = status === 'SCHEDULED'
@@ -84,7 +86,7 @@ export default async function PaperPreview(
       )}
       {q['scheduled'] && (
         <p className="mt-4 rounded-2xl bg-answered px-5 py-4 font-semibold text-white">
-          Scheduled. It unlocks at 10 PM on {formatIstDate(paper.date)}.
+          Scheduled. It unlocks at {windowLabels(testWindow).opens} on {formatIstDate(paper.date)}.
         </p>
       )}
 
@@ -199,7 +201,7 @@ export default async function PaperPreview(
           <input type="hidden" name="id" value={id} />
           <h2 className="text-xl font-black">Schedule this paper</h2>
           <p className="mt-1 text-sm text-ink-soft">
-            It unlocks at 10 PM on the night you choose. Until then you can move it back to draft.
+            It unlocks at {windowLabels(testWindow).opens} on the night you choose. Until then you can move it back to draft.
           </p>
           <label className="mt-4 block text-xs font-bold uppercase tracking-widest text-ink-soft">
             Night

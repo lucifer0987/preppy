@@ -6,6 +6,7 @@ import { currentSessionId, revokeSessions } from '../../../lib/auth'
 import { db } from '../../../lib/supabase/admin'
 import { findAttempt, loadAttempt, startAttempt } from '../../../lib/repo/attempts'
 import { entryRefusal } from './entry'
+import { getWindow } from '../../../lib/repo/settings'
 
 /**
  * Begin. The server stamps started_at here, on this action, not on page load
@@ -41,7 +42,7 @@ export async function beginAction(formData: FormData) {
   if (existing && !isDryRun) redirect(`/test/${existing.id}/done`)
 
   if (!isDryRun) {
-    const why = entryRefusal(test.status as string, test.date as string)
+    const why = entryRefusal(test.status as string, test.date as string, await getWindow())
     if (why) refuse(why)
   }
 

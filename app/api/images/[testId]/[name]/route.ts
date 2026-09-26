@@ -3,12 +3,13 @@ import { IMAGE_NAME_PATTERN, imageType } from '../../../../../lib/images'
 import { db } from '../../../../../lib/supabase/admin'
 import { readPaperImage } from '../../../../../lib/repo/images'
 import { opensAt } from '../../../../../lib/time'
+import { getWindow } from '../../../../../lib/repo/settings'
 
 /**
  * Serves a paper's image to someone allowed to see the paper.
  *
  * The admin sees any paper's images, for the preview and dry runs. Everyone
- * else only once a scheduled paper has opened at 22:00, so a diagram can never
+ * else only once a scheduled paper has opened, so a diagram can never
  * give a question away early. A student deactivated mid-test may still load
  * the images of the paper they are finishing (PRD §11).
  */
@@ -22,7 +23,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ testId:
 
   if (user.role !== 'admin') {
     const { data: test } = await db().from('tests').select('date, status').eq('id', testId).maybeSingle()
-    const open = test && test.status === 'SCHEDULED' && Date.now() >= opensAt(test.date as string).getTime()
+    const open = test && test.status === 'SCHEDULED'
+      && Date.now() >= opensAt(test.date as string, await getWindow()).getTime()
     if (!open) return new Response('Not found.', { status: 404 })
   }
 

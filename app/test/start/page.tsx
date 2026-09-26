@@ -4,7 +4,8 @@ import { requireUser } from '../../../lib/guard'
 import { db } from '../../../lib/supabase/admin'
 import { findAttempt } from '../../../lib/repo/attempts'
 import { SECTION_NAMES, type SectionCode } from '../../../lib/types'
-import { formatIstDate, formatIstTime, WINDOW } from '../../../lib/time'
+import { formatIstDate, windowLabels } from '../../../lib/time'
+import { getWindow } from '../../../lib/repo/settings'
 import { beginAction } from './actions'
 import { BeginButton } from './BeginButton'
 import { entryRefusal } from './entry'
@@ -46,7 +47,8 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
   if (existing?.state === 'IN_PROGRESS') redirect(`/test/${existing.id}`)
   if (existing && !isDryRun) redirect(`/test/${existing.id}/done`)
 
-  const refusal = isDryRun ? null : entryRefusal(test.status as string, test.date as string)
+  const testWindow = await getWindow()
+  const refusal = isDryRun ? null : entryRefusal(test.status as string, test.date as string, testWindow)
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
@@ -115,7 +117,7 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
           </form>
           {!isDryRun && (
             <p className="mt-3 text-center text-sm text-ink-soft">
-              Entry closes at {formatIstTime(WINDOW.entryCloseHour, WINDOW.entryCloseMinute)}.
+              Entry closes at {windowLabels(testWindow).closes}.
             </p>
           )}
         </>

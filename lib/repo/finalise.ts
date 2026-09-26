@@ -2,6 +2,7 @@ import 'server-only'
 import { db } from '../supabase/admin'
 import { submitAttempt } from './attempts'
 import { attemptHardStop } from '../attempt'
+import { getWindow } from './settings'
 
 /**
  * The nightly job (FR-10.2). It does one thing: score any attempt still open
@@ -35,6 +36,7 @@ export async function finaliseOverdueAttempts(now = new Date()): Promise<Finalis
   if (error) throw new Error(`Could not list open attempts: ${error.message}`)
 
   const report: FinaliseReport = { scanned: (attempts ?? []).length, finalised: [], failed: [] }
+  const testWindow = await getWindow()
 
   for (const a of attempts ?? []) {
     const test = a.tests as unknown as { date: string; sections: { duration_sec: number }[] } | null
@@ -44,7 +46,7 @@ export async function finaliseOverdueAttempts(now = new Date()): Promise<Finalis
       testDate: test.date,
       startedAt: new Date(a.started_at as string),
       sections: test.sections.map((s) => ({ durationSec: s.duration_sec })),
-    })
+    }, testWindow)
     if (now.getTime() < hardStop.getTime()) continue // still legitimately running
 
     try {

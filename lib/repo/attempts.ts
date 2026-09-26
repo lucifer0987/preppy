@@ -1,5 +1,6 @@
 import 'server-only'
 import { db } from '../supabase/admin'
+import { getWindow } from './settings'
 import {
   advanceSection, attemptHardStop, attemptStatus, closeForSubmit, rollForward, timeSpentSec, writablePositions,
   type AttemptStatus, type SectionEndReason, type SectionProgress,
@@ -120,7 +121,7 @@ export async function loadAttemptCore(attemptId: string): Promise<AttemptCore | 
     startedAt,
     fullscreenExits: a.fullscreen_exits as number,
     tabSwitches: a.tab_switches as number,
-    hardStop: attemptHardStop({ isDryRun, testDate, startedAt, sections: rows }),
+    hardStop: attemptHardStop({ isDryRun, testDate, startedAt, sections: rows }, await getWindow()),
     rows,
     idByPosition,
   }

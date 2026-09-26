@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { PGlite } from '@electric-sql/pglite'
 import { paperToRows, savePaperPayload } from '../lib/paper-rows'
 import { readPaper } from '../lib/paper'
@@ -11,7 +11,11 @@ import { readPaper } from '../lib/paper'
  * schema touches.
  */
 
-const schema = readFileSync('supabase/schema.sql', 'utf8')
+// Every migration, in order: the chain a real database actually walks, not a
+// single file that might have drifted from it.
+const migrationDir = 'supabase/migrations'
+const migrations = readdirSync(migrationDir).filter((f) => f.endsWith('.sql')).sort()
+const schema = migrations.map((f) => readFileSync(`${migrationDir}/${f}`, 'utf8')).join('\n')
 const sample = readPaper(readFileSync('format/sample.json', 'utf8')).paper!
 
 let db: PGlite
@@ -261,5 +265,55 @@ describe('rate limits', () => {
     expect((await one<{ w: number }>('select rate_limit_wait($1, 5) as w', [key])).w).toBe(0)
     expect((await one<{ w: number }>('select rate_limit_hit($1, 5, 60) as w', [key])).w).toBe(0)
     expect((await one<{ h: number }>('select hits as h from rate_limits where key = $1', [key])).h).toBe(1)
+  })
+})
+
+describe('the configurable window', () => {
+  const setWindow = (oh: number, om: number, ch: number, cm: number) =>
+    db.query(
+      `update app_settings set open_hour=$1, open_minute=$2,
+       entry_close_hour=$3, entry_close_minute=$4 where id`,
+      [oh, om, ch, cm],
+    )
+
+  it('starts at the documented defaults, as exactly one row', async () => {
+    const row = await one<{ n: string; oh: number; om: number; ch: number; cm: number }>(
+      `select count(*)::text n, max(open_hour) oh, max(open_minute) om,
+              max(entry_close_hour) ch, max(entry_close_minute) cm from app_settings`)
+    expect(row.n).toBe('1')
+    expect([row.oh, row.om, row.ch, row.cm]).toEqual([22, 0, 23, 15])
+  })
+
+  it('cannot be given a second row', async () => {
+    expect(await fails(`insert into app_settings (id) values (true)`)).toMatch(/duplicate key/i)
+    // `id` is boolean and checked true, so there is no other value to use.
+    expect(await fails(`insert into app_settings (id) values (false)`)).toBeTruthy()
+  })
+
+  it('accepts an earlier slot', async () => {
+    await setWindow(6, 0, 7, 30)
+    const row = await one<{ oh: number; ch: number }>(`select open_hour oh, entry_close_hour ch from app_settings`)
+    expect([row.oh, row.ch]).toEqual([6, 7])
+    await setWindow(22, 0, 23, 15)
+  })
+
+  it('refuses a close that is not after the open', async () => {
+    expect(await fails(`update app_settings set open_hour=23, open_minute=30,
+                        entry_close_hour=23, entry_close_minute=15 where id`))
+      .toMatch(/window_opens_before_it_closes/)
+  })
+
+  it('refuses an entry close that would run an attempt past midnight', async () => {
+    // 23:16 + 45 minutes is 00:01 the next day, which would put the attempt on
+    // the wrong date for the archive, the board and the nightly job.
+    expect(await fails(`update app_settings set entry_close_hour=23, entry_close_minute=16 where id`))
+      .toMatch(/window_ends_within_the_day/)
+    // 23:15 exactly is the last one that fits.
+    expect(await fails(`update app_settings set entry_close_hour=23, entry_close_minute=15 where id`)).toBeNull()
+  })
+
+  it('refuses an hour or minute outside the clock', async () => {
+    expect(await fails(`update app_settings set open_hour=24 where id`)).toMatch(/open_hour/)
+    expect(await fails(`update app_settings set open_minute=60 where id`)).toMatch(/open_minute/)
   })
 })

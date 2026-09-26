@@ -10,27 +10,68 @@
 
 export const IST_OFFSET_MINUTES = 330
 
-/** Admin settings, not constants (PRD section 4 flag) — widen the window here. */
-export const WINDOW = {
-  /** Test unlocks. */
+/**
+ * The nightly window.
+ *
+ * Configurable from the admin console and stored in `app_settings`, so a
+ * change of schedule is not a deploy. Every function here takes it as an
+ * argument rather than reading a module-level constant: passing it in is what
+ * makes these pure and testable, and what stops a call site quietly falling
+ * back to yesterday's times.
+ *
+ * The hard stop is not stored. It is always entry close plus one paper's
+ * length, so the last possible entrant gets the full attempt FR-4.1 promises.
+ * The database refuses a window whose hard stop would cross midnight.
+ */
+export interface WindowSettings {
+  /** When a paper unlocks. */
+  openHour: number
+  openMinute: number
+  /** No attempt may start at or after this. */
+  entryCloseHour: number
+  entryCloseMinute: number
+}
+
+/** What a fresh database starts with, and what tests use unless they say otherwise. */
+export const DEFAULT_WINDOW: WindowSettings = {
   openHour: 22,
   openMinute: 0,
-  /** No attempt may start at or after this. */
   entryCloseHour: 23,
   entryCloseMinute: 15,
-  /**
-   * Every attempt is force-submitted by here: midnight at the end of the
-   * paper's date, written as 24:00 so it stays on that date. It is exactly
-   * entry close + duration, so the last possible entrant (23:14:59.999) still
-   * gets the full 45 minutes FR-4.1 promises. A 23:59 stop would short them by
-   * up to a minute. Answers unlock at the same instant, when nothing can still
-   * be running.
-   */
-  hardStopHour: 24,
-  hardStopMinute: 0,
-  /** Length of one attempt. */
-  durationMinutes: 45,
-} as const
+}
+
+/** Length of one attempt, in minutes. The four sections must add up to this. */
+export const ATTEMPT_MINUTES = 45
+
+const minutesOf = (h: number, m: number) => h * 60 + m
+
+/** Entry close plus one paper. Derived, never stored. */
+export function hardStopMinutes(w: WindowSettings): number {
+  return minutesOf(w.entryCloseHour, w.entryCloseMinute) + ATTEMPT_MINUTES
+}
+
+/**
+ * Why this window cannot be used, or null. The same rules the database
+ * enforces, so the admin form can explain a refusal before submitting it.
+ */
+export function windowProblem(w: WindowSettings): string | null {
+  for (const [h, m, what] of [
+    [w.openHour, w.openMinute, 'opening'],
+    [w.entryCloseHour, w.entryCloseMinute, 'closing'],
+  ] as const) {
+    if (!Number.isInteger(h) || h < 0 || h > 23) return `The ${what} hour must be between 0 and 23.`
+    if (!Number.isInteger(m) || m < 0 || m > 59) return `The ${what} minute must be between 0 and 59.`
+  }
+  if (minutesOf(w.openHour, w.openMinute) >= minutesOf(w.entryCloseHour, w.entryCloseMinute)) {
+    return 'Entry must open before it closes.'
+  }
+  if (hardStopMinutes(w) > 24 * 60) {
+    const latest = 24 * 60 - ATTEMPT_MINUTES
+    return `Entry must close by ${formatIstTime(Math.floor(latest / 60), latest % 60)}, `
+      + `so the last person to start still finishes before midnight.`
+  }
+  return null
+}
 
 export type WindowState =
   /** Before 22:00 on the test's own date. */
@@ -80,53 +121,74 @@ export function istInstant(date: string, hour: number, minute: number): Date {
   return new Date(Date.UTC(y, m - 1, d, hour, minute) - IST_OFFSET_MINUTES * 60_000)
 }
 
-export const opensAt = (date: string) => istInstant(date, WINDOW.openHour, WINDOW.openMinute)
-export const entryClosesAt = (date: string) => istInstant(date, WINDOW.entryCloseHour, WINDOW.entryCloseMinute)
-export const hardStopAt = (date: string) => istInstant(date, WINDOW.hardStopHour, WINDOW.hardStopMinute)
+export const opensAt = (date: string, w: WindowSettings) =>
+  istInstant(date, w.openHour, w.openMinute)
+
+export const entryClosesAt = (date: string, w: WindowSettings) =>
+  istInstant(date, w.entryCloseHour, w.entryCloseMinute)
+
+/**
+ * Derived, not stored: entry close plus one paper. Expressed as minutes from
+ * midnight so a stop of exactly 24:00 stays on the paper's own date rather
+ * than becoming 00:00 the next day.
+ */
+export const hardStopAt = (date: string, w: WindowSettings) =>
+  istInstant(date, 0, hardStopMinutes(w))
 
 /** Where a given test date sits relative to now. */
-export function windowState(date: string, at: Date = new Date()): WindowState {
+export function windowState(date: string, w: WindowSettings, at: Date = new Date()): WindowState {
   const t = at.getTime()
-  if (t < opensAt(date).getTime()) return 'BEFORE_OPEN'
-  if (t < entryClosesAt(date).getTime()) return 'OPEN'
-  if (t < hardStopAt(date).getTime()) return 'ENTRY_CLOSED'
+  if (t < opensAt(date, w).getTime()) return 'BEFORE_OPEN'
+  if (t < entryClosesAt(date, w).getTime()) return 'OPEN'
+  if (t < hardStopAt(date, w).getTime()) return 'ENTRY_CLOSED'
   return 'CLOSED'
 }
 
 /**
  * The test date that is live right now, or null.
  *
- * A paper dated D is live from D 22:00 until midnight, so between midnight and
- * 22:00 nothing is live even though the calendar date has already advanced.
+ * A paper dated D is live from D's opening time until its hard stop, so
+ * outside that span nothing is live even though the calendar date may have
+ * already advanced.
  */
-export function liveTestDate(at: Date = new Date()): string | null {
+export function liveTestDate(w: WindowSettings, at: Date = new Date()): string | null {
   const today = istDate(at)
-  const state = windowState(today, at)
+  const state = windowState(today, w, at)
   return state === 'OPEN' || state === 'ENTRY_CLOSED' ? today : null
 }
 
 /** Whether a new attempt may begin for this paper (FR-4.1). */
-export function canStartAttempt(date: string, at: Date = new Date()): boolean {
-  return windowState(date, at) === 'OPEN'
+export function canStartAttempt(date: string, w: WindowSettings, at: Date = new Date()): boolean {
+  return windowState(date, w, at) === 'OPEN'
 }
 
 /**
  * When an attempt started at `startedAt` must be submitted by: its own 45
- * minutes, or the midnight hard stop, whichever comes first. The clamp only
- * binds for an attempt started after entry closed, which canStartAttempt
- * refuses.
+ * minutes, or the hard stop, whichever comes first. The clamp only binds for
+ * an attempt started after entry closed, which canStartAttempt refuses.
  */
-export function attemptDeadline(date: string, startedAt: Date): Date {
-  const ownDeadline = startedAt.getTime() + WINDOW.durationMinutes * 60_000
-  return new Date(Math.min(ownDeadline, hardStopAt(date).getTime()))
+export function attemptDeadline(date: string, w: WindowSettings, startedAt: Date): Date {
+  const ownDeadline = startedAt.getTime() + ATTEMPT_MINUTES * 60_000
+  return new Date(Math.min(ownDeadline, hardStopAt(date, w).getTime()))
 }
 
 /** The next moment a paper unlocks, counting from now. */
-export function nextOpenAt(at: Date = new Date()): Date {
+export function nextOpenAt(w: WindowSettings, at: Date = new Date()): Date {
   const today = istDate(at)
-  const todayOpen = opensAt(today)
+  const todayOpen = opensAt(today, w)
   if (at.getTime() < todayOpen.getTime()) return todayOpen
-  return opensAt(addDays(today, 1))
+  return opensAt(addDays(today, 1), w)
+}
+
+/** "10:00 PM" for a window's opening and closing times, for display. */
+export function windowLabels(w: WindowSettings): { opens: string; closes: string; hardStop: string } {
+  const stop = hardStopMinutes(w)
+  return {
+    opens: formatIstTime(w.openHour, w.openMinute),
+    closes: formatIstTime(w.entryCloseHour, w.entryCloseMinute),
+    // 24:00 is midnight at the end of the paper's date, not the start of it.
+    hardStop: stop >= 24 * 60 ? 'midnight' : formatIstTime(Math.floor(stop / 60), stop % 60),
+  }
 }
 
 /** Answers and solutions unlock at midnight after the paper's date (FR-4.3). */

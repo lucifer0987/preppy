@@ -9,8 +9,9 @@ import { logoutAction } from '../login/actions'
 import { TOTAL_MINUTES, TOTAL_QUESTIONS } from '../../lib/types'
 import {
   BOARD_REFRESH, addDays, answersUnlocked, canStartAttempt, entryClosesAt, formatIstDate, formatIstTime,
-  istDate, opensAt, windowState, WINDOW,
+  istDate, opensAt, windowLabels, windowState, type WindowSettings,
 } from '../../lib/time'
+import { getWindow } from '../../lib/repo/settings'
 import { Countdown } from '../../components/Countdown'
 import { StreakBadge } from '../../components/StreakBadge'
 import { SoundToggle } from '../../components/SoundToggle'
@@ -24,7 +25,8 @@ type Attempt = NonNullable<Awaited<ReturnType<typeof findAttempt>>>
  *
  * Panel 1 follows the 6.3 table row by row. Every branch is decided from the
  * clock and the attempt's own state on read, and every countdown refreshes the
- * page when it reaches zero, so the panel flips at 22:00 and 23:15 unaided.
+ * page when it reaches zero, so the panel flips at the configured open and
+ * entry-close times without anyone reloading.
  */
 export default async function Dashboard({
   searchParams,
@@ -35,7 +37,9 @@ export default async function Dashboard({
   const now = new Date()
   const nowIso = now.toISOString()
   const today = istDate(now)
-  const state = windowState(today, now)
+  const testWindow = await getWindow()
+  const labels = windowLabels(testWindow)
+  const state = windowState(today, testWindow, now)
 
   const { data: tonight } = await db()
     .from('tests').select('id, date, title').eq('date', today).eq('status', 'SCHEDULED').maybeSingle()
@@ -53,12 +57,12 @@ export default async function Dashboard({
   }
 
   // Rows of 6.3 that point at a later paper need the next one actually
-  // scheduled, not merely the next 22:00.
+  // scheduled, not merely the next opening time.
   const upcoming = live || attempt ? null : await nextScheduled(today, state === 'BEFORE_OPEN')
-  const afterTonight = live && !attempt && !canStartAttempt(today, now) ? await nextScheduled(today, false) : null
+  const afterTonight = live && !attempt && !canStartAttempt(today, testWindow, now) ? await nextScheduled(today, false) : null
 
   // Panels 2 and 3. Either failing must not take the whole dashboard down:
-  // tonight's paper is the panel that matters at 22:00.
+  // tonight's paper is the panel that matters once the window opens.
   const [board, archive] = await Promise.all([
     getLeaderboard().catch((e: Error) => { console.error('[dashboard] board', e.message); return null }),
     getArchive(user.id).catch((e: Error) => { console.error('[dashboard] archive', e.message); return null }),
@@ -146,7 +150,7 @@ export default async function Dashboard({
               )}
             </div>
           </>
-        ) : live && tonight && canStartAttempt(today, now) ? (
+        ) : live && tonight && canStartAttempt(today, testWindow, now) ? (
           <>
             <p className="mt-2 text-2xl font-black">{tonight.title ?? 'Daily mock'}</p>
             <p className="mt-1 text-white/70">{formatIstDate(today)}</p>
@@ -155,10 +159,10 @@ export default async function Dashboard({
             </p>
             <p className="mt-4 text-sm text-white/70">
               Time left to enter (entry closes at{' '}
-              {formatIstTime(WINDOW.entryCloseHour, WINDOW.entryCloseMinute)}):
+              {labels.closes}):
             </p>
             <div className="mt-2">
-              <Countdown targetIso={entryClosesAt(today).toISOString()} nowIso={nowIso} label="Entry closes in" />
+              <Countdown targetIso={entryClosesAt(today, testWindow).toISOString()} nowIso={nowIso} label="Entry closes in" />
             </div>
             <Link href={`/test/start?test=${tonight.id}`}
                   className="mt-4 inline-block rounded-2xl bg-white px-7 py-3.5 font-black text-play-purple">
@@ -168,14 +172,14 @@ export default async function Dashboard({
         ) : live ? (
           <>
             <p className="mt-2 text-2xl font-black">
-              Entry closed at {formatIstTime(WINDOW.entryCloseHour, WINDOW.entryCloseMinute)}
+              Entry closed at {labels.closes}
             </p>
-            <NextPaper paper={afterTonight} nowIso={nowIso} />
+            <NextPaper paper={afterTonight} nowIso={nowIso} testWindow={testWindow} />
           </>
         ) : (
           <>
             {!tonight && <p className="mt-2 text-lg font-bold text-white/80">No test tonight.</p>}
-            <NextPaper paper={upcoming} nowIso={nowIso} />
+            <NextPaper paper={upcoming} nowIso={nowIso} testWindow={testWindow} />
             {mine && mine.currentStreak > 0 && (
               <p className="mt-4 flex flex-wrap items-center gap-2 text-sm font-semibold">
                 Your streak <StreakBadge days={mine.currentStreak} size="lg" />
@@ -186,8 +190,8 @@ export default async function Dashboard({
             )}
             {upcoming && (
               <p className="mt-4 text-sm text-white/70">
-                Unlocks at {formatIstTime(WINDOW.openHour, WINDOW.openMinute)}. Last entry{' '}
-                {formatIstTime(WINDOW.entryCloseHour, WINDOW.entryCloseMinute)}.
+                Unlocks at {labels.opens}. Last entry{' '}
+                {labels.closes}.
               </p>
             )}
           </>
@@ -243,7 +247,9 @@ export default async function Dashboard({
 }
 
 /** A countdown to the next scheduled paper, or a plain statement that there is none. */
-function NextPaper({ paper, nowIso }: { paper: { date: string } | null; nowIso: string }) {
+function NextPaper({ paper, nowIso, testWindow }: {
+  paper: { date: string } | null; nowIso: string; testWindow: WindowSettings
+}) {
   if (!paper) {
     return (
       <p className="mt-3 text-white/70">
@@ -254,13 +260,13 @@ function NextPaper({ paper, nowIso }: { paper: { date: string } | null; nowIso: 
   return (
     <>
       <p className="mt-3 text-sm text-white/70">Next paper: {formatIstDate(paper.date)}</p>
-      <div className="mt-2"><Countdown targetIso={opensAt(paper.date).toISOString()} nowIso={nowIso} /></div>
+      <div className="mt-2"><Countdown targetIso={opensAt(paper.date, testWindow).toISOString()} nowIso={nowIso} /></div>
     </>
   )
 }
 
 /**
- * The first SCHEDULED paper still to open: tonight's if 22:00 has not come
+ * The first SCHEDULED paper still to open: tonight's if the window has not opened
  * yet (`includeToday`), otherwise the next date after today.
  */
 async function nextScheduled(today: string, includeToday: boolean): Promise<{ date: string } | null> {

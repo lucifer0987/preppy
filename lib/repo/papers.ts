@@ -5,6 +5,7 @@ import { db } from '../supabase/admin'
 import { paperToRows, rowsToPaper, savePaperPayload, type PaperRows } from '../paper-rows'
 import { readQuestion, summarise } from '../paper'
 import { istDate, windowState, type WindowState } from '../time'
+import { getWindow } from './settings'
 import { OPTION_LABELS, type Issue, type OptionLabel, type Paper, type SectionCode } from '../types'
 
 /**
@@ -270,7 +271,7 @@ export async function paperLock(id: string): Promise<PaperLock | null> {
 
   const date = test.date as string
   const status = test.status as 'DRAFT' | 'SCHEDULED'
-  const state = windowState(date)
+  const state = windowState(date, await getWindow())
   const realAttempts = await countRealAttempts(id)
   const opened = state !== 'BEFORE_OPEN'
 
@@ -313,7 +314,7 @@ export async function schedulePaper(id: string, adminId: string, date?: string):
   if (!/^\d{4}-\d{2}-\d{2}$/.test(target) || Number.isNaN(Date.parse(`${target}T00:00:00Z`))) {
     throw new Error(`${target} is not a date.`)
   }
-  if (windowState(target) !== 'BEFORE_OPEN') {
+  if (windowState(target, await getWindow()) !== 'BEFORE_OPEN') {
     throw new Error(`The window for ${target} has already opened, so a paper can no longer be scheduled for it.`)
   }
   // The status filter repeats the check above in the write itself, so a paper

@@ -728,7 +728,7 @@ html{scroll-behavior:smooth}
 <h3>One job; everything else computed on read</h3>
 <div class="fr"><p><b class="id">FR-10.1</b>Test status is <strong>derived from the clock on every read</strong>. A test dated today reads <code>LIVE</code> from 22:00 until midnight, <code>CLOSED</code> after. Unlock, entry-close and archive-unlock need no job and <strong>therefore cannot fail</strong>.</p></div>
 <div class="fr"><p><b class="id">FR-10.2</b>The leaderboard, ranks, accuracy, averages and streaks are <strong>computed on read</strong> from the attempts table. With five students this is a few dozen rows. Nothing is precomputed, so nothing can go stale — and a rescore needs no cache invalidation.</p></div>
-<p>Writes that must land together — saving a paper, starting an attempt, a key correction with its rescore — are each one Postgres function in <code>supabase/schema.sql</code>, so each is all or nothing. Those functions are callable with the service-role key only.</p>
+<p>Writes that must land together — saving a paper, starting an attempt, a key correction with its rescore — are each one Postgres function in <code>supabase/migrations/</code>, so each is all or nothing. Those functions are callable with the service-role key only.</p>
 <div class="tw"><table>
 <tr><th>Cron</th><th class="n">Time</th><th>Work</th></tr>
 <tr><td>Finalise</td><td class="n">00:05</td><td>Force-submit and score any attempt still in progress. That is the whole job.</td></tr>
@@ -838,6 +838,8 @@ html{scroll-behavior:smooth}
 <tr><td><strong>Paged reads</strong><br><code>selectAll</code></td><td>PostgREST caps a response at 1,000 rows, and a capped response looks exactly like a complete one. The leaderboard would have started losing attempts silently as the history grew</td></tr>
 <tr><td><strong>Private image storage</strong><br>plus an app route that checks permission</td><td>A diagram for a DI set is part of the question. Served straight from Storage it would leak the paper before 10 PM</td></tr>
 <tr><td><strong>The schema tested as SQL</strong><br><code>tests/schema.test.ts</code> on in-process Postgres</td><td>The functions that must be atomic are the ones a type system cannot check. They are now exercised as SQL rather than trusted</td></tr>
+<tr><td><strong>A configurable window</strong><br><code>app_settings</code>, plus a screen</td><td>The opening and last-entry times were constants, so a change of schedule was a deploy. They are settings now. The hard stop stays derived as entry close plus one paper, so the full-attempt guarantee holds whatever is chosen, and a database constraint refuses a window that would run past midnight</td></tr>
+<tr><td><strong>Numbered migrations</strong><br><code>supabase/migrations/</code></td><td>One re-runnable schema file worked while every change was additive. A numbered chain with a runner records what has been applied, so dev and production cannot silently diverge</td></tr>
 <tr><td><strong>Two builds</strong><br><code>build:local</code> and <code>build:prod</code></td><td>Production gates on typecheck and the full suite and ships no source maps; local keeps them so a stack trace is worth reading</td></tr>
 </table></div>
 

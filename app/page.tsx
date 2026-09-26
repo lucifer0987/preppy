@@ -4,7 +4,8 @@ import { Countdown } from '../components/Countdown'
 import { currentUser } from '../lib/auth'
 import { isConfigured } from '../lib/env'
 import { PATTERN, SECTION_NAMES, SECTION_CODES, TOTAL_MINUTES, TOTAL_QUESTIONS } from '../lib/types'
-import { WINDOW, formatIstTime, nextOpenAt } from '../lib/time'
+import { nextOpenAt, windowLabels } from '../lib/time'
+import { getWindow } from '../lib/repo/settings'
 
 /**
  * The only page an unauthenticated visitor sees (PRD section 6.2).
@@ -22,8 +23,8 @@ export default async function Home() {
   if (isConfigured() && (await currentUser())?.isActive) redirect('/dashboard')
 
   const now = new Date()
-  const opensAt = formatIstTime(WINDOW.openHour, WINDOW.openMinute)
-  const entryCloses = formatIstTime(WINDOW.entryCloseHour, WINDOW.entryCloseMinute)
+  const testWindow = await getWindow()
+  const { opens: opensAt, closes: entryCloses } = windowLabels(testWindow)
 
   return (
     <main className="min-h-dvh bg-play-purple text-white">
@@ -41,7 +42,7 @@ export default async function Home() {
             Next paper unlocks in
           </h2>
           <div className="mt-3">
-            <Countdown targetIso={nextOpenAt(now).toISOString()} nowIso={now.toISOString()} />
+            <Countdown targetIso={nextOpenAt(testWindow, now).toISOString()} nowIso={now.toISOString()} />
           </div>
           <p className="mt-4 text-sm text-white/70">
             Opens {opensAt}. Last entry {entryCloses}, so everyone gets the full {TOTAL_MINUTES} minutes.

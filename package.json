@@ -12,6 +12,7 @@
     "build": "npm run build:prod",
     "start": "npm run start:prod",
     "seed": "tsx --env-file-if-exists=.env.local supabase/seed.ts",
+    "migrate": "tsx --env-file-if-exists=.env.local supabase/migrate.ts",
     "secret": "tsx scripts/secret.ts",
     "check": "tsx scripts/parse.ts",
     "build:format": "tsx scripts/build-format.ts",
@@ -38,6 +39,7 @@
     "@supabase/supabase-js": "^2.117.1",
     "canvas-confetti": "^1.9.4",
     "next": "^16.3.6",
+    "postgres": "^3.4.9",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "server-only": "^0.0.1"

@@ -1,0 +1,926 @@
+{
+  "format": "preppy-paper",
+  "version": 1,
+  "date": "2026-09-26",
+  "title": "Daily Mock 002",
+  "sections": [
+    {
+      "code": "QUANT",
+      "durationMinutes": 12,
+      "marksCorrect": 1,
+      "marksNegative": 0.25,
+      "directions": [
+        {
+          "from": 6,
+          "to": 10,
+          "text": "Study the following table carefully and answer the questions that follow.\nThe table shows the total number of digital transactions (in lakh) handled by five banks P, Q, R, S and T in 2025-26, the percentage of these made through UPI, and the ratio in which the remaining transactions were split between IMPS and NEFT. Every transaction was made through exactly one of UPI, IMPS or NEFT.",
+          "table": {
+            "headers": [
+              "Bank",
+              "Total digital transactions (in lakh)",
+              "UPI share (%)",
+              "IMPS : NEFT (remaining transactions)"
+            ],
+            "rows": [
+              [
+                "P",
+                "480",
+                "65",
+                "5:7"
+              ],
+              [
+                "Q",
+                "560",
+                "75",
+                "3:4"
+              ],
+              [
+                "R",
+                "400",
+                "60",
+                "3:5"
+              ],
+              [
+                "S",
+                "640",
+                "70",
+                "7:9"
+              ],
+              [
+                "T",
+                "720",
+                "62.5",
+                "11:7"
+              ]
+            ]
+          }
+        }
+      ],
+      "questions": [
+        {
+          "number": 1,
+          "text": "Two trains of lengths 180 m and 220 m run on parallel tracks. When they move in the same direction, the faster train passes the slower one completely in 40 seconds. When they move in opposite directions, they cross each other in 8 seconds. What is the speed of the faster train?",
+          "options": {
+            "A": "72 km/h",
+            "B": "90 km/h",
+            "C": "100 km/h",
+            "D": "108 km/h",
+            "E": "None of these"
+          },
+          "answer": "D",
+          "solution": "Total length = 400 m. Relative speeds: difference = 400/40 = 10 m/s, sum = 400/8 = 50 m/s. Faster = (50 + 10)/2 = 30 m/s = 108 km/h.",
+          "tag": "Speed-Time-Distance",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 2,
+          "text": "A loan of Rs 21,000 is taken at 10% per annum compound interest, compounded annually. It is to be repaid in two equal annual instalments, the first one year after the loan is taken. What is the value of each instalment?",
+          "options": {
+            "A": "Rs 12,100",
+            "B": "Rs 11,550",
+            "C": "Rs 12,000",
+            "D": "Rs 11,000",
+            "E": "None of these"
+          },
+          "answer": "A",
+          "solution": "The present values of the instalments must add up to the loan: x/1.1 + x/1.21 = 21000. x x 2.1/1.21 = 21000, so x = 21000 x 1.21/2.1 = Rs 12,100.",
+          "tag": "Compound-Interest",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 3,
+          "text": "A starts a business with Rs 45,000. After 3 months, B joins with Rs 60,000. After 3 more months, A withdraws one-third of his capital and C joins with Rs 50,000. If the total profit at the end of the year is Rs 1,29,000, what is C's share?",
+          "options": {
+            "A": "Rs 27,000",
+            "B": "Rs 30,000",
+            "C": "Rs 32,250",
+            "D": "Rs 36,000",
+            "E": "None of these"
+          },
+          "answer": "B",
+          "solution": "A = 45000 x 6 + 30000 x 6 = 4,50,000. B = 60000 x 9 = 5,40,000. C = 50000 x 6 = 3,00,000. Ratio 15 : 18 : 10 (sum 43). C = 129000 x 10/43 = Rs 30,000.",
+          "tag": "Partnership",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 4,
+          "text": "A and B together can complete a piece of work in 12 days, B and C together in 15 days, and C and A together in 20 days. All three start working together. A leaves after 5 days, and B leaves 2 days after that. In how many days, from the start, is the work completed?",
+          "options": {
+            "A": "25 days",
+            "B": "27 days",
+            "C": "28 days",
+            "D": "29 days",
+            "E": "None of these"
+          },
+          "answer": "D",
+          "solution": "A + B + C = (1/12 + 1/15 + 1/20)/2 = 1/10 per day, so A = 1/30, B = 1/20, C = 1/60. First 5 days: 5/10 = 1/2. Next 2 days (B + C = 1/15): 2/15. Done = 19/30; remaining 11/30 at C's rate 1/60 takes 22 days. Total = 5 + 2 + 22 = 29 days.",
+          "tag": "Time-Work",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 5,
+          "text": "A vessel contains 80 litres of pure milk. 16 litres are drawn out and replaced with water. This operation is performed three times in all. How much milk is left in the vessel?",
+          "options": {
+            "A": "38.40 litres",
+            "B": "39.68 litres",
+            "C": "40.96 litres",
+            "D": "42.24 litres",
+            "E": "None of these"
+          },
+          "answer": "C",
+          "solution": "Milk left = 80 x (1 - 16/80)^3 = 80 x (4/5)^3 = 80 x 64/125 = 40.96 litres.",
+          "tag": "Mixture-Alligation",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 6,
+          "text": "What is the average number of UPI transactions (in lakh) of banks P, R and T taken together?",
+          "options": {
+            "A": "326",
+            "B": "334",
+            "C": "338",
+            "D": "342",
+            "E": "None of these"
+          },
+          "answer": "B",
+          "solution": "UPI: P = 65% of 480 = 312, R = 60% of 400 = 240, T = 62.5% of 720 = 450. Average = (312 + 240 + 450)/3 = 1002/3 = 334.",
+          "tag": "Data-Interpretation",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 7,
+          "text": "What is the ratio of the total non-UPI transactions of banks P and Q together to the UPI transactions of bank S?",
+          "options": {
+            "A": "11:16",
+            "B": "9:14",
+            "C": "7:11",
+            "D": "13:16",
+            "E": "None of these"
+          },
+          "answer": "A",
+          "solution": "Non-UPI: P = 480 - 312 = 168, Q = 560 - 420 = 140, total 308. UPI of S = 70% of 640 = 448. 308 : 448 = 11 : 16.",
+          "tag": "Data-Interpretation",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 8,
+          "text": "The number of IMPS transactions of bank T is what percent more than the number of NEFT transactions of bank R?",
+          "options": {
+            "A": "45%",
+            "B": "55%",
+            "C": "60%",
+            "D": "65%",
+            "E": "None of these"
+          },
+          "answer": "D",
+          "solution": "T non-UPI = 720 - 450 = 270, IMPS = 270 x 11/18 = 165. R non-UPI = 160, NEFT = 160 x 5/8 = 100. (165 - 100)/100 x 100 = 65%.",
+          "tag": "Data-Interpretation",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 9,
+          "text": "If in 2026-27 the total digital transactions of bank P increase by 25% and the share of UPI rises to 72%, by how much (in lakh) will the UPI transactions of bank P increase?",
+          "options": {
+            "A": "96",
+            "B": "108",
+            "C": "112",
+            "D": "132",
+            "E": "None of these"
+          },
+          "answer": "E",
+          "solution": "New total = 480 x 1.25 = 600. New UPI = 72% of 600 = 432. Increase = 432 - 312 = 120, which is not among the options.",
+          "tag": "Data-Interpretation",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 10,
+          "text": "For which bank is the ratio of NEFT transactions to UPI transactions the highest?",
+          "options": {
+            "A": "P",
+            "B": "Q",
+            "C": "R",
+            "D": "S",
+            "E": "T"
+          },
+          "answer": "C",
+          "solution": "NEFT/UPI: P = 98/312 = 0.31, Q = 80/420 = 0.19, R = 100/240 = 0.42, S = 108/448 = 0.24, T = 105/450 = 0.23. R is the highest.",
+          "tag": "Data-Interpretation",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 11,
+          "text": "Solve the two equations and choose the correct relationship between x and y. I. 6x^2 - 29x + 35 = 0    II. 3y^2 - 22y + 40 = 0",
+          "options": {
+            "A": "x > y",
+            "B": "x >= y",
+            "C": "x < y",
+            "D": "x <= y",
+            "E": "x = y or the relationship cannot be established"
+          },
+          "answer": "C",
+          "solution": "I: (2x - 5)(3x - 7) = 0, so x = 2.5, 2.33. II: (y - 4)(3y - 10) = 0, so y = 4, 3.33. The largest x (2.5) is below the smallest y (3.33), so x < y.",
+          "tag": "Quadratic-Equations",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 12,
+          "text": "Find the wrong number in the series: 3, 4, 10, 33, 138, 685, 4116",
+          "options": {
+            "A": "4",
+            "B": "10",
+            "C": "33",
+            "D": "138",
+            "E": "685"
+          },
+          "answer": "D",
+          "solution": "Pattern: x1 + 1, x2 + 2, x3 + 3, x4 + 4, x5 + 5, x6 + 6. 33 x 4 + 4 = 136, not 138. The next term 685 = 136 x 5 + 5 confirms that 138 is wrong.",
+          "tag": "Number-Series",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 13,
+          "text": "A bag contains 5 red, 4 blue and 3 green balls. Three balls are drawn at random without replacement. What is the probability that all three are of different colours?",
+          "options": {
+            "A": "5/22",
+            "B": "3/11",
+            "C": "6/55",
+            "D": "1/4",
+            "E": "None of these"
+          },
+          "answer": "B",
+          "solution": "Favourable = 5 x 4 x 3 = 60. Total = C(12,3) = 220. Probability = 60/220 = 3/11.",
+          "tag": "Probability",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 14,
+          "text": "Compare the two quantities. Quantity I: Number of ways in which the letters of the word BANKER can be arranged so that the vowels always come together. Quantity II: Number of ways of forming a committee of 4 from 6 men and 4 women such that the committee has at least 2 women.",
+          "options": {
+            "A": "Quantity I > Quantity II",
+            "B": "Quantity I < Quantity II",
+            "C": "Quantity I >= Quantity II",
+            "D": "Quantity I <= Quantity II",
+            "E": "Quantity I = Quantity II or the relationship cannot be established"
+          },
+          "answer": "A",
+          "solution": "I: Treat AE as one unit: 5! x 2! = 240. II: C(4,2)C(6,2) + C(4,3)C(6,1) + C(4,4) = 90 + 24 + 1 = 115. 240 > 115.",
+          "tag": "Quantity-Comparison",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 15,
+          "text": "A boat covers 30 km upstream and 44 km downstream in 10 hours. In 13 hours, it covers 40 km upstream and 55 km downstream. What is the speed of the boat in still water?",
+          "options": {
+            "A": "6 km/h",
+            "B": "7 km/h",
+            "C": "9 km/h",
+            "D": "10 km/h",
+            "E": "None of these"
+          },
+          "answer": "E",
+          "solution": "Let u = 1/upstream speed and d = 1/downstream speed. 30u + 44d = 10 and 40u + 55d = 13. Multiplying by 4 and 3: 11d = 1, so downstream = 11 km/h; then u = 1/5, so upstream = 5 km/h. Boat speed = (11 + 5)/2 = 8 km/h, which is not among the options.",
+          "tag": "Boats-Streams",
+          "difficulty": "Hard"
+        }
+      ]
+    },
+    {
+      "code": "REASONING",
+      "durationMinutes": 12,
+      "marksCorrect": 1,
+      "marksNegative": 0.25,
+      "directions": [
+        {
+          "from": 21,
+          "to": 25,
+          "text": "Study the following information carefully and answer the questions that follow.\nEight persons - A, B, C, D, E, F, G and H - are seated around a circular table. Three of them face away from the centre and the rest face the centre.\nH sits third to the left of A.\nC sits immediately to the right of H.\nOnly two persons sit between H and G when counted from the left of H.\nB sits second to the left of G.\nD sits immediately to the right of G.\nF sits immediately to the left of A.\nG and F face the same direction.\nD and A face the same direction.\nThe immediate neighbours of E face the same direction.\nH faces the centre."
+        }
+      ],
+      "questions": [
+        {
+          "number": 16,
+          "text": "In a certain code language, 'data flows through secure network' is written as 'kt ma zo lp ri', 'secure network needs strong keys' is written as 'ri vx lp gu nb', 'strong data keys matter' is written as 'nb kt gu yd' and 'network matter through time' is written as 'yd lp ma fe'. Which of the following could be the code for 'secure time keys'?",
+          "options": {
+            "A": "lp fe gu",
+            "B": "ri fe nb",
+            "C": "ri yd gu",
+            "D": "ma fe nb",
+            "E": "ri vx gu"
+          },
+          "answer": "B",
+          "solution": "Sentences 1, 2 and 4 share only 'network', so network = lp. Sentences 1 and 2 then give secure = ri. Sentences 1 and 4 give through = ma, and sentences 3 and 4 give matter = yd, so time = fe. 'strong' and 'keys' share gu and nb in some order, so keys is gu or nb. Only 'ri fe nb' fits; the other options use lp (network), yd (matter), ma (through) or vx (needs).",
+          "tag": "Coding-Decoding",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 17,
+          "text": "If 'A @ B' means 'A is the father of B', 'A # B' means 'A is the wife of B', 'A $ B' means 'A is the sister of B', 'A % B' means 'A is the son of B' and 'A & B' means 'A is the brother of B', how is Y related to U in the expression 'U % V # W & X $ Y'?",
+          "options": {
+            "A": "Uncle",
+            "B": "Aunt",
+            "C": "Father",
+            "D": "Cousin",
+            "E": "Cannot be determined"
+          },
+          "answer": "E",
+          "solution": "U is the son of V, and V is the wife of W, so W is U's father. W is the brother of X, and X is the sister of Y, so Y is W's sibling. Y's gender is not given, so Y may be U's uncle or aunt.",
+          "tag": "Blood-Relations",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 18,
+          "text": "If 'A @ B' means 'A is the father of B', 'A # B' means 'A is the wife of B', 'A $ B' means 'A is the sister of B', 'A % B' means 'A is the son of B' and 'A & B' means 'A is the brother of B', which of the following expressions shows that F is the maternal uncle of J?",
+          "options": {
+            "A": "F & X @ Y % J",
+            "B": "F $ X # Y @ J",
+            "C": "F & X % Y @ J",
+            "D": "F & X # Y @ J",
+            "E": "J % Y # F"
+          },
+          "answer": "D",
+          "solution": "F & X # Y @ J: F is the brother of X, X is the wife of Y and Y is the father of J. X is J's mother, so F is J's maternal uncle. Option B makes F a sister (aunt), and option C makes F J's brother.",
+          "tag": "Blood-Relations",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 19,
+          "text": "Point A is 12 m north of point B. Point C is 9 m west of point B. Point D is 8 m south of point C. Point E is 15 m east of point D. Point F is 20 m north of point E. A person walks from A straight to F, turns to his right and walks 20 m, then turns to his left and walks 9 m. How far is he now from point D, and in which direction?",
+          "options": {
+            "A": "24 m, East",
+            "B": "15 m, East",
+            "C": "24 m, West",
+            "D": "20 m, North-east",
+            "E": "None of these"
+          },
+          "answer": "A",
+          "solution": "A = (0, 12) and F = (6, 12), so he walks east. Turning right he heads south 20 m to (6, -8), which is point E. Turning left he heads east 9 m to (15, -8). D = (-9, -8), so he is 24 m east of D.",
+          "tag": "Direction-Sense",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 20,
+          "text": "Statements: Only a few servers are routers. All routers are switches. No switch is a modem. Conclusions: I. Some servers are not routers. II. No router is a modem. III. All servers being switches is a possibility.",
+          "options": {
+            "A": "Only I and II follow",
+            "B": "Only II and III follow",
+            "C": "All I, II and III follow",
+            "D": "Only I and III follow",
+            "E": "None follows"
+          },
+          "answer": "C",
+          "solution": "'Only a few servers are routers' means some servers are routers and some are not, so I follows. Routers lie inside switches, which share nothing with modems, so II follows. The non-router servers can also be switches, so III is a valid possibility.",
+          "tag": "Syllogism",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 21,
+          "text": "Who sits second to the right of E?",
+          "options": {
+            "A": "D",
+            "B": "B",
+            "C": "G",
+            "D": "H",
+            "E": "C"
+          },
+          "answer": "D",
+          "solution": "Final arrangement clockwise: A (facing centre), F (facing outside), C (centre), H (centre), B (outside), E (centre), G (outside), D (centre). E faces the centre, so moving to E's right is anticlockwise: B is first and H is second. (D is second to E's left.)",
+          "tag": "Circular-Seating",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 22,
+          "text": "What is the position of D with respect to C?",
+          "options": {
+            "A": "Second to the left",
+            "B": "Third to the right",
+            "C": "Third to the left",
+            "D": "Fourth to the right",
+            "E": "Second to the right"
+          },
+          "answer": "B",
+          "solution": "Final arrangement clockwise: A (facing centre), F (facing outside), C (centre), H (centre), B (outside), E (centre), G (outside), D (centre). C faces the centre, so its right runs anticlockwise: F, A, then D. D is third to the right of C (equivalently fifth to the left).",
+          "tag": "Circular-Seating",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 23,
+          "text": "Which of the following pairs of persons face away from the centre?",
+          "options": {
+            "A": "A and G",
+            "B": "C and G",
+            "C": "B and F",
+            "D": "E and B",
+            "E": "D and F"
+          },
+          "answer": "C",
+          "solution": "Final arrangement clockwise: A (facing centre), F (facing outside), C (centre), H (centre), B (outside), E (centre), G (outside), D (centre). B, F and G face outside. Only B and F appears as a pair in which both face outside.",
+          "tag": "Circular-Seating",
+          "difficulty": "Easy"
+        },
+        {
+          "number": 24,
+          "text": "Four of the following five pairs are alike in a certain way based on the given arrangement and so form a group. Which pair does not belong to that group?",
+          "options": {
+            "A": "A - G",
+            "B": "C - A",
+            "C": "H - F",
+            "D": "E - H",
+            "E": "D - F"
+          },
+          "answer": "E",
+          "solution": "Final arrangement clockwise: A (facing centre), F (facing outside), C (centre), H (centre), B (outside), E (centre), G (outside), D (centre). In each pair, the second person sits second to the right of the first: A-G, C-A, H-F and E-H. F is second to the LEFT of D, so D - F is the odd one.",
+          "tag": "Circular-Seating",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 25,
+          "text": "Who sits immediately to the right of the person who sits second to the left of F?",
+          "options": {
+            "A": "G",
+            "B": "E",
+            "C": "C",
+            "D": "A",
+            "E": "B"
+          },
+          "answer": "A",
+          "solution": "Final arrangement clockwise: A (facing centre), F (facing outside), C (centre), H (centre), B (outside), E (centre), G (outside), D (centre). F faces outside, so its left runs anticlockwise: A, then D. D faces the centre, so D's immediate right (anticlockwise) is G.",
+          "tag": "Circular-Seating",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 26,
+          "text": "In a row of students facing north, Ravi is 14th from the left end and Mohan is 18th from the right end. When they interchange their positions, Ravi becomes 25th from the left end. How many students are there in the row?",
+          "options": {
+            "A": "39",
+            "B": "40",
+            "C": "41",
+            "D": "42",
+            "E": "43"
+          },
+          "answer": "D",
+          "solution": "After the swap Ravi occupies Mohan's old seat, which is 25th from the left and 18th from the right. Total = 25 + 18 - 1 = 42.",
+          "tag": "Order-Ranking",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 27,
+          "text": "Statements: No file is a folder. Only a few folders are archives. All archives are backups. Conclusions: I. Some backups are not files. II. All files being folders is a possibility. III. Some folders are not archives.",
+          "options": {
+            "A": "Only I follows",
+            "B": "Only I and III follow",
+            "C": "Only II and III follow",
+            "D": "All I, II and III follow",
+            "E": "None follows"
+          },
+          "answer": "B",
+          "solution": "Some folders are archives, hence backups; being folders, they are not files, so I follows. No file is a folder, so II is impossible. 'Only a few folders are archives' directly gives III.",
+          "tag": "Syllogism",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 28,
+          "text": "Statements: M >= N = O < P; Q <= O; R > P. Conclusions: I. M > Q II. M = Q",
+          "options": {
+            "A": "Only conclusion I follows",
+            "B": "Only conclusion II follows",
+            "C": "Both conclusions follow",
+            "D": "Neither conclusion follows",
+            "E": "Either conclusion I or II follows"
+          },
+          "answer": "E",
+          "solution": "M >= N = O >= Q gives M >= Q. Neither conclusion is definite alone, but together they cover every possibility for the same pair, so either I or II follows.",
+          "tag": "Inequality",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 29,
+          "text": "How many pairs of letters are there in the word PROTOCOLS, each of which has as many letters between them in the word as in the English alphabet (in both forward and backward directions)?",
+          "options": {
+            "A": "Two",
+            "B": "Three",
+            "C": "Five",
+            "D": "Six",
+            "E": "More than six"
+          },
+          "answer": "C",
+          "solution": "The pairs are RT, RO, RL, OL and OS: five pairs. For example, R (2nd) and L (8th) have 5 letters between them in the word, and M, N, O, P, Q between them in the alphabet.",
+          "tag": "Alphabet-Test",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 30,
+          "text": "Statements: P >= Q > R = S; T < U <= S; V > U. Conclusions: I. P > T II. V > R",
+          "options": {
+            "A": "Only conclusion I follows",
+            "B": "Only conclusion II follows",
+            "C": "Both conclusions follow",
+            "D": "Neither conclusion follows",
+            "E": "Either conclusion I or II follows"
+          },
+          "answer": "A",
+          "solution": "P >= Q > R = S >= U > T gives P > T, so I follows. V > U and U <= S = R does not fix V against R, so II does not follow.",
+          "tag": "Inequality",
+          "difficulty": "Medium"
+        }
+      ]
+    },
+    {
+      "code": "ENGLISH",
+      "durationMinutes": 9,
+      "marksCorrect": 1,
+      "marksNegative": 0.25,
+      "directions": [
+        {
+          "from": 31,
+          "to": 35,
+          "text": "Read the following passage carefully and answer the questions given below it.\nEvery large bank runs, somewhere beneath its polished mobile application, a core system that was written before many of its current customers were born. These systems, often coded in COBOL and hosted on mainframes, are extraordinarily reliable at the narrow task they were designed for: posting debits and credits to ledgers in overnight batches. Their problem is not that they fail, but that they resist change. Each new product, regulatory report or partner integration has historically been bolted on through a patch, a wrapper or a nightly file transfer, and the accumulated weight of these compromises is what engineers call technical debt.\nThe metaphor is apt because, like financial debt, technical debt is not inherently reckless. A team that ships a quick fix to meet a regulatory deadline is borrowing against the future, and the loan may be perfectly rational. The danger lies in the interest. Every shortcut makes the next change slightly more expensive, and because the costs are diffuse - a few extra days of testing here, an unexplained outage there - they rarely appear on any balance sheet. By the time the debt becomes visible to senior management, servicing it can consume the greater part of an IT budget, leaving little for anything new.\nThe obvious remedy, replacing the core in one sweep, has a chequered record. Several banks that attempted such a 'big bang' migration discovered that decades of undocumented business rules lived only in the code itself, and that the people who understood them had long since retired. Migrations budgeted for two years have stretched to seven; a few were abandoned outright, and at least one caused days of customer-facing disruption that drew public censure from the regulator.\nIncreasingly, the industry has settled on a less heroic strategy. Rather than rip out the old core, banks surround it with a layer of modern services that gradually take over its functions, one product at a time, until the original system is reduced to a thin ledger or can be retired quietly. Engineers borrowed the name for this approach from a tropical fig that grows around a host tree and eventually replaces it. The method is slower and far less glamorous than a single transformation programme, but it has one decisive advantage: at no point does the bank stake its entire operation on a single cut-over weekend."
+        }
+      ],
+      "questions": [
+        {
+          "number": 31,
+          "text": "Why does the author consider the term 'technical debt' an apt metaphor?",
+          "options": {
+            "A": "Like a loan, a shortcut can be a rational choice but keeps imposing costs over time",
+            "B": "Technical shortcuts are always reckless, just as borrowing is",
+            "C": "Banks record technical debt as a liability on their balance sheets",
+            "D": "Engineers must repay technical debt to the regulator",
+            "E": "Both kinds of debt can be written off once management notices them"
+          },
+          "answer": "A",
+          "solution": "The second paragraph says such debt is not inherently reckless, that the loan may be rational, and that the danger lies in the interest paid on every later change.",
+          "tag": "Reading-Comprehension",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 32,
+          "text": "Which of the following can be inferred about 'big bang' migrations from the passage?",
+          "options": {
+            "A": "Most of them are completed within their original budgets",
+            "B": "Regulators have prohibited banks from attempting them",
+            "C": "They are now the industry's preferred approach",
+            "D": "They fail mainly because modern programming languages are unreliable",
+            "E": "Part of their difficulty lies in business logic that exists nowhere except in the old code"
+          },
+          "answer": "E",
+          "solution": "The third paragraph says undocumented business rules lived only in the code, and the experts had retired. The other options contradict the passage or are unsupported.",
+          "tag": "Reading-Comprehension",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 33,
+          "text": "Which of the following is NOT stated or implied in the passage?",
+          "options": {
+            "A": "The costs of technical debt are often scattered and easy to overlook",
+            "B": "Some core-system migrations were abandoned before completion",
+            "C": "Legacy core systems are generally unreliable at processing transactions",
+            "D": "The retirement of experienced staff has made migrations harder",
+            "E": "Incremental modernisation avoids betting everything on one cut-over"
+          },
+          "answer": "C",
+          "solution": "The passage calls these systems extraordinarily reliable at posting transactions, so C contradicts it. Every other option is stated in the passage.",
+          "tag": "Reading-Comprehension",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 34,
+          "text": "Choose the word that is most similar in meaning to 'censure' as used in the passage.",
+          "options": {
+            "A": "approval",
+            "B": "scrutiny",
+            "C": "silence",
+            "D": "reprimand",
+            "E": "compensation"
+          },
+          "answer": "D",
+          "solution": "Censure is formal, strong disapproval, which is a reprimand. Scrutiny is only close examination and carries no judgement.",
+          "tag": "Synonyms",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 35,
+          "text": "Choose the word that is most nearly OPPOSITE in meaning to 'diffuse' as used in the passage.",
+          "options": {
+            "A": "concentrated",
+            "B": "scattered",
+            "C": "hidden",
+            "D": "gradual",
+            "E": "expensive"
+          },
+          "answer": "A",
+          "solution": "Diffuse means spread out thinly, as the passage's examples show. Its opposite is concentrated.",
+          "tag": "Antonyms",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 36,
+          "text": "Select the part of the sentence that contains an error. The committee, along with its advisers, (A) are expected to submit (B) its recommendations to the board (C) before the end of the quarter (D). No error (E)",
+          "options": {
+            "A": "A",
+            "B": "B",
+            "C": "C",
+            "D": "D",
+            "E": "E"
+          },
+          "answer": "B",
+          "solution": "The subject is 'The committee'. A phrase introduced by 'along with' does not change the number of the subject, so the verb must be 'is expected'. The later 'its' confirms a singular subject.",
+          "tag": "Subject-Verb-Agreement",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 37,
+          "text": "Choose the pair of words that fills both blanks correctly: The regulator's latest circular is meant to ______ the risks of outsourcing, but critics argue that it will ______ smaller banks, which lack the resources to comply.",
+          "options": {
+            "A": "aggravate, relieve",
+            "B": "ignore, assist",
+            "C": "mitigate, burden",
+            "D": "mitigate, exempt",
+            "E": "highlight, reward"
+          },
+          "answer": "C",
+          "solution": "A circular is meant to reduce (mitigate) risk. The criticism, given that small banks lack resources, is that it will burden them. 'Exempt' would remove the problem rather than create it.",
+          "tag": "Double-Fillers",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 38,
+          "text": "In which of the following sentences is the word 'lapse' used INCORRECTLY?",
+          "options": {
+            "A": "A momentary lapse in concentration caused the error.",
+            "B": "The insurance policy will lapse if the premium is not paid.",
+            "C": "After a lapse of five years, the tradition was revived.",
+            "D": "The committee decided to lapse the new rules immediately.",
+            "E": "The licence lapsed because nobody renewed it."
+          },
+          "answer": "D",
+          "solution": "As a verb, 'lapse' is intransitive: things lapse on their own. A committee cannot 'lapse' rules; it can revoke or suspend them.",
+          "tag": "Word-Usage",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 39,
+          "text": "Choose the option that should replace the phrase in quotation marks to make the sentence correct. If no replacement is required, choose 'No replacement required'. Had the team tested the patch thoroughly, the outage 'could have been avoided'.",
+          "options": {
+            "A": "would be avoided",
+            "B": "could be avoid",
+            "C": "can have been avoided",
+            "D": "will have been avoided",
+            "E": "No replacement required"
+          },
+          "answer": "E",
+          "solution": "'Had the team tested' is an inverted third conditional (past unreal), which correctly takes 'could have been avoided'.",
+          "tag": "Phrase-Replacement",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 40,
+          "text": "Choose the connector that, placed at the beginning, combines the two sentences into one meaningful sentence without changing their meaning. I. The server logs had been deleted. II. The investigators reconstructed the attack from network traffic records.",
+          "options": {
+            "A": "Despite",
+            "B": "Although",
+            "C": "Since",
+            "D": "Unless",
+            "E": "Therefore"
+          },
+          "answer": "B",
+          "solution": "'Although the server logs had been deleted, the investigators reconstructed the attack...' keeps the contrast. 'Despite' needs a noun phrase ('Despite the deletion of the logs'), and Since, Unless and Therefore change the logic.",
+          "tag": "Connectors",
+          "difficulty": "Medium"
+        }
+      ]
+    },
+    {
+      "code": "PK",
+      "durationMinutes": 12,
+      "marksCorrect": 1,
+      "marksNegative": 0.25,
+      "questions": [
+        {
+          "number": 41,
+          "text": "A relation R(A, B, C, D, E) has the functional dependencies A -> B, BC -> E and ED -> A. How many candidate keys does R have?",
+          "options": {
+            "A": "2",
+            "B": "3",
+            "C": "4",
+            "D": "5",
+            "E": "6"
+          },
+          "answer": "B",
+          "solution": "C and D never appear on a right-hand side, so every key contains CD. CD alone closes only to CD, but ACD, BCD and CDE each close to all five attributes. There are 3 candidate keys.",
+          "tag": "DBMS-Keys",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 42,
+          "text": "A relation R(A, B, C, D) has the functional dependencies AB -> C, C -> D and D -> A. What is the highest normal form that R satisfies?",
+          "options": {
+            "A": "1NF",
+            "B": "2NF",
+            "C": "3NF",
+            "D": "BCNF",
+            "E": "4NF"
+          },
+          "answer": "C",
+          "solution": "Candidate keys are AB, BC and BD, so every attribute is prime and 3NF holds. BCNF fails because C -> D and D -> A have left-hand sides that are not superkeys.",
+          "tag": "DBMS-Normalisation",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 43,
+          "text": "The keys 50, 30, 70, 20, 40, 60, 80, 35, 45, 65 are inserted in that order into an empty binary search tree. Node 30 is then deleted and replaced by its inorder successor. What is the preorder traversal of the resulting tree?",
+          "options": {
+            "A": "50, 20, 40, 35, 45, 70, 60, 65, 80",
+            "B": "50, 35, 20, 45, 40, 70, 60, 65, 80",
+            "C": "50, 40, 20, 35, 45, 70, 60, 65, 80",
+            "D": "50, 35, 20, 40, 45, 70, 60, 65, 80",
+            "E": "20, 45, 40, 35, 65, 60, 80, 70, 50"
+          },
+          "answer": "D",
+          "solution": "30 has two children, so it is replaced by the smallest key in its right subtree: 35 (the left child of 40). The subtree becomes 35 with children 20 and 40, and 40 keeps 45 as its right child. Option A is the result of using the inorder predecessor instead.",
+          "tag": "Data-Structures",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 44,
+          "text": "Five processes have the following arrival times and CPU burst times (in ms): P1 (0, 9), P2 (1, 4), P3 (3, 2), P4 (4, 6), P5 (6, 3). What is the average waiting time under Shortest Remaining Time First (preemptive SJF) scheduling?",
+          "options": {
+            "A": "4.4 ms",
+            "B": "4.8 ms",
+            "C": "5.6 ms",
+            "D": "7.6 ms",
+            "E": "9.6 ms"
+          },
+          "answer": "B",
+          "solution": "Gantt chart: P1 0-1, P2 1-5, P3 5-7, P5 7-10, P4 10-16, P1 16-24. Waiting = completion - arrival - burst: P1 15, P2 0, P3 2, P4 6, P5 1. Average = 24/5 = 4.8 ms. (Non-preemptive SJF gives 7.6 ms, and 9.6 ms is the average turnaround time.)",
+          "tag": "OS-Scheduling",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 45,
+          "text": "Which of the following is the broadcast address of the subnet that contains the host 172.16.45.200/21?",
+          "options": {
+            "A": "172.16.40.255",
+            "B": "172.16.45.255",
+            "C": "172.16.48.255",
+            "D": "172.16.63.255",
+            "E": "172.16.47.255"
+          },
+          "answer": "E",
+          "solution": "/21 leaves 5 network bits in the third octet, so subnets step by 8 (256 - 248). The block 40-47 contains 45, so the network is 172.16.40.0 and the broadcast is 172.16.47.255.",
+          "tag": "Networking-Subnetting",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 46,
+          "text": "Consider the schedule S: r1(A), r2(A), w1(A), w2(B), r3(B), w3(A), where ri and wi denote a read and a write by transaction Ti. Which of the following is correct?",
+          "options": {
+            "A": "S is not conflict serializable",
+            "B": "S is conflict serializable and equivalent to T1 -> T2 -> T3",
+            "C": "S is conflict serializable and equivalent to T2 -> T3 -> T1",
+            "D": "S is conflict serializable and equivalent to T3 -> T2 -> T1",
+            "E": "S is conflict serializable and equivalent to T2 -> T1 -> T3"
+          },
+          "answer": "E",
+          "solution": "r2(A) before w1(A) gives T2 -> T1. r1(A) and w1(A) before w3(A) give T1 -> T3. r2(A) before w3(A) and w2(B) before r3(B) give T2 -> T3. The precedence graph is acyclic, with topological order T2, T1, T3.",
+          "tag": "DBMS-Transactions",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 47,
+          "text": "Using the generator polynomial x^3 + x + 1, what CRC bits are appended to the message 1101011?",
+          "options": {
+            "A": "110",
+            "B": "101",
+            "C": "011",
+            "D": "100",
+            "E": "111"
+          },
+          "answer": "A",
+          "solution": "The generator is 1011 (degree 3), so append three zeros: 1101011000. Modulo-2 division by 1011 leaves the remainder 110, and the transmitted frame is 1101011110.",
+          "tag": "Networking-Error-Detection",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 48,
+          "text": "The keys 43, 36, 92, 87, 11, 4, 71, 13, 14 are inserted in that order into an initially empty hash table of size 11 using h(k) = k mod 11 and linear probing. In which slot is the key 14 stored?",
+          "options": {
+            "A": "3",
+            "B": "5",
+            "C": "7",
+            "D": "8",
+            "E": "9"
+          },
+          "answer": "C",
+          "solution": "43 -> 10, 36 -> 3, 92 -> 4, 87 -> 0 (10 is taken), 11 -> 1 (0 is taken), 4 -> 5 (4 is taken), 71 -> 6 (5 is taken), 13 -> 2. Key 14 hashes to 3 and finds 3, 4, 5 and 6 occupied, so it goes to slot 7. This long probe run is primary clustering.",
+          "tag": "Data-Structures",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 49,
+          "text": "A table Employee(emp_id, dept, salary) contains the rows (1, 'IT', 50000), (2, 'IT', 70000), (3, 'HR', 40000), (4, 'HR', NULL), (5, 'OPS', 60000) and (6, 'IT', NULL). What is returned by: SELECT COUNT(*) FROM Employee WHERE salary NOT IN (SELECT salary FROM Employee WHERE dept = 'HR');",
+          "options": {
+            "A": "0",
+            "B": "3",
+            "C": "4",
+            "D": "5",
+            "E": "The query raises an error"
+          },
+          "answer": "A",
+          "solution": "The subquery returns {40000, NULL}. 'x NOT IN (40000, NULL)' means x <> 40000 AND x <> NULL, and any comparison with NULL is UNKNOWN, so no row ever satisfies it. The count is 0. Use NOT EXISTS, or exclude NULLs in the subquery, to avoid this trap.",
+          "tag": "SQL",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 50,
+          "text": "A system uses a TLB and a two-level page table. A TLB lookup takes 20 ns and each memory access takes 100 ns. The TLB is searched first, and on a miss both levels of the page table are read from memory. If the TLB hit ratio is 90%, what is the effective memory access time?",
+          "options": {
+            "A": "128 ns",
+            "B": "130 ns",
+            "C": "140 ns",
+            "D": "150 ns",
+            "E": "320 ns"
+          },
+          "answer": "C",
+          "solution": "Hit: 20 + 100 = 120 ns. Miss: 20 + 2 x 100 (page tables) + 100 (data) = 320 ns. EMAT = 0.9 x 120 + 0.1 x 320 = 108 + 32 = 140 ns. 130 ns would be the answer for a single-level table.",
+          "tag": "OS-Memory",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 51,
+          "text": "What is the minimum number of comparisons required in the worst case to find both the maximum and the minimum of 100 elements?",
+          "options": {
+            "A": "148",
+            "B": "150",
+            "C": "198",
+            "D": "99",
+            "E": "196"
+          },
+          "answer": "A",
+          "solution": "Compare the elements in 50 pairs (50 comparisons), then find the maximum among the 50 winners (49) and the minimum among the 50 losers (49): 148 = ceil(3n/2) - 2. Finding them separately would take 2(n - 1) = 198.",
+          "tag": "Algorithms",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 52,
+          "text": "A system has three resource types A, B and C. Allocation: P0 (1,0,2), P1 (2,1,1), P2 (1,1,0), P3 (0,1,2), P4 (2,0,1). Max: P0 (4,3,3), P1 (3,2,2), P2 (7,2,2), P3 (1,3,4), P4 (5,1,3). Available: (2,1,1). Which of the following is a safe sequence?",
+          "options": {
+            "A": "P3, P1, P4, P0, P2",
+            "B": "P1, P0, P3, P4, P2",
+            "C": "P1, P2, P3, P4, P0",
+            "D": "P1, P3, P0, P4, P2",
+            "E": "P4, P1, P3, P0, P2"
+          },
+          "answer": "D",
+          "solution": "Need = Max - Allocation: P0 (3,3,1), P1 (1,1,1), P2 (6,1,2), P3 (1,2,2), P4 (3,1,2). Only P1 fits (2,1,1); Available becomes (4,2,2). Then P3 -> (4,3,4), P0 -> (5,3,6), P4 -> (7,3,7), P2 -> (8,4,7). The others stall: P3 and P4 cannot go first, P0 needs 3 of B right after P1, and P2 needs 6 of A.",
+          "tag": "OS-Deadlock",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 53,
+          "text": "In TCP Reno, when the sender receives three duplicate ACKs, it:",
+          "options": {
+            "A": "resets cwnd to 1 MSS and enters slow start",
+            "B": "halves ssthresh, retransmits the missing segment and enters fast recovery instead of slow start",
+            "C": "doubles cwnd because the network is clearly uncongested",
+            "D": "closes the connection and reopens it with a new handshake",
+            "E": "waits for the retransmission timer to expire before doing anything"
+          },
+          "answer": "B",
+          "solution": "Duplicate ACKs prove later segments are still arriving, so congestion is mild. Reno does a fast retransmit, sets ssthresh to half of cwnd and uses fast recovery. Resetting cwnd to 1 MSS is the response to a timeout (and was TCP Tahoe's response to duplicate ACKs too).",
+          "tag": "Networking-TCP",
+          "difficulty": "Medium"
+        },
+        {
+          "number": 54,
+          "text": "What is the solution of the recurrence T(n) = 4T(n/2) + n^2 log n?",
+          "options": {
+            "A": "Theta(n^2)",
+            "B": "Theta(n^2 log n)",
+            "C": "Theta(n^3)",
+            "D": "Theta(n^2 log^2 n)",
+            "E": "Theta(n^2 log log n)"
+          },
+          "answer": "D",
+          "solution": "n^(log_2 4) = n^2, and f(n) = n^2 log n = Theta(n^2 log^1 n). By the extended case 2 of the Master theorem, T(n) = Theta(n^2 log^2 n). Case 3 does not apply because f(n) is not polynomially larger than n^2.",
+          "tag": "Algorithms",
+          "difficulty": "Hard"
+        },
+        {
+          "number": 55,
+          "text": "A program consists of 3 independent modules whose combined control flow graphs have 42 edges and 36 nodes. What is the cyclomatic complexity of the program?",
+          "options": {
+            "A": "5",
+            "B": "6",
+            "C": "8",
+            "D": "10",
+            "E": "12"
+          },
+          "answer": "E",
+          "solution": "V(G) = E - N + 2P, where P is the number of connected components. With P = 3: 42 - 36 + 6 = 12. Taking P = 1 gives the trap answer 8.",
+          "tag": "Software-Engineering",
+          "difficulty": "Medium"
+        }
+      ]
+    }
+  ]
+}

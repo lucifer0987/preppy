@@ -3,7 +3,7 @@ import {
   EXPIRY_GRACE_MS, advanceSection, attemptHardStop, attemptStatus, closeForSubmit, effectiveRows, rollForward,
   sectionDeadline, timeSpentSec, writablePositions, type SectionProgress,
 } from '../lib/attempt'
-import { hardStopAt, istInstant } from '../lib/time'
+import { DEFAULT_WINDOW, hardStopAt, istInstant } from '../lib/time'
 
 const D = '2026-09-26'
 const at = (hh: number, mm: number, ss = 0) =>
@@ -212,13 +212,13 @@ describe('dry runs are not bound to the paper\'s date', () => {
   const sections = freshSections()
 
   it('a counted attempt stops at its paper\'s hard stop', () => {
-    expect(attemptHardStop({ isDryRun: false, testDate: D, startedAt: at(22, 0), sections })).toEqual(hardStopAt(D))
+    expect(attemptHardStop({ isDryRun: false, testDate: D, startedAt: at(22, 0), sections }, DEFAULT_WINDOW)).toEqual(hardStopAt(D, DEFAULT_WINDOW))
   })
 
   it('a dry run stops its own 45 minutes after Begin', () => {
     // A paper from days ago, rehearsed today: long past its own hard stop.
     const begin = new Date(HARD_STOP.getTime() + 3 * 86_400_000)
-    const stop = attemptHardStop({ isDryRun: true, testDate: D, startedAt: begin, sections })
+    const stop = attemptHardStop({ isDryRun: true, testDate: D, startedAt: begin, sections }, DEFAULT_WINDOW)
     expect(stop.getTime() - begin.getTime()).toBe(45 * 60_000)
     const s = attemptStatus(freshSections(begin), new Date(begin.getTime() + 60_000), stop)
     expect(s.finished).toBe(false)

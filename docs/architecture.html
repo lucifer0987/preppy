@@ -393,6 +393,18 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <figcaption><b>Only one thing on this timeline is a scheduled job.</b> Unlocking at 10 PM, closing entry at 11:15, and opening the archive at midnight are all computed from the clock whenever a page is read, so there is nothing to miss. The 12:05 job exists solely to score an attempt somebody abandoned.</figcaption>
 </figure>
 
+<h3>The times are a setting, not a constant</h3>
+<p>Opening and last-entry are edited in the admin console under <strong>Nightly window</strong> and stored in <code>app_settings</code>. Every page reads them on load, so a change takes effect on the next request without a deploy.</p>
+
+<p>The hard stop is <strong>not</strong> stored. It is always entry close plus one paper, so the guarantee that the last entrant gets a full attempt holds whatever times you pick. That has one consequence worth knowing:</p>
+
+<div class="note care">
+  <h4>Entry cannot close later than 11:15 PM</h4>
+  <p>Because 11:15 plus 45 minutes is exactly midnight. Any later and the attempt finishes on the next calendar day, where it would sit on the wrong date for the archive, the leaderboard and the nightly job &mdash; all of which key off the paper's own date. The form refuses it, and so does a database constraint, so the rule cannot be worked around by writing to the table directly.</p>
+</div>
+
+<p>Everything else is free. A morning slot of 6:00 to 7:30 works exactly as well as the default evening one, and every surface that prints a time follows: the home page countdown, the dashboard, the briefing, the admin console.</p>
+
 <h3>Why almost nothing is scheduled</h3>
 <p>A job that must fire at 10 PM for the product to work is a job that will one day not fire. Instead, <code>lib/time.ts</code> answers <em>&ldquo;is this paper open right now?&rdquo;</em> from the current time every time a page loads. India has never observed daylight saving, so IST is a fixed UTC+05:30 and all of it is plain arithmetic with one offset.</p>
 
@@ -464,7 +476,8 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td>The paper format and its validation</td><td><code>lib/paper.ts</code>, and section 7 here</td></tr>
 <tr><td>What the live test screen does</td><td><code>components/TestEngine.tsx</code></td></tr>
 <tr><td>Anything that reads or writes the database</td><td><code>lib/repo/</code></td></tr>
-<tr><td>Tables, constraints, SQL functions</td><td><code>supabase/schema.sql</code></td></tr>
+<tr><td>Tables, constraints, SQL functions</td><td><code>supabase/migrations/</code></td></tr>
+<tr><td>When a paper opens and entry closes</td><td>The admin console, under <strong>Nightly window</strong></td></tr>
 </table></div>
 </div></section>
 
@@ -934,7 +947,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <div class="tw"><table>
 <tr><th>Layer</th><th>Status</th></tr>
 <tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 263 tests, no database needed</td></tr>
-<tr><td>The schema, its functions, triggers and indexes</td><td><strong>Tested against real Postgres.</strong> <code>tests/schema.test.ts</code> runs <code>supabase/schema.sql</code> on an in-process Postgres and exercises every function and guard</td></tr>
+<tr><td>The schema, its functions, triggers and indexes</td><td><strong>Tested against real Postgres.</strong> <code>tests/schema.test.ts</code> applies every migration to an in-process Postgres and exercises each function and guard. <code>tests/migrate.test.ts</code> proves the chain is ordered and that a second run changes nothing</td></tr>
 <tr><td>The queries in <code>lib/repo/</code></td><td><strong>Typechecked only.</strong> The PostgREST calls have never run against a live server</td></tr>
 <tr><td>Supabase Auth and Storage</td><td><strong>Typechecked only</strong></td></tr>
 </table></div>
@@ -1074,7 +1087,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
   <text x="384" y="222" text-anchor="middle" font-size="10.5" font-weight="600" fill="#94202B">never experiment here</text>
 
   <rect x="540" y="78" width="204" height="104" rx="8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 4"/>
-  <text x="642" y="102" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">schema.sql</text>
+  <text x="642" y="102" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">migrations</text>
   <text x="642" y="122" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".7">the only thing that</text>
   <text x="642" y="138" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".7">moves between them</text>
   <text x="642" y="162" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".55">run it in both</text>
@@ -1154,7 +1167,24 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <li>
 <h4>Create the tables</h4>
 <p>Left sidebar &rarr; <strong>SQL Editor</strong> &rarr; <strong>New query</strong>.</p>
-<p>Open <code>supabase/schema.sql</code> from the project folder in any text editor, select <em>all</em> of it, copy, paste into the editor, and press <strong>Run</strong> (or <kbd>Cmd</kbd>/<kbd>Ctrl</kbd>+<kbd>Enter</kbd>).</p>
+<p>The schema is built by a chain of migration files in <code>supabase/migrations/</code>. There are two ways to apply them.</p>
+
+<p><strong>Either</strong> let the runner do it. Copy the connection string from <strong>Settings &rarr; Database &rarr; Connection string (URI)</strong> into <code>.env.local</code> as <code>DATABASE_URL</code>, then:</p>
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>npm run migrate</b>
+
+<i>  Applying 2 migrations...
+    applied  0001_baseline.sql
+    applied  0002_test_window.sql</i></pre>
+</div>
+
+<p><strong>Or</strong>, if you would rather not keep a database password around, ask it to print instead and paste the result into the Supabase <strong>SQL Editor</strong>:</p>
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><b>npm run migrate -- --print</b></pre>
+</div>
+<p>It prints each pending migration in order, with the line that records it as applied. Run <code>npm run migrate -- --status</code> at any time to see what has landed.</p>
 <p>It should say <strong>Success. No rows returned.</strong> That one file created:</p>
 <div class="tw"><table>
 <tr><th>What</th><th>How many</th><th>For</th></tr>
@@ -1305,14 +1335,28 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <i>-- remove the accounts too, if you want a clean seed</i>
 <b>delete from</b> auth.users;</pre>
 </div>
-<p>Then <code>npm run seed</code> again. If you also want the structure rebuilt, re-run <code>supabase/schema.sql</code> first.</p>
+<p>Then <code>npm run seed</code> again. If you want the structure rebuilt too, drop the <code>schema_migrations</code> table as well and run <code>npm run migrate</code>.</p>
 <div class="note never">
   <h4>Check which project you are in first</h4>
   <p>The Supabase SQL editor does not ask twice, and there is no undo. The project name is in the top-left of the dashboard. Read it before pressing Run on anything that deletes.</p>
 </div>
 
 <h3>Changing the structure later</h3>
-<p>If a future change needs a new column, add it to <code>supabase/schema.sql</code> in a way that is safe to re-run &mdash; <code>add column if not exists</code>, <code>create or replace function</code> &mdash; then run the whole file again in both projects. The existing file is already written this way, and a test proves it.</p>
+<p><strong>Write a new migration. Never edit one that has been applied.</strong> A file that has already run on production will not run again, so editing it changes what a fresh database gets and leaves production behind.</p>
+
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>supabase/migrations/0003_whatever_it_is.sql</span></div>
+<pre><b>begin;</b>
+
+<i>-- Safe to run twice, like every migration here.</i>
+<b>alter table</b> attempts <b>add column if not exists</b> notes text;
+
+<b>commit;</b></pre>
+</div>
+
+<p>Number it one higher than the last, then <code>npm run migrate</code> against <code>preppy-dev</code>, check the app still works, and only then against production.</p>
+
+<p>There are no down migrations. Reversing a schema change correctly is rare, and a rollback file that has never been run is a false promise. To undo something, write the next migration.</p>
 <p>Run it on <code>preppy-dev</code> first, check the app still works, and only then on production.</p>
 
 <h3>Backups</h3>
@@ -1369,6 +1413,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td>Papers</td><td>Everything drafted or published. Open one to preview, correct an answer key, or dry-run it</td></tr>
 <tr><td>Attempts</td><td>Every attempt with score, duration and the two integrity counters. Void one here if you must</td></tr>
 <tr><td>People</td><td>Create accounts singly or by pasting a CSV. Reset passwords. Deactivate without losing history</td></tr>
+<tr><td>Nightly window</td><td>When papers unlock and the last moment anyone may start one. Shows what students will see before you save</td></tr>
 <tr><td>Export question bank</td><td>Every paper ever published, as one JSON file</td></tr>
 </table></div>
 
@@ -1390,7 +1435,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <p>Exactly as in section 13, steps 2, 3 and 4, but name it <code>preppy-prod</code>:</p>
 <ul>
 <li>New Supabase project, closest region.</li>
-<li>SQL Editor &rarr; paste all of <code>supabase/schema.sql</code> &rarr; Run.</li>
+<li>Apply the migrations: <code>npm run migrate</code> pointed at the new project, or <code>npm run migrate -- --print</code> and paste into its SQL Editor.</li>
 <li>Authentication &rarr; Email &rarr; <strong>Confirm email off</strong>.</li>
 </ul>
 <p><strong>Check it worked:</strong> Table Editor shows nine tables with RLS badges, exactly as dev did.</p>
@@ -1477,7 +1522,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 </div>
 
 <h3>If you changed the schema</h3>
-<p>Run the updated <code>supabase/schema.sql</code> on <code>preppy-prod</code> <strong>before</strong> pushing code that depends on it. New code against an old database fails; old code against a new database usually does not.</p>
+<p>Run <code>npm run migrate</code> against <code>preppy-prod</code> <strong>before</strong> pushing code that depends on it. New code against an old database fails; old code against a new database usually does not.</p>
 </div></section>
 
 <section id="s17"><div class="col">
@@ -1531,7 +1576,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td><strong>"Not configured yet" on the login page</strong></td><td><code>.env.local</code> is missing or incomplete. Check all three values, then <strong>restart the server</strong> &mdash; env changes are not picked up while it runs</td></tr>
 <tr><td><strong>Login says the password is wrong, and it is not</strong></td><td>Almost always email confirmation still on. Section 13, step 4. Then <code>npm run seed -- --reset</code></td></tr>
 <tr><td><strong>The build refuses with "Cannot build for production"</strong></td><td>Working as intended. It names the missing variable and where to find it</td></tr>
-<tr><td><strong>Seeding fails with a database error</strong></td><td>The tables are not there. Re-run <code>supabase/schema.sql</code> in that project</td></tr>
+<tr><td><strong>Seeding fails with a database error</strong></td><td>The tables are not there. Run <code>npm run migrate</code>, or <code>npm run migrate -- --status</code> to see what is missing</td></tr>
 <tr><td><strong>The nightly job did not run</strong></td><td>Press <strong>Finalise open attempts now</strong> on the admin home; it is idempotent. Then check <code>CRON_SECRET</code> is set in Vercel</td></tr>
 <tr><td><strong>A paper will not delete</strong></td><td>Somebody has a counted attempt on it. A database trigger is refusing, because deleting would leave scores pointing at questions that no longer exist. Void the attempts first if you really mean it</td></tr>
 <tr><td><strong>Upload rejects the file</strong></td><td>The report names the exact path and line. <code>npm run check your-paper.json</code> gives the same report in the terminal</td></tr>
@@ -1561,7 +1606,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 
 <p class="end">
 Preppy engineering reference &middot; Phases 1 and 2 complete<br>
-The code is the other half of this: <code>lib/</code> for logic, <code>supabase/schema.sql</code> for the data,<br>
+The code is the other half of this: <code>lib/</code> for logic, <code>supabase/migrations/</code> for the data,<br>
 <code>tests/</code> for what is guaranteed.
 </p>
 </div></section>

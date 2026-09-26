@@ -216,8 +216,9 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <p>Then in the Supabase dashboard:</p>
 <ol>
 <li><strong>New project</strong>, named <code>preppy-dev</code>, nearest region.</li>
-<li><strong>SQL Editor</strong> &rarr; paste all of <code>supabase/schema.sql</code> &rarr; <strong>Run</strong>.<br>
-Expect <code>Success. No rows returned</code>, and nine tables each showing an <strong>RLS enabled</strong> badge.</li>
+<li>Apply the schema. Put the connection string from <strong>Settings &rarr; Database</strong> into <code>.env.local</code> as <code>DATABASE_URL</code>, then <code>npm run migrate</code>.<br>
+No connection string? <code>npm run migrate -- --print</code> prints the SQL to paste into the <strong>SQL Editor</strong> instead.<br>
+Either way you should end with ten tables, each showing an <strong>RLS enabled</strong> badge.</li>
 <li><strong>Authentication &rarr; Sign In / Providers &rarr; Email</strong> &rarr; turn <strong>Confirm email</strong> off.</li>
 </ol>
 
@@ -264,7 +265,7 @@ Expect <code>Success. No rows returned</code>, and nine tables each showing an <
 <pre><b>npm run check -- my-paper.json</b>          <i># validate before opening the app</i>
 <b>npm run check -- my-paper.json --images ./img</b></pre>
 </div>
-<p>Then in the app: <strong>Admin &rarr; Upload a paper</strong> &rarr; read the preview &rarr; <strong>Schedule</strong>. Copy <code>format/sample.json</code> as your starting point. The format is specified in <a href="architecture.html#s7">architecture.html section 7</a>.</p>
+<p>Then in the app: <strong>Admin &rarr; Upload a paper</strong> &rarr; read the preview &rarr; <strong>Schedule</strong>. It unlocks at whatever time <strong>Admin &rarr; Nightly window</strong> says. Copy <code>format/sample.json</code> as your starting point. The format is specified in <a href="architecture.html#s7">architecture.html section 7</a>.</p>
 </div></section>
 
 <section id="c4"><div class="col">
@@ -330,6 +331,9 @@ Expect <code>Success. No rows returned</code>, and nine tables each showing an <
 <tr><td><code>npm run check -- &lt;file&gt;</code></td><td>Validates a paper, app not needed</td></tr>
 <tr><td><code>npm run seed</code></td><td>Creates the accounts, prints passwords once</td></tr>
 <tr><td><code>npm run seed -- --reset</code></td><td>Fresh passwords for everyone</td></tr>
+<tr><td><code>npm run migrate</code></td><td>Applies pending migrations</td></tr>
+<tr><td><code>npm run migrate -- --status</code></td><td>What is applied, what is pending</td></tr>
+<tr><td><code>npm run migrate -- --print</code></td><td>Prints the pending SQL instead of running it</td></tr>
 <tr><td><code>npm run secret</code></td><td>A random string for <code>CRON_SECRET</code></td></tr>
 </table></div>
 </div></section>
@@ -341,7 +345,7 @@ Expect <code>Success. No rows returned</code>, and nine tables each showing an <
 <tr><td>"Not configured yet"</td><td><code>.env.local</code> incomplete, or the server needs restarting</td></tr>
 <tr><td>Login rejects a password you know is right</td><td>Email confirmation is still on. Then <code>npm run seed -- --reset</code></td></tr>
 <tr><td>"Cannot build for production"</td><td>Working as intended &mdash; it names the missing variable</td></tr>
-<tr><td>Seeding errors</td><td>Tables missing. Re-run <code>supabase/schema.sql</code></td></tr>
+<tr><td>Seeding errors</td><td>Tables missing. Run <code>npm run migrate</code></td></tr>
 <tr><td>Nightly job did not run</td><td>Admin home &rarr; <strong>Finalise open attempts now</strong></td></tr>
 <tr><td>A paper will not delete</td><td>Somebody has a counted attempt on it. A trigger is refusing</td></tr>
 <tr><td>Leaderboard missing last night</td><td>It takes a paper in at 00:01, not midnight</td></tr>

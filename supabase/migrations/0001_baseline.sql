@@ -5,8 +5,13 @@
 -- on every table with no permissive policy, so any client holding only the
 -- anon key reads nothing. That is the backstop, not the primary defence.
 --
--- Run this once in the Supabase SQL editor, or:
---   psql "$DATABASE_URL" -f supabase/schema.sql
+-- The baseline. Everything the app needed on the day migrations were
+-- introduced, so a fresh database starts by running this and then each later
+-- file in order. Applied by `npm run migrate`; see supabase/migrate.ts.
+--
+-- Every migration is written to be safe to run twice: `if not exists`,
+-- `create or replace`, and guarded `do $$` blocks. The runner records what it
+-- has applied, but re-running by hand must also be harmless.
 
 begin;
 

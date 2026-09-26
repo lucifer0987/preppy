@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { db } from '../../lib/supabase/admin'
-import { WINDOW, formatIstDate, formatIstTime, istDate, windowState } from '../../lib/time'
+import { formatIstDate, istDate, windowLabels, windowState, type WindowSettings } from '../../lib/time'
+import { getWindow } from '../../lib/repo/settings'
 import { requireAdmin } from '../../lib/guard'
 import { FinaliseButton } from './FinaliseButton'
 
@@ -27,7 +28,8 @@ export default async function AdminHome({
   const { count: userCount } = await db()
     .from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student')
 
-  const status = tonightStatus(tonight?.status as string | undefined, windowState(today))
+  const testWindow = await getWindow()
+  const status = tonightStatus(tonight?.status as string | undefined, windowState(today, testWindow), testWindow)
   const good = status.tone === 'good'
 
   return (
@@ -69,6 +71,10 @@ export default async function AdminHome({
               className="rounded-2xl border-2 border-black/15 px-5 py-3 font-bold transition hover:border-black/30">
           All papers
         </Link>
+        <Link href="/admin/window"
+              className="rounded-2xl border-2 border-black/15 px-5 py-3 font-bold transition hover:border-black/30">
+          Nightly window
+        </Link>
         <Link href="/admin/users"
               className="rounded-2xl border-2 border-black/15 px-5 py-3 font-bold transition hover:border-black/30">
           People
@@ -102,21 +108,22 @@ export default async function AdminHome({
 function tonightStatus(
   status: string | undefined,
   state: ReturnType<typeof windowState>,
+  w: WindowSettings,
 ): { headline: string; detail: string; tone: 'good' | 'bad' } {
   if (!status) {
     return state === 'BEFORE_OPEN'
-      ? { headline: 'Not scheduled', detail: 'No paper will unlock tonight. Upload one before 10 PM.', tone: 'bad' }
+      ? { headline: 'Not scheduled', detail: `No paper will unlock tonight. Upload one before ${windowLabels(w).opens}.`, tone: 'bad' }
       : { headline: 'No paper tonight', detail: 'Nothing ran tonight. Streaks are not broken by it.', tone: 'bad' }
   }
   if (status === 'DRAFT') {
     return state === 'BEFORE_OPEN'
-      ? { headline: 'Draft awaiting schedule', detail: 'Tonight\'s paper is uploaded but will not unlock until you schedule it before 10 PM.', tone: 'bad' }
+      ? { headline: 'Draft awaiting schedule', detail: `Tonight's paper is uploaded but will not unlock until you schedule it before ${windowLabels(w).opens}.`, tone: 'bad' }
       : { headline: 'Draft, never scheduled', detail: 'Tonight\'s paper stayed a draft, so nothing unlocked.', tone: 'bad' }
   }
   switch (state) {
     case 'BEFORE_OPEN': return { headline: 'Scheduled', detail: 'Paper ready to go.', tone: 'good' }
-    case 'OPEN': return { headline: 'Live now', detail: `Open until ${formatIstTime(WINDOW.entryCloseHour, WINDOW.entryCloseMinute)}.`, tone: 'good' }
-    case 'ENTRY_CLOSED': return { headline: 'Finishing', detail: `Entry has closed; running attempts end by ${formatIstTime(WINDOW.hardStopHour, WINDOW.hardStopMinute)}.`, tone: 'good' }
+    case 'OPEN': return { headline: 'Live now', detail: `Open until ${windowLabels(w).closes}.`, tone: 'good' }
+    case 'ENTRY_CLOSED': return { headline: 'Finishing', detail: `Entry has closed; running attempts end by ${windowLabels(w).hardStop}.`, tone: 'good' }
     case 'CLOSED': return { headline: 'Finished', detail: 'Tonight\'s paper has run.', tone: 'good' }
   }
 }

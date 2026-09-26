@@ -17,7 +17,8 @@ import { useRouter } from 'next/navigation'
  * mount, so a fast or slow laptop still reaches zero when the server does.
  *
  * At zero the page is refreshed once, so the dashboard flips to the entry card
- * at 22:00 (or to "Entry closed" at 23:15) without anyone reloading. The
+ * when the window opens (or to "Entry closed" when entry shuts) without
+ * anyone reloading. The
  * refresh waits a second past zero so the server is sure to agree the moment
  * has come; if it still does not, it renders a fresh target and this counts
  * down again rather than sitting at 00:00:00.

@@ -38,6 +38,7 @@ npm run build:prod             # typecheck + tests + production build
 npm run build:local            # production build with source maps, for debugging
 npm test                       # 263 tests
 npm run check -- paper.json    # validate a paper, app not required
+npm run migrate                # apply pending database migrations
 npm run seed                   # create the accounts, print passwords once
 ```
 
@@ -49,7 +50,7 @@ npm run seed                   # create the accounts, print passwords once
 | `components/` | React components, including the test engine |
 | `lib/` | Pure domain logic: time, scoring, ranking, the paper format |
 | `lib/repo/` | The only place Supabase is called |
-| `supabase/schema.sql` | 9 tables, 10 functions, commented throughout |
+| `supabase/migrations/` | The schema, as a numbered chain. `npm run migrate` applies it |
 | `format/` | A worked paper, a blank template, and a JSON Schema |
 | `tests/` | 263 tests, including the schema run on real Postgres |
 | `docs/` | The three documents above |
@@ -69,3 +70,20 @@ that talks to Supabase over the network — the queries in `lib/repo/`, signing
 in, and reading an image out of Storage — has never run. **docs/architecture.html
 section 17** is a ten-minute walkthrough that exercises nearly all of it. Do
 that before a paper night that counts.
+
+
+
+
+
+
+
+Passwords are shown once. Copy them now.
+
+  USERNAME    ROLE     PASSWORD
+  -----------------------------------
+  admin       admin    d5cm-m1dr-rbfx
+  student1    student  g6zs-qww7-wj72
+  student2    student  sykz-kdea-rnbs
+  student3    student  665k-1f45-y5rh
+  student4    student  2kbq-qgqm-03gr
+  student5    student  28a2-pp10-kvvs
