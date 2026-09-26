@@ -34,7 +34,7 @@ export function KeyEditor({
   }
 
   return (
-    <form action={correctKeyAction} className="mt-2 rounded-2xl border-2 border-play-purple/30 bg-play-purple/5 p-4">
+    <form action={correctKeyAction} className="mt-2 rounded-control border-2 border-play-purple/30 bg-play-purple/5 p-4">
       <input type="hidden" name="testId" value={testId} />
       <input type="hidden" name="questionId" value={questionId} />
       <p className="text-sm font-bold">Q{questionNumber}: the answer is</p>
@@ -45,7 +45,7 @@ export function KeyEditor({
               type="radio" name="answer" value={l} checked={choice === l}
               onChange={() => setChoice(l)} className="peer sr-only"
             />
-            <span className="block rounded-xl border-2 border-black/15 px-4 py-2 font-bold
+            <span className="block rounded-xl border-2 border-line-strong px-4 py-2 font-bold
                              peer-checked:border-play-purple peer-checked:bg-play-purple peer-checked:text-white">
               {l}
             </span>
@@ -57,7 +57,7 @@ export function KeyEditor({
       </p>
       <div className="mt-3 flex gap-2">
         <button type="button" onClick={() => setOpen(false)}
-                className="rounded-xl border-2 border-black/15 px-4 py-2 text-sm font-bold">
+                className="rounded-xl border-2 border-line-strong px-4 py-2 text-sm font-bold">
           Cancel
         </button>
         <button type="submit" disabled={choice === current}

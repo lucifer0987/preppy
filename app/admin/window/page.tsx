@@ -27,7 +27,7 @@ export default async function WindowPage() {
         one paper as long as their windows do not overlap.
       </p>
 
-      <section className="mt-6 rounded-3xl bg-play-purple p-6 text-white">
+      <section className="mt-6 rounded-card bg-play-purple p-6 text-white">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">Offered by default</p>
         <p className="mt-2 text-2xl font-black">
           {labels.opens} &rarr; {labels.closes}
@@ -55,8 +55,8 @@ export default async function WindowPage() {
         </span>
       </p>
 
-      <section className="mt-6 rounded-3xl border-2 border-dashed border-black/10 p-5">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">
+      <section className="mt-6 rounded-card border-2 border-dashed border-line p-5">
+        <h2 className="eyebrow">
           What changing these does not affect
         </h2>
         <ul className="mt-2 space-y-1.5 text-sm text-ink-soft">

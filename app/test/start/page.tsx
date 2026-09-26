@@ -60,18 +60,18 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
       <p className="mt-1 text-ink-soft">{formatIstDate(test.date as string)}</p>
 
       {isDryRun && (
-        <p className="mt-4 rounded-2xl bg-play-yellow/20 px-5 py-4 text-sm font-semibold">
+        <p className="mt-4 rounded-control bg-play-yellow/20 px-5 py-4 text-sm font-semibold">
           This is a dry run. It uses the real engine and the real timers, but it is never counted
           and never appears on the leaderboard.
         </p>
       )}
 
       {error && (
-        <p role="alert" className="mt-4 rounded-2xl bg-notanswered px-5 py-4 font-semibold text-white">{error}</p>
+        <p role="alert" className="mt-4 rounded-control bg-notanswered px-5 py-4 font-semibold text-white">{error}</p>
       )}
 
-      <section className="mt-6 rounded-3xl bg-white p-6">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">The pattern</h2>
+      <section className="mt-6 rounded-card bg-surface p-6">
+        <h2 className="eyebrow">The pattern</h2>
         <ul className="mt-3 space-y-1.5">
           {sections.map((s) => (
             <li key={s.code} className="flex items-baseline justify-between gap-4 text-sm">
@@ -82,7 +82,7 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
             </li>
           ))}
         </ul>
-        <p className="mt-4 border-t border-black/10 pt-3 font-semibold tabular-nums">
+        <p className="mt-4 border-t border-line pt-3 font-semibold tabular-nums">
           {totalQuestions} questions &middot; {totalMinutes} minutes &middot;{' '}
           {marks.size === 1 ? [...marks][0] : 'marking varies by section'}, 0 unattempted
         </p>
@@ -95,8 +95,8 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
         )}
       </section>
 
-      <section className="mt-4 rounded-3xl bg-white p-6">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">Before you begin</h2>
+      <section className="mt-4 rounded-card bg-surface p-6">
+        <h2 className="eyebrow">Before you begin</h2>
         <ul className="mt-3 space-y-2.5 text-sm">
           <li><strong>Sections run in order and only forward.</strong> Once you leave a section you cannot return to it.</li>
           <li><strong>Each section has its own timer.</strong> Finishing early does not add time to the next one.</li>
@@ -108,7 +108,7 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
       </section>
 
       {refusal ? (
-        <p className="mt-6 rounded-2xl bg-white px-5 py-4 text-center font-semibold">{refusal}</p>
+        <p className="mt-6 rounded-control bg-surface px-5 py-4 text-center font-semibold">{refusal}</p>
       ) : (
         <>
           <form action={beginAction} className="mt-6">

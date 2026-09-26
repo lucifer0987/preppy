@@ -79,7 +79,7 @@ export function Countdown({
 
 function Cell({ value, label }: { value: number; label: string }) {
   return (
-    <div className="flex min-w-[4.5rem] flex-col items-center rounded-2xl bg-white/15 px-4 py-3">
+    <div className="flex min-w-[4.5rem] flex-col items-center rounded-control bg-surface/15 px-4 py-3">
       <span className="text-3xl font-black leading-none tabular-nums" suppressHydrationWarning>
         {String(value).padStart(2, '0')}
       </span>

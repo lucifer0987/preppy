@@ -30,10 +30,10 @@ function Field({
 }: { label: string; name: string; autoComplete: string; autoFocus?: boolean }) {
   return (
     <label className="block">
-      <span className="text-xs font-bold uppercase tracking-widest text-ink-soft">{label}</span>
+      <span className="eyebrow">{label}</span>
       <input
         type="password" name={name} autoComplete={autoComplete} autoFocus={autoFocus} required
-        className="mt-1.5 w-full rounded-xl border-2 border-black/10 bg-white px-4 py-3 text-lg
+        className="mt-1.5 w-full rounded-xl border-2 border-line bg-surface px-4 py-3 text-lg
                    outline-none transition focus:border-play-purple"
       />
     </label>
@@ -45,7 +45,7 @@ function Submit() {
   return (
     <button
       type="submit" disabled={pending}
-      className="w-full rounded-2xl bg-play-purple px-6 py-4 text-lg font-black text-white
+      className="w-full rounded-control bg-play-purple px-6 py-4 text-lg font-black text-white
                  transition hover:bg-play-purple-deep disabled:opacity-60"
     >
       {pending ? 'Changing...' : 'Change password'}

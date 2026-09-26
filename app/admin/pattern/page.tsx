@@ -26,7 +26,7 @@ export default async function PatternPage() {
         already uploaded keep the shape they were given.
       </p>
 
-      <section className="mt-6 rounded-3xl bg-play-purple p-6 text-white">
+      <section className="mt-6 rounded-card bg-play-purple p-6 text-white">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">A paper on this pattern</p>
         <p className="mt-2 text-2xl font-black tabular-nums">
           {totals.questions} questions &middot; {totals.minutes} minutes
@@ -51,8 +51,8 @@ export default async function PatternPage() {
 
       <PatternForm current={current} latestEntryClose={latestEntryClose} />
 
-      <section className="mt-6 rounded-3xl bg-white p-5">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">Start a paper from this pattern</h2>
+      <section className="mt-6 rounded-card bg-surface p-5">
+        <h2 className="eyebrow">Start a paper from this pattern</h2>
         <p className="mt-2 text-sm text-ink-soft">
           A blank file with the right sections, counts, numbering and marking, and placeholder text
           everywhere the content goes. Built from the pattern above, so it follows any change you make
@@ -60,15 +60,15 @@ export default async function PatternPage() {
         </p>
         <a
           href="/api/admin/template"
-          className="mt-3 inline-block rounded-2xl bg-play-purple px-6 py-3 font-black text-white
+          className="mt-3 inline-block rounded-control bg-play-purple px-6 py-3 font-black text-white
                      transition hover:bg-play-purple-deep"
         >
           Download a blank template
         </a>
       </section>
 
-      <section className="mt-6 rounded-3xl border-2 border-dashed border-black/10 p-5">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">
+      <section className="mt-6 rounded-card border-2 border-dashed border-line p-5">
+        <h2 className="eyebrow">
           What changing this does not affect
         </h2>
         <ul className="mt-2 space-y-1.5 text-sm text-ink-soft">

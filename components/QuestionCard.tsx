@@ -41,8 +41,13 @@ export function QuestionCard({
 
   return (
     <div>
-      <p className="text-lg leading-relaxed">
-        <span className="mr-2 font-mono text-sm text-ink-soft">Q{question.number}.</span>
+      {/* prose-question caps the measure near 68 characters: a full-width line
+          of comprehension text is measurably slower to read, and this is read
+          under a clock. */}
+      <p className="prose-question text-ink">
+        <span className="numeral mr-2.5 align-baseline text-sm font-bold text-ink-faint">
+          Q{question.number}
+        </span>
         {question.text}
       </p>
       {testId && <PaperImages testId={testId} names={question.images} />}
@@ -61,20 +66,28 @@ export function QuestionCard({
                 onClick={onSelect ? () => onSelect(label) : undefined}
                 aria-pressed={isSelected}
                 className={[
-                  'flex w-full items-center gap-3 rounded-2xl border-2 px-4 py-3 text-left transition',
-                  'disabled:cursor-default',
+                  'group flex w-full items-start gap-3.5 rounded-control border-2 px-4 py-3.5 text-left',
+                  'transition disabled:cursor-default',
                   isCorrect ? 'border-answered bg-answered/10 font-semibold'
                     : isWrongPick ? 'border-notanswered bg-notanswered/10'
-                    : isSelected ? 'border-play-purple bg-play-purple/10 font-semibold'
-                    : 'border-black/10 bg-white',
-                  disabled ? '' : 'hover:border-play-purple/60',
+                    : isSelected ? 'border-accent bg-accent-soft font-semibold shadow-low'
+                    : 'border-line bg-surface',
+                  disabled ? '' : 'hover:border-accent/60 hover:bg-surface-sunken active:translate-y-px',
                 ].join(' ')}
               >
-                <OptionShape label={label} />
-                <span className="font-mono text-xs text-ink-soft">{label}</span>
-                <span className="flex-1">{question.options[label]}</span>
-                {isCorrect && <span className="text-xs font-bold uppercase text-answered">Correct</span>}
-                {isWrongPick && <span className="text-xs font-bold uppercase text-notanswered">Your answer</span>}
+                <span className="mt-0.5 flex shrink-0 items-center gap-2">
+                  <OptionShape label={label} />
+                  <span className="numeral w-4 text-xs font-bold text-ink-faint">{label}</span>
+                </span>
+                <span className="flex-1 leading-relaxed">{question.options[label]}</span>
+                {isCorrect && (
+                  <span className="chip shrink-0 border-answered/30 bg-answered/15 text-answered">Correct</span>
+                )}
+                {isWrongPick && (
+                  <span className="chip shrink-0 border-notanswered/30 bg-notanswered/15 text-notanswered">
+                    Your answer
+                  </span>
+                )}
               </button>
             </li>
           )
@@ -82,7 +95,7 @@ export function QuestionCard({
       </ul>
 
       {canReveal && (
-        <div className="mt-4 rounded-2xl bg-black/[0.04] p-4 text-sm">
+        <div className="mt-4 rounded-control bg-surface-sunken p-4 text-sm">
           <p><span className="font-bold">Answer:</span> {question.answer}</p>
           {question.solution && <p className="mt-1 text-ink-soft">{question.solution}</p>}
           <p className="mt-2 flex flex-wrap gap-3 text-xs text-ink-soft">

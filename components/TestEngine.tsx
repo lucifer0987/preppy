@@ -419,7 +419,7 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
   const atEnd = index === section.questions.length - 1
 
   return (
-    <div ref={rootRef} className="exam-screen min-h-dvh bg-paper">
+    <div ref={rootRef} className="exam-screen min-h-dvh bg-page">
       {/* FR-6.5.7: printing the paper is suppressed; see globals.css. */}
       <p className="exam-print-note">Printing is not available during a test.</p>
       {fullscreen === false && (
@@ -439,13 +439,13 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
         </span>
         <span className="ml-auto flex items-center gap-2">
           {snapshot.isDryRun && (
-            <span className="rounded-full bg-white/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest">
+            <span className="rounded-full bg-surface/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest">
               Dry run
             </span>
           )}
           <span
             title="Times you left full screen or switched away"
-            className="rounded-full bg-white/20 px-2.5 py-1 font-mono text-xs"
+            className="rounded-full bg-surface/20 px-2.5 py-1 font-mono text-xs"
           >
             &#9888; {exits + switches}
           </span>
@@ -466,7 +466,7 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
       )}
 
       <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_240px]">
-        <main className="min-w-0 select-none rounded-3xl bg-white p-6">
+        <main className="min-w-0 select-none rounded-card bg-surface p-6">
           {/* Shown on every question in the group, not just the first (FR-6.4.10). */}
           {question.directions && (
             <DirectionsBlock
@@ -492,7 +492,7 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
             onSelect={choose}
           />
 
-          <div className="mt-6 flex flex-wrap gap-2 border-t border-black/10 pt-4">
+          <div className="mt-6 flex flex-wrap gap-2 border-t border-line pt-4">
             <Btn onClick={() => go(-1)} disabled={index === 0}>Previous</Btn>
             <Btn onClick={clearResponse} disabled={!current.selected}>Clear response</Btn>
             <Btn onClick={toggleMark} tone="mark">
@@ -515,7 +515,7 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
           </p>
         </main>
 
-        <aside className="rounded-3xl bg-white p-5 lg:sticky lg:top-24 lg:self-start">
+        <aside className="rounded-card bg-surface p-5 lg:sticky lg:top-24 lg:self-start">
           <QuestionPalette
             states={states}
             current={question.number}
@@ -559,7 +559,7 @@ function FullscreenGate({ exits, onReturn }: { exits: number; onReturn: () => vo
       <button
         onClick={onReturn}
         autoFocus
-        className="rounded-2xl bg-white px-8 py-4 text-lg font-black text-play-purple"
+        className="rounded-control bg-surface px-8 py-4 text-lg font-black text-play-purple"
       >
         Go back to full screen
       </button>
@@ -596,7 +596,7 @@ function ConfirmDialog({
   return (
     <div role="dialog" aria-modal="true" aria-labelledby="confirm-title"
          className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-6">
-      <div ref={panel} className="w-full max-w-md rounded-3xl bg-white p-6">
+      <div ref={panel} className="w-full max-w-md rounded-card bg-surface p-6">
         <h2 id="confirm-title" className="text-2xl font-black">
           {isLast ? 'End the test?' : `Leave ${sectionName}?`}
         </h2>
@@ -612,10 +612,10 @@ function ConfirmDialog({
           <Row label="Not reached" value={tally.notReached} />
         </dl>
         <div className="mt-6 flex gap-2">
-          <button onClick={onCancel} autoFocus className="flex-1 rounded-2xl border-2 border-black/15 px-5 py-3 font-bold">
+          <button onClick={onCancel} autoFocus className="flex-1 rounded-control border-2 border-line-strong px-5 py-3 font-bold">
             Go back
           </button>
-          <button onClick={onConfirm} className="flex-1 rounded-2xl bg-play-purple px-5 py-3 font-black text-white">
+          <button onClick={onConfirm} className="flex-1 rounded-control bg-play-purple px-5 py-3 font-black text-white">
             {isLast ? 'End test' : 'Next section'}
           </button>
         </div>
@@ -646,11 +646,11 @@ function Btn({
     tone === 'primary' ? 'bg-play-purple text-white hover:bg-play-purple-deep border-play-purple'
     : tone === 'mark' ? 'border-marked text-marked hover:bg-marked/10'
     : tone === 'next' ? 'border-play-green text-play-green hover:bg-play-green/10'
-    : 'border-black/15 text-ink-soft hover:border-black/30'
+    : 'border-line-strong text-ink-soft hover:border-accent'
   return (
     <button
       type="button" onClick={onClick} disabled={disabled}
-      className={`rounded-2xl border-2 px-5 py-2.5 text-sm font-bold transition disabled:opacity-40 ${style} ${className}`}
+      className={`rounded-control border-2 px-5 py-2.5 text-sm font-bold transition disabled:opacity-40 ${style} ${className}`}
     >
       {children}
     </button>

@@ -46,13 +46,13 @@ export default async function AdminHome({
   return (
     <>
       {password === 'changed' && (
-        <p className="mb-4 rounded-2xl bg-answered px-5 py-4 font-semibold text-white">
+        <p className="mb-4 rounded-control bg-answered px-5 py-4 font-semibold text-white">
           Password changed.
         </p>
       )}
 
       <section
-        className={`rounded-3xl p-6 ${good ? 'bg-answered text-white' : 'bg-notanswered text-white'}`}
+        className={`rounded-card p-6 ${good ? 'bg-answered text-white' : 'bg-notanswered text-white'}`}
       >
         <h1 className="text-xs font-bold uppercase tracking-[0.2em] text-white/70">
           Today &middot; {formatIstDate(today)}
@@ -80,7 +80,7 @@ export default async function AdminHome({
                       {p.title ?? 'Untitled'}
                     </Link>
                     <span className="tabular-nums text-white/80">{l.opens} &ndash; {l.closes}</span>
-                    <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest">
+                    <span className="rounded-full bg-surface/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest">
                       {stateWord(state)}
                     </span>
                   </li>
@@ -98,37 +98,37 @@ export default async function AdminHome({
 
       <div className="mt-6 flex flex-wrap gap-3">
         <Link href="/admin/papers/upload"
-              className="rounded-2xl bg-play-purple px-5 py-3 font-black text-white transition hover:bg-play-purple-deep">
+              className="rounded-control bg-play-purple px-5 py-3 font-black text-white transition hover:bg-play-purple-deep">
           Upload a paper
         </Link>
         <Link href="/admin/papers"
-              className="rounded-2xl border-2 border-black/15 px-5 py-3 font-bold transition hover:border-black/30">
+              className="rounded-control border-2 border-line-strong px-5 py-3 font-bold transition hover:border-accent">
           All papers
         </Link>
         <Link href="/admin/window"
-              className="rounded-2xl border-2 border-black/15 px-5 py-3 font-bold transition hover:border-black/30">
+              className="rounded-control border-2 border-line-strong px-5 py-3 font-bold transition hover:border-accent">
           Nightly window
         </Link>
         <Link href="/admin/pattern"
-              className="rounded-2xl border-2 border-black/15 px-5 py-3 font-bold transition hover:border-black/30">
+              className="rounded-control border-2 border-line-strong px-5 py-3 font-bold transition hover:border-accent">
           Paper pattern
         </Link>
         <Link href="/admin/users"
-              className="rounded-2xl border-2 border-black/15 px-5 py-3 font-bold transition hover:border-black/30">
+              className="rounded-control border-2 border-line-strong px-5 py-3 font-bold transition hover:border-accent">
           People
         </Link>
         <Link href="/admin/attempts"
-              className="rounded-2xl border-2 border-black/15 px-5 py-3 font-bold transition hover:border-black/30">
+              className="rounded-control border-2 border-line-strong px-5 py-3 font-bold transition hover:border-accent">
           Attempts
         </Link>
         <a href="/api/admin/export"
-           className="rounded-2xl border-2 border-black/15 px-5 py-3 font-bold transition hover:border-black/30">
+           className="rounded-control border-2 border-line-strong px-5 py-3 font-bold transition hover:border-accent">
           Export question bank
         </a>
       </div>
 
-      <section className="mt-8 rounded-2xl bg-white px-5 py-4">
-        <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-ink-soft">Nightly job</h2>
+      <section className="mt-8 rounded-control bg-surface px-5 py-4">
+        <h2 className="eyebrow">Nightly job</h2>
         <div className="mt-2">
           <FinaliseButton />
         </div>
@@ -162,8 +162,8 @@ async function Published() {
 
 function Stat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="rounded-2xl bg-white px-5 py-4">
-      <dt className="text-xs font-bold uppercase tracking-widest text-ink-soft">{label}</dt>
+    <div className="rounded-control bg-surface px-5 py-4">
+      <dt className="eyebrow">{label}</dt>
       <dd className="mt-1 text-3xl font-black tabular-nums">{value}</dd>
     </div>
   )

@@ -27,12 +27,12 @@ function PaperImage({ testId, name }: { testId: string; name: string }) {
 
   if (failed) {
     return (
-      <div role="alert" className="flex flex-wrap items-center gap-3 rounded-xl border-2 border-dashed border-black/20 bg-black/[0.03] px-4 py-6 text-sm">
+      <div role="alert" className="flex flex-wrap items-center gap-3 rounded-xl border-2 border-dashed border-line-strong bg-surface-sunken px-4 py-6 text-sm">
         <span className="font-semibold">The figure &ldquo;{name}&rdquo; did not load.</span>
         <button
           type="button"
           onClick={() => { setFailed(false); setAttempt((n) => n + 1) }}
-          className="rounded-lg border-2 border-black/15 px-3 py-1 font-bold"
+          className="rounded-lg border-2 border-line-strong px-3 py-1 font-bold"
         >
           Retry
         </button>
@@ -48,7 +48,7 @@ function PaperImage({ testId, name }: { testId: string; name: string }) {
       src={src}
       alt={`Figure ${name}`}
       onError={() => setFailed(true)}
-      className="max-h-96 max-w-full rounded-xl border border-black/10 bg-white object-contain"
+      className="max-h-96 max-w-full rounded-xl border border-line bg-surface object-contain"
     />
   )
 }

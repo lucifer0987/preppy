@@ -8,7 +8,7 @@ import { emptyUserAction } from './state'
 /** A password is shown once. There is no email on file to send it to. */
 function Credential({ credential }: { credential: { username: string; password: string } }) {
   return (
-    <div className="mt-4 rounded-2xl bg-answered px-5 py-4 text-white">
+    <div className="mt-4 rounded-control bg-answered px-5 py-4 text-white">
       <p className="text-xs font-bold uppercase tracking-widest text-white/70">
         Copy this now — it is not shown again
       </p>
@@ -27,13 +27,13 @@ export function CreateUserForm() {
 
   return (
     <>
-      <form action={action} className="mt-4 grid gap-3 rounded-3xl bg-white p-5 sm:grid-cols-[1fr_1fr_auto_auto]">
+      <form action={action} className="mt-4 grid gap-3 rounded-card bg-surface p-5 sm:grid-cols-[1fr_1fr_auto_auto]">
         <Field name="username" label="Username" placeholder="student6" />
         <Field name="displayName" label="Display name" placeholder="Student Six" />
         <label className="block">
-          <span className="text-xs font-bold uppercase tracking-widest text-ink-soft">Role</span>
+          <span className="eyebrow">Role</span>
           <select name="role" defaultValue="student"
-                  className="mt-1.5 w-full rounded-xl border-2 border-black/10 bg-white px-3 py-2.5">
+                  className="mt-1.5 w-full rounded-xl border-2 border-line bg-surface px-3 py-2.5">
             <option value="student">Student</option>
             <option value="admin">Admin</option>
           </select>
@@ -43,7 +43,7 @@ export function CreateUserForm() {
         </div>
       </form>
       {state.error && (
-        <p role="alert" className="mt-3 rounded-2xl bg-notanswered px-5 py-3 font-semibold text-white">
+        <p role="alert" className="mt-3 rounded-control bg-notanswered px-5 py-3 font-semibold text-white">
           {state.error}
         </p>
       )}
@@ -72,10 +72,10 @@ export function ResetPasswordForm({ userId, username }: { userId: string; userna
 function Field({ name, label, placeholder }: { name: string; label: string; placeholder: string }) {
   return (
     <label className="block">
-      <span className="text-xs font-bold uppercase tracking-widest text-ink-soft">{label}</span>
+      <span className="eyebrow">{label}</span>
       <input
         name={name} required placeholder={placeholder}
-        className="mt-1.5 w-full rounded-xl border-2 border-black/10 bg-white px-3 py-2.5
+        className="mt-1.5 w-full rounded-xl border-2 border-line bg-surface px-3 py-2.5
                    outline-none transition focus:border-play-purple"
       />
     </label>

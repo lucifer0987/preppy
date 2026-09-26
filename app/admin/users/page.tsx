@@ -23,7 +23,7 @@ export default async function UsersPage() {
       <CreateUserForm />
       <BulkImport />
 
-      <div className="mt-8 overflow-x-auto rounded-3xl bg-white p-5">
+      <div className="mt-8 overflow-x-auto rounded-card bg-surface p-5">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="text-left text-[10px] uppercase tracking-widest text-ink-soft">
@@ -38,7 +38,7 @@ export default async function UsersPage() {
           </thead>
           <tbody>
             {users.map((u) => (
-              <tr key={u.id} className="border-t border-black/10 align-top">
+              <tr key={u.id} className="border-t border-line align-top">
                 <td className="py-3 pr-3 font-mono font-semibold">{u.username}</td>
                 <td className="py-3 pr-3">{u.displayName}</td>
                 <td className="py-3 pr-3">

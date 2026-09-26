@@ -23,7 +23,7 @@ export function BulkImport() {
   }
 
   return (
-    <section className="mt-4 rounded-3xl bg-white p-5">
+    <section className="mt-4 rounded-card bg-surface p-5">
       <div className="flex items-baseline justify-between gap-4">
         <h2 className="font-black">Bulk import</h2>
         <button onClick={() => setOpen(false)} className="text-sm font-bold text-ink-soft underline">
@@ -31,28 +31,28 @@ export function BulkImport() {
         </button>
       </div>
       <p className="mt-1 text-sm text-ink-soft">
-        One row per person: <code className="rounded bg-black/5 px-1.5 py-0.5">username,display name,role</code>.
+        One row per person: <code className="rounded bg-surface-sunken px-1.5 py-0.5">username,display name,role</code>.
         The role is optional and defaults to student. A header row is fine. Up to {MAX_BULK_ROWS} at a time.
       </p>
 
       <form action={action} className="mt-3">
         <textarea
           name="csv" rows={6} defaultValue={SAMPLE} spellCheck={false}
-          className="w-full rounded-xl border-2 border-black/10 bg-white p-3 font-mono text-sm
+          className="w-full rounded-xl border-2 border-line bg-surface p-3 font-mono text-sm
                      outline-none transition focus:border-play-purple"
         />
         <Submit />
       </form>
 
       {state.error && (
-        <p role="alert" className="mt-3 rounded-2xl bg-notanswered px-5 py-3 font-semibold text-white">
+        <p role="alert" className="mt-3 rounded-control bg-notanswered px-5 py-3 font-semibold text-white">
           {state.error}
         </p>
       )}
 
       {state.problems.length > 0 && (
-        <div className="mt-3 rounded-2xl bg-play-yellow/15 p-4">
-          <p className="text-xs font-bold uppercase tracking-widest text-ink-soft">
+        <div className="mt-3 rounded-control bg-play-yellow/15 p-4">
+          <p className="eyebrow">
             {state.problems.length} row{state.problems.length === 1 ? '' : 's'} skipped
           </p>
           <ul className="mt-2 space-y-1 text-sm">
@@ -66,8 +66,8 @@ export function BulkImport() {
       )}
 
       {state.warnings.length > 0 && (
-        <div className="mt-3 rounded-2xl bg-black/5 p-4">
-          <p className="text-xs font-bold uppercase tracking-widest text-ink-soft">
+        <div className="mt-3 rounded-control bg-surface-sunken p-4">
+          <p className="eyebrow">
             Imported, but check {state.warnings.length === 1 ? 'this row' : 'these rows'}
           </p>
           <ul className="mt-2 space-y-1 text-sm">
@@ -81,7 +81,7 @@ export function BulkImport() {
       )}
 
       {state.failed.length > 0 && (
-        <div className="mt-3 rounded-2xl bg-notanswered/10 p-4">
+        <div className="mt-3 rounded-control bg-notanswered/10 p-4">
           <p className="text-xs font-bold uppercase tracking-widest text-notanswered">
             {state.failed.length} could not be created
           </p>
@@ -107,14 +107,14 @@ function Credentials({ rows }: { rows: { username: string; password: string }[] 
   const href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`
 
   return (
-    <div className="mt-4 rounded-2xl bg-answered p-5 text-white">
+    <div className="mt-4 rounded-control bg-answered p-5 text-white">
       <p className="text-xs font-bold uppercase tracking-widest text-white/70">
         {rows.length} account{rows.length === 1 ? '' : 's'} created — copy these now
       </p>
-      <pre className="mt-2 overflow-x-auto rounded-xl bg-black/20 p-3 font-mono text-sm">{csv}</pre>
+      <pre className="mt-2 overflow-x-auto rounded-xl bg-surface-sunken p-3 font-mono text-sm">{csv}</pre>
       <a
         href={href} download="preppy-accounts.csv"
-        className="mt-3 inline-block rounded-xl bg-white px-4 py-2 text-sm font-black text-answered"
+        className="mt-3 inline-block rounded-xl bg-surface px-4 py-2 text-sm font-black text-answered"
       >
         Download as CSV
       </a>

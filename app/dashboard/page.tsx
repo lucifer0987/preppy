@@ -1,20 +1,19 @@
 import Link from 'next/link'
+import { AppShell } from '../../components/AppShell'
 import { requireUser } from '../../lib/guard'
 import { db } from '../../lib/supabase/admin'
 import { findAttempt, loadAttempt } from '../../lib/repo/attempts'
 import { getArchive, getLeaderboard } from '../../lib/repo/leaderboard'
 import { ordinal } from '../../lib/leaderboard'
 import { LeaderboardTable } from '../../components/LeaderboardTable'
-import { logoutAction } from '../login/actions'
 import {
-  canStartAttempt, defaultPaperWindow, entryClosesAt, formatIstDate, istDate, opensAt,
+  canStartAttempt, defaultPaperWindow, entryClosesAt, formatIstDate, istDate, istParts, opensAt,
   paperClosed, paperLabels, type PaperWindow,
 } from '../../lib/time'
 import { getWindow } from '../../lib/repo/settings'
 import { upcomingPapers } from '../../lib/repo/papers'
 import { Countdown } from '../../components/Countdown'
 import { StreakBadge } from '../../components/StreakBadge'
-import { SoundToggle } from '../../components/SoundToggle'
 
 export const dynamic = 'force-dynamic'
 
@@ -75,33 +74,27 @@ export default async function Dashboard({
   const mine = board?.find((r) => r.userId === user.id)
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-10">
-      <header className="flex flex-wrap items-baseline justify-between gap-4">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-ink-soft">Preppy</p>
-          <h1 className="text-3xl font-black tracking-tight">Hello, {user.displayName}</h1>
-        </div>
-        <div className="flex flex-wrap items-center gap-4">
-          <SoundToggle initial={user.soundEnabled} compact />
-          {user.role === 'admin' && (
-            <Link href="/admin" className="text-sm font-bold text-play-purple underline">Admin</Link>
-          )}
-          <Link href="/change-password" className="text-sm font-bold text-ink-soft underline">
-            Password
-          </Link>
-          <form action={logoutAction}>
-            <button className="text-sm font-bold text-ink-soft underline">Log out</button>
-          </form>
-        </div>
+    <AppShell user={user} current="dashboard">
+    <main className="mx-auto max-w-5xl px-5 pt-8">
+      <header>
+        <p className="eyebrow">{greeting(now)}</p>
+        <h1 className="mt-1 text-4xl font-black tracking-tight">{user.displayName}</h1>
       </header>
 
       {password === 'changed' && (
-        <p className="mt-6 rounded-2xl bg-answered px-5 py-4 font-semibold text-white">
+        <p className="mt-6 rounded-control bg-answered px-5 py-4 font-semibold text-white">
           Password changed.
         </p>
       )}
 
-      <section className="mt-8 rounded-3xl bg-play-purple p-6 text-white">
+      <section className="relative mt-8 overflow-hidden rounded-card bg-surface-invert p-6 text-white
+                          shadow-high sm:p-8">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+          <div className="absolute -right-20 -top-24 h-72 w-72 rounded-full bg-brand-600/40 blur-3xl" />
+          <div className="absolute inset-0 opacity-[0.06]"
+               style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '26px 26px' }} />
+        </div>
+        <div className="relative">
         <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">
           {live || attempt ? "Tonight's paper" : 'Next paper'}
         </h2>
@@ -117,7 +110,7 @@ export default async function Dashboard({
               />
             </div>
             <Link href={`/test/${attempt.id}`}
-                  className="mt-4 inline-block rounded-2xl bg-white px-7 py-3.5 font-black text-play-purple">
+                  className="mt-4 inline-block rounded-control bg-surface px-7 py-3.5 font-black text-play-purple">
               Resume test
             </Link>
           </>
@@ -144,12 +137,12 @@ export default async function Dashboard({
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
               <Link href={`/test/${attempt.id}/done`}
-                    className="inline-block rounded-2xl bg-white px-7 py-3.5 font-black text-play-purple">
+                    className="inline-block rounded-control bg-surface px-7 py-3.5 font-black text-play-purple">
                 See your result
               </Link>
               {paperClosed(openPaper!.window, now) && (
                 <Link href={`/archive/${tonight.id}`}
-                      className="inline-block rounded-2xl bg-white/15 px-7 py-3.5 font-black text-white">
+                      className="inline-block rounded-control bg-surface/15 px-7 py-3.5 font-black text-white">
                   Review answers
                 </Link>
               )}
@@ -174,7 +167,7 @@ export default async function Dashboard({
               <Countdown targetIso={entryClosesAt(openPaper!.window).toISOString()} nowIso={nowIso} label="Entry closes in" />
             </div>
             <Link href={`/test/start?test=${tonight.id}`}
-                  className="mt-4 inline-block rounded-2xl bg-white px-7 py-3.5 font-black text-play-purple">
+                  className="mt-4 inline-block rounded-control bg-surface px-7 py-3.5 font-black text-play-purple">
               Start test
             </Link>
           </>
@@ -205,11 +198,13 @@ export default async function Dashboard({
             )}
           </>
         )}
+        </div>
       </section>
 
-      <section className="mt-6 rounded-3xl bg-white p-6" aria-labelledby="archive-panel">
+      <div className="mt-6 grid gap-6 lg:grid-cols-2 lg:items-start">
+      <section className="card p-6" aria-labelledby="archive-panel">
         <div className="flex items-baseline justify-between gap-4">
-          <h2 id="archive-panel" className="text-xs font-bold uppercase tracking-[0.2em] text-ink-soft">Past papers</h2>
+          <h2 id="archive-panel" className="eyebrow">Past papers</h2>
           <Link href="/archive" className="text-sm font-bold text-play-purple">All papers &rarr;</Link>
         </div>
         {archive === null ? (
@@ -230,7 +225,7 @@ export default async function Dashboard({
                         <span className="text-ink-soft">{a.rank !== null ? `${ordinal(a.rank)} of ${a.cohortSize}` : 'rank when it closes'}</span>
                       </>
                     ) : (
-                      <span className="rounded-full bg-black/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-ink-soft">Not attempted</span>
+                      <span className="rounded-full bg-surface-sunken border border-line px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-ink-soft">Not attempted</span>
                     )}
                   </span>
                 </Link>
@@ -240,18 +235,20 @@ export default async function Dashboard({
         )}
       </section>
 
-      <section className="mt-6" aria-labelledby="board-panel">
+      <section className="card p-6" aria-labelledby="board-panel">
         <div className="flex items-baseline justify-between gap-4 px-1">
-          <h2 id="board-panel" className="text-xs font-bold uppercase tracking-[0.2em] text-ink-soft">Leaderboard</h2>
+          <h2 id="board-panel" className="eyebrow">Leaderboard</h2>
           <Link href="/leaderboard" className="text-sm font-bold text-play-purple">Filters and podium &rarr;</Link>
         </div>
         <div className="mt-3">
           {board === null
-            ? <p className="rounded-3xl bg-white p-6 text-sm text-ink-soft">The leaderboard could not be loaded just now.</p>
+            ? <p className="rounded-card bg-surface p-6 text-sm text-ink-soft">The leaderboard could not be loaded just now.</p>
             : <LeaderboardTable rows={board} meUserId={user.id} compact />}
         </div>
       </section>
+      </div>
     </main>
+    </AppShell>
   )
 }
 
@@ -277,3 +274,11 @@ function NextPaper({ paper, nowIso }: {
 }
 
 
+
+/** Morning, afternoon or evening in IST -- the page already knows the instant. */
+function greeting(at: Date): string {
+  const h = istParts(at).hour
+  if (h < 12) return 'Good morning'
+  if (h < 17) return 'Good afternoon'
+  return 'Good evening'
+}

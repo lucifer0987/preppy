@@ -22,7 +22,7 @@ export default async function ChangePasswordPage() {
 
       <ChangePasswordForm />
 
-      <p className="mt-8 border-t border-black/10 pt-4 text-sm text-ink-soft">
+      <p className="mt-8 border-t border-line pt-4 text-sm text-ink-soft">
         There is no email on file, so nobody can send you a reset. If you forget this one, your
         admin has to set a new one for you.
       </p>

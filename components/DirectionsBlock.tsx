@@ -10,7 +10,7 @@ import { PaperImages } from './PaperImages'
 export function DirectionsBlock({ block, testId }: { block: PaperDirections; testId?: string }) {
   return (
     <aside
-      className="mb-4 max-h-64 overflow-y-auto rounded-2xl border-2 border-black/10 bg-white p-4"
+      className="mb-4 max-h-64 overflow-y-auto rounded-control border-2 border-line bg-surface p-4"
       aria-label={`Directions for questions ${block.from} to ${block.to}`}
     >
       <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-ink-soft">
@@ -29,7 +29,7 @@ export function DirectionsBlock({ block, testId }: { block: PaperDirections; tes
             <thead>
               <tr>
                 {block.table.headers.map((h) => (
-                  <th key={h} className="border-b-2 border-black/15 px-3 py-1.5 text-left font-bold whitespace-nowrap">
+                  <th key={h} className="border-b-2 border-line-strong px-3 py-1.5 text-left font-bold whitespace-nowrap">
                     {h}
                   </th>
                 ))}
@@ -39,7 +39,7 @@ export function DirectionsBlock({ block, testId }: { block: PaperDirections; tes
               {block.table.rows.map((row, ri) => (
                 <tr key={ri}>
                   {row.map((cell, ci) => (
-                    <td key={ci} className="border-b border-black/10 px-3 py-1.5 whitespace-nowrap">{cell}</td>
+                    <td key={ci} className="border-b border-line px-3 py-1.5 whitespace-nowrap">{cell}</td>
                   ))}
                 </tr>
               ))}

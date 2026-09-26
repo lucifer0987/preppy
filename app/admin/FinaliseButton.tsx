@@ -21,11 +21,11 @@ export function FinaliseButton() {
         <Submit />
       </form>
       {state.error ? (
-        <p role="alert" className="mt-3 rounded-2xl bg-notanswered px-5 py-3 text-sm font-semibold text-white">
+        <p role="alert" className="mt-3 rounded-control bg-notanswered px-5 py-3 text-sm font-semibold text-white">
           {state.error}
         </p>
       ) : state.summary ? (
-        <p role="status" className="mt-3 rounded-2xl bg-answered px-5 py-3 text-sm font-semibold text-white">
+        <p role="status" className="mt-3 rounded-control bg-answered px-5 py-3 text-sm font-semibold text-white">
           {state.summary}
         </p>
       ) : null}
@@ -39,7 +39,7 @@ function Submit() {
     <button
       type="submit"
       disabled={pending}
-      className="rounded-2xl bg-play-purple px-5 py-2.5 font-black text-white transition disabled:opacity-60"
+      className="rounded-control bg-play-purple px-5 py-2.5 font-black text-white transition disabled:opacity-60"
     >
       {pending ? 'Finalising...' : 'Finalise open attempts now'}
     </button>

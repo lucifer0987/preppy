@@ -41,7 +41,7 @@ export function BeginButton() {
         type="submit"
         onClick={onClick}
         disabled={busy}
-        className="w-full rounded-2xl bg-play-purple px-8 py-5 text-xl font-black text-white transition hover:bg-play-purple-deep disabled:opacity-60"
+        className="w-full rounded-control bg-play-purple px-8 py-5 text-xl font-black text-white transition hover:bg-play-purple-deep disabled:opacity-60"
       >
         {busy ? 'Starting…' : 'Begin'}
       </button>

@@ -24,7 +24,7 @@ export function DeleteButton({ id, label }: { id: string; label: string }) {
       <input type="hidden" name="id" value={id} />
       <span className="text-sm font-semibold">Delete {label} and its dry runs for good?</span>
       <button type="button" onClick={() => setConfirming(false)}
-              className="rounded-xl border-2 border-black/15 px-3 py-1.5 text-sm font-bold">
+              className="rounded-xl border-2 border-line-strong px-3 py-1.5 text-sm font-bold">
         Keep it
       </button>
       <button type="submit" className="rounded-xl bg-notanswered px-3 py-1.5 text-sm font-black text-white">

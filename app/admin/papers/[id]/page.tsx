@@ -73,26 +73,26 @@ export default async function PaperPreview(
       <Link href="/admin/papers" className="text-sm font-bold text-play-purple">&larr; Papers</Link>
 
       {q['error'] && (
-        <p role="alert" className="mt-4 rounded-2xl bg-notanswered px-5 py-4 font-semibold text-white">
+        <p role="alert" className="mt-4 rounded-control bg-notanswered px-5 py-4 font-semibold text-white">
           {q['error']}
         </p>
       )}
       {q['new'] && (
-        <p className="mt-4 rounded-2xl bg-answered px-5 py-4 font-semibold text-white">
+        <p className="mt-4 rounded-control bg-answered px-5 py-4 font-semibold text-white">
           {q['replaced']
             ? 'Replaced the earlier draft for this date. Read it through below, then schedule it.'
             : 'Saved as a draft. Read it through below, then schedule it.'}
         </p>
       )}
       {q['rescored'] && (
-        <p className="mt-4 rounded-2xl bg-answered px-5 py-4 font-semibold text-white">
+        <p className="mt-4 rounded-control bg-answered px-5 py-4 font-semibold text-white">
           Q{q['rescored']} changed from {q['from']} to {q['to']}. {q['of']} attempt
           {q['of'] === '1' ? '' : 's'} rescored, {q['changed']} score
           {q['changed'] === '1' ? '' : 's'} moved.
         </p>
       )}
       {q['scheduled'] && (
-        <p className="mt-4 rounded-2xl bg-answered px-5 py-4 font-semibold text-white">
+        <p className="mt-4 rounded-control bg-answered px-5 py-4 font-semibold text-white">
           Scheduled. It unlocks at {paperLabels(record.window).opens} on {formatIstDate(paper.date)}.
         </p>
       )}
@@ -119,16 +119,16 @@ export default async function PaperPreview(
         </span>
       </header>
 
-      <section className="mt-6 flex flex-wrap items-center gap-3 rounded-2xl bg-white p-5">
+      <section className="mt-6 flex flex-wrap items-center gap-3 rounded-control bg-surface p-5">
         {lock.canSchedule && (
-          <a href="#schedule" className="rounded-2xl bg-play-purple px-6 py-3 font-black text-white transition hover:bg-play-purple-deep">
+          <a href="#schedule" className="rounded-control bg-play-purple px-6 py-3 font-black text-white transition hover:bg-play-purple-deep">
             Read it through, then schedule at the end &darr;
           </a>
         )}
         {lock.canUnschedule && (
           <form action={unscheduleAction}>
             <input type="hidden" name="id" value={id} />
-            <button className="rounded-2xl border-2 border-black/15 px-6 py-3 font-bold transition hover:border-black/30">
+            <button className="rounded-control border-2 border-line-strong px-6 py-3 font-bold transition hover:border-accent">
               Move back to draft
             </button>
           </form>
@@ -142,7 +142,7 @@ export default async function PaperPreview(
         </p>
         <Link
           href={`/test/start?test=${id}`}
-          className="rounded-2xl border-2 border-play-green px-6 py-3 font-bold text-play-green transition hover:bg-play-green/10"
+          className="rounded-control border-2 border-play-green px-6 py-3 font-bold text-play-green transition hover:bg-play-green/10"
         >
           Dry run
         </Link>
@@ -154,7 +154,7 @@ export default async function PaperPreview(
       </section>
 
       {missingImages.length > 0 && (
-        <section role="alert" className="mt-6 rounded-3xl bg-notanswered px-5 py-4 text-white">
+        <section role="alert" className="mt-6 rounded-card bg-notanswered px-5 py-4 text-white">
           <h2 className="text-xs font-bold uppercase tracking-widest text-white/70">Images missing</h2>
           <p className="mt-1 text-sm">
             {missingImages.map(([n, qs]) => `${n} (Q${qs.join(', Q')})`).join('; ')}. Students would see a
@@ -164,7 +164,7 @@ export default async function PaperPreview(
       )}
 
       {flagged.length > 0 && (
-        <section className="mt-6 rounded-3xl bg-notanswered px-5 py-4 text-white">
+        <section className="mt-6 rounded-card bg-notanswered px-5 py-4 text-white">
           <h2 className="text-xs font-bold uppercase tracking-widest text-white/70">
             Worth a second look
           </h2>
@@ -183,7 +183,7 @@ export default async function PaperPreview(
 
       {paper.sections.map((section) => (
         <section key={section.code} className="mt-6">
-          <h2 className="sticky top-0 z-10 -mx-2 bg-paper/95 px-2 py-2 text-lg font-black backdrop-blur">
+          <h2 className="sticky top-0 z-10 -mx-2 bg-page/95 px-2 py-2 text-lg font-black backdrop-blur">
             {SECTION_NAMES[section.code as SectionCode]}
             <span className="ml-2 text-sm font-semibold text-ink-soft">
               {section.questions.length} q &middot; {section.durationMinutes} min
@@ -195,7 +195,7 @@ export default async function PaperPreview(
               const block = section.directions?.find((b) => question.number >= b.from && question.number <= b.to)
               const isFirstOfBlock = block && question.number === block.from
               return (
-                <li key={question.number} className="rounded-3xl bg-white p-5">
+                <li key={question.number} className="rounded-card bg-surface p-5">
                   {isFirstOfBlock && <DirectionsBlock block={block} testId={id} />}
                   <QuestionCard question={question} testId={id} reveal disabled />
                   <ItemFooter
@@ -211,7 +211,7 @@ export default async function PaperPreview(
       ))}
 
       {lock.canSchedule && (
-        <form id="schedule" action={scheduleAction} className="mt-10 rounded-3xl bg-white p-6">
+        <form id="schedule" action={scheduleAction} className="mt-10 rounded-card bg-surface p-6">
           <input type="hidden" name="id" value={id} />
           <h2 className="text-xl font-black">Schedule this paper</h2>
           <p className="mt-1 text-sm text-ink-soft">
@@ -220,22 +220,22 @@ export default async function PaperPreview(
           <label className="mt-4 block text-xs font-bold uppercase tracking-widest text-ink-soft">
             Night
             <input type="date" name="date" defaultValue={defaultDate} min={istDate()} required
-                   className="mt-1 block rounded-xl border-2 border-black/15 px-3 py-2 text-base font-semibold" />
+                   className="mt-1 block rounded-xl border-2 border-line-strong px-3 py-2 text-base font-semibold" />
           </label>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <label className="block">
-              <span className="text-xs font-bold uppercase tracking-widest text-ink-soft">Unlocks at</span>
+              <span className="eyebrow">Unlocks at</span>
               <input type="time" name="opensAt" required
                      defaultValue={hhmm(defaultWindow.opensAtMin)}
-                     className="mt-1 block w-full rounded-xl border-2 border-black/15 px-3 py-2 text-base font-semibold tabular-nums" />
+                     className="mt-1 block w-full rounded-xl border-2 border-line-strong px-3 py-2 text-base font-semibold tabular-nums" />
             </label>
             <label className="block">
-              <span className="text-xs font-bold uppercase tracking-widest text-ink-soft">Last moment to start</span>
+              <span className="eyebrow">Last moment to start</span>
               <input type="time" name="entryClosesAt" required
                      defaultValue={hhmm(defaultWindow.entryClosesAtMin)}
                      max="23:15"
-                     className="mt-1 block w-full rounded-xl border-2 border-black/15 px-3 py-2 text-base font-semibold tabular-nums" />
+                     className="mt-1 block w-full rounded-xl border-2 border-line-strong px-3 py-2 text-base font-semibold tabular-nums" />
             </label>
           </div>
           <p className="mt-2 text-xs text-ink-soft">
@@ -247,7 +247,7 @@ export default async function PaperPreview(
             <input type="checkbox" name="reviewed" value="yes" required className="mt-1 h-4 w-4" />
             <span>I have read all {totalQuestions} questions above, with their keys and solutions.</span>
           </label>
-          <button className="mt-5 rounded-2xl bg-play-purple px-6 py-3 font-black text-white transition hover:bg-play-purple-deep">
+          <button className="mt-5 rounded-control bg-play-purple px-6 py-3 font-black text-white transition hover:bg-play-purple-deep">
             Schedule it
           </button>
         </form>
@@ -266,7 +266,7 @@ function ItemFooter({
   if (!stat) return null
   const present = OPTION_LABELS.filter((l) => question.options[l] !== undefined)
   return (
-    <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-black/10 pt-3">
+    <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-line pt-3">
       <span className="text-xs text-ink-soft tabular-nums">
         {stat.attempts === 0
           ? 'Not yet attempted'

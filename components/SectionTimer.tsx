@@ -51,7 +51,11 @@ export function SectionTimer({
 
   const mm = Math.floor(remaining / 60)
   const ss = remaining % 60
+  // Two thresholds rather than one. A minute is when it matters; five minutes
+  // is when it is worth knowing without being alarmed, which is the point at
+  // which people start deciding what to leave.
   const urgent = remaining <= 60
+  const soon = !urgent && remaining <= 5 * 60
 
   return (
     <span
@@ -59,10 +63,16 @@ export function SectionTimer({
       aria-live="off"
       aria-label={`${mm} minutes ${ss} seconds left in this section`}
       className={[
-        'rounded-full px-4 py-1.5 font-mono text-lg font-bold tabular-nums transition-colors',
-        urgent ? 'bg-notanswered text-white' : 'bg-white text-play-purple',
+        'numeral inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-lg font-bold',
+        'transition-colors',
+        urgent ? 'border-transparent bg-bad text-white motion-safe:animate-[pulseurgent_1.4s_ease-in-out_infinite]'
+          : soon ? 'border-warn/40 bg-warn/10 text-warn'
+          : 'border-line bg-surface text-ink',
       ].join(' ')}
     >
+      <svg viewBox="0 0 20 20" aria-hidden="true" className="h-4 w-4 fill-current opacity-80">
+        <path d="M10 1.5a8.5 8.5 0 100 17 8.5 8.5 0 000-17zM10 4a1 1 0 011 1v4.4l3 1.7a1 1 0 11-1 1.74l-3.5-2A1 1 0 019 10V5a1 1 0 011-1z"/>
+      </svg>
       {String(mm).padStart(2, '0')}:{String(ss).padStart(2, '0')}
     </span>
   )

@@ -30,11 +30,11 @@ export default async function ArchivePage() {
       </p>
 
       {failure ? (
-        <p role="alert" className="mt-8 rounded-3xl bg-notanswered p-6 font-semibold text-white">
+        <p role="alert" className="mt-8 rounded-card bg-notanswered p-6 font-semibold text-white">
           Past papers could not be loaded just now. Try again in a moment. ({failure})
         </p>
       ) : rows.length === 0 ? (
-        <p className="mt-8 rounded-3xl border-2 border-dashed border-black/15 p-8 text-center text-ink-soft">
+        <p className="mt-8 rounded-card border-2 border-dashed border-line-strong p-8 text-center text-ink-soft">
           No papers have closed yet. They appear here from midnight on the night they run.
         </p>
       ) : (
@@ -43,7 +43,7 @@ export default async function ArchivePage() {
             <li key={r.testId}>
               <Link
                 href={`/archive/${r.testId}`}
-                className="flex flex-wrap items-center gap-4 rounded-2xl bg-white px-5 py-4 transition hover:bg-black/[0.03]"
+                className="flex flex-wrap items-center gap-4 rounded-control bg-surface px-5 py-4 transition hover:bg-surface-sunken"
               >
                 <span className="font-bold">{formatIstDate(r.date)}</span>
                 <span className="text-ink-soft">{r.title ?? 'Daily mock'}</span>
@@ -63,7 +63,7 @@ export default async function ArchivePage() {
                       )}
                     </>
                   ) : (
-                    <span className="rounded-full bg-black/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-ink-soft">
+                    <span className="rounded-full bg-surface-sunken border border-line px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-ink-soft">
                       Not attempted
                     </span>
                   )}

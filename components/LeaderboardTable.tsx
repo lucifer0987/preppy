@@ -4,6 +4,11 @@ import { StreakBadge } from './StreakBadge'
 /**
  * The only surface that shows one student anything about another (FR-5.3),
  * and it shows exactly these columns.
+ *
+ * Read far more often than anything else here, so it is built to be scanned:
+ * the reader's own row is pinned visually wherever it falls, rank and score sit
+ * in mono so the columns line up, and the secondary figures step back in weight
+ * rather than in size. Movement is an arrow *and* a number, never colour alone.
  */
 export function LeaderboardTable({
   rows, meUserId, compact = false,
@@ -15,8 +20,9 @@ export function LeaderboardTable({
 }) {
   if (!rows.length) {
     return (
-      <p className="rounded-3xl border-2 border-dashed border-black/15 p-8 text-center text-ink-soft">
-        Nothing yet. The board fills in at 12:01 AM, once the first paper has run.
+      <p className="rounded-card border border-dashed border-line-strong bg-surface-sunken p-8
+                    text-center text-ink-soft">
+        Nothing yet. The board fills in once the first paper has closed.
       </p>
     )
   }
@@ -25,92 +31,154 @@ export function LeaderboardTable({
 
   return (
     <>
-      {!compact && <ol className="grid gap-3 sm:grid-cols-3">
-        {podium.map((row, i) => (
-          <li
-            key={row.userId}
-            style={{ animationDelay: `${i * 110}ms` }}
-            className={[
-              'rounded-3xl p-5 text-center motion-safe:animate-[rise_420ms_cubic-bezier(.2,.8,.2,1)_both]',
-              row.rank === 1 ? 'bg-play-purple text-white sm:order-2 sm:scale-105'
-                : row.rank === 2 ? 'bg-white sm:order-1'
-                : 'bg-white sm:order-3',
-            ].join(' ')}
-          >
-            <p className={`text-4xl font-black ${row.rank === 1 ? '' : 'text-ink-soft'}`}>
-              {row.rank === 1 ? '1st' : row.rank === 2 ? '2nd' : '3rd'}
-            </p>
-            <p className="mt-1 font-bold">{row.displayName}</p>
-            <p className={`text-2xl font-black tabular-nums ${row.rank === 1 ? '' : 'text-play-purple'}`}>
-              {row.totalPoints.toFixed(2)}
-            </p>
-            {row.currentStreak > 0 && (
-              <p className="mt-2"><StreakBadge days={row.currentStreak} /></p>
-            )}
-          </li>
-        ))}
-      </ol>}
+      {!compact && podium.length > 0 && (
+        <ol className="grid gap-3 sm:grid-cols-3 sm:items-end">
+          {podium.map((row, i) => (
+            <Podium key={row.userId} row={row} delay={i * 110} me={row.userId === meUserId} />
+          ))}
+        </ol>
+      )}
 
-      <div className={`overflow-x-auto rounded-3xl bg-white p-5 ${compact ? '' : 'mt-4'}`}>
-        <table className="w-full border-collapse text-sm tabular-nums">
-          <thead>
-            <tr className="text-left text-[10px] uppercase tracking-widest text-ink-soft">
-              <th className="py-2 pr-2 font-bold">#</th>
-              <th className="py-2 pr-2 font-bold" aria-label="Movement" />
-              <th className="py-2 pr-3 font-bold">Student</th>
-              <th className="py-2 px-2 text-right font-bold">Total</th>
-              <th className="py-2 px-2 text-right font-bold">Papers</th>
-              <th className="py-2 px-2 text-right font-bold">Avg</th>
-              <th className="py-2 px-2 text-right font-bold">Accuracy</th>
-              <th className="py-2 px-2 text-right font-bold">Best</th>
-              <th className="py-2 pl-2 text-right font-bold">Streak</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => {
-              const me = row.userId === meUserId
-              return (
-                <tr
-                  key={row.userId}
-                  className={`border-t border-black/10 ${me ? 'bg-play-purple/10 font-semibold' : ''}`}
-                >
-                  <td className="py-2.5 pr-2 font-bold">{row.rank}</td>
-                  <td className="py-2.5 pr-2">
-                    <Movement value={row.movement} />
-                  </td>
-                  <td className="py-2.5 pr-3">
-                    {row.displayName}
-                    {me && <span className="ml-2 text-[10px] uppercase tracking-widest text-play-purple">you</span>}
-                  </td>
-                  <td className="py-2.5 px-2 text-right font-bold">{row.totalPoints.toFixed(2)}</td>
-                  <td className="py-2.5 px-2 text-right text-ink-soft">{row.testsTaken}</td>
-                  <td className="py-2.5 px-2 text-right text-ink-soft">{row.avgScore.toFixed(1)}</td>
-                  <td className="py-2.5 px-2 text-right text-ink-soft">
-                    {row.accuracyPct === null ? '—' : `${row.accuracyPct.toFixed(0)}%`}
-                  </td>
-                  <td className="py-2.5 px-2 text-right text-ink-soft">{row.bestScore.toFixed(2)}</td>
-                  <td className="py-2.5 pl-2 text-right">
-                    {row.currentStreak > 0
-                      ? <StreakBadge days={row.currentStreak} />
-                      : <span className="text-ink-soft">—</span>}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+      <div className={`overflow-hidden rounded-card border border-line bg-surface ${compact ? '' : 'mt-4'}`}>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[40rem] border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-line bg-surface-sunken text-left">
+                <Th className="w-12 pl-5">#</Th>
+                <Th className="w-10"><span className="sr-only">Movement</span></Th>
+                <Th>Student</Th>
+                <Th align="right">Total</Th>
+                <Th align="right">Papers</Th>
+                <Th align="right">Avg</Th>
+                <Th align="right">Accuracy</Th>
+                <Th align="right">Best</Th>
+                <Th align="right" className="pr-5">Streak</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => {
+                const me = row.userId === meUserId
+                return (
+                  <tr
+                    key={row.userId}
+                    className={[
+                      'border-b border-line last:border-0 transition-colors',
+                      me ? 'bg-accent-soft' : 'hover:bg-surface-sunken',
+                    ].join(' ')}
+                  >
+                    <td className="relative py-3 pl-5 pr-2">
+                      {me && <span aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent" />}
+                      <span className={`numeral font-bold ${row.rank <= 3 ? 'text-gold' : 'text-ink'}`}>
+                        {row.rank}
+                      </span>
+                    </td>
+                    <td className="py-3 pr-2"><Movement value={row.movement} /></td>
+                    <td className="py-3 pr-3">
+                      <span className={me ? 'font-bold text-ink' : 'font-medium text-ink'}>
+                        {row.displayName}
+                      </span>
+                      {me && (
+                        <span className="ml-2 rounded-full bg-accent px-1.5 py-0.5 text-[0.5625rem]
+                                         font-bold uppercase tracking-widest text-white align-middle">
+                          you
+                        </span>
+                      )}
+                    </td>
+                    <Td strong>{row.totalPoints.toFixed(2)}</Td>
+                    <Td>{row.testsTaken}</Td>
+                    <Td>{row.avgScore.toFixed(1)}</Td>
+                    <Td>{row.accuracyPct === null ? '—' : `${row.accuracyPct.toFixed(0)}%`}</Td>
+                    <Td>{row.bestScore.toFixed(2)}</Td>
+                    <td className="py-3 pl-2 pr-5 text-right">
+                      {row.currentStreak > 0
+                        ? <StreakBadge days={row.currentStreak} />
+                        : <span className="text-ink-faint">—</span>}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </>
   )
 }
 
+function Th({ children, align = 'left', className = '' }: {
+  children: React.ReactNode; align?: 'left' | 'right'; className?: string
+}) {
+  return (
+    <th scope="col"
+        className={`px-2 py-2.5 text-[0.625rem] font-bold uppercase tracking-[0.12em] text-ink-faint
+                    ${align === 'right' ? 'text-right' : 'text-left'} ${className}`}>
+      {children}
+    </th>
+  )
+}
+
+function Td({ children, strong = false }: { children: React.ReactNode; strong?: boolean }) {
+  return (
+    <td className={`numeral px-2 py-3 text-right ${strong ? 'font-bold text-ink' : 'text-ink-soft'}`}>
+      {children}
+    </td>
+  )
+}
+
+/** First, second and third, with first raised a step on wide screens. */
+function Podium({ row, delay, me }: { row: LeaderboardRow; delay: number; me: boolean }) {
+  const first = row.rank === 1
+  const order = row.rank === 1 ? 'sm:order-2' : row.rank === 2 ? 'sm:order-1' : 'sm:order-3'
+  const place = row.rank === 1 ? '1st' : row.rank === 2 ? '2nd' : '3rd'
+
+  return (
+    <li
+      style={{ animationDelay: `${delay}ms` }}
+      className={[
+        'relative overflow-hidden rounded-card p-5 text-center',
+        'motion-safe:animate-[rise_420ms_cubic-bezier(.2,.8,.2,1)_both]',
+        order,
+        first
+          ? 'bg-surface-invert text-white shadow-high sm:pb-8 sm:pt-7'
+          : 'card',
+        me && !first ? 'ring-2 ring-accent' : '',
+      ].join(' ')}
+    >
+      {first && (
+        <div aria-hidden="true"
+             className="pointer-events-none absolute -right-10 -top-14 h-40 w-40 rounded-full bg-gold-400/25 blur-2xl" />
+      )}
+      <p className={`relative font-display text-xs font-black uppercase tracking-[0.18em]
+                     ${first ? 'text-gold-300' : 'text-ink-faint'}`}>
+        {place}
+      </p>
+      <p className={`relative mt-2 truncate text-lg font-bold ${first ? 'text-white' : 'text-ink'}`}>
+        {row.displayName}
+      </p>
+      <p className={`numeral relative mt-1 text-3xl font-black ${first ? 'text-white' : 'text-accent'}`}>
+        {row.totalPoints.toFixed(2)}
+      </p>
+      {row.currentStreak > 0 && (
+        <p className="relative mt-3 flex justify-center"><StreakBadge days={row.currentStreak} /></p>
+      )}
+    </li>
+  )
+}
+
 function Movement({ value }: { value: number | null }) {
-  if (value === null) return <span className="text-[10px] uppercase tracking-widest text-ink-soft">new</span>
-  if (value === 0) return <span className="text-ink-soft">—</span>
+  if (value === null) {
+    return <span className="text-[0.625rem] font-bold uppercase tracking-widest text-ink-faint">new</span>
+  }
+  if (value === 0) return <span className="text-ink-faint">—</span>
   const up = value > 0
   return (
-    <span className={up ? 'text-answered' : 'text-notanswered'} aria-label={`${up ? 'up' : 'down'} ${Math.abs(value)}`}>
-      {up ? '▲' : '▼'}{Math.abs(value)}
+    <span className={`numeral inline-flex items-center gap-0.5 text-xs font-bold
+                      ${up ? 'text-good' : 'text-bad'}`}
+          aria-label={`${up ? 'up' : 'down'} ${Math.abs(value)}`}>
+      <svg viewBox="0 0 10 10" aria-hidden="true" className="h-2.5 w-2.5 fill-current">
+        {up ? <path d="M5 1 L9.5 8 H0.5 Z" /> : <path d="M5 9 L0.5 2 H9.5 Z" />}
+      </svg>
+      {Math.abs(value)}
     </span>
   )
 }

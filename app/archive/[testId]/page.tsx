@@ -104,7 +104,7 @@ export default async function ArchiveDetail({
       )}
 
       {!attempt && (
-        <p className="mt-5 rounded-2xl bg-white px-5 py-4 text-sm text-ink-soft">
+        <p className="mt-5 rounded-control bg-surface px-5 py-4 text-sm text-ink-soft">
           You did not sit this paper, so there is nothing of yours to compare. The questions and
           solutions are all here.
         </p>
@@ -123,7 +123,7 @@ export default async function ArchiveDetail({
                 )
                 const r = mine.get(question.number)
                 return (
-                  <li key={question.number} className="rounded-3xl bg-white p-5">
+                  <li key={question.number} className="rounded-card bg-surface p-5">
                     {block && <DirectionsBlock block={block} testId={testId} />}
                     {attempt && (
                       <p className="mb-3 flex flex-wrap gap-x-3 text-[11px] font-bold uppercase tracking-widest text-ink-soft">
@@ -165,7 +165,7 @@ function FilterLink({ label, href, active }: { label: string; href: string; acti
       aria-current={active ? 'page' : undefined}
       className={[
         'rounded-full px-4 py-2 text-sm font-bold transition',
-        active ? 'bg-play-purple text-white' : 'bg-white text-ink-soft hover:bg-black/5',
+        active ? 'bg-play-purple text-white' : 'bg-surface text-ink-soft hover:bg-surface-sunken',
       ].join(' ')}
     >
       {label}

@@ -1,56 +1,342 @@
 @import "tailwindcss";
 
 /*
-  Kahoot design tokens (PRD section 8).
+  Preppy's design system.
 
-  The whole product wears this palette, including inside the test. What stays
-  exam-standard in the test engine is the interaction model, not the look.
+  Three ideas hold it together:
 
-  The four option shapes are the load-bearing motif: shape carries the
-  distinction independently of colour, so the brand device itself satisfies an
-  accessibility requirement.
+  1. RAW SCALES live in @theme and never change. --color-brand-700 is one
+     violet, in both themes, forever.
+
+  2. SEMANTIC TOKENS live in :root as plain custom properties and *do* change:
+     --surface, --text, --border. Components reference only these, which is why
+     dark mode needed almost no changes at the call sites.
+
+  3. The four option colours are the one place colour carries meaning on its
+     own, so they are paired with distinct shapes (components/OptionShape.tsx).
+     Shape survives colour-blindness, a bad monitor, and a bright room.
+
+  Nothing may define a colour only inside a media query: every token is declared
+  on bare :root first and redefined afterwards, or a page renders one theme's
+  text on the other theme's background.
 */
-@theme {
-  --color-play-purple: #46178f;
-  --color-play-purple-deep: #2d0e5c;
-  --color-play-red: #e21b3c;
-  --color-play-blue: #1368ce;
-  --color-play-yellow: #d89e00;
-  --color-play-green: #26890c;
-  --color-play-violet: #7128bc;
 
-  /* Question-palette status vocabulary, mapped onto the Kahoot hues. */
+@theme {
+  /* ---- brand: violet. 800 is the original Kahoot-era purple, kept. */
+  --color-brand-50:  #f5f2fe;
+  --color-brand-100: #ece5fd;
+  --color-brand-200: #dacefb;
+  --color-brand-300: #c0abf7;
+  --color-brand-400: #a17cf1;
+  --color-brand-500: #8551e7;
+  --color-brand-600: #7132d6;
+  --color-brand-700: #5d22b4;
+  --color-brand-800: #46178f;
+  --color-brand-900: #391476;
+  --color-brand-950: #230d47;
+
+  /* ---- gold: rank, streaks, the podium. A leaderboard product earns it. */
+  --color-gold-100: #fdf3d4;
+  --color-gold-200: #fbe5a3;
+  --color-gold-300: #f7d066;
+  --color-gold-400: #f0b429;
+  --color-gold-500: #d99506;
+  --color-gold-600: #b07405;
+  --color-gold-700: #8a5a06;
+
+  /* ---- neutrals, pulled slightly toward the violet so greys never read dead */
+  --color-slate-0:   #ffffff;
+  --color-slate-50:  #faf9fc;
+  --color-slate-100: #f3f1f8;
+  --color-slate-200: #e8e4f0;
+  --color-slate-300: #d5cee1;
+  --color-slate-400: #a99fbb;
+  --color-slate-500: #7b7189;
+  --color-slate-600: #5a5169;
+  --color-slate-700: #423a50;
+  --color-slate-800: #2b2437;
+  --color-slate-900: #1b1626;
+  --color-slate-950: #110d18;
+
+  /* ---- states. Kept away from the four option hues on purpose. */
+  --color-good-500:  #16a34a;
+  --color-good-400:  #2bbd63;
+  --color-warn-500:  #d97706;
+  --color-warn-400:  #f0a02a;
+  --color-bad-500:   #dc2626;
+  --color-bad-400:   #f05252;
+
+  /* ---- the four answer options: colour AND shape, never colour alone */
+  --color-opt-red:    #e21b3c;
+  --color-opt-blue:   #1368ce;
+  --color-opt-yellow: #d89e00;
+  --color-opt-green:  #26890c;
+
+  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-plex), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
+
+  --radius-card: 1.25rem;
+  --radius-control: 0.75rem;
+
+  --shadow-low: 0 1px 2px rgb(27 22 38 / 0.06), 0 1px 3px rgb(27 22 38 / 0.04);
+  --shadow-mid: 0 2px 4px rgb(27 22 38 / 0.05), 0 8px 20px -6px rgb(27 22 38 / 0.12);
+  --shadow-high: 0 4px 8px rgb(27 22 38 / 0.06), 0 20px 44px -12px rgb(27 22 38 / 0.22);
+  --shadow-brand: 0 8px 24px -8px rgb(70 23 143 / 0.5);
+}
+
+/* ------------------------------------------------------- semantic tokens */
+:root {
+  color-scheme: light;
+
+  --page: var(--color-slate-100);
+  --surface: var(--color-slate-0);
+  --surface-sunken: var(--color-slate-50);
+  --surface-raised: var(--color-slate-0);
+  --surface-invert: var(--color-brand-800);
+
+  --text: var(--color-slate-900);
+  --text-soft: var(--color-slate-600);
+  --text-faint: var(--color-slate-500);
+  --text-on-brand: #ffffff;
+
+  --line: var(--color-slate-200);
+  --line-strong: var(--color-slate-300);
+
+  --accent: var(--color-brand-700);
+  --accent-hover: var(--color-brand-800);
+  --accent-soft: var(--color-brand-50);
+  --accent-text: var(--color-brand-700);
+
+  --good: var(--color-good-500);
+  --warn: var(--color-warn-500);
+  --bad: var(--color-bad-500);
+  --gold: var(--color-gold-500);
+
+  --shadow-card: var(--shadow-low);
+  --shadow-float: var(--shadow-mid);
+}
+
+/* The un-stamped default: most people never touch a theme switch, so the OS
+   preference has to work on its own. Guarded so an explicit light choice wins. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --page: var(--color-slate-950);
+    --surface: var(--color-slate-900);
+    --surface-sunken: #171222;
+    --surface-raised: var(--color-slate-800);
+    --surface-invert: var(--color-brand-950);
+
+    --text: #f2eefa;
+    --text-soft: #b7aecb;
+    --text-faint: #8d84a3;
+
+    --line: #2f2841;
+    --line-strong: #3f3654;
+
+    --accent: var(--color-brand-400);
+    --accent-hover: var(--color-brand-300);
+    --accent-soft: #241a3d;
+    --accent-text: var(--color-brand-300);
+
+    --good: var(--color-good-400);
+    --warn: var(--color-warn-400);
+    --bad: var(--color-bad-400);
+    --gold: var(--color-gold-300);
+
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-float: 0 8px 24px -8px rgb(0 0 0 / 0.6);
+  }
+}
+
+/* And again for an explicit choice, so the toggle wins in both directions. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --page: var(--color-slate-950);
+  --surface: var(--color-slate-900);
+  --surface-sunken: #171222;
+  --surface-raised: var(--color-slate-800);
+  --surface-invert: var(--color-brand-950);
+
+  --text: #f2eefa;
+  --text-soft: #b7aecb;
+  --text-faint: #8d84a3;
+
+  --line: #2f2841;
+  --line-strong: #3f3654;
+
+  --accent: var(--color-brand-400);
+  --accent-hover: var(--color-brand-300);
+  --accent-soft: #241a3d;
+  --accent-text: var(--color-brand-300);
+
+  --good: var(--color-good-400);
+  --warn: var(--color-warn-400);
+  --bad: var(--color-bad-400);
+  --gold: var(--color-gold-300);
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-float: 0 8px 24px -8px rgb(0 0 0 / 0.6);
+}
+
+/* Semantic tokens as Tailwind utilities. `inline` keeps the var reference, so
+   bg-surface follows the theme instead of baking in today's value. */
+@theme inline {
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-invert: var(--surface-invert);
+  --color-ink: var(--text);
+  --color-ink-soft: var(--text-soft);
+  --color-ink-faint: var(--text-faint);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-good: var(--good);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+  --color-gold: var(--gold);
+}
+
+/*
+  Names the app already uses, kept working and pointed at the new scales. The
+  brand purple stays a fixed colour rather than a themed one: it carries white
+  text everywhere, and a token that lightened in dark mode would put white on
+  lilac. Migrating the call sites is tidying, not a change of appearance.
+*/
+@theme inline {
+  --color-paper: var(--page);
+  --color-play-purple: var(--color-brand-800);
+  --color-play-purple-deep: var(--color-brand-950);
+  --color-play-violet: var(--color-brand-600);
+  --color-play-red: var(--color-opt-red);
+  --color-play-blue: var(--color-opt-blue);
+  --color-play-yellow: var(--color-opt-yellow);
+  --color-play-green: var(--color-opt-green);
   --color-answered: #1c7c2e;
   --color-notanswered: #c7102f;
   --color-marked: #7128bc;
-  --color-notvisited: #b7aecb;
-
-  --color-ink: #191327;
-  --color-ink-soft: #4e4463;
-  --color-paper: #f5f3fa;
-
-  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
-  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --color-notvisited: var(--color-slate-400);
 }
 
-:root { color-scheme: light; }
-
+/* ------------------------------------------------------------ base */
 body {
-  background: var(--color-paper);
-  color: var(--color-ink);
+  background: var(--page);
+  color: var(--text);
+  font-family: var(--font-sans);
+  /* Question text is read under time pressure; give the figures a fixed width
+     so a changing timer or score never nudges the words beside it. */
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+h1 { text-wrap: balance; }
+h2, h3 { text-wrap: balance; }
+
+/* Long-form reading: question stems, directions, solutions. */
+.prose-question {
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  max-width: 68ch;
 }
 
 /* Keyboard users must always see where they are (PRD section 8.4). */
 :focus-visible {
-  outline: 3px solid var(--color-play-purple);
+  outline: 3px solid var(--accent);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
-/* A purple ring vanishes on the purple and red surfaces, so it turns white there. */
-:where(.bg-play-purple, .bg-play-purple-deep, .bg-notanswered, .bg-answered) :focus-visible {
+/* The ring vanishes on brand and status fills, so it turns white there. */
+:where(.bg-play-purple, .bg-play-purple-deep, .bg-surface-invert,
+       .bg-notanswered, .bg-answered, .bg-accent) :focus-visible {
   outline-color: #fff;
 }
 
+::selection { background: var(--color-brand-200); color: var(--color-brand-950); }
+:root[data-theme="dark"] ::selection,
+:root:not([data-theme="light"]) ::selection { background: var(--color-brand-700); color: #fff; }
+
+/* ------------------------------------------------------- primitives */
+@utility card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+@utility card-flat {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+/* Small uppercase label above a group. Used two dozen times. */
+@utility eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--text-faint);
+}
+
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-control);
+  padding: 0.7rem 1.25rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.2;
+  transition: background-color .15s, border-color .15s, color .15s, transform .12s, box-shadow .15s;
+}
+@utility btn-primary {
+  background: var(--accent);
+  color: var(--text-on-brand);
+  box-shadow: var(--shadow-brand);
+}
+@utility btn-quiet {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line-strong);
+}
+
+/* Status pill. The word carries the meaning; colour only reinforces it. */
+@utility chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border: 1px solid transparent;
+}
+
+/* A number that should read as a figure: scores, ranks, timers. */
+@utility numeral {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "zero" 1;
+  letter-spacing: -0.01em;
+}
+
+/* ------------------------------------------------------- behaviour */
 /* FR-6.5.7: printing a test prints a note, not the paper. Friction, not security. */
 .exam-print-note { display: none; }
 @media print {
@@ -58,18 +344,26 @@ body {
   .exam-print-note { display: block; padding: 2rem; font-weight: 700; }
 }
 
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
 /*
-  Podium entrance. Guarded by motion-safe at the call site, and the global
-  reduced-motion rule above collapses it to nothing regardless.
+  The last minute of a section. A slow breath rather than a flash: it has to be
+  noticeable out of the corner of an eye without pulling attention off the
+  question. Collapsed to nothing by the reduced-motion rule above, and the call
+  site guards it with motion-safe as well.
 */
-@keyframes rise {
-  from { opacity: 0; transform: translateY(14px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+@keyframes pulseurgent {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(220 38 38 / 0.45); }
+  50%      { box-shadow: 0 0 0 7px rgb(220 38 38 / 0); }
 }

@@ -37,7 +37,7 @@ export function PatternForm({ current, latestEntryClose }: {
     setDraft(draft.map((s) => s.code === code ? { ...s, [k]: Number(e.target.value) } : s))
 
   return (
-    <form action={action} className="mt-4 rounded-3xl bg-white p-5">
+    <form action={action} className="mt-4 rounded-card bg-surface p-5">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[34rem] border-collapse text-sm">
           <thead>
@@ -51,7 +51,7 @@ export function PatternForm({ current, latestEntryClose }: {
           </thead>
           <tbody>
             {draft.map((s) => (
-              <tr key={s.code} className="border-t border-black/10">
+              <tr key={s.code} className="border-t border-line">
                 <td className="py-2.5 pr-3 font-semibold">{SECTION_NAMES[s.code]}</td>
                 <Cell name={`${s.code}.questions`} value={s.questions} step={1} min={1} max={200}
                       onChange={set(s.code, 'questions')} label={`${s.code} questions`} />
@@ -67,7 +67,7 @@ export function PatternForm({ current, latestEntryClose }: {
         </table>
       </div>
 
-      <div className="mt-5 rounded-2xl bg-black/[0.04] p-4">
+      <div className="mt-5 rounded-control bg-surface-sunken p-4">
         <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">What a paper becomes</p>
         {!numbers || !sane ? (
           <p className="mt-2 text-sm font-semibold text-notanswered">
@@ -102,12 +102,12 @@ export function PatternForm({ current, latestEntryClose }: {
       </div>
 
       {state.error && (
-        <p role="alert" className="mt-4 rounded-2xl bg-notanswered px-4 py-3 text-sm font-semibold text-white">
+        <p role="alert" className="mt-4 rounded-control bg-notanswered px-4 py-3 text-sm font-semibold text-white">
           {state.error}
         </p>
       )}
       {state.saved && !state.error && (
-        <p className="mt-4 rounded-2xl bg-answered px-4 py-3 text-sm font-semibold text-white">
+        <p className="mt-4 rounded-control bg-answered px-4 py-3 text-sm font-semibold text-white">
           Saved. Papers already uploaded keep the shape they were given.
         </p>
       )}
@@ -133,7 +133,7 @@ function Cell({ name, value, step, min, max, onChange, label, last }: {
       <input
         type="number" name={name} value={value} step={step} min={min} max={max} required
         aria-label={label} onChange={onChange}
-        className="w-20 rounded-xl border-2 border-black/15 px-2.5 py-1.5 text-base font-semibold tabular-nums"
+        className="w-20 rounded-xl border-2 border-line-strong px-2.5 py-1.5 text-base font-semibold tabular-nums"
       />
     </td>
   )
@@ -144,7 +144,7 @@ function Save({ disabled }: { disabled: boolean }) {
   return (
     <button
       disabled={disabled || pending}
-      className="mt-4 rounded-2xl bg-play-purple px-7 py-3 font-black text-white transition
+      className="mt-4 rounded-control bg-play-purple px-7 py-3 font-black text-white transition
                  hover:bg-play-purple-deep disabled:opacity-50"
     >
       {pending ? 'Saving...' : 'Save pattern'}

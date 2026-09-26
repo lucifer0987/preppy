@@ -57,7 +57,7 @@ export default async function LeaderboardPage({
               aria-current={!test && (value ?? undefined) === win ? 'page' : undefined}
               className={[
                 'rounded-full px-4 py-2 text-sm font-bold transition',
-                !test && (value ?? undefined) === win ? 'bg-play-purple text-white' : 'bg-white text-ink-soft hover:bg-black/5',
+                !test && (value ?? undefined) === win ? 'bg-play-purple text-white' : 'bg-surface text-ink-soft hover:bg-surface-sunken',
               ].join(' ')}
             >
               {label}
@@ -69,7 +69,7 @@ export default async function LeaderboardPage({
             <label htmlFor="paper" className="text-sm font-bold text-ink-soft">One paper</label>
             <select
               id="paper" name="test" defaultValue={test ?? ''}
-              className="rounded-full border-2 border-black/10 bg-white px-3 py-1.5 text-sm font-semibold"
+              className="rounded-full border-2 border-line bg-surface px-3 py-1.5 text-sm font-semibold"
             >
               <option value="" disabled>Choose…</option>
               {papers.map((p) => (
@@ -83,7 +83,7 @@ export default async function LeaderboardPage({
 
       <div className="mt-6">
         {failure ? (
-          <p role="alert" className="rounded-3xl bg-notanswered p-6 font-semibold text-white">
+          <p role="alert" className="rounded-card bg-notanswered p-6 font-semibold text-white">
             The leaderboard could not be loaded just now. Nothing has been lost; try again in a
             moment. ({failure})
           </p>
@@ -95,7 +95,7 @@ export default async function LeaderboardPage({
       </div>
 
       {user.role === 'admin' && (
-        <p className="mt-6 rounded-2xl bg-play-yellow/15 px-5 py-4 text-sm">
+        <p className="mt-6 rounded-control bg-play-yellow/15 px-5 py-4 text-sm">
           You do not appear here. Admin attempts are always dry runs, so they are never counted.
         </p>
       )}
@@ -112,21 +112,21 @@ function PaperRankList({
 }) {
   if (!standings) {
     return (
-      <p className="rounded-3xl border-2 border-dashed border-black/15 p-8 text-center text-ink-soft">
+      <p className="rounded-card border-2 border-dashed border-line-strong p-8 text-center text-ink-soft">
         That paper is not on the board yet. A paper joins it when its own window closes and every attempt on it has had to end.
       </p>
     )
   }
   if (!standings.rows.length) {
     return (
-      <p className="rounded-3xl border-2 border-dashed border-black/15 p-8 text-center text-ink-soft">
+      <p className="rounded-card border-2 border-dashed border-line-strong p-8 text-center text-ink-soft">
         Nobody sat the paper for {formatIstDate(standings.date)}.
       </p>
     )
   }
   return (
-    <div className="overflow-x-auto rounded-3xl bg-white p-5">
-      <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">{formatIstDate(standings.date)}</h2>
+    <div className="overflow-x-auto rounded-card bg-surface p-5">
+      <h2 className="eyebrow">{formatIstDate(standings.date)}</h2>
       <table className="mt-3 w-full border-collapse text-sm tabular-nums">
         <thead>
           <tr className="text-left text-[10px] uppercase tracking-widest text-ink-soft">
@@ -140,7 +140,7 @@ function PaperRankList({
           {standings.rows.map((row) => {
             const me = row.userId === meUserId
             return (
-              <tr key={row.userId} className={`border-t border-black/10 ${me ? 'bg-play-purple/10 font-semibold' : ''}`}>
+              <tr key={row.userId} className={`border-t border-line ${me ? 'bg-play-purple/10 font-semibold' : ''}`}>
                 <td className="py-2.5 pr-2 font-bold">{ordinal(row.rank)}</td>
                 <td className="py-2.5 pr-3">
                   {row.displayName}

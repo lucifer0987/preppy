@@ -16,14 +16,14 @@ export default async function PapersPage() {
         <h1 className="text-3xl font-black tracking-tight">Papers</h1>
         <Link
           href="/admin/papers/upload"
-          className="rounded-2xl bg-play-purple px-5 py-2.5 font-black text-white transition hover:bg-play-purple-deep"
+          className="rounded-control bg-play-purple px-5 py-2.5 font-black text-white transition hover:bg-play-purple-deep"
         >
           Upload a paper
         </Link>
       </div>
 
       {papers.length === 0 ? (
-        <p className="mt-8 rounded-3xl border-2 border-dashed border-black/15 p-8 text-center text-ink-soft">
+        <p className="mt-8 rounded-card border-2 border-dashed border-line-strong p-8 text-center text-ink-soft">
           No papers yet. Upload one to get started.
         </p>
       ) : (
@@ -45,7 +45,7 @@ export default async function PapersPage() {
               <li key={p.id}>
                 <Link
                   href={`/admin/papers/${p.id}`}
-                  className="flex flex-wrap items-center gap-4 rounded-2xl bg-white px-5 py-4 transition hover:bg-black/[0.03]"
+                  className="flex flex-wrap items-center gap-4 rounded-control bg-surface px-5 py-4 transition hover:bg-surface-sunken"
                 >
                   <span className="font-bold tabular-nums">{formatIstDate(p.date)}</span>
                   <span className="text-xs tabular-nums text-ink-soft">{paperLabels(p.window).opens}</span>

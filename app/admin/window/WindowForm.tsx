@@ -27,7 +27,7 @@ export function WindowForm(
     setDraft({ ...draft, [k]: Number(e.target.value) })
 
   return (
-    <form action={action} className="mt-4 rounded-3xl bg-white p-5">
+    <form action={action} className="mt-4 rounded-card bg-surface p-5">
       <div className="grid gap-5 sm:grid-cols-2">
         <TimeField
           label="Papers unlock at" hourName="openHour" minuteName="openMinute"
@@ -43,7 +43,7 @@ export function WindowForm(
         />
       </div>
 
-      <div className="mt-5 rounded-2xl bg-black/[0.04] p-4">
+      <div className="mt-5 rounded-control bg-surface-sunken p-4">
         <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">What students will see</p>
         {problem ? (
           <p className="mt-2 text-sm font-semibold text-notanswered">{problem}</p>
@@ -62,12 +62,12 @@ export function WindowForm(
       </div>
 
       {state.error && (
-        <p role="alert" className="mt-4 rounded-2xl bg-notanswered px-5 py-3 font-semibold text-white">
+        <p role="alert" className="mt-4 rounded-control bg-notanswered px-5 py-3 font-semibold text-white">
           {state.error}
         </p>
       )}
       {state.saved && !state.error && (
-        <p role="status" className="mt-4 rounded-2xl bg-answered px-5 py-3 font-semibold text-white">
+        <p role="status" className="mt-4 rounded-control bg-answered px-5 py-3 font-semibold text-white">
           Saved. Every page shows the new times from now on.
         </p>
       )}
@@ -88,7 +88,7 @@ function TimeField({
 }) {
   return (
     <div>
-      <p className="text-xs font-bold uppercase tracking-widest text-ink-soft">{label}</p>
+      <p className="eyebrow">{label}</p>
       <div className="mt-1.5 flex items-center gap-2">
         <Box name={hourName} value={hour} max={23} onChange={onHour} aria-label={`${label}, hour`} />
         <span className="text-xl font-bold text-ink-soft">:</span>
@@ -109,7 +109,7 @@ function Box(props: {
     <input
       {...rest}
       type="number" name={name} value={value} min={0} max={max} required onChange={onChange}
-      className="w-20 rounded-xl border-2 border-black/10 bg-white px-3 py-2 text-center text-lg
+      className="w-20 rounded-xl border-2 border-line bg-surface px-3 py-2 text-center text-lg
                  font-bold tabular-nums outline-none transition focus:border-play-purple"
     />
   )
@@ -120,7 +120,7 @@ function Submit({ disabled }: { disabled: boolean }) {
   return (
     <button
       type="submit" disabled={pending || disabled}
-      className="mt-5 rounded-2xl bg-play-purple px-6 py-3 font-black text-white
+      className="mt-5 rounded-control bg-play-purple px-6 py-3 font-black text-white
                  transition hover:bg-play-purple-deep disabled:opacity-40"
     >
       {pending ? 'Saving...' : 'Save these times'}

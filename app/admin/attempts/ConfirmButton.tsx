@@ -26,7 +26,7 @@ export function ConfirmButton({
     <form action={action} className="flex flex-wrap items-center justify-end gap-2">
       {Object.entries(fields).map(([k, v]) => <input key={k} type="hidden" name={k} value={v} />)}
       <span className="text-xs font-semibold">{confirm}</span>
-      <button type="button" onClick={() => setAsking(false)} className="rounded-lg border-2 border-black/15 px-2 py-1 text-xs font-bold">
+      <button type="button" onClick={() => setAsking(false)} className="rounded-lg border-2 border-line-strong px-2 py-1 text-xs font-bold">
         Keep
       </button>
       <button type="submit" className="rounded-lg bg-notanswered px-2 py-1 text-xs font-black text-white">{label}</button>

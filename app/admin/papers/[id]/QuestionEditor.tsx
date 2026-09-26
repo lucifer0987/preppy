@@ -42,11 +42,11 @@ export function QuestionEditor({
     )
   }
 
-  const field = 'mt-1 block w-full rounded-xl border-2 border-black/15 px-3 py-2 text-sm'
+  const field = 'mt-1 block w-full rounded-xl border-2 border-line-strong px-3 py-2 text-sm'
   return (
     <form
       action={action}
-      className="mt-2 basis-full rounded-2xl border-2 border-play-purple/30 bg-play-purple/5 p-4 text-left"
+      className="mt-2 basis-full rounded-control border-2 border-play-purple/30 bg-play-purple/5 p-4 text-left"
     >
       <input type="hidden" name="testId" value={testId} />
       <input type="hidden" name="questionId" value={questionId} />
@@ -91,7 +91,7 @@ export function QuestionEditor({
 
       <div className="mt-3 flex gap-2">
         <button type="button" onClick={() => setOpen(false)}
-                className="rounded-xl border-2 border-black/15 px-4 py-2 text-sm font-bold">
+                className="rounded-xl border-2 border-line-strong px-4 py-2 text-sm font-bold">
           Close
         </button>
         <Save />

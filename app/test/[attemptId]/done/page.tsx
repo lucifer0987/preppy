@@ -125,22 +125,22 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
       />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-ink-soft">
+        <p className="eyebrow">
           {test.title ?? 'Daily mock'} &middot; {formatIstDate(test.date)}
         </p>
         <SoundToggle initial={user.soundEnabled} compact />
       </div>
 
       {attempt.rescored_at && counted && (
-        <p className="mt-4 rounded-2xl bg-play-yellow/20 px-5 py-4 text-sm font-semibold">
+        <p className="mt-4 rounded-control bg-play-yellow/20 px-5 py-4 text-sm font-semibold">
           An answer key on this paper was corrected after it ran, and your score changed as a
           result. The score below is the corrected one.
         </p>
       )}
 
-      <section className="mt-4 rounded-3xl bg-play-purple p-8 text-center text-white">
+      <section className="mt-4 rounded-card bg-play-purple p-8 text-center text-white">
         {attempt.is_dry_run && (
-          <p className="mb-3 inline-block rounded-full bg-white/20 px-3 py-1 text-[10px] font-bold uppercase tracking-widest">
+          <p className="mb-3 inline-block rounded-full bg-surface/20 px-3 py-1 text-[10px] font-bold uppercase tracking-widest">
             Dry run &middot; not counted
           </p>
         )}
@@ -159,7 +159,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
           </p>
         )}
         {isPersonalBest && (
-          <p className="mt-3 inline-block rounded-full bg-white px-4 py-1.5 text-sm font-black text-play-purple">
+          <p className="mt-3 inline-block rounded-full bg-surface px-4 py-1.5 text-sm font-black text-play-purple">
             Personal best
           </p>
         )}
@@ -170,16 +170,16 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
       </section>
 
       {standing && standing.board.after !== null && (
-        <section className="mt-4 rounded-3xl bg-white p-5">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">Leaderboard</h2>
+        <section className="mt-4 rounded-card bg-surface p-5">
+          <h2 className="eyebrow">Leaderboard</h2>
           <p className="mt-2 text-sm">
             <BoardDelta before={standing.board.before} after={standing.board.after} of={standing.board.of} />
           </p>
         </section>
       )}
 
-      <section className="mt-4 overflow-x-auto rounded-3xl bg-white p-5">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">By section</h2>
+      <section className="mt-4 overflow-x-auto rounded-card bg-surface p-5">
+        <h2 className="eyebrow">By section</h2>
         <table className="mt-3 w-full border-collapse text-sm tabular-nums">
           <thead>
             <tr className="text-left text-[10px] uppercase tracking-widest text-ink-soft">
@@ -196,7 +196,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
           </thead>
           <tbody>
             {sections.map((s) => (
-              <tr key={s.code} className="border-t border-black/10">
+              <tr key={s.code} className="border-t border-line">
                 <td className="py-2 pr-3 font-semibold">{SECTION_NAMES[s.code as SectionCode]}</td>
                 <td className="py-2 px-2 text-right font-bold">{s.score.toFixed(2)}</td>
                 <td className="py-2 px-2 text-right">{s.attempted}</td>
@@ -215,8 +215,8 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
       </section>
 
       {sections.some((s) => pacingVerdict(s)) && (
-        <section className="mt-4 rounded-3xl bg-white p-5">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">Pacing</h2>
+        <section className="mt-4 rounded-card bg-surface p-5">
+          <h2 className="eyebrow">Pacing</h2>
           <ul className="mt-3 space-y-2 text-sm">
             {sections.map((s) => {
               const verdict = pacingVerdict(s)
@@ -231,8 +231,8 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
       )}
 
       {slowest.some((s) => s.questions.length) && (
-        <section className="mt-4 rounded-3xl bg-white p-5">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">Where the time went</h2>
+        <section className="mt-4 rounded-card bg-surface p-5">
+          <h2 className="eyebrow">Where the time went</h2>
           <p className="mt-1 text-xs text-ink-soft">Your three slowest questions in each section.</p>
           <ul className="mt-3 space-y-2 text-sm tabular-nums">
             {slowest.map((s) => s.questions.length ? (
@@ -245,8 +245,8 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
         </section>
       )}
 
-      <section className="mt-4 rounded-3xl bg-white p-5">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">Full screen</h2>
+      <section className="mt-4 rounded-card bg-surface p-5">
+        <h2 className="eyebrow">Full screen</h2>
         <p className="mt-2 text-sm tabular-nums">
           Left full screen <strong>{attempt.fullscreen_exits}</strong>{' '}
           {attempt.fullscreen_exits === 1 ? 'time' : 'times'} &middot; switched away{' '}
@@ -254,12 +254,12 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
         </p>
       </section>
 
-      <section className="mt-4 rounded-3xl bg-white p-5">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-ink-soft">Answers</h2>
+      <section className="mt-4 rounded-card bg-surface p-5">
+        <h2 className="eyebrow">Answers</h2>
         {unlocked && test.status === 'SCHEDULED' ? (
           <Link
             href={`/archive/${testId}`}
-            className="mt-3 inline-block rounded-2xl bg-play-purple px-5 py-2.5 text-sm font-black text-white"
+            className="mt-3 inline-block rounded-control bg-play-purple px-5 py-2.5 text-sm font-black text-white"
           >
             Review your answers
           </Link>
@@ -274,7 +274,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
 
       <Link
         href="/dashboard"
-        className="mt-8 inline-block rounded-2xl bg-play-purple px-6 py-3 font-black text-white"
+        className="mt-8 inline-block rounded-control bg-play-purple px-6 py-3 font-black text-white"
       >
         Back to dashboard
       </Link>

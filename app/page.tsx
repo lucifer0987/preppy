@@ -46,7 +46,7 @@ export default async function Home() {
           One paper a night, marked like the real exam, on a leaderboard that never resets.
         </p>
 
-        <section className="mt-10 rounded-3xl bg-white/10 p-6" aria-labelledby="next-paper">
+        <section className="mt-10 rounded-card bg-surface/10 p-6" aria-labelledby="next-paper">
           <h2 id="next-paper" className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">
             Next paper unlocks in
           </h2>
@@ -58,7 +58,7 @@ export default async function Home() {
           </p>
         </section>
 
-        <section className="mt-6 rounded-3xl bg-white/10 p-6" aria-labelledby="pattern">
+        <section className="mt-6 rounded-card bg-surface/10 p-6" aria-labelledby="pattern">
           <h2 id="pattern" className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">
             Tonight&rsquo;s pattern
           </h2>
@@ -83,7 +83,7 @@ export default async function Home() {
         <div className="mt-10">
           <Link
             href="/login"
-            className="inline-block rounded-2xl bg-white px-8 py-4 text-lg font-black text-play-purple transition hover:bg-white/90"
+            className="inline-block rounded-control bg-surface px-8 py-4 text-lg font-black text-play-purple transition hover:bg-surface/90"
           >
             Log in
           </Link>
