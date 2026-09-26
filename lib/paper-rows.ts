@@ -9,7 +9,7 @@ import { PATTERN, type Paper, type PaperQuestion, type SectionCode } from './typ
  * months.
  *
  * Primary keys are assigned by Postgres, so rows here are linked by section
- * code and question number. save_paper (supabase/schema.sql) resolves those to
+ * code and question number. save_paper (supabase/migrations) resolves those to
  * ids inside one transaction, and links each question to the directions block
  * whose range holds it.
  */

@@ -1,7 +1,7 @@
 /**
  * Rate limits (PRD section 13): login, response writes and paper uploads.
  *
- * The counting happens in the database (rate_limit_* in supabase/schema.sql,
+ * The counting happens in the database (rate_limit_* in supabase/migrations,
  * called through lib/repo/rate-limit.ts), not in server memory: a serverless
  * host runs many short-lived instances, and each would keep its own count.
  * This module holds the limits themselves and the pure helpers.

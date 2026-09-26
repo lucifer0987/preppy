@@ -37,7 +37,7 @@ export function generatePassword(): string {
 /**
  * The Supabase session an access token belongs to, from its `session_id`
  * claim. Used to keep the caller's own session when revoking the rest
- * (revoke_user_sessions in supabase/schema.sql). The token has already been
+ * (revoke_user_sessions in supabase/migrations). The token has already been
  * verified by the auth server when this is called, so it is only decoded.
  */
 export function sessionIdFromToken(accessToken: string | null | undefined): string | null {

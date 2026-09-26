@@ -59,7 +59,7 @@ export interface PaperRecord {
   window: PaperWindow
   publishedAt: string | null
   rescoredAt: string | null
-  /** Bumped by every key correction; see finish_attempt in schema.sql. */
+  /** Bumped by every key correction; see finish_attempt in supabase/migrations. */
   keyVersion: number
   paper: Paper
 }
@@ -73,7 +73,7 @@ export interface SaveResult {
 }
 
 export async function savePaper(paper: Paper): Promise<SaveResult> {
-  // One transaction in the database (save_paper in supabase/schema.sql):
+  // One transaction in the database (save_paper in supabase/migrations):
   // either the whole paper is written, replacing a draft for the same date, or
   // nothing changes. A scheduled paper, or a draft students have sat, is
   // refused there, where no race can slip past the check.

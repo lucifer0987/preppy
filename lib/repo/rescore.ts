@@ -28,7 +28,7 @@ const FINISHED = ['SUBMITTED', 'AUTO_SUBMITTED']
 
 /**
  * Sets a question's key and rescores every finished attempt on its paper, as
- * one transaction (apply_rescore in supabase/schema.sql): the key and the
+ * one transaction (apply_rescore in supabase/migrations): the key and the
  * scores can never disagree, and a failure changes nothing.
  *
  * Scores are computed here against the new key, then written together. If a

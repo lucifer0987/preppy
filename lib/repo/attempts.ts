@@ -195,7 +195,7 @@ async function closeExpiredSections(core: AttemptCore, now: Date): Promise<Secti
  * that already exists (see below).
  */
 export async function startAttempt(testId: string, userId: string, isDryRun: boolean): Promise<string> {
-  // One transaction (start_attempt in supabase/schema.sql): the attempt and all
+  // One transaction (start_attempt in supabase/migrations): the attempt and all
   // its section rows exist together, or neither does. A running dry run is
   // returned rather than doubled.
   const { data, error } = await db().rpc('start_attempt', { p_test: testId, p_user: userId, p_dry: isDryRun })

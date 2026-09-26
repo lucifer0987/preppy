@@ -38,10 +38,10 @@ async function findAuthUser(admin: SupabaseClient, email: string): Promise<User 
   }
 }
 
-/** Signs an account out everywhere (revoke_user_sessions in schema.sql). */
+/** Signs an account out everywhere (revoke_user_sessions in supabase/migrations). */
 async function endSessions(admin: SupabaseClient, userId: string, username: string) {
   const { error } = await admin.rpc('revoke_user_sessions', { p_user: userId })
-  if (error) console.error(`  WARNING  ${username}: sessions not ended (${error.message}). Run schema.sql first.`)
+  if (error) console.error(`  WARNING  ${username}: sessions not ended (${error.message}). Run 'npm run migrate' first.`)
 }
 
 async function main() {
