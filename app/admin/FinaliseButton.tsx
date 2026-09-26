@@ -7,7 +7,7 @@ import { finaliseNowAction, type FinaliseState } from './finalise'
 const initial: FinaliseState = { error: null, summary: null }
 
 /**
- * Runs the 00:05 finalise job now (FR-10.3). Anything still open past its
+ * Runs the 01:00 finalise job now (FR-10.3). Anything still open past its
  * paper's hard stop is force-submitted and scored; attempts still inside
  * their window are left alone, so this is safe to press at any hour.
  */

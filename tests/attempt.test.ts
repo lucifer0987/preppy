@@ -244,14 +244,14 @@ describe('rolling forward past expired sections', () => {
 
   it('labels a section by what ended it, even when noticed after 23:59', () => {
     // Quant ran out at 23:42 on its own; Reasoning was cut short at 23:59.
-    const rolled = rollForward(freshSections(at(23, 30)), at(23, 59, 360), HARD_STOP)
+    const rolled = rollForward(freshSections(at(23, 30)), at(23, 59, 3660), HARD_STOP)
     expect(rolled[0]).toMatchObject({ endedAt: at(23, 42), endReason: 'TIMER_EXPIRED' })
     expect(rolled[1]).toMatchObject({ startedAt: at(23, 42), endedAt: at(23, 54), endReason: 'TIMER_EXPIRED' })
     expect(rolled[2]).toMatchObject({ startedAt: at(23, 54), endedAt: HARD_STOP, endReason: 'FORCE_CLOSED' })
   })
 
   it('never opens a section at the hard stop', () => {
-    const rolled = rollForward(freshSections(at(23, 30)), at(23, 59, 360), HARD_STOP)
+    const rolled = rollForward(freshSections(at(23, 30)), at(23, 59, 3660), HARD_STOP)
     expect(rolled[3]).toMatchObject({ startedAt: null, endedAt: null })
   })
 
@@ -271,8 +271,8 @@ describe('closing everything at submission', () => {
     expect(closed[3]).toMatchObject({ endedAt: at(22, 5), endReason: 'SUBMITTED' })
   })
 
-  it('an attempt abandoned at 22:01 and scored at 00:05 closes at its deadlines', () => {
-    const closed = closeForSubmit(freshSections(at(22, 0)), at(23, 59, 360), HARD_STOP, 'AUTO_SUBMITTED')
+  it('an attempt abandoned at 22:01 and scored at 01:00 closes at its deadlines', () => {
+    const closed = closeForSubmit(freshSections(at(22, 0)), at(23, 59, 3660), HARD_STOP, 'AUTO_SUBMITTED')
     expect(closed.map((s) => s.endedAt)).toEqual([at(22, 12), at(22, 24), at(22, 33), at(22, 45)])
     expect(closed.every((s) => s.endReason === 'TIMER_EXPIRED')).toBe(true)
     // 45 minutes, not two hours.
@@ -280,7 +280,7 @@ describe('closing everything at submission', () => {
   })
 
   it('leaves never-reached sections unstarted', () => {
-    const closed = closeForSubmit(freshSections(at(23, 50)), at(23, 59, 360), HARD_STOP, 'AUTO_SUBMITTED')
+    const closed = closeForSubmit(freshSections(at(23, 50)), at(23, 59, 3660), HARD_STOP, 'AUTO_SUBMITTED')
     expect(closed[0]).toMatchObject({ endedAt: HARD_STOP, endReason: 'FORCE_CLOSED' })
     for (const s of closed.slice(1)) {
       expect(s).toMatchObject({ startedAt: null, endedAt: null, endReason: 'FORCE_CLOSED' })

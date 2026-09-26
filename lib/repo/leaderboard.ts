@@ -32,7 +32,7 @@ const windowOf = (t: Record<string, unknown>): PaperWindow => ({
  * onBoard), so nothing about tonight is visible to anyone else while it is
  * open. Its own attempt is visible to its owner at once, on the result page.
  *
- * Attempts left open past their hard stop are scored first. The 00:05 job
+ * Attempts left open past their hard stop are scored first. The 01:00 job
  * would get to them, but the board is read from 00:01, and a student whose
  * browser died must not be missing from it for those minutes.
  *

@@ -468,7 +468,7 @@ export async function moveToNextSection(
 /**
  * Score the attempt and close it.
  *
- * Idempotent: the state flip is conditional on IN_PROGRESS, so when the 00:05
+ * Idempotent: the state flip is conditional on IN_PROGRESS, so when the 01:00
  * job and a student's own End Test race, exactly one of them scores the paper
  * and the other finds nothing to do.
  */

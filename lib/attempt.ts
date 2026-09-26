@@ -223,7 +223,7 @@ export function closeForSubmit(
 /**
  * Time actually spent: the sum of each section's own span. Not submitted_at
  * minus started_at, which would charge a student whose browser died at 22:10
- * for every hour until the 00:05 job found the attempt.
+ * for every hour until the 01:00 job found the attempt.
  */
 export function timeSpentSec(sections: SectionProgress[]): number {
   let ms = 0

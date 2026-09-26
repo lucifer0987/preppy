@@ -1500,8 +1500,8 @@ figcaption b{color:var(--ink-2); font-weight:600}
 
 <li>
 <h4>Confirm the nightly job registered</h4>
-<p>Vercel &rarr; <strong>Settings</strong> &rarr; <strong>Cron Jobs</strong>. One entry for <code>/api/cron/finalise</code>, schedule <code>30 21 * * *</code>.</p>
-<p>That is 21:30 UTC, which is 03:00 IST. Vercel Cron runs on UTC, so the schedule is written in UTC.</p>
+<p>Vercel &rarr; <strong>Settings</strong> &rarr; <strong>Cron Jobs</strong>. One entry for <code>/api/cron/finalise</code>, schedule <code>30 19 * * *</code>.</p>
+<p>That is 19:30 UTC, which is 01:00 IST. Vercel Cron runs on UTC, so the schedule is written in UTC.</p>
 <div class="note care">
   <h4>Without CRON_SECRET the endpoint refuses everyone</h4>
   <p>Including Vercel. Deliberate &mdash; better a job that does not run than an open endpoint that writes scores &mdash; which is why the production build will not even start without it.</p>

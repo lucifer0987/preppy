@@ -5,7 +5,7 @@ import { actionAdmin } from '../../lib/guard'
 import { finaliseOverdueAttempts } from '../../lib/repo/finalise'
 
 /**
- * The manual run of the nightly job (FR-10.3), for when the 00:05 cron did not
+ * The manual run of the nightly job (FR-10.3), for when the 01:00 cron did not
  * fire or failed part-way. Idempotent, so pressing it twice is harmless.
  *
  * A server action rather than a call to the cron route: actions are POST-only
