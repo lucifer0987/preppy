@@ -41,6 +41,15 @@ beforeAll(async () => {
   `)
 })
 
+/** Every .ts/.tsx file under a directory. */
+function walk(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+    const full = `${dir}/${e.name}`
+    if (e.isDirectory()) return walk(full)
+    return /\.tsx?$/.test(e.name) ? [full] : []
+  })
+}
+
 describe('the migration chain', () => {
   it('is numbered without gaps or duplicates', () => {
     const versions = files.map((f) => f.split('_')[0]!)
@@ -73,6 +82,18 @@ describe('the migration chain', () => {
       `select count(*)::text n from information_schema.columns
         where table_name = 'tests' and column_name = 'opens_at_min'`)
     expect(rows[0]!.n).toBe('1')
+  })
+
+  it('has a sentence in the app for every error the database raises', async () => {
+    // A `raise exception 'SOME_CODE'` that nothing in TypeScript matches on
+    // reaches whoever triggered it as a raw Postgres string. That has already
+    // happened once: ANOTHER_PAPER_OPEN was shown to students verbatim.
+    const sql = files.map((f) => readFileSync(`${DIR}/${f}`, 'utf8')).join('\n')
+    const codes = [...new Set([...sql.matchAll(/raise exception '([A-Z_]+)'/g)].map((m) => m[1]!))]
+    expect(codes.length).toBeGreaterThan(0)
+
+    const src = ['lib', 'app'].flatMap((d) => walk(d)).map((f) => readFileSync(f, 'utf8')).join('\n')
+    expect(codes.filter((c) => !src.includes(c))).toEqual([])
   })
 
   it('leaves the database the app expects', async () => {

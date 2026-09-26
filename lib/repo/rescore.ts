@@ -68,6 +68,11 @@ export async function correctAnswerKey(
     if (!error) {
       return { questionNumber: number, from: before, to: newAnswer, attemptsRescored: computed.rows.length, changed: computed.changed }
     }
+    if (/QUESTION_NOT_ON_PAPER/.test(error.message)) {
+      // The paper was replaced, or the question deleted, between the admin
+      // opening the screen and pressing save.
+      throw new Error('That question is no longer part of this paper. Reload and try again.')
+    }
     if (!/RESCORE_STALE/.test(error.message)) throw new Error(`Could not rescore: ${error.message}`)
     // Someone finished the paper meanwhile; score again with them included.
   }
