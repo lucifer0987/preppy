@@ -7,11 +7,19 @@ import { db } from '../supabase/admin'
 export const PAPER_WINDOW_COLUMNS = 'date, opens_at_min, entry_closes_at_min'
 
 export function paperWindowOf(row: Record<string, unknown>): PaperWindow {
-  return {
-    date: row['date'] as string,
-    opensAtMin: row['opens_at_min'] as number,
-    entryClosesAtMin: row['entry_closes_at_min'] as number,
+  const date = row['date']
+  const opensAtMin = row['opens_at_min']
+  const entryClosesAtMin = row['entry_closes_at_min']
+  // A select that forgot PAPER_WINDOW_COLUMNS would otherwise yield a window of
+  // undefined, every window check would quietly answer "no", and the paper
+  // would read as one that simply never opens -- a blocked student and nothing
+  // in the logs. Say it instead.
+  if (typeof date !== 'string' || typeof opensAtMin !== 'number' || typeof entryClosesAtMin !== 'number') {
+    throw new Error(
+      'That paper was read without its window columns. Select PAPER_WINDOW_COLUMNS alongside the rest.',
+    )
   }
+  return { date, opensAtMin, entryClosesAtMin }
 }
 import { paperToRows, rowsToPaper, savePaperPayload, type PaperRows } from '../paper-rows'
 import { readQuestion, summarise } from '../paper'

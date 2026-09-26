@@ -57,6 +57,9 @@ export interface LeaderboardOptions {
  * @param paperKeys every paper on the board, ascending. Needed for streaks:
  *                  a night with no paper must not break one.
  */
+/** The IST date half of a `YYYY-MM-DD#MMMM` paper key. */
+const dayOf = (paperKey: string) => paperKey.split('#')[0]!
+
 export function buildLeaderboard(
   records: AttemptRecord[],
   paperKeys: string[],
@@ -69,13 +72,17 @@ export function buildLeaderboard(
   // A streak is about turning up night after night, so it always runs over
   // every paper that has run, whatever window the board is showing. Inside
   // "Last 7" it would otherwise be capped at 7.
+  // ...and it counts days, not papers. Once a day can hold two, a student who
+  // reliably sits the evening paper would otherwise have the morning one they
+  // skipped break the chain every single day. Turning up at all counts.
+  const days = [...new Set(dates.map(dayOf))].sort()
   const attendance = new Map<string, Set<string>>()
   for (const r of records) {
     const set = attendance.get(r.userId)
-    if (set) set.add(r.paperKey)
-    else attendance.set(r.userId, new Set([r.paperKey]))
+    if (set) set.add(dayOf(r.paperKey))
+    else attendance.set(r.userId, new Set([dayOf(r.paperKey)]))
   }
-  const streaksOf = (userId: string) => streaks(attendance.get(userId) ?? new Set(), dates)
+  const streaksOf = (userId: string) => streaks(attendance.get(userId) ?? new Set(), days)
 
   const current = aggregate(scoped, streaksOf)
 
@@ -183,12 +190,13 @@ function aggregate(
 }
 
 /**
- * Consecutive papers attempted: the current run, counting back from the most
- * recent paper on the board, and the longest run ever.
+ * Consecutive days attended: the current run, counting back from the most
+ * recent day on the board, and the longest run ever. A day counts if the
+ * student sat any paper that ran on it.
  *
- * Only papers that actually ran are considered, so a night the admin skipped
- * never breaks anyone's streak (PRD section 11). Tonight's paper is not on the
- * board until 00:01, so it cannot break one either while it is still open.
+ * Only days that actually held a paper are considered, so a night the admin
+ * skipped never breaks anyone's streak (PRD section 11). A paper still open is
+ * not on the board, so it cannot break one either.
  */
 export function streaks(attended: Set<string>, dates: string[]): { current: number; longest: number } {
   let longest = 0

@@ -104,6 +104,32 @@ describe('streaks', () => {
   })
 })
 
+describe('streaks when a day holds more than one paper', () => {
+  // Keys are YYYY-MM-DD#MMMM: 0360 is a 06:00 paper, 1320 a 22:00 one.
+  const MORNING = ['2026-09-01#0360', '2026-09-02#0360', '2026-09-03#0360']
+  const EVENING = ['2026-09-01#1320', '2026-09-02#1320', '2026-09-03#1320']
+  const BOTH = [...MORNING, ...EVENING].sort()
+
+  it('counts the day, not the paper, so sitting both does not double it', () => {
+    const rows = buildLeaderboard(BOTH.map((k) => rec('a', k, 10)), BOTH)
+    expect(rows[0]!.currentStreak).toBe(3)
+    expect(rows[0]!.longestStreak).toBe(3)
+  })
+
+  it('keeps the streak of someone who only ever sits the evening paper', () => {
+    // The bug this guards: keyed on papers, the morning paper they skipped
+    // broke the chain every single day and the streak never passed 1.
+    const rows = buildLeaderboard(EVENING.map((k) => rec('a', k, 10)), BOTH)
+    expect(rows[0]!.currentStreak).toBe(3)
+  })
+
+  it('still breaks on a day when they sat neither paper', () => {
+    const attended = BOTH.filter((k) => !k.startsWith('2026-09-02'))
+    const rows = buildLeaderboard(attended.map((k) => rec('a', k, 10)), BOTH)
+    expect(rows[0]!.currentStreak).toBe(1)
+  })
+})
+
 describe('streaks under a window', () => {
   const many = Array.from({ length: 12 }, (_, i) => `2026-10-${String(i + 1).padStart(2, '0')}`)
 

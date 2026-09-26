@@ -9,8 +9,8 @@ import { attemptHardStop } from '../attempt'
  * for a dry run, which may be of any paper on any day.
  *
  * Everything else the PRD once wanted a job for is derived on read instead —
- * unlocking at 22:00, closing entry at 23:15, opening the archive at midnight,
- * the leaderboard itself. Those cannot fail because nothing has to run.
+ * each paper's own opening and entry close, the archive, the leaderboard
+ * itself. Those cannot fail because nothing has to run.
  *
  * Idempotent (FR-10.3): submitAttempt returns early for anything already
  * finished, so re-running after a failure produces the same result.
@@ -23,14 +23,33 @@ export interface FinaliseReport {
 }
 
 export async function finaliseOverdueAttempts(now = new Date()): Promise<FinaliseReport> {
+  return finaliseOverdue(now, null)
+}
+
+/**
+ * The same sweep, for one student, run when they try to start a paper.
+ *
+ * Once a day can hold more than one paper, the nightly job is too late to be
+ * the only backstop: a student who abandons the morning paper still holds the
+ * single live attempt `attempts_one_live_per_user` allows, so the evening
+ * paper refuses to start and nothing clears it until 03:00 the next morning.
+ * Scoring their own overdue attempts first costs one query and unblocks them.
+ */
+export async function finaliseOverdueForUser(userId: string, now = new Date()): Promise<FinaliseReport> {
+  return finaliseOverdue(now, userId)
+}
+
+async function finaliseOverdue(now: Date, userId: string | null): Promise<FinaliseReport> {
   const client = db()
 
   // Every open attempt is a candidate; its hard stop decides. There are only
   // ever a handful, and a date filter would miss dry runs of future papers.
-  const { data: attempts, error } = await client
+  let query = client
     .from('attempts')
     .select('id, is_dry_run, started_at, tests!inner(date, opens_at_min, entry_closes_at_min, sections(duration_sec))')
     .eq('state', 'IN_PROGRESS')
+  if (userId) query = query.eq('user_id', userId)
+  const { data: attempts, error } = await query
 
   if (error) throw new Error(`Could not list open attempts: ${error.message}`)
 

@@ -199,12 +199,30 @@ export async function startAttempt(testId: string, userId: string, isDryRun: boo
   // its section rows exist together, or neither does. A running dry run is
   // returned rather than doubled.
   const { data, error } = await db().rpc('start_attempt', { p_test: testId, p_user: userId, p_dry: isDryRun })
-  if (error) {
-    if (/ALREADY_TAKEN/.test(error.message)) throw new Error('You have already taken this paper.')
-    if (/NO_SECTIONS/.test(error.message)) throw new Error('That paper has no sections. It cannot be attempted.')
-    throw new Error(`Could not start the attempt: ${error.message}`)
+  if (!error) return data as string
+
+  if (/ALREADY_TAKEN/.test(error.message)) throw new Error('You have already taken this paper.')
+  if (/NO_SECTIONS/.test(error.message)) throw new Error('That paper has no sections. It cannot be attempted.')
+
+  // One live counted attempt at a time. The blocker is usually an *overdue*
+  // attempt on an earlier paper the same day, which only the nightly job would
+  // otherwise clear -- so score it now and try once more.
+  if (/ANOTHER_PAPER_OPEN/.test(error.message)) {
+    // Imported here, not at the top: finalise.ts needs submitAttempt from
+    // this module, and a static import both ways is a cycle.
+    const { finaliseOverdueForUser } = await import('./finalise')
+    const swept = await finaliseOverdueForUser(userId)
+    if (swept.finalised.length) {
+      const retry = await db().rpc('start_attempt', { p_test: testId, p_user: userId, p_dry: isDryRun })
+      if (!retry.error) return retry.data as string
+      if (/ALREADY_TAKEN/.test(retry.error.message)) throw new Error('You have already taken this paper.')
+    }
+    throw new Error(
+      'You still have another paper open. Finish that one before starting this paper.',
+    )
   }
-  return data as string
+
+  throw new Error(`Could not start the attempt: ${error.message}`)
 }
 
 export async function findAttempt(testId: string, userId: string, isDryRun: boolean) {

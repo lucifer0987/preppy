@@ -5,7 +5,7 @@ import { db } from '../../../lib/supabase/admin'
 import { findAttempt } from '../../../lib/repo/attempts'
 import { SECTION_NAMES, type SectionCode } from '../../../lib/types'
 import { formatIstDate, paperLabels } from '../../../lib/time'
-import { paperWindowOf } from '../../../lib/repo/papers'
+import { PAPER_WINDOW_COLUMNS, paperWindowOf } from '../../../lib/repo/papers'
 import { beginAction } from './actions'
 import { BeginButton } from './BeginButton'
 import { entryRefusal } from './entry'
@@ -29,7 +29,7 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
 
   const { data: test } = await db()
     .from('tests')
-    .select('id, date, title, status, sections(code, position, duration_sec, question_count, marks_correct, marks_negative)')
+    .select(`id, title, status, ${PAPER_WINDOW_COLUMNS}, sections(code, position, duration_sec, question_count, marks_correct, marks_negative)`)
     .eq('id', testId).maybeSingle()
   if (!test) redirect('/dashboard')
 

@@ -60,8 +60,12 @@ export default async function Dashboard({
   // Rows of 6.3 that point at a later paper need the next one actually
   // scheduled, not merely the next opening time.
   const upcoming = live || attempt ? null : nextPaper
-  const afterTonight = live && !attempt && !(openPaper && canStartAttempt(openPaper.window, now))
-    ? nextPaper : null
+  // A day can hold several papers, so "you are done" is not the end of the
+  // evening. Point at the next one as soon as there is nothing left to do with
+  // this one -- whether they sat it, or entry closed without them.
+  const doneWithLive = Boolean(attempt && attempt.state !== 'IN_PROGRESS')
+  const entryStillOpen = Boolean(openPaper && canStartAttempt(openPaper.window, now))
+  const afterTonight = live && (doneWithLive || (!attempt && !entryStillOpen)) ? nextPaper : null
 
   // Panels 2 and 3. Either failing must not take the whole dashboard down:
   // tonight's paper is the panel that matters once the window opens.
@@ -125,6 +129,7 @@ export default async function Dashboard({
               The admin set it aside, so it does not count and has no score. Ask them if you are not
               sure why.
             </p>
+            {afterTonight && <NextPaper paper={afterTonight} nowIso={nowIso} />}
           </>
         ) : attempt && tonight ? (
           <>
@@ -150,6 +155,7 @@ export default async function Dashboard({
                 </Link>
               )}
             </div>
+            {afterTonight && <NextPaper paper={afterTonight} nowIso={nowIso} />}
           </>
         ) : live && tonight && openPaper && canStartAttempt(openPaper.window, now) ? (
           <>

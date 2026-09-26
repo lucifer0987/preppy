@@ -5,7 +5,10 @@ import { finaliseOverdueAttempts } from '../../../../lib/repo/finalise'
 export const dynamic = 'force-dynamic'
 
 /**
- * Runs at 00:05 IST, scheduled in vercel.json.
+ * Runs once a day at 03:00 IST (21:30 UTC), scheduled in vercel.json -- after
+ * the latest hard stop a paper dated yesterday can have. A paper scheduled for
+ * the small hours of the morning is swept by the next day's run, or sooner by
+ * the admin's manual button.
  *
  * Vercel Cron is the only caller: it presents CRON_SECRET as a bearer token.
  * A signed-in admin does not come through here. A cookie-authenticated GET is
