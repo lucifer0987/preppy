@@ -108,7 +108,13 @@ export async function loadAttemptCore(attemptId: string): Promise<AttemptCore | 
   }
   rows.sort((x, y) => x.position - y.position)
 
-  const testDate = (a.tests as unknown as { date: string }).date
+  const t = a.tests as unknown as { date: string; opens_at_min: number; entry_closes_at_min: number }
+  const testDate = t.date
+  const paperWindow = {
+    date: t.date,
+    opensAtMin: t.opens_at_min,
+    entryClosesAtMin: t.entry_closes_at_min,
+  }
   const isDryRun = a.is_dry_run as boolean
   const startedAt = new Date(a.started_at as string)
   return {
@@ -121,7 +127,7 @@ export async function loadAttemptCore(attemptId: string): Promise<AttemptCore | 
     startedAt,
     fullscreenExits: a.fullscreen_exits as number,
     tabSwitches: a.tab_switches as number,
-    hardStop: attemptHardStop({ isDryRun, testDate, startedAt, sections: rows }, await getWindow()),
+    hardStop: attemptHardStop({ isDryRun, window: paperWindow, startedAt, sections: rows }),
     rows,
     idByPosition,
   }

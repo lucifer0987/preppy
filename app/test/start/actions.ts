@@ -6,7 +6,7 @@ import { currentSessionId, revokeSessions } from '../../../lib/auth'
 import { db } from '../../../lib/supabase/admin'
 import { findAttempt, loadAttempt, startAttempt } from '../../../lib/repo/attempts'
 import { entryRefusal } from './entry'
-import { getWindow } from '../../../lib/repo/settings'
+import { paperWindowOf } from '../../../lib/repo/papers'
 
 /**
  * Begin. The server stamps started_at here, on this action, not on page load
@@ -25,7 +25,7 @@ export async function beginAction(formData: FormData) {
     redirect(`/test/start?test=${encodeURIComponent(testId)}&error=${encodeURIComponent(message)}`)
 
   const { data: test } = await db()
-    .from('tests').select('id, date, status').eq('id', testId).maybeSingle()
+    .from('tests').select('id, status, date, opens_at_min, entry_closes_at_min').eq('id', testId).maybeSingle()
   if (!test) redirect('/dashboard')
 
   // The admin can never hold a counted attempt (FR-5.2).
@@ -42,7 +42,7 @@ export async function beginAction(formData: FormData) {
   if (existing && !isDryRun) redirect(`/test/${existing.id}/done`)
 
   if (!isDryRun) {
-    const why = entryRefusal(test.status as string, test.date as string, await getWindow())
+    const why = entryRefusal(test.status as string, paperWindowOf(test))
     if (why) refuse(why)
   }
 

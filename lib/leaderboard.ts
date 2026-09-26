@@ -15,7 +15,13 @@ export interface AttemptRecord {
   displayName: string
   username: string
   /** The paper's date, not the submission instant. */
-  testDate: string
+  /**
+   * Identifies one paper and orders it against the others:
+   * `YYYY-MM-DD#MMMM`, the date plus the minute it opened. A plain date stopped
+   * working when a day could hold more than one paper, and every comparison
+   * here is lexicographic, so the composite key slots in unchanged.
+   */
+  paperKey: string
   totalScore: number
   correct: number
   attempted: number
@@ -48,17 +54,17 @@ export interface LeaderboardOptions {
  * @param records   one row per counted attempt on a paper the board includes
  *                  (lib/time.ts onBoard). Dry runs must already be excluded,
  *                  which excludes the admin by construction (FR-5.2).
- * @param testDates every paper on the board, ascending. Needed for streaks:
+ * @param paperKeys every paper on the board, ascending. Needed for streaks:
  *                  a night with no paper must not break one.
  */
 export function buildLeaderboard(
   records: AttemptRecord[],
-  testDates: string[],
+  paperKeys: string[],
   options: LeaderboardOptions = {},
 ): LeaderboardRow[] {
-  const dates = [...new Set(testDates)].sort()
+  const dates = [...new Set(paperKeys)].sort()
   const inScope = options.lastN ? dates.slice(-options.lastN) : dates
-  const scoped = records.filter((r) => inScope.includes(r.testDate))
+  const scoped = records.filter((r) => inScope.includes(r.paperKey))
 
   // A streak is about turning up night after night, so it always runs over
   // every paper that has run, whatever window the board is showing. Inside
@@ -66,8 +72,8 @@ export function buildLeaderboard(
   const attendance = new Map<string, Set<string>>()
   for (const r of records) {
     const set = attendance.get(r.userId)
-    if (set) set.add(r.testDate)
-    else attendance.set(r.userId, new Set([r.testDate]))
+    if (set) set.add(r.paperKey)
+    else attendance.set(r.userId, new Set([r.paperKey]))
   }
   const streaksOf = (userId: string) => streaks(attendance.get(userId) ?? new Set(), dates)
 
@@ -78,7 +84,7 @@ export function buildLeaderboard(
   const earlier = dates.slice(0, -1)
   const previousDates = options.lastN ? earlier.slice(-options.lastN) : earlier
   const previous = previousDates.length
-    ? aggregate(records.filter((r) => previousDates.includes(r.testDate)), streaksOf)
+    ? aggregate(records.filter((r) => previousDates.includes(r.paperKey)), streaksOf)
     : []
   const previousRank = new Map(previous.map((r) => [r.userId, r.rank]))
 
@@ -95,14 +101,14 @@ export function buildLeaderboard(
  * attempt that does not count.
  */
 export function rankDelta(
-  records: AttemptRecord[], userId: string, testDate: string,
+  records: AttemptRecord[], userId: string, paperKey: string,
 ): { before: number | null; after: number | null; of: number } {
   const rankAt = (keep: (d: string) => boolean) => {
-    const board = aggregate(records.filter((r) => keep(r.testDate)), () => ({ current: 0, longest: 0 }))
+    const board = aggregate(records.filter((r) => keep(r.paperKey)), () => ({ current: 0, longest: 0 }))
     return { rank: board.find((r) => r.userId === userId)?.rank ?? null, size: board.length }
   }
-  const after = rankAt((d) => d <= testDate)
-  return { before: rankAt((d) => d < testDate).rank, after: after.rank, of: after.size }
+  const after = rankAt((d) => d <= paperKey)
+  return { before: rankAt((d) => d < paperKey).rank, after: after.rank, of: after.size }
 }
 
 /**
@@ -111,9 +117,9 @@ export function rankDelta(
  * no counted attempt on the paper.
  */
 export function paperRank(
-  records: AttemptRecord[], userId: string, testDate: string,
+  records: AttemptRecord[], userId: string, paperKey: string,
 ): { rank: number; of: number } | null {
-  const cohort = records.filter((r) => r.testDate === testDate)
+  const cohort = records.filter((r) => r.paperKey === paperKey)
   const mine = cohort.find((r) => r.userId === userId)
   if (!mine) return null
   return {
@@ -136,7 +142,7 @@ function aggregate(
     const totalPoints = round2(attempts.reduce((a, r) => a + r.totalScore, 0))
     const correct = attempts.reduce((a, r) => a + r.correct, 0)
     const attempted = attempts.reduce((a, r) => a + r.attempted, 0)
-    const first = attempts.reduce((a, r) => (r.testDate < a ? r.testDate : a), attempts[0]!.testDate)
+    const first = attempts.reduce((a, r) => (r.paperKey < a ? r.paperKey : a), attempts[0]!.paperKey)
 
     return {
       rank: 0,
@@ -184,11 +190,11 @@ function aggregate(
  * never breaks anyone's streak (PRD section 11). Tonight's paper is not on the
  * board until 00:01, so it cannot break one either while it is still open.
  */
-export function streaks(attemptedDates: Set<string>, dates: string[]): { current: number; longest: number } {
+export function streaks(attended: Set<string>, dates: string[]): { current: number; longest: number } {
   let longest = 0
   let run = 0
   for (const d of dates) {
-    run = attemptedDates.has(d) ? run + 1 : 0
+    run = attended.has(d) ? run + 1 : 0
     longest = Math.max(longest, run)
   }
   return { current: run, longest }

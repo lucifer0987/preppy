@@ -4,8 +4,8 @@ import { requireUser } from '../../../lib/guard'
 import { db } from '../../../lib/supabase/admin'
 import { findAttempt } from '../../../lib/repo/attempts'
 import { SECTION_NAMES, type SectionCode } from '../../../lib/types'
-import { formatIstDate, windowLabels } from '../../../lib/time'
-import { getWindow } from '../../../lib/repo/settings'
+import { formatIstDate, paperLabels } from '../../../lib/time'
+import { paperWindowOf } from '../../../lib/repo/papers'
 import { beginAction } from './actions'
 import { BeginButton } from './BeginButton'
 import { entryRefusal } from './entry'
@@ -47,8 +47,8 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
   if (existing?.state === 'IN_PROGRESS') redirect(`/test/${existing.id}`)
   if (existing && !isDryRun) redirect(`/test/${existing.id}/done`)
 
-  const testWindow = await getWindow()
-  const refusal = isDryRun ? null : entryRefusal(test.status as string, test.date as string, testWindow)
+  const paperWindow = paperWindowOf(test)
+  const refusal = isDryRun ? null : entryRefusal(test.status as string, paperWindow)
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
@@ -117,7 +117,7 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
           </form>
           {!isDryRun && (
             <p className="mt-3 text-center text-sm text-ink-soft">
-              Entry closes at {windowLabels(testWindow).closes}.
+              Entry closes at {paperLabels(paperWindow).closes}.
             </p>
           )}
         </>

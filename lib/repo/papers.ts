@@ -2,9 +2,23 @@ import 'server-only'
 import { deletePaperImages } from './images'
 import { selectAll } from './select-all'
 import { db } from '../supabase/admin'
+
+/** The three columns every window needs, and the shape the app uses. */
+export const PAPER_WINDOW_COLUMNS = 'date, opens_at_min, entry_closes_at_min'
+
+export function paperWindowOf(row: Record<string, unknown>): PaperWindow {
+  return {
+    date: row['date'] as string,
+    opensAtMin: row['opens_at_min'] as number,
+    entryClosesAtMin: row['entry_closes_at_min'] as number,
+  }
+}
 import { paperToRows, rowsToPaper, savePaperPayload, type PaperRows } from '../paper-rows'
 import { readQuestion, summarise } from '../paper'
-import { istDate, windowState, type WindowState } from '../time'
+import {
+  defaultPaperWindow, istDate, paperWindowProblem, windowState, windowsOverlap,
+  addDays, opensAt, paperLabels, type PaperWindow, type WindowState,
+} from '../time'
 import { getWindow } from './settings'
 import { OPTION_LABELS, type Issue, type OptionLabel, type Paper, type SectionCode } from '../types'
 
@@ -26,11 +40,15 @@ export interface PaperSummary {
   title: string | null
   status: 'DRAFT' | 'SCHEDULED'
   questionCount: number
+  /** Its own window, since a day may hold more than one paper. */
+  window: PaperWindow
 }
 
 export interface PaperRecord {
   id: string
   status: string
+  /** Its own window, since a day may hold more than one paper. */
+  window: PaperWindow
   publishedAt: string | null
   rescoredAt: string | null
   /** Bumped by every key correction; see finish_attempt in schema.sql. */
@@ -72,7 +90,7 @@ export async function savePaper(paper: Paper): Promise<SaveResult> {
 export async function getPaperById(id: string): Promise<PaperRecord | null> {
   const { data: test, error } = await db()
     .from('tests')
-    .select('id, date, title, status, published_at, rescored_at, key_version')
+    .select(`id, title, status, published_at, rescored_at, key_version, ${PAPER_WINDOW_COLUMNS}`)
     .eq('id', id)
     .maybeSingle()
   if (error) throw new Error(`Could not load the paper: ${error.message}`)
@@ -80,6 +98,7 @@ export async function getPaperById(id: string): Promise<PaperRecord | null> {
   return {
     id: test.id as string,
     status: test.status as string,
+    window: paperWindowOf(test),
     publishedAt: (test.published_at as string | null) ?? null,
     rescoredAt: (test.rescored_at as string | null) ?? null,
     keyVersion: (test.key_version as number) ?? 0,
@@ -201,6 +220,7 @@ export async function loadPublishedPapers(): Promise<PaperRecord[]> {
     return {
       id: t['id'] as string,
       status: t['status'] as string,
+      window: paperWindowOf(t),
       publishedAt: (t['published_at'] as string | null) ?? null,
       rescoredAt: (t['rescored_at'] as string | null) ?? null,
       keyVersion: (t['key_version'] as number) ?? 0,
@@ -212,8 +232,9 @@ export async function loadPublishedPapers(): Promise<PaperRecord[]> {
 export async function listPapers(): Promise<PaperSummary[]> {
   const { data, error } = await db()
     .from('tests')
-    .select('id, date, title, status, sections(question_count)')
+    .select(`id, title, status, sections(question_count), ${PAPER_WINDOW_COLUMNS}`)
     .order('date', { ascending: false })
+    .order('opens_at_min', { ascending: false })
   if (error) throw new Error(`Could not list the papers: ${error.message}`)
 
   return (data ?? []).map((t) => ({
@@ -223,6 +244,7 @@ export async function listPapers(): Promise<PaperSummary[]> {
     status: t.status as 'DRAFT' | 'SCHEDULED',
     questionCount: ((t.sections ?? []) as { question_count: number }[])
       .reduce((a, s) => a + s.question_count, 0),
+    window: paperWindowOf(t),
   }))
 }
 
@@ -265,13 +287,18 @@ export interface PaperLock {
 }
 
 export async function paperLock(id: string): Promise<PaperLock | null> {
-  const { data: test, error } = await db().from('tests').select('date, status').eq('id', id).maybeSingle()
+  const { data: test, error } = await db()
+    .from('tests').select('date, status, opens_at_min, entry_closes_at_min').eq('id', id).maybeSingle()
   if (error) throw new Error(`Could not load the paper: ${error.message}`)
   if (!test) return null
 
   const date = test.date as string
   const status = test.status as 'DRAFT' | 'SCHEDULED'
-  const state = windowState(date, await getWindow())
+  const state = windowState({
+    date,
+    opensAtMin: test.opens_at_min as number,
+    entryClosesAtMin: test.entry_closes_at_min as number,
+  })
   const realAttempts = await countRealAttempts(id)
   const opened = state !== 'BEFORE_OPEN'
 
@@ -307,30 +334,87 @@ async function lockOrThrow(id: string): Promise<PaperLock> {
  * different night than the file named, as long as that night has not opened
  * and holds no other paper.
  */
-export async function schedulePaper(id: string, adminId: string, date?: string): Promise<void> {
+export async function schedulePaper(
+  id: string, adminId: string, date?: string, times?: { opensAtMin: number; entryClosesAtMin: number },
+): Promise<void> {
   const lock = await lockOrThrow(id)
   if (lock.status !== 'DRAFT') throw new Error('This paper is already scheduled.')
   const target = date ?? lock.date
   if (!/^\d{4}-\d{2}-\d{2}$/.test(target) || Number.isNaN(Date.parse(`${target}T00:00:00Z`))) {
     throw new Error(`${target} is not a date.`)
   }
-  if (windowState(target, await getWindow()) !== 'BEFORE_OPEN') {
-    throw new Error(`The window for ${target} has already opened, so a paper can no longer be scheduled for it.`)
+
+  const fallback = defaultPaperWindow(target, await getWindow())
+  const window: PaperWindow = {
+    date: target,
+    opensAtMin: times?.opensAtMin ?? fallback.opensAtMin,
+    entryClosesAtMin: times?.entryClosesAtMin ?? fallback.entryClosesAtMin,
   }
+
+  const problem = paperWindowProblem(window)
+  if (problem) throw new Error(problem)
+
+  if (windowState(window) !== 'BEFORE_OPEN') {
+    throw new Error(
+      `That window has already opened, so a paper can no longer be scheduled for it. Pick a later time or another day.`,
+    )
+  }
+
+  // A student may only sit one paper at a time, so two overlapping windows on
+  // one day would force a choice rather than offer one.
+  const clash = await overlappingPaper(window, id)
+  if (clash) {
+    throw new Error(
+      `This overlaps ${clash.title ?? 'another paper'} on the same day, which runs ${clash.labels}. `
+      + `A student can only sit one paper at a time, so pick a window that does not overlap.`,
+    )
+  }
+
   // The status filter repeats the check above in the write itself, so a paper
-  // that changed in between is not touched. The unique date refuses a night
-  // that already has a paper.
+  // that changed in between is not touched.
   const { data, error } = await db()
     .from('tests')
-    .update({ date: target, status: 'SCHEDULED', published_by: adminId, published_at: new Date().toISOString() })
+    .update({
+      date: target,
+      opens_at_min: window.opensAtMin,
+      entry_closes_at_min: window.entryClosesAtMin,
+      status: 'SCHEDULED',
+      published_by: adminId,
+      published_at: new Date().toISOString(),
+    })
     .eq('id', id)
     .eq('status', 'DRAFT')
     .select('id')
   if (error) {
-    if (error.code === '23505') throw new Error(`${target} already has a paper. Pick another night.`)
+    if (error.code === '23505') {
+      throw new Error(`Another paper already opens at that exact time on ${target}. Pick a different time.`)
+    }
     throw new Error(`Could not schedule the paper: ${error.message}`)
   }
   if (!data?.length) throw new Error('The paper changed while you were looking at it. Reload and try again.')
+}
+
+/** A scheduled paper on the same day whose window overlaps this one. */
+async function overlappingPaper(
+  window: PaperWindow, excludeId: string,
+): Promise<{ title: string | null; labels: string } | null> {
+  const { data } = await db()
+    .from('tests')
+    .select('id, title, date, opens_at_min, entry_closes_at_min')
+    .eq('date', window.date).eq('status', 'SCHEDULED').neq('id', excludeId)
+
+  for (const t of data ?? []) {
+    const other: PaperWindow = {
+      date: t.date as string,
+      opensAtMin: t.opens_at_min as number,
+      entryClosesAtMin: t.entry_closes_at_min as number,
+    }
+    if (windowsOverlap(window, other)) {
+      const l = paperLabels(other)
+      return { title: (t.title as string | null) ?? null, labels: `${l.opens} to ${l.hardStop}` }
+    }
+  }
+  return null
 }
 
 export async function unschedulePaper(id: string): Promise<void> {
@@ -423,4 +507,44 @@ export async function updateQuestionContent(
     .eq('id', questionId)
   if (updateError) throw new Error(`Could not save the question: ${updateError.message}`)
   return { number: candidate.number, issues }
+}
+
+
+/**
+ * The next scheduled paper still to open, and the one open right now.
+ *
+ * With a window per paper and more than one possible in a day, "tonight's
+ * paper" is no longer a date lookup: it is whichever scheduled paper the clock
+ * currently sits inside, and whichever opens soonest after that.
+ */
+export interface UpcomingPapers {
+  /** Open for entry now, or running with entry closed. */
+  live: { id: string; title: string | null; window: PaperWindow; state: WindowState } | null
+  /** The soonest paper that has not opened yet. */
+  next: { id: string; title: string | null; window: PaperWindow } | null
+}
+
+export async function upcomingPapers(now = new Date()): Promise<UpcomingPapers> {
+  const today = istDate(now)
+  // Yesterday covers a paper whose hard stop has not yet passed; tomorrow and
+  // beyond covers what is coming. A short window either side is enough.
+  const rows = await selectAll<Record<string, unknown>>('papers', (from, to) =>
+    db().from('tests').select(`id, title, ${PAPER_WINDOW_COLUMNS}`)
+      .eq('status', 'SCHEDULED')
+      .gte('date', addDays(today, -1))
+      .order('date').range(from, to))
+
+  const papers = rows
+    .map((r) => ({ id: r['id'] as string, title: (r['title'] as string | null) ?? null, window: paperWindowOf(r) }))
+    .sort((a, b) => opensAt(a.window).getTime() - opensAt(b.window).getTime())
+
+  let live: UpcomingPapers['live'] = null
+  let next: UpcomingPapers['next'] = null
+
+  for (const p of papers) {
+    const state = windowState(p.window, now)
+    if ((state === 'OPEN' || state === 'ENTRY_CLOSED') && !live) live = { ...p, state }
+    if (state === 'BEFORE_OPEN' && !next) next = p
+  }
+  return { live, next }
 }

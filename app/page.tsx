@@ -4,8 +4,9 @@ import { Countdown } from '../components/Countdown'
 import { currentUser } from '../lib/auth'
 import { isConfigured } from '../lib/env'
 import { PATTERN, SECTION_NAMES, SECTION_CODES, TOTAL_MINUTES, TOTAL_QUESTIONS } from '../lib/types'
-import { nextOpenAt, windowLabels } from '../lib/time'
+import { opensAt, paperLabels, windowLabels } from '../lib/time'
 import { getWindow } from '../lib/repo/settings'
+import { upcomingPapers } from '../lib/repo/papers'
 
 /**
  * The only page an unauthenticated visitor sees (PRD section 6.2).
@@ -24,7 +25,10 @@ export default async function Home() {
 
   const now = new Date()
   const testWindow = await getWindow()
-  const { opens: opensAt, closes: entryCloses } = windowLabels(testWindow)
+  // The next actual paper if one is scheduled; otherwise the usual times, so
+  // the page still says when a paper would normally open.
+  const { next } = isConfigured() ? await upcomingPapers(now) : { next: null }
+  const labels = next ? paperLabels(next.window) : windowLabels(testWindow)
 
   return (
     <main className="min-h-dvh bg-play-purple text-white">
@@ -42,10 +46,10 @@ export default async function Home() {
             Next paper unlocks in
           </h2>
           <div className="mt-3">
-            <Countdown targetIso={nextOpenAt(testWindow, now).toISOString()} nowIso={now.toISOString()} />
+            <Countdown targetIso={(next ? opensAt(next.window) : new Date(now.getTime() + 86_400_000)).toISOString()} nowIso={now.toISOString()} />
           </div>
           <p className="mt-4 text-sm text-white/70">
-            Opens {opensAt}. Last entry {entryCloses}, so everyone gets the full {TOTAL_MINUTES} minutes.
+            Opens {labels.opens}. Last entry {labels.closes}, so everyone gets the full {TOTAL_MINUTES} minutes.
           </p>
         </section>
 

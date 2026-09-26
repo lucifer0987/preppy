@@ -1,5 +1,5 @@
 import type { SectionCode } from './types'
-import { hardStopAt, type WindowSettings } from './time'
+import { hardStopAt, type PaperWindow } from './time'
 
 /**
  * The sectional timer state machine (PRD section 6.4).
@@ -158,9 +158,9 @@ function cappedRemaining(durationSec: number, now: Date, hardStop: Date): number
  * it stops when its own allowance would, measured from its own Begin.
  */
 export function attemptHardStop(a: {
-  isDryRun: boolean; testDate: string; startedAt: Date; sections: Pick<SectionProgress, 'durationSec'>[]
-}, w: WindowSettings): Date {
-  if (!a.isDryRun) return hardStopAt(a.testDate, w)
+  isDryRun: boolean; window: PaperWindow; startedAt: Date; sections: Pick<SectionProgress, 'durationSec'>[]
+}): Date {
+  if (!a.isDryRun) return hardStopAt(a.window)
   const totalSec = a.sections.reduce((n, s) => n + s.durationSec, 0)
   return new Date(a.startedAt.getTime() + totalSec * 1000)
 }

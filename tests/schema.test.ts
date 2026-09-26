@@ -1,11 +1,11 @@
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { readFileSync, readdirSync } from 'node:fs'
 import { PGlite } from '@electric-sql/pglite'
 import { paperToRows, savePaperPayload } from '../lib/paper-rows'
 import { readPaper } from '../lib/paper'
 
 /**
- * supabase/schema.sql run on a real Postgres (PGlite, in process), so the
+ * The migrations run on a real Postgres (PGlite, in process), so the
  * functions and guards the app depends on are exercised as SQL rather than
  * trusted. Supabase's own auth schema and roles are stubbed with just what the
  * schema touches.
@@ -23,6 +23,14 @@ const STUDENT = '00000000-0000-0000-0000-00000000000a'
 const OTHER = '00000000-0000-0000-0000-00000000000b'
 
 const one = async <T>(sql: string, params: unknown[] = []) => (await db.query<T>(sql, params)).rows[0]!
+
+/**
+ * A student may only have one counted attempt in progress at a time
+ * (attempts_one_live_per_user), so a case that leaves one open would break the
+ * next. Closing them is cheaper than a distinct user per test.
+ */
+const closeOpenAttempts = () =>
+  db.query(`update attempts set state = 'SUBMITTED', submitted_at = now() where state = 'IN_PROGRESS'`)
 const fails = async (sql: string, params: unknown[] = []) => {
   try { await db.query(sql, params) } catch (e) { return (e as Error).message }
   return null
@@ -44,12 +52,30 @@ beforeAll(async () => {
   `)
 }, 60_000)
 
-const savePaper = async (date: string) => {
-  const payload = JSON.stringify(savePaperPayload(paperToRows({ ...sample, date })))
+const savePaper = async (date: string, title?: string) => {
+  const payload = JSON.stringify(savePaperPayload(paperToRows({
+    ...sample, date, ...(title ? { title } : {}),
+  })))
   return (await one<{ r: { id: string; replaced_id: string | null } }>('select save_paper($1) as r', [payload])).r
 }
 
-describe('schema.sql', () => {
+/** A scheduled paper with its own window, for the multiple-papers-a-day cases. */
+const scheduledPaper = async (date: string, opensAtMin: number, entryClosesAtMin: number) => {
+  // A distinct title per paper: two papers on one day are two papers, not a
+  // re-upload of the same one.
+  const { id } = await savePaper(date, `Paper at ${opensAtMin}`)
+  await db.query(
+    `update tests set status = 'SCHEDULED', opens_at_min = $2, entry_closes_at_min = $3 where id = $1`,
+    [id, opensAtMin, entryClosesAtMin],
+  )
+  return id
+}
+
+// One counted attempt may be open per student at a time, so a case that leaves
+// one behind would break the next.
+beforeEach(async () => { if (db) await closeOpenAttempts() })
+
+describe('the migrations', () => {
   it('applies twice without error, so it can be re-run safely', async () => {
     await db.exec(schema)
   })
@@ -99,6 +125,38 @@ describe('save_paper', () => {
     await db.query('select start_attempt($1, $2, false)', [id, STUDENT])
     const payload = JSON.stringify(savePaperPayload(paperToRows({ ...sample, date: '2030-01-04' })))
     expect(await fails('select save_paper($1)', [payload])).toMatch(/DRAFT_HAS_ATTEMPTS/)
+  })
+})
+
+describe('one paper at a time', () => {
+  it('refuses a second counted attempt while another is still open', async () => {
+    // Two papers can run in one day now, and a student sitting both at once
+    // would be splitting 45 minutes across two clocks.
+    const morning = await scheduledPaper('2026-11-01', 6 * 60, 7 * 60)
+    const evening = await scheduledPaper('2026-11-01', 22 * 60, 23 * 60)
+    await db.query('select start_attempt($1, $2, false)', [morning, STUDENT])
+    expect(await fails('select start_attempt($1, $2, false)', [evening, STUDENT]))
+      .toMatch(/ANOTHER_PAPER_OPEN/)
+
+    // Once the first is finished the second is allowed.
+    await closeOpenAttempts()
+    expect(await fails('select start_attempt($1, $2, false)', [evening, STUDENT])).toBeNull()
+    await closeOpenAttempts()
+  })
+
+  it('says ALREADY_TAKEN, not ANOTHER_PAPER_OPEN, for the same paper twice', async () => {
+    const paper = await scheduledPaper('2026-11-02', 22 * 60, 23 * 60)
+    await db.query('select start_attempt($1, $2, false)', [paper, STUDENT])
+    await closeOpenAttempts()
+    expect(await fails('select start_attempt($1, $2, false)', [paper, STUDENT])).toMatch(/ALREADY_TAKEN/)
+  })
+
+  it('lets a dry run sit alongside a counted attempt', async () => {
+    // The admin rehearsing a paper must not be blocked by their own history.
+    const paper = await scheduledPaper('2026-11-03', 22 * 60, 23 * 60)
+    await db.query('select start_attempt($1, $2, false)', [paper, STUDENT])
+    expect(await fails('select start_attempt($1, $2, true)', [paper, OTHER])).toBeNull()
+    await closeOpenAttempts()
   })
 })
 

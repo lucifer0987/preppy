@@ -3,7 +3,7 @@ import { IMAGE_NAME_PATTERN, imageType } from '../../../../../lib/images'
 import { db } from '../../../../../lib/supabase/admin'
 import { readPaperImage } from '../../../../../lib/repo/images'
 import { opensAt } from '../../../../../lib/time'
-import { getWindow } from '../../../../../lib/repo/settings'
+import { paperWindowOf } from '../../../../../lib/repo/papers'
 
 /**
  * Serves a paper's image to someone allowed to see the paper.
@@ -22,9 +22,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ testId:
   if (!IMAGE_NAME_PATTERN.test(name) || !type) return new Response('Not found.', { status: 404 })
 
   if (user.role !== 'admin') {
-    const { data: test } = await db().from('tests').select('date, status').eq('id', testId).maybeSingle()
+    const { data: test } = await db().from('tests').select('date, status, opens_at_min, entry_closes_at_min').eq('id', testId).maybeSingle()
     const open = test && test.status === 'SCHEDULED'
-      && Date.now() >= opensAt(test.date as string, await getWindow()).getTime()
+      && Date.now() >= opensAt(paperWindowOf(test)).getTime()
     if (!open) return new Response('Not found.', { status: 404 })
   }
 

@@ -8,10 +8,11 @@ import { LeaderboardTable } from '../../components/LeaderboardTable'
 import { logoutAction } from '../login/actions'
 import { TOTAL_MINUTES, TOTAL_QUESTIONS } from '../../lib/types'
 import {
-  BOARD_REFRESH, addDays, answersUnlocked, canStartAttempt, entryClosesAt, formatIstDate, formatIstTime,
-  istDate, opensAt, windowLabels, windowState, type WindowSettings,
+  canStartAttempt, defaultPaperWindow, entryClosesAt, formatIstDate, istDate, opensAt,
+  paperClosed, paperLabels, type PaperWindow,
 } from '../../lib/time'
 import { getWindow } from '../../lib/repo/settings'
+import { upcomingPapers } from '../../lib/repo/papers'
 import { Countdown } from '../../components/Countdown'
 import { StreakBadge } from '../../components/StreakBadge'
 import { SoundToggle } from '../../components/SoundToggle'
@@ -37,13 +38,13 @@ export default async function Dashboard({
   const now = new Date()
   const nowIso = now.toISOString()
   const today = istDate(now)
-  const testWindow = await getWindow()
-  const labels = windowLabels(testWindow)
-  const state = windowState(today, testWindow, now)
-
-  const { data: tonight } = await db()
-    .from('tests').select('id, date, title').eq('date', today).eq('status', 'SCHEDULED').maybeSingle()
-  const live = Boolean(tonight) && (state === 'OPEN' || state === 'ENTRY_CLOSED')
+  // A day can hold more than one paper, so this is whichever is open now and
+  // whichever opens next, rather than a lookup by date.
+  const { live: openPaper, next: nextPaper } = await upcomingPapers(now)
+  const tonight = openPaper ? { id: openPaper.id, date: openPaper.window.date, title: openPaper.title } : null
+  const state = openPaper ? openPaper.state : 'BEFORE_OPEN'
+  const labels = paperLabels(openPaper?.window ?? nextPaper?.window ?? defaultPaperWindow(today, await getWindow()))
+  const live = Boolean(openPaper)
 
   let attempt: Attempt | null = tonight ? await findAttempt(tonight.id as string, user.id, false) : null
   let remainingSec = 0
@@ -58,8 +59,9 @@ export default async function Dashboard({
 
   // Rows of 6.3 that point at a later paper need the next one actually
   // scheduled, not merely the next opening time.
-  const upcoming = live || attempt ? null : await nextScheduled(today, state === 'BEFORE_OPEN')
-  const afterTonight = live && !attempt && !canStartAttempt(today, testWindow, now) ? await nextScheduled(today, false) : null
+  const upcoming = live || attempt ? null : nextPaper
+  const afterTonight = live && !attempt && !(openPaper && canStartAttempt(openPaper.window, now))
+    ? nextPaper : null
 
   // Panels 2 and 3. Either failing must not take the whole dashboard down:
   // tonight's paper is the panel that matters once the window opens.
@@ -68,7 +70,6 @@ export default async function Dashboard({
     getArchive(user.id).catch((e: Error) => { console.error('[dashboard] archive', e.message); return null }),
   ])
   const mine = board?.find((r) => r.userId === user.id)
-  const refresh = formatIstTime(BOARD_REFRESH.hour, BOARD_REFRESH.minute)
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
@@ -129,20 +130,20 @@ export default async function Dashboard({
           <>
             <p className="mt-2 text-4xl font-black tabular-nums">{Number(attempt.total_score ?? 0).toFixed(2)}</p>
             <p className="mt-1 text-sm font-semibold text-white/80">
-              Your rank appears at {refresh}, when the leaderboard takes in tonight&rsquo;s results.
+              Your rank appears when this paper closes at {labels.hardStop} and the leaderboard takes it in.
             </p>
             <p className="mt-1 text-white/70">
               {attempt.state === 'AUTO_SUBMITTED' ? 'Submitted when time ran out. ' : 'Submitted. '}
-              {answersUnlocked(tonight.date as string, now)
+              {paperClosed(openPaper!.window, now)
                 ? 'Answers and solutions are open now.'
-                : 'Answers unlock at midnight.'}
+                : `Answers unlock at ${labels.hardStop}.`}
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
               <Link href={`/test/${attempt.id}/done`}
                     className="inline-block rounded-2xl bg-white px-7 py-3.5 font-black text-play-purple">
                 See your result
               </Link>
-              {answersUnlocked(tonight.date as string, now) && (
+              {paperClosed(openPaper!.window, now) && (
                 <Link href={`/archive/${tonight.id}`}
                       className="inline-block rounded-2xl bg-white/15 px-7 py-3.5 font-black text-white">
                   Review answers
@@ -150,7 +151,7 @@ export default async function Dashboard({
               )}
             </div>
           </>
-        ) : live && tonight && canStartAttempt(today, testWindow, now) ? (
+        ) : live && tonight && openPaper && canStartAttempt(openPaper.window, now) ? (
           <>
             <p className="mt-2 text-2xl font-black">{tonight.title ?? 'Daily mock'}</p>
             <p className="mt-1 text-white/70">{formatIstDate(today)}</p>
@@ -162,7 +163,7 @@ export default async function Dashboard({
               {labels.closes}):
             </p>
             <div className="mt-2">
-              <Countdown targetIso={entryClosesAt(today, testWindow).toISOString()} nowIso={nowIso} label="Entry closes in" />
+              <Countdown targetIso={entryClosesAt(openPaper!.window).toISOString()} nowIso={nowIso} label="Entry closes in" />
             </div>
             <Link href={`/test/start?test=${tonight.id}`}
                   className="mt-4 inline-block rounded-2xl bg-white px-7 py-3.5 font-black text-play-purple">
@@ -174,12 +175,12 @@ export default async function Dashboard({
             <p className="mt-2 text-2xl font-black">
               Entry closed at {labels.closes}
             </p>
-            <NextPaper paper={afterTonight} nowIso={nowIso} testWindow={testWindow} />
+            <NextPaper paper={afterTonight} nowIso={nowIso} />
           </>
         ) : (
           <>
             {!tonight && <p className="mt-2 text-lg font-bold text-white/80">No test tonight.</p>}
-            <NextPaper paper={upcoming} nowIso={nowIso} testWindow={testWindow} />
+            <NextPaper paper={upcoming} nowIso={nowIso} />
             {mine && mine.currentStreak > 0 && (
               <p className="mt-4 flex flex-wrap items-center gap-2 text-sm font-semibold">
                 Your streak <StreakBadge days={mine.currentStreak} size="lg" />
@@ -218,7 +219,7 @@ export default async function Dashboard({
                       <>
                         <span className="rounded-full bg-answered px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-white">Attempted</span>
                         <span className="font-bold">{a.score?.toFixed(2)}</span>
-                        <span className="text-ink-soft">{a.rank !== null ? `${ordinal(a.rank)} of ${a.cohortSize}` : `rank at ${refresh}`}</span>
+                        <span className="text-ink-soft">{a.rank !== null ? `${ordinal(a.rank)} of ${a.cohortSize}` : 'rank when it closes'}</span>
                       </>
                     ) : (
                       <span className="rounded-full bg-black/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-ink-soft">Not attempted</span>
@@ -247,8 +248,8 @@ export default async function Dashboard({
 }
 
 /** A countdown to the next scheduled paper, or a plain statement that there is none. */
-function NextPaper({ paper, nowIso, testWindow }: {
-  paper: { date: string } | null; nowIso: string; testWindow: WindowSettings
+function NextPaper({ paper, nowIso }: {
+  paper: { title: string | null; window: PaperWindow } | null; nowIso: string
 }) {
   if (!paper) {
     return (
@@ -259,20 +260,12 @@ function NextPaper({ paper, nowIso, testWindow }: {
   }
   return (
     <>
-      <p className="mt-3 text-sm text-white/70">Next paper: {formatIstDate(paper.date)}</p>
-      <div className="mt-2"><Countdown targetIso={opensAt(paper.date, testWindow).toISOString()} nowIso={nowIso} /></div>
+      <p className="mt-3 text-sm text-white/70">
+          Next paper: {formatIstDate(paper.window.date)} at {paperLabels(paper.window).opens}
+        </p>
+      <div className="mt-2"><Countdown targetIso={opensAt(paper.window).toISOString()} nowIso={nowIso} /></div>
     </>
   )
 }
 
-/**
- * The first SCHEDULED paper still to open: tonight's if the window has not opened
- * yet (`includeToday`), otherwise the next date after today.
- */
-async function nextScheduled(today: string, includeToday: boolean): Promise<{ date: string } | null> {
-  const { data } = await db()
-    .from('tests').select('date').eq('status', 'SCHEDULED')
-    .gte('date', includeToday ? today : addDays(today, 1))
-    .order('date').limit(1).maybeSingle()
-  return data ? { date: data.date as string } : null
-}
+

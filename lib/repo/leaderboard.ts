@@ -4,7 +4,7 @@ import { selectAll } from './select-all'
 import {
   buildLeaderboard, paperRank, rankDelta, type AttemptRecord, type LeaderboardRow,
 } from '../leaderboard'
-import { istDate, latestBoardDate, onBoard } from '../time'
+import { istDate, paperClosed, type PaperWindow } from '../time'
 import { finaliseOverdueAttempts } from './finalise'
 
 const COUNTED_STATES = ['SUBMITTED', 'AUTO_SUBMITTED']
@@ -12,8 +12,18 @@ const COUNTED_STATES = ['SUBMITTED', 'AUTO_SUBMITTED']
 interface Counted {
   records: AttemptRecord[]
   /** Every paper on the board, ascending. */
-  testDates: string[]
+  paperKeys: string[]
 }
+
+/** `YYYY-MM-DD#MMMM`: identifies one paper and orders it against the rest. */
+export const paperKeyOf = (w: Pick<PaperWindow, 'date' | 'opensAtMin'>) =>
+  `${w.date}#${String(w.opensAtMin).padStart(4, '0')}`
+
+const windowOf = (t: Record<string, unknown>): PaperWindow => ({
+  date: t['date'] as string,
+  opensAtMin: t['opens_at_min'] as number,
+  entryClosesAtMin: t['entry_closes_at_min'] as number,
+})
 
 /**
  * Every counted attempt on every paper the board includes.
@@ -32,15 +42,21 @@ interface Counted {
  */
 async function loadCounted(now = new Date()): Promise<Counted> {
   const client = db()
-  const lastDate = latestBoardDate(now)
 
-  const tests = await selectAll<{ id: string; date: string }>('papers', (from, to) =>
-    client.from('tests').select('id, date')
-      .eq('status', 'SCHEDULED').lte('date', lastDate)
+  // Today is a cheap upper bound; which papers have actually closed depends on
+  // each one's own times, so the real filter happens here rather than in SQL.
+  const candidates = await selectAll<Record<string, unknown>>('papers', (from, to) =>
+    client.from('tests').select('id, date, opens_at_min, entry_closes_at_min')
+      .eq('status', 'SCHEDULED').lte('date', istDate(now))
       .order('date').range(from, to))
 
-  const testDates = tests.map((t) => t.date)
-  if (!testDates.length) return { records: [], testDates }
+  const tests = candidates
+    .map((t) => ({ id: t['id'] as string, window: windowOf(t) }))
+    .filter((t) => paperClosed(t.window, now))
+    .sort((a, b) => paperKeyOf(a.window).localeCompare(paperKeyOf(b.window)))
+
+  const paperKeys = tests.map((t) => paperKeyOf(t.window))
+  if (!paperKeys.length) return { records: [], paperKeys }
 
   await finaliseOverdueAttempts(now).catch((e: Error) => console.error('[leaderboard] finalise', e.message))
 
@@ -48,37 +64,42 @@ async function loadCounted(now = new Date()): Promise<Counted> {
   // instead of listing every paper id in a URL that grows every night.
   const attempts = await selectAll<Record<string, unknown>>('attempts', (from, to) =>
     client.from('attempts')
-      .select('id, user_id, total_score, correct, attempted, time_spent_sec, profiles(username, display_name), tests!inner(date, status)')
+      .select('id, user_id, total_score, correct, attempted, time_spent_sec, profiles(username, display_name), tests!inner(date, status, opens_at_min, entry_closes_at_min)')
       .eq('is_dry_run', false)
       .in('state', COUNTED_STATES)
       .eq('tests.status', 'SCHEDULED')
-      .lte('tests.date', lastDate)
+      .lte('tests.date', istDate(now))
       .order('id')
       .range(from, to))
 
-  const records: AttemptRecord[] = attempts.map((a) => {
+  // The SQL filter stops at the date; papers from today that have not closed
+  // yet are dropped here, by the same rule that chose `tests` above.
+  const open = new Set(paperKeys)
+  const records: AttemptRecord[] = attempts.flatMap((a) => {
     const p = a['profiles'] as { username: string; display_name: string }
-    const t = a['tests'] as { date: string }
-    return {
+    const t = a['tests'] as Record<string, unknown>
+    const key = paperKeyOf(windowOf(t))
+    if (!open.has(key)) return []
+    return [{
       userId: a['user_id'] as string,
       username: p.username,
       displayName: p.display_name,
-      testDate: t.date,
+      paperKey: key,
       totalScore: Number(a['total_score'] ?? 0),
       correct: (a['correct'] as number | null) ?? 0,
       attempted: (a['attempted'] as number | null) ?? 0,
       timeSpentSec: (a['time_spent_sec'] as number | null) ?? 0,
-    }
+    }]
   })
 
-  return { records, testDates }
+  return { records, paperKeys }
 }
 
 /** Throws on a failed read, so a database error never renders as an empty board. */
 export async function getLeaderboard(options: { lastN?: number } = {}): Promise<LeaderboardRow[]> {
-  const { records, testDates } = await loadCounted()
-  if (!testDates.length) return []
-  return buildLeaderboard(records, testDates, options)
+  const { records, paperKeys } = await loadCounted()
+  if (!paperKeys.length) return []
+  return buildLeaderboard(records, paperKeys, options)
 }
 
 export interface ResultStanding {
@@ -89,16 +110,17 @@ export interface ResultStanding {
 }
 
 /**
- * The rank figures on the result page (PRD 6.6), or null while the paper is
- * not yet on the board: they compare the student with everyone else, so they
- * wait for 00:01 like the board itself.
+ * The rank figures on the result page (PRD 6.6), or null while the paper has
+ * not closed: they compare the student with everyone else, so they wait for
+ * the paper's own hard stop, like the board itself.
  */
-export async function getResultStanding(userId: string, testDate: string): Promise<ResultStanding | null> {
-  if (!onBoard(testDate)) return null
+export async function getResultStanding(userId: string, w: PaperWindow): Promise<ResultStanding | null> {
+  if (!paperClosed(w)) return null
+  const paperKey = paperKeyOf(w)
   const { records } = await loadCounted()
   return {
-    paper: paperRank(records, userId, testDate),
-    board: rankDelta(records, userId, testDate),
+    paper: paperRank(records, userId, paperKey),
+    board: rankDelta(records, userId, paperKey),
   }
 }
 
@@ -116,11 +138,12 @@ export interface PaperStandingRow {
  * paper on the board.
  */
 export async function getPaperStandings(testId: string): Promise<{ date: string; rows: PaperStandingRow[] } | null> {
-  const { data: test, error } = await db().from('tests').select('date, status').eq('id', testId).maybeSingle()
+  const { data: test, error } = await db()
+    .from('tests').select('date, status, opens_at_min, entry_closes_at_min').eq('id', testId).maybeSingle()
   if (error) throw new Error(`Could not load the paper: ${error.message}`)
-  if (!test || test.status !== 'SCHEDULED' || !onBoard(test.date as string)) return null
+  if (!test || test.status !== 'SCHEDULED' || !paperClosed(windowOf(test))) return null
   // As for the board: anyone left open past the hard stop is scored first, so
-  // the two views never disagree between 00:01 and the 00:05 job.
+  // the two views never disagree between a paper closing and the daily job.
   await finaliseOverdueAttempts().catch((e: Error) => console.error('[leaderboard] finalise', e.message))
 
   const attempts = await selectAll<Record<string, unknown>>('attempts', (from, to) =>
@@ -147,11 +170,14 @@ export async function getPaperStandings(testId: string): Promise<{ date: string;
 
 /** Papers with a rank list to show: every paper on the board, newest first. */
 export async function boardPapers(): Promise<{ id: string; date: string; title: string | null }[]> {
-  const tests = await selectAll<{ id: string; date: string; title: string | null }>('papers', (from, to) =>
-    db().from('tests').select('id, date, title')
-      .eq('status', 'SCHEDULED').lte('date', latestBoardDate())
+  const candidates = await selectAll<Record<string, unknown>>('papers', (from, to) =>
+    db().from('tests').select('id, date, title, opens_at_min, entry_closes_at_min')
+      .eq('status', 'SCHEDULED').lte('date', istDate())
       .order('date', { ascending: false }).range(from, to))
-  return tests
+  return candidates
+    .filter((t) => paperClosed(windowOf(t)))
+    .sort((a, b) => paperKeyOf(windowOf(b)).localeCompare(paperKeyOf(windowOf(a))))
+    .map((t) => ({ id: t['id'] as string, date: t['date'] as string, title: (t['title'] as string | null) ?? null }))
 }
 
 export interface ArchiveRow {
@@ -176,10 +202,24 @@ export async function getArchive(userId: string): Promise<ArchiveRow[]> {
   const client = db()
   const today = istDate()
 
-  const tests = await selectAll<{ id: string; date: string; title: string | null }>('papers', (from, to) =>
-    client.from('tests').select('id, date, title')
-      .eq('status', 'SCHEDULED').lt('date', today)
+  // A paper enters the archive at its own hard stop, so today's morning paper
+  // is already here while tonight's is not. The date filter is only an upper
+  // bound; the real one is below.
+  const candidates = await selectAll<Record<string, unknown>>('papers', (from, to) =>
+    client.from('tests').select('id, date, title, opens_at_min, entry_closes_at_min')
+      .eq('status', 'SCHEDULED').lte('date', today)
       .order('date', { ascending: false }).range(from, to))
+
+  const tests = candidates
+    .filter((t) => paperClosed(windowOf(t)))
+    .sort((a, b) => paperKeyOf(windowOf(b)).localeCompare(paperKeyOf(windowOf(a))))
+    .map((t) => ({
+      id: t['id'] as string,
+      date: t['date'] as string,
+      title: (t['title'] as string | null) ?? null,
+      // Already filtered to closed papers, so every row here is ranked.
+      closed: true,
+    }))
   if (!tests.length) return []
 
   const attempts = await selectAll<Record<string, unknown>>('attempts', (from, to) =>
@@ -188,7 +228,7 @@ export async function getArchive(userId: string): Promise<ArchiveRow[]> {
       .eq('is_dry_run', false)
       .in('state', COUNTED_STATES)
       .eq('tests.status', 'SCHEDULED')
-      .lt('tests.date', today)
+      .lte('tests.date', today)
       .order('id')
       .range(from, to))
 
@@ -202,7 +242,7 @@ export async function getArchive(userId: string): Promise<ArchiveRow[]> {
   return tests.map((t) => {
     const all = byTest.get(t.id) ?? []
     const mine = all.find((a) => a.userId === userId)
-    const ranked = onBoard(t.date)
+    const ranked = t.closed
     return {
       testId: t.id,
       date: t.date,

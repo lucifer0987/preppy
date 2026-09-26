@@ -393,8 +393,14 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <figcaption><b>Only one thing on this timeline is a scheduled job.</b> Unlocking at 10 PM, closing entry at 11:15, and opening the archive at midnight are all computed from the clock whenever a page is read, so there is nothing to miss. The 12:05 job exists solely to score an attempt somebody abandoned.</figcaption>
 </figure>
 
-<h3>The times are a setting, not a constant</h3>
-<p>Opening and last-entry are edited in the admin console under <strong>Nightly window</strong> and stored in <code>app_settings</code>. Every page reads them on load, so a change takes effect on the next request without a deploy.</p>
+<h3>Every paper carries its own window</h3>
+<p>Opening and last-entry are set when a paper is scheduled, and stored on the paper. The admin console's <strong>Nightly window</strong> screen holds the times a <em>new</em> paper is offered; changing it never moves anything already scheduled.</p>
+
+<p>That is what allows <strong>more than one paper in a day</strong> &mdash; a morning set and an evening one, say. Two conditions apply:</p>
+<ul>
+<li>Their windows may not overlap, counting the running time and not just entry. Scheduling refuses an overlap and names the paper it clashes with.</li>
+<li>A student may have only <strong>one counted attempt open at a time</strong>, enforced by a database index. Two papers open at once would otherwise mean splitting 45 minutes across two clocks.</li>
+</ul>
 
 <p>The hard stop is <strong>not</strong> stored. It is always entry close plus one paper, so the guarantee that the last entrant gets a full attempt holds whatever times you pick. That has one consequence worth knowing:</p>
 
@@ -403,7 +409,17 @@ figcaption b{color:var(--ink-2); font-weight:600}
   <p>Because 11:15 plus 45 minutes is exactly midnight. Any later and the attempt finishes on the next calendar day, where it would sit on the wrong date for the archive, the leaderboard and the nightly job &mdash; all of which key off the paper's own date. The form refuses it, and so does a database constraint, so the rule cannot be worked around by writing to the table directly.</p>
 </div>
 
-<p>Everything else is free. A morning slot of 6:00 to 7:30 works exactly as well as the default evening one, and every surface that prints a time follows: the home page countdown, the dashboard, the briefing, the admin console.</p>
+<p>Everything else is free. A morning slot of 6:00 to 7:30 works exactly as well as an evening one, and every surface that prints a time reads it from the paper: the home page countdown, the dashboard, the briefing, the admin console.</p>
+
+<h3>Nothing keys off the calendar day any more</h3>
+<p>Three rules used to wait for midnight or for 00:01 the next morning. They now wait for <strong>the paper's own hard stop</strong>, which is the moment every attempt on it has had to end:</p>
+<div class="tw"><table>
+<tr><th>When a paper closes</th><th>Why it waits for exactly that</th></tr>
+<tr><td>Its answers and solutions unlock</td><td>Nobody still sitting it can be given the key</td></tr>
+<tr><td>It joins the leaderboard</td><td>Until then it compares nothing, so the board cannot reveal who has already sat it</td></tr>
+<tr><td>It appears in the archive</td><td>Same reason, and the review shows the answers</td></tr>
+</table></div>
+<p>A paper that ran at breakfast is therefore reviewable by mid-morning, rather than waiting for a midnight that has nothing to do with it.</p>
 
 <h3>Why almost nothing is scheduled</h3>
 <p>A job that must fire at 10 PM for the product to work is a job that will one day not fire. Instead, <code>lib/time.ts</code> answers <em>&ldquo;is this paper open right now?&rdquo;</em> from the current time every time a page loads. India has never observed daylight saving, so IST is a fixed UTC+05:30 and all of it is plain arithmetic with one offset.</p>
@@ -477,7 +493,8 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td>What the live test screen does</td><td><code>components/TestEngine.tsx</code></td></tr>
 <tr><td>Anything that reads or writes the database</td><td><code>lib/repo/</code></td></tr>
 <tr><td>Tables, constraints, SQL functions</td><td><code>supabase/migrations/</code></td></tr>
-<tr><td>When a paper opens and entry closes</td><td>The admin console, under <strong>Nightly window</strong></td></tr>
+<tr><td>The times a new paper is offered</td><td>The admin console, under <strong>Nightly window</strong></td></tr>
+<tr><td>When one particular paper opens</td><td>Its own schedule form, on the paper's page</td></tr>
 </table></div>
 </div></section>
 
@@ -1483,8 +1500,8 @@ figcaption b{color:var(--ink-2); font-weight:600}
 
 <li>
 <h4>Confirm the nightly job registered</h4>
-<p>Vercel &rarr; <strong>Settings</strong> &rarr; <strong>Cron Jobs</strong>. One entry for <code>/api/cron/finalise</code>, schedule <code>35 18 * * *</code>.</p>
-<p>That is 18:35 UTC, which is 00:05 IST. Vercel Cron runs on UTC, so the schedule is written in UTC.</p>
+<p>Vercel &rarr; <strong>Settings</strong> &rarr; <strong>Cron Jobs</strong>. One entry for <code>/api/cron/finalise</code>, schedule <code>30 21 * * *</code>.</p>
+<p>That is 21:30 UTC, which is 03:00 IST. Vercel Cron runs on UTC, so the schedule is written in UTC.</p>
 <div class="note care">
   <h4>Without CRON_SECRET the endpoint refuses everyone</h4>
   <p>Including Vercel. Deliberate &mdash; better a job that does not run than an open endpoint that writes scores &mdash; which is why the production build will not even start without it.</p>
@@ -1581,7 +1598,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td><strong>A paper will not delete</strong></td><td>Somebody has a counted attempt on it. A database trigger is refusing, because deleting would leave scores pointing at questions that no longer exist. Void the attempts first if you really mean it</td></tr>
 <tr><td><strong>Upload rejects the file</strong></td><td>The report names the exact path and line. <code>npm run check your-paper.json</code> gives the same report in the terminal</td></tr>
 <tr><td><strong>A student is stuck on a finished paper</strong></td><td>Opening it scores it automatically. If genuinely stuck, run the nightly job manually</td></tr>
-<tr><td><strong>The leaderboard is missing last night</strong></td><td>It takes a paper in at 00:01, not midnight. Before then the night is deliberately absent</td></tr>
+<tr><td><strong>The leaderboard is missing a paper</strong></td><td>It takes a paper in when that paper closes, which is its last-entry time plus 45 minutes. Before then it is deliberately absent</td></tr>
 <tr><td><strong>Everything is slow</strong></td><td>Check the Supabase region. A project on another continent adds a few hundred milliseconds to every round trip, and a page makes several</td></tr>
 <tr><td><strong>You changed .env.local and nothing happened</strong></td><td>Restart <code>npm run dev</code></td></tr>
 </table></div>

@@ -2,7 +2,6 @@ import 'server-only'
 import { db } from '../supabase/admin'
 import { submitAttempt } from './attempts'
 import { attemptHardStop } from '../attempt'
-import { getWindow } from './settings'
 
 /**
  * The nightly job (FR-10.2). It does one thing: score any attempt still open
@@ -30,23 +29,26 @@ export async function finaliseOverdueAttempts(now = new Date()): Promise<Finalis
   // ever a handful, and a date filter would miss dry runs of future papers.
   const { data: attempts, error } = await client
     .from('attempts')
-    .select('id, is_dry_run, started_at, tests!inner(date, sections(duration_sec))')
+    .select('id, is_dry_run, started_at, tests!inner(date, opens_at_min, entry_closes_at_min, sections(duration_sec))')
     .eq('state', 'IN_PROGRESS')
 
   if (error) throw new Error(`Could not list open attempts: ${error.message}`)
 
   const report: FinaliseReport = { scanned: (attempts ?? []).length, finalised: [], failed: [] }
-  const testWindow = await getWindow()
 
   for (const a of attempts ?? []) {
-    const test = a.tests as unknown as { date: string; sections: { duration_sec: number }[] } | null
+    const test = a.tests as unknown as { date: string; opens_at_min: number; entry_closes_at_min: number; sections: { duration_sec: number }[] } | null
     if (!test) continue
     const hardStop = attemptHardStop({
       isDryRun: a.is_dry_run as boolean,
-      testDate: test.date,
+      window: {
+        date: test.date,
+        opensAtMin: test.opens_at_min,
+        entryClosesAtMin: test.entry_closes_at_min,
+      },
       startedAt: new Date(a.started_at as string),
       sections: test.sections.map((s) => ({ durationSec: s.duration_sec })),
-    }, testWindow)
+    })
     if (now.getTime() < hardStop.getTime()) continue // still legitimately running
 
     try {

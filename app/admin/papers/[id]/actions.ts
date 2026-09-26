@@ -39,7 +39,20 @@ export async function scheduleAction(formData: FormData) {
     redirect(`/admin/papers/${id}?error=${encodeURIComponent('Tick the box to confirm you have read the paper through.')}`)
   }
   const date = String(formData.get('date') ?? '') || undefined
-  await run(id, () => schedulePaper(id, admin.id, date), `/admin/papers/${id}?scheduled=1`)
+
+  // "HH:MM" from two time inputs, as minutes from midnight.
+  const minutes = (name: string): number | null => {
+    const parts = String(formData.get(name) ?? '').split(':').map(Number)
+    const [h, m] = [parts[0] ?? NaN, parts[1] ?? NaN]
+    return Number.isInteger(h) && Number.isInteger(m) ? h * 60 + m : null
+  }
+  const opensAtMin = minutes('opensAt')
+  const entryClosesAtMin = minutes('entryClosesAt')
+  const times = opensAtMin !== null && entryClosesAtMin !== null
+    ? { opensAtMin, entryClosesAtMin }
+    : undefined
+
+  await run(id, () => schedulePaper(id, admin.id, date, times), `/admin/papers/${id}?scheduled=1`)
 }
 
 export async function unscheduleAction(formData: FormData) {

@@ -6,7 +6,7 @@ import { getPaperById } from '../../../lib/repo/papers'
 import { QuestionCard } from '../../../components/QuestionCard'
 import { DirectionsBlock } from '../../../components/DirectionsBlock'
 import { SECTION_NAMES, type OptionLabel, type SectionCode } from '../../../lib/types'
-import { answersUnlocked, formatIstDate } from '../../../lib/time'
+import { formatIstDate, paperClosed, paperLabels } from '../../../lib/time'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,7 +32,7 @@ export default async function ArchiveDetail({
   if (!record || record.status !== 'SCHEDULED') notFound()
   const { paper } = record
 
-  if (!answersUnlocked(paper.date)) {
+  if (!paperClosed(record.window)) {
     return (
       <main className="mx-auto max-w-xl px-6 py-16 text-center">
         <h1 className="text-3xl font-black">Sealed until midnight</h1>

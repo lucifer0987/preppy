@@ -15,12 +15,13 @@ export default async function WindowPage() {
       <Link href="/admin" className="text-sm font-bold text-play-purple">&larr; Admin</Link>
       <h1 className="mt-4 text-3xl font-black tracking-tight">Nightly window</h1>
       <p className="mt-1 text-ink-soft">
-        When a paper unlocks, and the last moment somebody may start one. These times appear on the
-        home page, the dashboard and the briefing, and they decide who is let in.
+        The times a new paper is offered when you schedule it. Each paper keeps its own window, so
+        changing these does not move anything already scheduled &mdash; and a day can hold more than
+        one paper as long as their windows do not overlap.
       </p>
 
       <section className="mt-6 rounded-3xl bg-play-purple p-6 text-white">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">Right now</p>
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">Offered by default</p>
         <p className="mt-2 text-2xl font-black">
           {labels.opens} &rarr; {labels.closes}
         </p>
@@ -42,10 +43,10 @@ export default async function WindowPage() {
           What changing these does not affect
         </h2>
         <ul className="mt-2 space-y-1.5 text-sm text-ink-soft">
+          <li>Papers already scheduled keep the window they were given.</li>
           <li>An attempt already running keeps the deadline it started with.</li>
-          <li>Papers already scheduled keep their dates; only the hours move.</li>
-          <li>Answers still unlock at midnight, and the leaderboard still takes a paper in at 00:01.</li>
-          <li>The nightly job still runs at 00:05.</li>
+          <li>Each paper's answers unlock, and it joins the leaderboard, at its own closing time.</li>
+          <li>The daily job still runs at 3 AM.</li>
         </ul>
       </section>
     </>

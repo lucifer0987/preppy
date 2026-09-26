@@ -4,7 +4,9 @@ import { getPaperById, paperLock } from '../../../../lib/repo/papers'
 import { QuestionCard } from '../../../../components/QuestionCard'
 import { DirectionsBlock } from '../../../../components/DirectionsBlock'
 import { SECTION_NAMES, type SectionCode } from '../../../../lib/types'
-import { formatIstDate, istDate, windowLabels, windowState, addDays } from '../../../../lib/time'
+import {
+  addDays, defaultPaperWindow, formatIstDate, istDate, paperLabels, windowState,
+} from '../../../../lib/time'
 import { getWindow } from '../../../../lib/repo/settings'
 import { listPaperImages } from '../../../../lib/repo/images'
 import { requireAdmin } from '../../../../lib/guard'
@@ -46,12 +48,17 @@ export default async function PaperPreview(
   const missingImages = stored === null ? [] : [...referenced.entries()].filter(([n]) => !stored.includes(n))
   const totalQuestions = paper.sections.reduce((n, s) => n + s.questions.length, 0)
   const totalMinutes = paper.sections.reduce((n, s) => n + (s.durationMinutes ?? 0), 0)
-  const testWindow = await getWindow()
-  // The night the schedule form offers: the paper's own, or tomorrow's if that
-  // has already opened.
-  const defaultDate = windowState(paper.date, testWindow) === 'BEFORE_OPEN'
-    ? paper.date
-    : (windowState(istDate(), testWindow) === 'BEFORE_OPEN' ? istDate() : addDays(istDate(), 1))
+  const defaults = await getWindow()
+  // The window the schedule form offers: the paper's own if it has one and has
+  // not opened, otherwise the usual times on the first day they still would.
+  const offered = record.window
+  const usual = defaultPaperWindow(paper.date, defaults)
+  const defaultWindow = windowState(offered) === 'BEFORE_OPEN'
+    ? offered
+    : windowState(usual) === 'BEFORE_OPEN'
+      ? usual
+      : defaultPaperWindow(addDays(istDate(), 1), defaults)
+  const defaultDate = defaultWindow.date
   const statByNumber = new Map(stats.map((s) => [s.number, s]))
   const flagged = stats.filter((s) => s.suspicious)
   const scheduled = status === 'SCHEDULED'
@@ -86,7 +93,7 @@ export default async function PaperPreview(
       )}
       {q['scheduled'] && (
         <p className="mt-4 rounded-2xl bg-answered px-5 py-4 font-semibold text-white">
-          Scheduled. It unlocks at {windowLabels(testWindow).opens} on {formatIstDate(paper.date)}.
+          Scheduled. It unlocks at {paperLabels(defaultWindow).opens} on {formatIstDate(paper.date)}.
         </p>
       )}
 
@@ -201,13 +208,34 @@ export default async function PaperPreview(
           <input type="hidden" name="id" value={id} />
           <h2 className="text-xl font-black">Schedule this paper</h2>
           <p className="mt-1 text-sm text-ink-soft">
-            It unlocks at {windowLabels(testWindow).opens} on the night you choose. Until then you can move it back to draft.
+            It unlocks at {paperLabels(defaultWindow).opens} on the night you choose. Until then you can move it back to draft.
           </p>
           <label className="mt-4 block text-xs font-bold uppercase tracking-widest text-ink-soft">
             Night
             <input type="date" name="date" defaultValue={defaultDate} min={istDate()} required
                    className="mt-1 block rounded-xl border-2 border-black/15 px-3 py-2 text-base font-semibold" />
           </label>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <label className="block">
+              <span className="text-xs font-bold uppercase tracking-widest text-ink-soft">Unlocks at</span>
+              <input type="time" name="opensAt" required
+                     defaultValue={hhmm(defaultWindow.opensAtMin)}
+                     className="mt-1 block w-full rounded-xl border-2 border-black/15 px-3 py-2 text-base font-semibold tabular-nums" />
+            </label>
+            <label className="block">
+              <span className="text-xs font-bold uppercase tracking-widest text-ink-soft">Last moment to start</span>
+              <input type="time" name="entryClosesAt" required
+                     defaultValue={hhmm(defaultWindow.entryClosesAtMin)}
+                     max="23:15"
+                     className="mt-1 block w-full rounded-xl border-2 border-black/15 px-3 py-2 text-base font-semibold tabular-nums" />
+            </label>
+          </div>
+          <p className="mt-2 text-xs text-ink-soft">
+            Anyone starting before the second time still gets the full {totalMinutes} minutes, so the
+            paper finishes {paperLabels(defaultWindow).hardStop === 'midnight' ? 'by midnight' : `by ${paperLabels(defaultWindow).hardStop}`}.
+            More than one paper can run in a day, as long as their windows do not overlap.
+          </p>
           <label className="mt-4 flex items-start gap-3 text-sm">
             <input type="checkbox" name="reviewed" value="yes" required className="mt-1 h-4 w-4" />
             <span>I have read all {totalQuestions} questions above, with their keys and solutions.</span>
@@ -261,4 +289,9 @@ function ItemFooter({
       </span>
     </div>
   )
+}
+
+/** Minutes from midnight as "HH:MM", for a time input. */
+function hhmm(min: number): string {
+  return `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`
 }

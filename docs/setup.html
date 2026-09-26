@@ -265,7 +265,7 @@ Either way you should end with ten tables, each showing an <strong>RLS enabled</
 <pre><b>npm run check -- my-paper.json</b>          <i># validate before opening the app</i>
 <b>npm run check -- my-paper.json --images ./img</b></pre>
 </div>
-<p>Then in the app: <strong>Admin &rarr; Upload a paper</strong> &rarr; read the preview &rarr; <strong>Schedule</strong>. It unlocks at whatever time <strong>Admin &rarr; Nightly window</strong> says. Copy <code>format/sample.json</code> as your starting point. The format is specified in <a href="architecture.html#s7">architecture.html section 7</a>.</p>
+<p>Then in the app: <strong>Admin &rarr; Upload a paper</strong> &rarr; read the preview &rarr; <strong>Schedule</strong>. You choose its date and times on the schedule form; <strong>Admin &rarr; Nightly window</strong> only sets what is offered by default. More than one paper can run in a day if their windows do not overlap. Copy <code>format/sample.json</code> as your starting point. The format is specified in <a href="architecture.html#s7">architecture.html section 7</a>.</p>
 </div></section>
 
 <section id="c4"><div class="col">
@@ -300,7 +300,7 @@ Either way you should end with ten tables, each showing an <strong>RLS enabled</
 <tr><td><code>CRON_SECRET</code></td><td>the value from step 2</td></tr>
 </table></div>
 </li>
-<li>Deploy. Then check <strong>Settings &rarr; Cron Jobs</strong> shows <code>/api/cron/finalise</code> at <code>35 18 * * *</code> &mdash; that is 18:35 UTC, which is 00:05 IST.</li>
+<li>Deploy. Then check <strong>Settings &rarr; Cron Jobs</strong> shows <code>/api/cron/finalise</code> at <code>30 21 * * *</code> &mdash; that is 21:30 UTC, which is 03:00 IST.</li>
 <li>Seed production once:
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
@@ -348,7 +348,7 @@ Either way you should end with ten tables, each showing an <strong>RLS enabled</
 <tr><td>Seeding errors</td><td>Tables missing. Run <code>npm run migrate</code></td></tr>
 <tr><td>Nightly job did not run</td><td>Admin home &rarr; <strong>Finalise open attempts now</strong></td></tr>
 <tr><td>A paper will not delete</td><td>Somebody has a counted attempt on it. A trigger is refusing</td></tr>
-<tr><td>Leaderboard missing last night</td><td>It takes a paper in at 00:01, not midnight</td></tr>
+<tr><td>Leaderboard missing a paper</td><td>It takes a paper in when that paper closes, 45 minutes after its last-entry time</td></tr>
 <tr><td>Changed <code>.env.local</code>, nothing happened</td><td>Restart <code>npm run dev</code></td></tr>
 </table></div>
 

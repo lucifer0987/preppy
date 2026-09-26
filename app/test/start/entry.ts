@@ -1,4 +1,4 @@
-import { canStartAttempt, istDate, windowLabels, windowState, type WindowSettings } from '../../../lib/time'
+import { canStartAttempt, istDate, paperLabels, windowState, type PaperWindow } from '../../../lib/time'
 
 /**
  * Why a student may not begin this paper now, or null if they may. Shared by
@@ -7,13 +7,13 @@ import { canStartAttempt, istDate, windowLabels, windowState, type WindowSetting
  * refused server-side).
  */
 export function entryRefusal(
-  status: string, date: string, w: WindowSettings, now: Date = new Date(),
+  status: string, w: PaperWindow, now: Date = new Date(),
 ): string | null {
   if (status !== 'SCHEDULED') return 'That paper is not scheduled.'
-  if (date !== istDate(now)) return 'That is not tonight\'s paper. A paper can only be taken on its own night.'
-  if (canStartAttempt(date, w, now)) return null
-  const { opens, closes } = windowLabels(w)
-  return windowState(date, w, now) === 'BEFORE_OPEN'
-    ? `Tonight's paper unlocks at ${opens}.`
-    : `Entry for tonight closed at ${closes}.`
+  if (w.date !== istDate(now)) return 'That is not today\'s paper. A paper can only be taken on its own day.'
+  if (canStartAttempt(w, now)) return null
+  const { opens, closes } = paperLabels(w)
+  return windowState(w, now) === 'BEFORE_OPEN'
+    ? `This paper unlocks at ${opens}.`
+    : `Entry for this paper closed at ${closes}.`
 }

@@ -3,7 +3,7 @@ import { requireUser } from '../../lib/guard'
 import { boardPapers, getLeaderboard, getPaperStandings } from '../../lib/repo/leaderboard'
 import { LeaderboardTable } from '../../components/LeaderboardTable'
 import { ordinal } from '../../lib/leaderboard'
-import { BOARD_REFRESH, formatIstDate, formatIstTime } from '../../lib/time'
+import { formatIstDate } from '../../lib/time'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,7 +35,6 @@ export default async function LeaderboardPage({
     failure = (e as Error).message
   }
 
-  const refresh = formatIstTime(BOARD_REFRESH.hour, BOARD_REFRESH.minute)
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-10">
@@ -43,7 +42,7 @@ export default async function LeaderboardPage({
       <h1 className="mt-4 text-3xl font-black tracking-tight">Leaderboard</h1>
       <p className="mt-1 text-ink-soft">
         Cumulative points across every paper. It never resets, and takes in each night&rsquo;s paper
-        at {refresh}.
+        once it closes.
       </p>
 
       <div className="mt-5 flex flex-wrap items-center gap-2">
@@ -86,7 +85,7 @@ export default async function LeaderboardPage({
             moment. ({failure})
           </p>
         ) : test ? (
-          <PaperRankList standings={standings} meUserId={user.id} refresh={refresh} />
+          <PaperRankList standings={standings} meUserId={user.id} />
         ) : (
           <LeaderboardTable rows={rows} meUserId={user.id} />
         )}
@@ -103,16 +102,15 @@ export default async function LeaderboardPage({
 
 /** One paper's standings: rank by score alone, equal scores sharing a place. */
 function PaperRankList({
-  standings, meUserId, refresh,
+  standings, meUserId,
 }: {
   standings: Awaited<ReturnType<typeof getPaperStandings>>
   meUserId: string
-  refresh: string
 }) {
   if (!standings) {
     return (
       <p className="rounded-3xl border-2 border-dashed border-black/15 p-8 text-center text-ink-soft">
-        That paper is not on the board. A paper joins it at {refresh} the morning after it runs.
+        That paper is not on the board yet. A paper joins it when its own window closes and every attempt on it has had to end.
       </p>
     )
   }

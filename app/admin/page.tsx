@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { db } from '../../lib/supabase/admin'
-import { formatIstDate, istDate, windowLabels, windowState, type WindowSettings } from '../../lib/time'
+import { formatIstDate, istDate, paperLabels, windowState } from '../../lib/time'
+import { paperWindowOf } from '../../lib/repo/papers'
 import { getWindow } from '../../lib/repo/settings'
 import { requireAdmin } from '../../lib/guard'
 import { FinaliseButton } from './FinaliseButton'
@@ -24,13 +25,23 @@ export default async function AdminHome({
   const { password } = await searchParams
   const today = istDate()
   const { data: tonight } = await db()
-    .from('tests').select('id, date, title, status').eq('date', today).maybeSingle()
+    .from('tests').select('id, date, title, status, opens_at_min, entry_closes_at_min').eq('date', today)
   const { count: userCount } = await db()
     .from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student')
 
   const testWindow = await getWindow()
-  const status = tonightStatus(tonight?.status as string | undefined, windowState(today, testWindow), testWindow)
-  const good = status.tone === 'good'
+  const now = new Date()
+  // A day can hold more than one paper, so this is a list rather than a verdict.
+  const papers = (tonight ?? [])
+    .map((t) => ({
+      id: t.id as string,
+      title: (t.title as string | null) ?? null,
+      status: t.status as string,
+      window: paperWindowOf(t),
+    }))
+    .sort((a, b) => a.window.opensAtMin - b.window.opensAtMin)
+  const anyScheduled = papers.some((p) => p.status === 'SCHEDULED')
+  const good = anyScheduled
 
   return (
     <>
@@ -44,16 +55,39 @@ export default async function AdminHome({
         className={`rounded-3xl p-6 ${good ? 'bg-answered text-white' : 'bg-notanswered text-white'}`}
       >
         <h1 className="text-xs font-bold uppercase tracking-[0.2em] text-white/70">
-          Tonight &middot; {formatIstDate(today)}
+          Today &middot; {formatIstDate(today)}
         </h1>
-        <p className="mt-2 text-3xl font-black">{status.headline}</p>
-        <p className="mt-1 text-white/80">
-          {tonight?.title ? `${tonight.title}. ` : ''}{status.detail}
-        </p>
-        {tonight && (
-          <Link href={`/admin/papers/${tonight.id}`} className="mt-3 inline-block text-sm font-bold underline">
-            {tonight.status === 'DRAFT' ? 'Preview and schedule it' : 'Open the paper'}
-          </Link>
+
+        {papers.length === 0 ? (
+          <>
+            <p className="mt-2 text-3xl font-black">Nothing scheduled</p>
+            <p className="mt-1 text-white/80">
+              No paper will unlock today. Upload one and schedule it for whatever time suits.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="mt-2 text-3xl font-black">
+              {papers.length} paper{papers.length === 1 ? '' : 's'} today
+            </p>
+            <ul className="mt-3 space-y-2">
+              {papers.map((p) => {
+                const l = paperLabels(p.window)
+                const state = p.status === 'DRAFT' ? 'DRAFT' : windowState(p.window, now)
+                return (
+                  <li key={p.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <Link href={`/admin/papers/${p.id}`} className="font-bold underline">
+                      {p.title ?? 'Untitled'}
+                    </Link>
+                    <span className="tabular-nums text-white/80">{l.opens} &ndash; {l.closes}</span>
+                    <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest">
+                      {stateWord(state)}
+                    </span>
+                  </li>
+                )
+              })}
+            </ul>
+          </>
         )}
       </section>
 
@@ -105,26 +139,14 @@ export default async function AdminHome({
  * one click from going live, and saying "upload one" would send the admin to
  * redo work already done.
  */
-function tonightStatus(
-  status: string | undefined,
-  state: ReturnType<typeof windowState>,
-  w: WindowSettings,
-): { headline: string; detail: string; tone: 'good' | 'bad' } {
-  if (!status) {
-    return state === 'BEFORE_OPEN'
-      ? { headline: 'Not scheduled', detail: `No paper will unlock tonight. Upload one before ${windowLabels(w).opens}.`, tone: 'bad' }
-      : { headline: 'No paper tonight', detail: 'Nothing ran tonight. Streaks are not broken by it.', tone: 'bad' }
-  }
-  if (status === 'DRAFT') {
-    return state === 'BEFORE_OPEN'
-      ? { headline: 'Draft awaiting schedule', detail: `Tonight's paper is uploaded but will not unlock until you schedule it before ${windowLabels(w).opens}.`, tone: 'bad' }
-      : { headline: 'Draft, never scheduled', detail: 'Tonight\'s paper stayed a draft, so nothing unlocked.', tone: 'bad' }
-  }
+/** A paper's state today, in a word. */
+function stateWord(state: 'DRAFT' | ReturnType<typeof windowState>): string {
   switch (state) {
-    case 'BEFORE_OPEN': return { headline: 'Scheduled', detail: 'Paper ready to go.', tone: 'good' }
-    case 'OPEN': return { headline: 'Live now', detail: `Open until ${windowLabels(w).closes}.`, tone: 'good' }
-    case 'ENTRY_CLOSED': return { headline: 'Finishing', detail: `Entry has closed; running attempts end by ${windowLabels(w).hardStop}.`, tone: 'good' }
-    case 'CLOSED': return { headline: 'Finished', detail: 'Tonight\'s paper has run.', tone: 'good' }
+    case 'DRAFT': return 'draft'
+    case 'BEFORE_OPEN': return 'scheduled'
+    case 'OPEN': return 'live now'
+    case 'ENTRY_CLOSED': return 'finishing'
+    case 'CLOSED': return 'finished'
   }
 }
 

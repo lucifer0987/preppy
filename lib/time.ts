@@ -121,107 +121,118 @@ export function istInstant(date: string, hour: number, minute: number): Date {
   return new Date(Date.UTC(y, m - 1, d, hour, minute) - IST_OFFSET_MINUTES * 60_000)
 }
 
-export const opensAt = (date: string, w: WindowSettings) =>
-  istInstant(date, w.openHour, w.openMinute)
+/**
+ * A paper's own window: the date it runs on, and two times expressed as
+ * minutes from midnight IST.
+ *
+ * Per paper since migration 0003. More than one paper can run in a day, so
+ * the date no longer identifies a window and nothing keys off the calendar
+ * day any more: a paper's answers unlock, it joins the leaderboard, and it
+ * enters the archive all at its own hard stop.
+ */
+export interface PaperWindow {
+  date: string
+  opensAtMin: number
+  entryClosesAtMin: number
+}
 
-export const entryClosesAt = (date: string, w: WindowSettings) =>
-  istInstant(date, w.entryCloseHour, w.entryCloseMinute)
+/** The default window a new paper is offered, from the global setting. */
+export function defaultPaperWindow(date: string, w: WindowSettings): PaperWindow {
+  return {
+    date,
+    opensAtMin: minutesOf(w.openHour, w.openMinute),
+    entryClosesAtMin: minutesOf(w.entryCloseHour, w.entryCloseMinute),
+  }
+}
+
+export const opensAt = (p: PaperWindow) => istInstant(p.date, 0, p.opensAtMin)
+export const entryClosesAt = (p: PaperWindow) => istInstant(p.date, 0, p.entryClosesAtMin)
 
 /**
- * Derived, not stored: entry close plus one paper. Expressed as minutes from
- * midnight so a stop of exactly 24:00 stays on the paper's own date rather
- * than becoming 00:00 the next day.
+ * Derived, never stored: entry close plus one paper, so the last possible
+ * entrant still gets the full attempt FR-4.1 promises. Expressed as minutes
+ * from midnight so a stop of exactly 24:00 stays on the paper's own date.
  */
-export const hardStopAt = (date: string, w: WindowSettings) =>
-  istInstant(date, 0, hardStopMinutes(w))
+export const hardStopAt = (p: PaperWindow) =>
+  istInstant(p.date, 0, p.entryClosesAtMin + ATTEMPT_MINUTES)
 
-/** Where a given test date sits relative to now. */
-export function windowState(date: string, w: WindowSettings, at: Date = new Date()): WindowState {
+/** Where a paper sits relative to now. */
+export function windowState(p: PaperWindow, at: Date = new Date()): WindowState {
   const t = at.getTime()
-  if (t < opensAt(date, w).getTime()) return 'BEFORE_OPEN'
-  if (t < entryClosesAt(date, w).getTime()) return 'OPEN'
-  if (t < hardStopAt(date, w).getTime()) return 'ENTRY_CLOSED'
+  if (t < opensAt(p).getTime()) return 'BEFORE_OPEN'
+  if (t < entryClosesAt(p).getTime()) return 'OPEN'
+  if (t < hardStopAt(p).getTime()) return 'ENTRY_CLOSED'
   return 'CLOSED'
 }
 
-/**
- * The test date that is live right now, or null.
- *
- * A paper dated D is live from D's opening time until its hard stop, so
- * outside that span nothing is live even though the calendar date may have
- * already advanced.
- */
-export function liveTestDate(w: WindowSettings, at: Date = new Date()): string | null {
-  const today = istDate(at)
-  const state = windowState(today, w, at)
-  return state === 'OPEN' || state === 'ENTRY_CLOSED' ? today : null
+/** Whether a new attempt may begin for this paper (FR-4.1). */
+export function canStartAttempt(p: PaperWindow, at: Date = new Date()): boolean {
+  return windowState(p, at) === 'OPEN'
 }
 
-/** Whether a new attempt may begin for this paper (FR-4.1). */
-export function canStartAttempt(date: string, w: WindowSettings, at: Date = new Date()): boolean {
-  return windowState(date, w, at) === 'OPEN'
+/**
+ * Everything that used to wait for midnight now waits for this: the paper's
+ * own hard stop, when every attempt on it has had to end.
+ *
+ * Answers and solutions unlock here (FR-4.3), the paper joins the leaderboard
+ * here, and it appears in the archive here. Before it, the paper counts for
+ * nothing that compares one student with another, so nobody can read off the
+ * board who has already sat it (FR-5.3).
+ */
+export function paperClosed(p: PaperWindow, at: Date = new Date()): boolean {
+  return at.getTime() >= hardStopAt(p).getTime()
 }
 
 /**
  * When an attempt started at `startedAt` must be submitted by: its own 45
- * minutes, or the hard stop, whichever comes first. The clamp only binds for
- * an attempt started after entry closed, which canStartAttempt refuses.
+ * minutes, or the paper's hard stop, whichever comes first. The clamp only
+ * binds for an attempt started after entry closed, which canStartAttempt
+ * refuses.
  */
-export function attemptDeadline(date: string, w: WindowSettings, startedAt: Date): Date {
+export function attemptDeadline(p: PaperWindow, startedAt: Date): Date {
   const ownDeadline = startedAt.getTime() + ATTEMPT_MINUTES * 60_000
-  return new Date(Math.min(ownDeadline, hardStopAt(date, w).getTime()))
+  return new Date(Math.min(ownDeadline, hardStopAt(p).getTime()))
 }
 
-/** The next moment a paper unlocks, counting from now. */
-export function nextOpenAt(w: WindowSettings, at: Date = new Date()): Date {
-  const today = istDate(at)
-  const todayOpen = opensAt(today, w)
-  if (at.getTime() < todayOpen.getTime()) return todayOpen
-  return opensAt(addDays(today, 1), w)
-}
-
-/** "10:00 PM" for a window's opening and closing times, for display. */
-export function windowLabels(w: WindowSettings): { opens: string; closes: string; hardStop: string } {
-  const stop = hardStopMinutes(w)
+/** The times a paper shows, for display. */
+export function paperLabels(p: PaperWindow): { opens: string; closes: string; hardStop: string } {
+  const stop = p.entryClosesAtMin + ATTEMPT_MINUTES
   return {
-    opens: formatIstTime(w.openHour, w.openMinute),
-    closes: formatIstTime(w.entryCloseHour, w.entryCloseMinute),
+    opens: formatIstTime(Math.floor(p.opensAtMin / 60), p.opensAtMin % 60),
+    closes: formatIstTime(Math.floor(p.entryClosesAtMin / 60), p.entryClosesAtMin % 60),
     // 24:00 is midnight at the end of the paper's date, not the start of it.
     hardStop: stop >= 24 * 60 ? 'midnight' : formatIstTime(Math.floor(stop / 60), stop % 60),
   }
 }
 
-/** Answers and solutions unlock at midnight after the paper's date (FR-4.3). */
-export function answersUnlockAt(date: string): Date {
-  return istInstant(addDays(date, 1), 0, 0)
+/** The default times, for the settings form. A paper's own use paperLabels. */
+export function windowLabels(w: WindowSettings): { opens: string; closes: string; hardStop: string } {
+  return paperLabels({
+    date: '1970-01-01',
+    opensAtMin: minutesOf(w.openHour, w.openMinute),
+    entryClosesAtMin: minutesOf(w.entryCloseHour, w.entryCloseMinute),
+  })
 }
 
-export function answersUnlocked(date: string, at: Date = new Date()): boolean {
-  return at.getTime() >= answersUnlockAt(date).getTime()
+/** Why this paper window cannot be used, or null. Mirrors the SQL constraint. */
+export function paperWindowProblem(p: Pick<PaperWindow, 'opensAtMin' | 'entryClosesAtMin'>): string | null {
+  for (const [v, what] of [[p.opensAtMin, 'opening'], [p.entryClosesAtMin, 'closing']] as const) {
+    if (!Number.isInteger(v) || v < 0 || v > 1439) return `The ${what} time is not a time of day.`
+  }
+  if (p.opensAtMin >= p.entryClosesAtMin) return 'Entry must open before it closes.'
+  if (p.entryClosesAtMin + ATTEMPT_MINUTES > 24 * 60) {
+    const latest = 24 * 60 - ATTEMPT_MINUTES
+    return `Entry must close by ${formatIstTime(Math.floor(latest / 60), latest % 60)}, `
+      + `so the last person to start still finishes before midnight.`
+  }
+  return null
 }
 
-/**
- * The leaderboard takes in a night's paper at 00:01, once every attempt on it
- * has had to end. Until then the paper counts for nothing that compares one
- * student with another: the board, ranks, movement and streaks. A student sees
- * their own result the moment they submit; how it places them waits, so nobody
- * can read off the board who has sat tonight's paper (FR-5.3).
- */
-export const BOARD_REFRESH = { hour: 0, minute: 1 } as const
-
-/** When a paper joins the leaderboard: 00:01 the morning after its date. */
-export function boardIncludesAt(date: string): Date {
-  return istInstant(addDays(date, 1), BOARD_REFRESH.hour, BOARD_REFRESH.minute)
-}
-
-export function onBoard(date: string, at: Date = new Date()): boolean {
-  return at.getTime() >= boardIncludesAt(date).getTime()
-}
-
-/** The latest paper date the board includes right now. */
-export function latestBoardDate(at: Date = new Date()): string {
-  const yesterday = addDays(istDate(at), -1)
-  return onBoard(yesterday, at) ? yesterday : addDays(yesterday, -1)
+/** Two papers whose windows overlap, so a student cannot sit both. */
+export function windowsOverlap(a: PaperWindow, b: PaperWindow): boolean {
+  if (a.date !== b.date) return false
+  return a.opensAtMin < b.entryClosesAtMin + ATTEMPT_MINUTES
+      && b.opensAtMin < a.entryClosesAtMin + ATTEMPT_MINUTES
 }
 
 export function addDays(date: string, days: number): string {

@@ -9,7 +9,8 @@ import {
 import { ordinal } from '../../../../lib/leaderboard'
 import { getPaperById } from '../../../../lib/repo/papers'
 import { getResultStanding, type ResultStanding } from '../../../../lib/repo/leaderboard'
-import { BOARD_REFRESH, answersUnlocked, formatIstDate, formatIstTime, onBoard } from '../../../../lib/time'
+import { formatIstDate, paperClosed, paperLabels } from '../../../../lib/time'
+import { paperWindowOf } from '../../../../lib/repo/papers'
 import { Celebration, type CelebrationLevel } from '../../../../components/Celebration'
 import { CountUp } from '../../../../components/CountUp'
 import { ResultSound } from '../../../../components/ResultSound'
@@ -40,22 +41,23 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
   // result, so only affected students see the notice (FR-6.9.3).
   const { data: attempt } = await client
     .from('attempts')
-    .select('id, user_id, test_id, state, is_dry_run, total_score, section_scores, attempted, correct, wrong, skipped, not_reached, time_spent_sec, fullscreen_exits, tab_switches, rescored_at, tests(date, title, status)')
+    .select('id, user_id, test_id, state, is_dry_run, total_score, section_scores, attempted, correct, wrong, skipped, not_reached, time_spent_sec, fullscreen_exits, tab_switches, rescored_at, tests(date, title, status, opens_at_min, entry_closes_at_min)')
     .eq('id', attemptId)
     .maybeSingle()
 
   if (!attempt || attempt.user_id !== user.id) redirect('/dashboard')
   if (attempt.state === 'IN_PROGRESS') redirect(`/test/${attemptId}`)
 
-  const test = attempt.tests as unknown as { date: string; title: string | null; status: string }
+  const test = attempt.tests as unknown as Record<string, unknown> & { date: string; title: string | null; status: string }
+  const paperWindow = paperWindowOf(test)
   const testId = attempt.test_id as string
   const sections = (attempt.section_scores ?? []) as SectionScore[]
   const score = Number(attempt.total_score ?? 0)
-  const unlocked = answersUnlocked(test.date)
+  const unlocked = paperClosed(paperWindow)
   const minutes = Math.round((attempt.time_spent_sec ?? 0) / 60)
   // A voided attempt is shown but is not ranked, and neither is a dry run.
   const counted = !attempt.is_dry_run && attempt.state !== 'VOIDED'
-  const ranked = counted && onBoard(test.date)
+  const ranked = counted && paperClosed(paperWindow)
 
   const [record, sectionRows, responseRows, earlier, standing] = await Promise.all([
     getPaperById(testId),
@@ -76,7 +78,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
       : Promise.resolve({ data: [] as { total_score: number | null }[] }),
     // The rank is a bonus on this page; a failed read must never hide the score.
     ranked
-      ? getResultStanding(user.id, test.date).catch((e: Error) => {
+      ? getResultStanding(user.id, paperWindow).catch((e: Error) => {
           console.error('[result] could not compute standing', e.message)
           return null
         })
@@ -152,7 +154,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
         )}
         {counted && !ranked && (
           <p className="mt-3 text-sm font-semibold text-white/80">
-            Your rank on this paper appears at {formatIstTime(BOARD_REFRESH.hour, BOARD_REFRESH.minute)}, when
+            Your rank on this paper appears at {paperLabels(paperWindow).hardStop}, when
             the leaderboard takes in tonight&rsquo;s results.
           </p>
         )}

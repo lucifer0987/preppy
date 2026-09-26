@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { buildLeaderboard, ordinal, paperRank, rankDelta, streaks, type AttemptRecord } from '../lib/leaderboard'
 
 const rec = (
-  user: string, testDate: string, totalScore: number,
+  user: string, paperKey: string, totalScore: number,
   extra: Partial<AttemptRecord> = {},
 ): AttemptRecord => ({
-  userId: user, displayName: user, username: user, testDate, totalScore,
+  userId: user, displayName: user, username: user, paperKey, totalScore,
   correct: extra.correct ?? 10, attempted: extra.attempted ?? 10,
   timeSpentSec: extra.timeSpentSec ?? 2700,
 })
