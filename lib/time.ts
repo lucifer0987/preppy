@@ -212,17 +212,6 @@ export function paperClosed(p: PaperWindow, at: Date = new Date()): boolean {
   return at.getTime() >= hardStopAt(p).getTime()
 }
 
-/**
- * When an attempt started at `startedAt` must be submitted by: its own 45
- * minutes, or the paper's hard stop, whichever comes first. The clamp only
- * binds for an attempt started after entry closed, which canStartAttempt
- * refuses.
- */
-export function attemptDeadline(p: PaperWindow, startedAt: Date): Date {
-  const ownDeadline = startedAt.getTime() + p.attemptMinutes * 60_000
-  return new Date(Math.min(ownDeadline, hardStopAt(p).getTime()))
-}
-
 /** The times a paper shows, for display. */
 export function paperLabels(p: PaperWindow): { opens: string; closes: string; hardStop: string } {
   const stop = p.entryClosesAtMin + p.attemptMinutes

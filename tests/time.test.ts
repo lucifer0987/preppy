@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
-  addDays, attemptDeadline, canStartAttempt, DEFAULT_WINDOW, entryClosesAt, formatIstDate,
+  addDays, canStartAttempt, DEFAULT_WINDOW, entryClosesAt, formatIstDate,
   formatIstTime, hardStopAt, istDate, istInstant, opensAt, paperClosed, paperLabels,
   paperWindowProblem, windowLabels, windowState, windowsOverlap,
 } from '../lib/time'
+import { attemptHardStop } from '../lib/attempt'
 
 /** An instant expressed in IST civil time, for readable tests. */
 const ist = (date: string, hh: number, mm: number) => istInstant(date, hh, mm)
@@ -51,39 +52,37 @@ describe('the window', () => {
   })
 })
 
-describe('the 45-minute tail (FR-4.1)', () => {
+describe('the last entrant gets a whole paper (FR-4.1)', () => {
   it('puts the hard stop at midnight at the end of the paper date', () => {
     expect(hardStopAt(W).getTime()).toBe(ist('2026-09-27', 0, 0).getTime())
     // Answers unlock at the same instant, when nothing can still be running.
     expect(paperClosed(W, hardStopAt(W))).toBe(true)
   })
 
-  it('gives the 23:14 entrant their full 45 minutes', () => {
-    const start = ist(D, 23, 14)
-    expect(attemptDeadline(W, start).getTime() - start.getTime()).toBe(45 * 60_000)
+  it('leaves exactly one paper between the last entry and the hard stop', () => {
+    // This is the guarantee, and it is structural rather than checked: the hard
+    // stop is *defined* as entry close plus the paper's length, so the person
+    // who starts at the last possible instant still has all of it.
+    for (const minutes of [20, 45, 90, 150]) {
+      const w = { ...W, entryClosesAtMin: 24 * 60 - minutes, attemptMinutes: minutes }
+      expect(hardStopAt(w).getTime() - entryClosesAt(w).getTime()).toBe(minutes * 60_000)
+    }
   })
 
-  it('gives the 23:14:30 entrant their full 45 minutes too', () => {
-    const start = new Date(ist(D, 23, 14).getTime() + 30_000)
-    expect(canStartAttempt(W, start)).toBe(true)
-    expect(attemptDeadline(W, start).getTime() - start.getTime()).toBe(45 * 60_000)
+  it('still admits an entrant a millisecond before entry closes', () => {
+    expect(canStartAttempt(W, new Date(ist(D, 23, 15).getTime() - 1))).toBe(true)
+    expect(canStartAttempt(W, ist(D, 23, 15))).toBe(false)
   })
 
-  it('gives the very last possible entrant their full 45 minutes', () => {
-    const start = new Date(ist(D, 23, 15).getTime() - 1)
-    expect(canStartAttempt(W, start)).toBe(true)
-    expect(attemptDeadline(W, start).getTime() - start.getTime()).toBe(45 * 60_000)
-  })
-
-  it('gives an early entrant their full 45 minutes too', () => {
-    const start = ist(D, 22, 0)
-    expect(attemptDeadline(W, start).getTime()).toBe(ist(D, 22, 45).getTime())
-  })
-
-  it('never lets an attempt run past the hard stop', () => {
-    // Should not be reachable via canStartAttempt, but the clamp must hold.
-    const start = ist(D, 23, 50)
-    expect(attemptDeadline(W, start).getTime()).toBe(ist('2026-09-27', 0, 0).getTime())
+  it('caps a counted attempt at the paper hard stop, whenever it started', () => {
+    // What the live path actually asks. An early starter is not cut short by
+    // this -- their section timers run out long before it.
+    const sections = [{ durationSec: 12 * 60 }, { durationSec: 12 * 60 },
+                      { durationSec: 9 * 60 }, { durationSec: 12 * 60 }]
+    for (const start of [ist(D, 22, 0), ist(D, 23, 14), new Date(ist(D, 23, 15).getTime() - 1)]) {
+      expect(attemptHardStop({ isDryRun: false, window: W, startedAt: start, sections }))
+        .toEqual(hardStopAt(W))
+    }
   })
 })
 
@@ -191,10 +190,9 @@ describe('a configurable window', () => {
   })
 
   it('still gives the last entrant a full paper', () => {
-    // 07:29:59 plus 45 minutes is 08:14:59, and the hard stop is 08:15.
+    // Entry closes at 07:30, so the last entrant still has the whole 45.
     expect(hardStopAt(morning).getTime()).toBe(ist(D, 8, 15).getTime())
-    const start = ist(D, 7, 29)
-    expect(attemptDeadline(morning, start).getTime() - start.getTime()).toBe(45 * 60_000)
+    expect(hardStopAt(morning).getTime() - entryClosesAt(morning).getTime()).toBe(45 * 60_000)
   })
 
   it('closes for good at its own hard stop, not at midnight', () => {

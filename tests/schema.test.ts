@@ -80,16 +80,6 @@ describe('the migrations', () => {
     await db.exec(schema)
   })
 
-  it('keeps every app function away from the anon and authenticated roles', async () => {
-    for (const role of ['anon', 'authenticated']) {
-      const { rows } = await db.query<{ n: number }>(
-        `select count(*)::int as n from pg_proc p join pg_namespace ns on ns.oid = p.pronamespace
-         where ns.nspname = 'public' and has_function_privilege($1, p.oid, 'execute')
-           and p.proname in ('save_paper','start_attempt','apply_rescore','revoke_user_sessions',
-                             'bump_attempt_counter','rate_limit_hit','rate_limit_wait','rate_limit_clear')`, [role])
-      expect(rows[0]!.n, role).toBe(0)
-    }
-  })
 })
 
 describe('save_paper', () => {
@@ -125,6 +115,42 @@ describe('save_paper', () => {
     await db.query('select start_attempt($1, $2, false)', [id, STUDENT])
     const payload = JSON.stringify(savePaperPayload(paperToRows({ ...sample, date: '2030-01-04' })))
     expect(await fails('select save_paper($1)', [payload])).toMatch(/DRAFT_HAS_ATTEMPTS/)
+  })
+})
+
+describe('the security model holds for every table, not just the ones we remember', () => {
+  it('has row-level security on every table the app owns', async () => {
+    // The deny-all is what makes a leaked anon key useless. A table added later
+    // without it would be readable by anyone holding that key, and nothing else
+    // in the codebase would notice.
+    const { rows } = await db.query<{ tablename: string }>(
+      `select c.relname tablename from pg_class c
+         join pg_namespace n on n.oid = c.relnamespace
+        where n.nspname = 'public' and c.relkind = 'r' and not c.relrowsecurity
+          and c.relname <> 'schema_migrations'`)
+    expect(rows.map((r) => r.tablename)).toEqual([])
+  })
+
+  it('grants no policy to anyone, so RLS denies rather than allows', async () => {
+    // RLS with a permissive policy is not deny-all. There should be none at all.
+    const { rows } = await db.query<{ n: string }>(
+      `select count(*)::text n from pg_policies where schemaname = 'public'`)
+    expect(rows[0]!.n).toBe('0')
+  })
+
+  it('leaves no function in public executable by anon or authenticated', async () => {
+    // Replaces a test that listed eight function names: the revoke block in
+    // 0001 names its functions one by one, so anything a later migration adds
+    // is granted to public by default and a fixed list never notices. That list
+    // had already fallen behind -- it did not include finish_attempt.
+    const { rows } = await db.query<{ fn: string }>(
+      `select p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')' fn
+         from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public'
+          and p.prorettype <> 'trigger'::regtype
+          and (has_function_privilege('anon', p.oid, 'execute')
+            or has_function_privilege('authenticated', p.oid, 'execute'))`)
+    expect(rows.map((r) => r.fn)).toEqual([])
   })
 })
 

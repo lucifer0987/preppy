@@ -1,4 +1,5 @@
 import 'server-only'
+import { selectAll } from './select-all'
 import { db } from '../supabase/admin'
 import { generatePassword } from '../password'
 import { revokeSessions } from '../auth'
@@ -31,13 +32,19 @@ export async function listUsers(): Promise<UserRow[]> {
     .select('id, username, display_name, role, is_active, must_change_password, last_login_at')
     .order('role').order('username')
 
-  // Papers that count: finished and not voided, as on the leaderboard.
-  const { data: attempts } = await client
-    .from('attempts').select('user_id').eq('is_dry_run', false).in('state', ['SUBMITTED', 'AUTO_SUBMITTED'])
+  // Papers that count: finished and not voided, as on the leaderboard. Paged,
+  // because this is every counted attempt ever taken: five students sitting one
+  // paper a night pass PostgREST's 1,000-row cap inside a year, and a capped
+  // response looks exactly like a complete one -- the count would simply stop
+  // growing.
+  const attempts = await selectAll<{ user_id: string }>('attempt counts', (from, to) =>
+    client.from('attempts').select('user_id')
+      .eq('is_dry_run', false).in('state', ['SUBMITTED', 'AUTO_SUBMITTED'])
+      .order('id').range(from, to))
 
   const counts = new Map<string, number>()
-  for (const a of attempts ?? []) {
-    counts.set(a.user_id as string, (counts.get(a.user_id as string) ?? 0) + 1)
+  for (const a of attempts) {
+    counts.set(a.user_id, (counts.get(a.user_id) ?? 0) + 1)
   }
 
   return (profiles ?? []).map((p) => ({
