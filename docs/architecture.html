@@ -195,14 +195,15 @@ figcaption b{color:var(--ink-2); font-weight:600}
   </ol>
   <p class="rail-part">Part II &mdash; Running it</p>
   <ol>
-    <li><a href="#s11"><span>11</span>Two builds</a></li>
-    <li><a href="#s12"><span>12</span>Two databases</a></li>
-    <li><a href="#s13"><span>13</span>Local setup</a></li>
-    <li><a href="#s14"><span>14</span>The database</a></li>
-    <li><a href="#s15"><span>15</span>Publishing</a></li>
-    <li><a href="#s16"><span>16</span>Production setup</a></li>
-    <li><a href="#s17"><span>17</span>Before night one</a></li>
-    <li><a href="#s18"><span>18</span>When it breaks</a></li>
+    <li><a href="#s11"><span>11</span>The look</a></li>
+    <li><a href="#s12"><span>12</span>Two builds</a></li>
+    <li><a href="#s13"><span>13</span>Two databases</a></li>
+    <li><a href="#s14"><span>14</span>Local setup</a></li>
+    <li><a href="#s15"><span>15</span>The database</a></li>
+    <li><a href="#s16"><span>16</span>Publishing</a></li>
+    <li><a href="#s17"><span>17</span>Production setup</a></li>
+    <li><a href="#s18"><span>18</span>Before night one</a></li>
+    <li><a href="#s19"><span>19</span>When it breaks</a></li>
   </ol>
 </nav>
 
@@ -1033,14 +1034,107 @@ figcaption b{color:var(--ink-2); font-weight:600}
 </div>
 </div></section>
 
+<section id="s11"><div class="col">
+<h2><i>11</i>The look</h2>
+
+<p>There is a design system, and it is worth knowing its shape before changing
+anything visual, because most of what it does happens without a call site
+mentioning it.</p>
+
+<h3>Two layers of colour</h3>
+<p>Nothing in the app names a colour directly. There are <strong>raw scales</strong>
+that never change, and <strong>semantic tokens</strong> that do:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Layer</th><th>Lives in</th><th>Example</th><th>Changes with the theme?</th></tr></thead>
+<tbody>
+<tr><td>Raw scale</td><td><code>@theme</code> in <code>app/globals.css</code></td><td><code>--color-brand-700</code></td><td>No. One violet, forever</td></tr>
+<tr><td>Semantic token</td><td><code>:root</code>, redefined per theme</td><td><code>--surface</code>, <code>--text</code>, <code>--line</code>, <code>--accent</code></td><td>Yes. This is what dark mode <em>is</em></td></tr>
+</tbody>
+</table></div>
+
+<p>Components use the semantic layer &mdash; <code>bg-surface</code>,
+<code>text-ink-soft</code>, <code>border-line</code> &mdash; so a page works in
+both themes without a single <code>dark:</code> variant. That is the whole reason
+dark mode could be added by sweeping 140 class names rather than rewriting
+eighteen pages.</p>
+
+<div class="note care">
+  <h4>The rule that keeps it working</h4>
+  <p>Never write a literal colour, and never use one that only exists in light:
+  <code>bg-white</code>, <code>border-black/10</code>, <code>text-[#333]</code>.
+  Each of those is a light card on a dark page, and it will look fine to whoever
+  wrote it. Every token is declared on bare <code>:root</code> first and
+  redefined afterwards, for the same reason &mdash; a colour defined only inside
+  a media query never applies to the people who never touched a theme setting,
+  which is most of them.</p>
+</div>
+
+<h3>Three typefaces, three jobs</h3>
+<div class="tw"><table>
+<thead><tr><th>Face</th><th>For</th><th>Why that one</th></tr></thead>
+<tbody>
+<tr><td><strong>Archivo</strong></td><td>Headings, buttons, labels</td><td>A grotesque with real weight at 800 and 900. This is the display voice the PRD asked for</td></tr>
+<tr><td><strong>IBM Plex Sans</strong></td><td>Body, and every question</td><td>Humanist, opens up at small sizes. A student reads forty lines of comprehension under a clock, and a display face is built to be looked at rather than read through</td></tr>
+<tr><td><strong>IBM Plex Mono</strong></td><td>Timers, scores, ranks</td><td>Figures that must not move. A proportional 1 beside a proportional 8 makes a counting-down clock jitter, which is exactly when nobody should be distracted</td></tr>
+</tbody>
+</table></div>
+
+<p>All three are served by <code>next/font</code> from this app, so no request
+reaches Google at run time and no text reflows while a webfont loads.
+<code>.prose-question</code> caps the question measure near 68 characters, because
+a full-width line of prose is measurably slower to read.</p>
+
+<h3>The mark is the option shapes</h3>
+<p>The four answer shapes &mdash; triangle, diamond, circle, square &mdash; carry
+option identity independently of colour everywhere in the test, which is what
+keeps options distinguishable to a colour-blind student, on a bad monitor, in a
+bright room. <code>components/Wordmark.tsx</code> uses those same four shapes, so
+the logo and the accessibility rule are one decision rather than two.</p>
+
+<h3>Where the shared pieces live</h3>
+<div class="tw"><table>
+<thead><tr><th>File</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>app/globals.css</code></td><td>The whole system: scales, semantic tokens, both themes, and the <code>card</code> / <code>eyebrow</code> / <code>btn</code> / <code>chip</code> / <code>numeral</code> primitives</td></tr>
+<tr><td><code>components/AppShell.tsx</code></td><td>The frame every signed-in student page sits in. Each of them drew its own header before, so the way back differed page to page</td></tr>
+<tr><td><code>components/Wordmark.tsx</code></td><td>The mark, drawn as SVG so it scales and takes the theme with it</td></tr>
+<tr><td><code>app/admin/layout.tsx</code></td><td>The admin shell, and the outer half of the admin authorisation check</td></tr>
+</tbody>
+</table></div>
+
+<h3>Motion, and the exam</h3>
+<p>Animation is guarded twice: <code>motion-safe:</code> at the call site, and a
+global <code>prefers-reduced-motion</code> rule that collapses every transition
+and animation to nothing. The section timer pulses in its last minute &mdash; a
+slow breath rather than a flash, because it has to be noticeable out of the
+corner of an eye without pulling attention off the question.</p>
+
+<div class="note never">
+  <h4>Nothing celebrates inside a running section</h4>
+  <p>FR-8.1. <code>components/TestEngine.tsx</code> imports no motion or sound
+  module at all, so this holds by construction rather than by remembering. If a
+  celebration is ever wanted mid-test, that import is the thing to argue about
+  first.</p>
+</div>
+
+<div class="note why">
+  <h4>Dark mode has no switch yet</h4>
+  <p>It follows the operating system. All three states are wired &mdash; explicit
+  light, explicit dark, and the un-stamped default that most people are in &mdash;
+  so adding a toggle later is a button that sets <code>data-theme</code> on the
+  root element, not a restyle.</p>
+</div>
+</div></section>
+
 <div class="part">
   <p>Part II</p>
   <h2>Running it</h2>
   <p class="sub">Local first, then production. Every step says what it does and how to tell it worked. Nothing here assumes you write web code &mdash; if a step mentions a file, it tells you which one and what to put in it.</p>
 </div>
 
-<section id="s11"><div class="col">
-<h2><i>11</i>The two builds</h2>
+<section id="s12"><div class="col">
+<h2><i>12</i>The two builds</h2>
 
 <p>There are two ways to build this app, and the difference is small and deliberate.</p>
 
@@ -1120,8 +1214,8 @@ figcaption b{color:var(--ink-2); font-weight:600}
 </div>
 </div></section>
 
-<section id="s12"><div class="col">
-<h2><i>12</i>Two databases, not one</h2>
+<section id="s13"><div class="col">
+<h2><i>13</i>Two databases, not one</h2>
 
 <div class="note care">
   <h4>Where you are today</h4>
@@ -1205,8 +1299,8 @@ figcaption b{color:var(--ink-2); font-weight:600}
 </div>
 </div></section>
 
-<section id="s13"><div class="col">
-<h2><i>13</i>Local setup, step by step</h2>
+<section id="s14"><div class="col">
+<h2><i>14</i>Local setup, step by step</h2>
 
 <p>Do this once. About twenty minutes, most of it waiting for Supabase. Every step ends with a way to check it worked, so you never move on from a half-finished one.</p>
 
@@ -1419,8 +1513,8 @@ landed and what has not, at any time.</p>
 <p>That gives you a filled result page and something in the archive within a few minutes.</p>
 </div></section>
 
-<section id="s14"><div class="col">
-<h2><i>14</i>Living with the database</h2>
+<section id="s15"><div class="col">
+<h2><i>15</i>Living with the database</h2>
 
 <p>Four things you will want to do, and how.</p>
 
@@ -1537,8 +1631,8 @@ landed and what has not, at any time.</p>
 <p>The database is the question bank: once a paper is published, Postgres is the system of record and the <code>.json</code> you wrote it in is only a working copy.</p>
 </div></section>
 
-<section id="s15"><div class="col">
-<h2><i>15</i>Publishing a paper</h2>
+<section id="s16"><div class="col">
+<h2><i>16</i>Publishing a paper</h2>
 
 <ol class="steps">
 <li>
@@ -1593,8 +1687,8 @@ landed and what has not, at any time.</p>
 </div>
 </div></section>
 
-<section id="s16"><div class="col">
-<h2><i>16</i>Production setup</h2>
+<section id="s17"><div class="col">
+<h2><i>17</i>Production setup</h2>
 
 <p>A second Supabase project and a Vercel deployment. Twenty minutes, once. Do it in daylight, well before a paper night.</p>
 
@@ -1602,7 +1696,7 @@ landed and what has not, at any time.</p>
 
 <li>
 <h4>Create preppy-prod</h4>
-<p>Exactly as in section 13, steps 2, 3 and 4, but name it <code>preppy-prod</code>:</p>
+<p>Exactly as in section 14, steps 2, 3 and 4, but name it <code>preppy-prod</code>:</p>
 <ul>
 <li>New Supabase project, closest region.</li>
 <li>Apply the migrations: <code>npm run migrate</code> pointed at the new project, or <code>npm run migrate -- --print</code> and paste into its SQL Editor.</li>
@@ -1695,8 +1789,8 @@ landed and what has not, at any time.</p>
 <p>Run <code>npm run migrate</code> against <code>preppy-prod</code> <strong>before</strong> pushing code that depends on it. New code against an old database fails; old code against a new database usually does not.</p>
 </div></section>
 
-<section id="s17"><div class="col">
-<h2><i>17</i>Before the first real paper night</h2>
+<section id="s18"><div class="col">
+<h2><i>18</i>Before the first real paper night</h2>
 
 <p>One walkthrough, about ten minutes, on production, in daylight. It exercises nearly every query in the system.</p>
 
@@ -1738,8 +1832,8 @@ landed and what has not, at any time.</p>
 </div>
 </div></section>
 
-<section id="s18"><div class="col">
-<h2><i>18</i>When it breaks</h2>
+<section id="s19"><div class="col">
+<h2><i>19</i>When it breaks</h2>
 
 <div class="tw"><table>
 <tr><th>Symptom</th><th>Cause and fix</th></tr>

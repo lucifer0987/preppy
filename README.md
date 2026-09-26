@@ -18,7 +18,7 @@ network, nothing to install. Double-click, or `open docs/architecture.html`.
 
 | | |
 |---|---|
-| **[docs/architecture.html](docs/architecture.html)** | The main reference. How the system works, in eight diagrams, then setup step by step with the reasoning. Includes the full paper format. Start here |
+| **[docs/architecture.html](docs/architecture.html)** | The main reference. How the system works, in eight diagrams, then setup step by step with the reasoning. Includes the full paper format and the design system. Start here |
 | **[docs/setup.html](docs/setup.html)** | The same setup as a bare checklist, for when you already know what the steps do |
 | **[docs/prd.html](docs/prd.html)** | What was decided, what shipped, and what changed during the build |
 
@@ -31,7 +31,7 @@ npm run dev       # http://localhost:3000
 ```
 
 Login will say *Not configured yet* until you connect Supabase.
-Follow **docs/architecture.html** section 13, or **docs/setup.html** for the
+Follow **docs/architecture.html** section 14, or **docs/setup.html** for the
 commands alone.
 
 ## Commands
@@ -52,13 +52,25 @@ npm run seed                   # create the accounts, print passwords once
 | Path | What |
 |---|---|
 | `app/` | Pages, server actions, API routes |
-| `components/` | React components, including the test engine |
+| `components/` | React components, including the test engine, the app shell and the wordmark |
 | `lib/` | Pure domain logic: time, scoring, ranking, the paper format |
 | `lib/repo/` | The only place Supabase is called |
 | `supabase/migrations/` | The schema, in two numbered files: `0001_baseline.sql` and everything since. `npm run migrate` applies whatever your database is missing |
 | `format/` | A worked paper, a blank template, and a JSON Schema. Both papers state their own shape, so they keep validating whatever the default pattern is set to |
 | `tests/` | 364 tests, including the schema run on real Postgres |
 | `docs/` | The three documents above |
+
+## The look
+
+Violet and gold, Archivo for display and IBM Plex Sans for anything you actually
+read, and the four answer shapes as the wordmark. Dark mode follows your
+operating system.
+
+Colours are never written literally. `app/globals.css` holds raw scales that
+never change plus a semantic layer — `--surface`, `--text`, `--accent` — that
+does, and components address only the semantic names. **Never use `bg-white`,
+`border-black/10` or a hex literal:** each is a light card on a dark page.
+**docs/architecture.html section 11** is the whole system.
 
 ## The one security rule
 
@@ -73,7 +85,7 @@ default, and a bundle scan that fails the build.
 The schema and its SQL functions are tested against real Postgres. The layer
 that talks to Supabase over the network — the queries in `lib/repo/`, signing
 in, and reading an image out of Storage — has never run. **docs/architecture.html
-section 17** is a ten-minute walkthrough that exercises nearly all of it. Do
+section 18** is a ten-minute walkthrough that exercises nearly all of it. Do
 that before a paper night that counts.
 
 Three bugs of one shape have already come out of that layer, all found by
