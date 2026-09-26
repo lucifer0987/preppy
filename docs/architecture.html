@@ -1348,17 +1348,43 @@ Make it now, because every step after this one writes into it.</p>
 <p>In the terminal:</p>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
-<pre><b>cp .env.example .env.local</b></pre>
+<pre><b>cp -n .env.example .env.local</b></pre>
 </div>
-<p>Now open <code>.env.local</code> in a text editor. It has five lines, and you
-fill in four of them from two places in the Supabase dashboard.</p>
-<p><strong>First, the three API keys.</strong> In Supabase: <strong>Settings</strong>
-(gear icon) &rarr; <strong>API</strong>.</p>
+<div class="note never">
+  <h4>The <code>-n</code> is not optional</h4>
+  <p>Plain <code>cp</code> overwrites. If you already have a filled-in
+  <code>.env.local</code> and run it without <code>-n</code>, your keys are gone
+  and there is no copy of them anywhere &mdash; the file is git-ignored by
+  design. <code>-n</code> means "do not overwrite an existing file", so running
+  this twice is harmless.</p>
+</div>
+
+<p>Now open <code>.env.local</code> in a text editor and fill in the values from
+two places in the Supabase dashboard.</p>
+
+<p><strong>First, the project URL and the two API keys.</strong> In Supabase:
+<strong>Settings</strong> (gear icon) &rarr; <strong>API Keys</strong>.</p>
+
+<div class="note care">
+  <h4>Supabase is part-way through changing these</h4>
+  <p>The page shows two generations of key, and both work:</p>
+  <div class="tw"><table>
+  <thead><tr><th>Generation</th><th>Looks like</th><th>Use</th></tr></thead>
+  <tbody>
+  <tr><td><strong>Current</strong></td><td><code>sb_publishable_...</code> and <code>sb_secret_...</code></td><td>Prefer these. The older pair is being retired</td></tr>
+  <tr><td>Legacy</td><td>Long JWTs starting <code>eyJ</code>, labelled <code>anon</code> and <code>service_role</code></td><td>Still fine. Put them in the <code>..._ANON_KEY</code> and <code>..._SERVICE_ROLE_KEY</code> lines instead</td></tr>
+  </tbody>
+  </table></div>
+  <p>The app accepts either, so fill in whichever pair your dashboard offers and
+  leave the other two lines blank. A secret key resolves to the same
+  <code>service_role</code> database role the old key did, so nothing about the
+  access model changes.</p>
+</div>
 <div class="tw"><table>
 <tr><th>Line</th><th>Paste from</th><th>What it is</th></tr>
 <tr><td><code>NEXT_PUBLIC_SUPABASE_URL</code></td><td>Project URL</td><td>Which project to talk to</td></tr>
-<tr><td><code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code></td><td>anon public</td><td>A public key. Safe in a browser; reads nothing on its own because of RLS</td></tr>
-<tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code></td><td>service_role</td><td>The master key. Bypasses every access rule</td></tr>
+<tr><td><code>NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY</code><br><small>or <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code></small></td><td>publishable key<br><small>or legacy anon</small></td><td>A public key. Safe in a browser; reads nothing on its own because of RLS</td></tr>
+<tr><td><code>SUPABASE_SECRET_KEY</code><br><small>or <code>SUPABASE_SERVICE_ROLE_KEY</code></small></td><td>a secret key<br><small>or legacy service_role</small></td><td>The master key. Bypasses every access rule</td></tr>
 <tr><td><code>CRON_SECRET</code></td><td>leave blank for now</td><td>Only needed in production</td></tr>
 <tr><td><code>DATABASE_URL</code></td><td><strong>Connect</strong> button &rarr; Session pooler</td><td>Only used by <code>npm run migrate</code>, never by the app itself. See below</td></tr>
 </table></div>
@@ -1387,7 +1413,7 @@ filled in where it says <code>[YOUR-PASSWORD]</code>.</p>
 </div>
 
 <div class="note never">
-  <h4>The service_role key</h4>
+  <h4>The secret key</h4>
   <p>It bypasses every access rule in the database. It belongs only in <code>.env.local</code>, which git already ignores. Never paste it into a chat, a browser console, a screenshot, or any file under <code>app/</code> or <code>components/</code>. Every build scans the browser bundle for it and fails if it is there.</p>
 </div>
 <p><strong>Check it worked:</strong></p>
@@ -1736,9 +1762,9 @@ landed and what has not, at any time.</p>
 <p><strong>Before pressing Deploy</strong>, expand <strong>Environment Variables</strong> and add four. Every one comes from <code>preppy-prod</code>, not dev:</p>
 <div class="tw"><table>
 <tr><th>Name</th><th>Value</th></tr>
-<tr><td><code>NEXT_PUBLIC_SUPABASE_URL</code></td><td>preppy-prod &rarr; Settings &rarr; API &rarr; Project URL</td></tr>
-<tr><td><code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code></td><td>preppy-prod &rarr; anon public</td></tr>
-<tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code></td><td>preppy-prod &rarr; service_role</td></tr>
+<tr><td><code>NEXT_PUBLIC_SUPABASE_URL</code></td><td>preppy-prod &rarr; Settings &rarr; API Keys</td></tr>
+<tr><td><code>NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY</code><br><small>or <code>..._ANON_KEY</code></small></td><td>preppy-prod &rarr; publishable key<br><small>or its legacy anon key</small></td></tr>
+<tr><td><code>SUPABASE_SECRET_KEY</code><br><small>or <code>..._SERVICE_ROLE_KEY</code></small></td><td>preppy-prod &rarr; a secret key<br><small>or its legacy service_role key</small></td></tr>
 <tr><td><code>CRON_SECRET</code></td><td>The string from step 2</td></tr>
 </table></div>
 <p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 364 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>

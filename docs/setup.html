@@ -227,19 +227,35 @@ needs it.</p>
 after this writes into it.</p>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
-<pre><b>cp .env.example .env.local</b></pre>
+<pre><b>cp -n .env.example .env.local</b>   <i># -n so it cannot overwrite a filled-in one</i></pre>
 </div>
 <p>Four values, from two places in the dashboard:</p>
 <div class="tw"><table>
 <thead><tr><th>Line in <code>.env.local</code></th><th>Where</th></tr></thead>
 <tbody>
-<tr><td><code>NEXT_PUBLIC_SUPABASE_URL</code></td><td rowspan="3"><strong>Settings</strong> &rarr; <strong>API</strong></td></tr>
-<tr><td><code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code></td></tr>
-<tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code></td></tr>
+<tr><td><code>NEXT_PUBLIC_SUPABASE_URL</code></td><td rowspan="3"><strong>Settings</strong> &rarr; <strong>API Keys</strong></td></tr>
+<tr><td><code>NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY</code><br><small>or <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code></small></td></tr>
+<tr><td><code>SUPABASE_SECRET_KEY</code><br><small>or <code>SUPABASE_SERVICE_ROLE_KEY</code></small></td></tr>
 <tr><td><code>DATABASE_URL</code></td><td><strong>Connect</strong> button at the top &rarr; <strong>Session pooler</strong></td></tr>
 <tr><td><code>CRON_SECRET</code></td><td>leave blank; production only</td></tr>
 </tbody>
 </table></div>
+
+<div class="note care">
+  <h4>Two generations of key, both valid</h4>
+  <p><strong>Settings &rarr; API Keys</strong> shows current keys
+  (<code>sb_publishable_...</code>, <code>sb_secret_...</code>) and the legacy pair
+  it is replacing (long JWTs starting <code>eyJ</code>, labelled <code>anon</code>
+  and <code>service_role</code>). Prefer the current ones. The app takes either
+  &mdash; fill in whichever pair you have and leave the other two lines blank.</p>
+</div>
+
+<div class="note never">
+  <h4><code>cp -n</code>, not <code>cp</code></h4>
+  <p>Plain <code>cp</code> overwrites. Run it over a filled-in
+  <code>.env.local</code> and your keys are gone, with no copy anywhere &mdash;
+  the file is git-ignored by design.</p>
+</div>
 
 <div class="note care">
   <h4>Session pooler, specifically</h4>
@@ -307,7 +323,7 @@ badge.</p>
 </div>
 
 <div class="note never">
-  <h4>The service_role key</h4>
+  <h4>The secret key</h4>
   <p>It bypasses every access rule in the database. It belongs only in
   <code>.env.local</code>, which git already ignores. Never paste it anywhere
   else.</p>
@@ -361,9 +377,9 @@ badge.</p>
 <li>In Vercel &rarr; <strong>Environment Variables</strong>, add four, all from <strong>preppy-prod</strong>:
 <div class="tw"><table>
 <tr><th>Name</th><th>From</th></tr>
-<tr><td><code>NEXT_PUBLIC_SUPABASE_URL</code></td><td>Settings &rarr; API &rarr; Project URL</td></tr>
-<tr><td><code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code></td><td>anon public</td></tr>
-<tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code></td><td>service_role</td></tr>
+<tr><td><code>NEXT_PUBLIC_SUPABASE_URL</code></td><td>Settings &rarr; API Keys</td></tr>
+<tr><td><code>NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY</code><br><small>or <code>..._ANON_KEY</code></small></td><td>publishable key<br><small>or legacy anon</small></td></tr>
+<tr><td><code>SUPABASE_SECRET_KEY</code><br><small>or <code>..._SERVICE_ROLE_KEY</code></small></td><td>a secret key<br><small>or legacy service_role</small></td></tr>
 <tr><td><code>CRON_SECRET</code></td><td>the value from step 2</td></tr>
 </table></div>
 </li>

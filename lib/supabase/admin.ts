@@ -16,7 +16,7 @@ let cached: SupabaseClient | null = null
 
 export function db(): SupabaseClient {
   if (cached) return cached
-  cached = createClient(publicEnv.supabaseUrl, serverEnv.supabaseServiceRoleKey, {
+  cached = createClient(publicEnv.supabaseUrl, serverEnv.supabaseSecretKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   })
   return cached

@@ -13,9 +13,13 @@ import { readdir, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
 const ROOT = '.next/static'
-const needles = ['SUPABASE_SERVICE_ROLE_KEY']
-const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
-if (key && key.length >= 20) needles.push(key)
+// Both namings, and both key shapes. Scanning only for the legacy name would
+// have found nothing at all once the key in use is an sb_secret_ one.
+const needles = ['SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SECRET_KEY', 'sb_secret_']
+for (const key of [process.env.SUPABASE_SECRET_KEY, process.env.SUPABASE_SERVICE_ROLE_KEY]) {
+  const trimmed = key?.trim()
+  if (trimmed && trimmed.length >= 20) needles.push(trimmed)
+}
 
 async function* files(dir: string): AsyncGenerator<string> {
   for (const entry of await readdir(dir, { withFileTypes: true })) {
@@ -44,11 +48,15 @@ async function main() {
     scanned++
     const text = await readFile(path, 'utf8')
     for (const needle of needles) {
-      if (text.includes(needle)) hits.push(`${path}: contains ${needle === key ? 'the service-role key itself' : needle}`)
+      if (!text.includes(needle)) continue
+      // A long needle that is not a variable name is the key's own value,
+      // which is the worse of the two findings.
+      const isValue = needle.length >= 20 && !needle.startsWith('SUPABASE_')
+      hits.push(`${path}: contains ${isValue ? 'the secret key itself' : needle}`)
     }
   }
   if (hits.length) {
-    console.error('\nThe service-role key, or its name, is in the client bundle (risk R7):\n')
+    console.error('\nThe secret key, or its name, is in the client bundle (risk R7):\n')
     for (const h of hits) console.error(`  ${h}`)
     console.error('\nFind the client component that imports server code and remove the import.\n')
     process.exit(1)
@@ -63,7 +71,7 @@ async function main() {
     )
     process.exit(1)
   }
-  console.log(`check-bundle: ${scanned} client files scanned, no service-role key found.`)
+  console.log(`check-bundle: ${scanned} client files scanned, no secret key found.`)
 }
 
 main().catch((e) => { console.error(e); process.exit(1) })

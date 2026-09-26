@@ -10,7 +10,7 @@ import { publicEnv } from '../env'
  */
 export async function authClient() {
   const store = await cookies()
-  return createServerClient(publicEnv.supabaseUrl, publicEnv.supabaseAnonKey, {
+  return createServerClient(publicEnv.supabaseUrl, publicEnv.supabasePublishableKey, {
     cookies: {
       getAll: () => store.getAll(),
       setAll: (list) => {
