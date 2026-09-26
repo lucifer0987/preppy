@@ -105,6 +105,12 @@ export function istParts(at: Date = new Date()): IstParts {
   }
 }
 
+/** Minutes since IST midnight, to compare against a paper's window columns. */
+export function istMinuteOfDay(at: Date = new Date()): number {
+  const p = istParts(at)
+  return p.hour * 60 + p.minute
+}
+
 /** The IST calendar date of an instant, as YYYY-MM-DD. */
 export function istDate(at: Date = new Date()): string {
   const p = istParts(at)

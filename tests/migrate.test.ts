@@ -60,6 +60,21 @@ describe('the migration chain', () => {
     expect(await applied()).toEqual(files.map((f) => f.split('_')[0]))
   })
 
+  it('survives the whole chain being pasted again, with no tracking table', async () => {
+    // How an existing database gets caught up: the baseline was applied by
+    // hand before migrations existed, so there is nothing recorded and every
+    // file is pasted in order. Each one has to be harmless the second time.
+    for (const f of files) await db.exec(readFileSync(`${DIR}/${f}`, 'utf8'))
+
+    // And again, because an anxious admin will paste it twice.
+    for (const f of files) await db.exec(readFileSync(`${DIR}/${f}`, 'utf8'))
+
+    const { rows } = await db.query<{ n: string }>(
+      `select count(*)::text n from information_schema.columns
+        where table_name = 'tests' and column_name = 'opens_at_min'`)
+    expect(rows[0]!.n).toBe('1')
+  })
+
   it('leaves the database the app expects', async () => {
     const tables = (await db.query<{ table_name: string }>(
       `select table_name from information_schema.tables

@@ -16,8 +16,8 @@ export function paperWindowOf(row: Record<string, unknown>): PaperWindow {
 import { paperToRows, rowsToPaper, savePaperPayload, type PaperRows } from '../paper-rows'
 import { readQuestion, summarise } from '../paper'
 import {
-  defaultPaperWindow, istDate, paperWindowProblem, windowState, windowsOverlap,
-  addDays, opensAt, paperLabels, type PaperWindow, type WindowState,
+  defaultPaperWindow, istDate, istMinuteOfDay, paperWindowProblem, windowState, windowsOverlap,
+  opensAt, paperLabels, type PaperWindow, type WindowState,
 } from '../time'
 import { getWindow } from './settings'
 import { OPTION_LABELS, type Issue, type OptionLabel, type Paper, type SectionCode } from '../types'
@@ -322,6 +322,18 @@ export async function paperLock(id: string): Promise<PaperLock | null> {
   }
 }
 
+/**
+ * The write-time half of the `canUnschedule` / `canDelete` checks: between
+ * reading the lock and issuing the update, the paper's own window may have
+ * opened. Matching on the date alone would miss that, because a paper opening
+ * this morning still carries today's date -- so compare the opening minute too.
+ */
+function stillBeforeOpen<T extends { or: (f: string) => T }>(query: T): T {
+  const today = istDate()
+  const minute = istMinuteOfDay()
+  return query.or(`date.gt.${today},and(date.eq.${today},opens_at_min.gt.${minute})`)
+}
+
 async function lockOrThrow(id: string): Promise<PaperLock> {
   const lock = await paperLock(id)
   if (!lock) throw new Error('That paper no longer exists.')
@@ -421,12 +433,13 @@ export async function unschedulePaper(id: string): Promise<void> {
   const lock = await lockOrThrow(id)
   if (lock.status !== 'SCHEDULED') throw new Error('This paper is already a draft.')
   if (!lock.canUnschedule) throw new Error(lock.reason ?? 'This paper can no longer be unscheduled.')
-  const { data, error } = await db()
-    .from('tests')
-    .update({ status: 'DRAFT', published_by: null, published_at: null })
-    .eq('id', id)
+  const { data, error } = await stillBeforeOpen(
+    db()
+      .from('tests')
+      .update({ status: 'DRAFT', published_by: null, published_at: null })
+      .eq('id', id),
+  )
     .eq('status', 'SCHEDULED')
-    .gte('date', istDate())
     .select('id')
   if (error) throw new Error(`Could not move the paper back to draft: ${error.message}`)
   if (!data?.length) throw new Error('The paper changed while you were looking at it. Reload and try again.')
@@ -436,7 +449,7 @@ export async function deletePaper(id: string): Promise<void> {
   const lock = await lockOrThrow(id)
   if (!lock.canDelete) throw new Error(lock.reason ?? 'This paper can no longer be deleted.')
   let query = db().from('tests').delete().eq('id', id)
-  if (lock.status === 'SCHEDULED') query = query.gte('date', istDate())
+  if (lock.status === 'SCHEDULED') query = stillBeforeOpen(query)
   const { data, error } = await query.select('id')
   if (error) throw new Error(`Could not delete the paper: ${error.message}`)
   if (!data?.length) throw new Error('The paper opened while you were looking at it, so it was kept.')
@@ -526,12 +539,13 @@ export interface UpcomingPapers {
 
 export async function upcomingPapers(now = new Date()): Promise<UpcomingPapers> {
   const today = istDate(now)
-  // Yesterday covers a paper whose hard stop has not yet passed; tomorrow and
-  // beyond covers what is coming. A short window either side is enough.
+  // Today and later is the whole of it: `tests_window_within_the_day` forces
+  // entry close + 45 minutes to land inside the paper's own IST day, so no
+  // paper dated before today can still be running.
   const rows = await selectAll<Record<string, unknown>>('papers', (from, to) =>
     db().from('tests').select(`id, title, ${PAPER_WINDOW_COLUMNS}`)
       .eq('status', 'SCHEDULED')
-      .gte('date', addDays(today, -1))
+      .gte('date', today)
       .order('date').range(from, to))
 
   const papers = rows

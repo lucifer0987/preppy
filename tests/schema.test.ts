@@ -375,3 +375,38 @@ describe('the configurable window', () => {
     expect(await fails(`update app_settings set open_minute=60 where id`)).toMatch(/open_minute/)
   })
 })
+
+describe('more than one paper a day', () => {
+  it('accepts two drafts for the same day', async () => {
+    // Both drafts carry the column default until they are scheduled, so a
+    // unique index over every row would refuse the second one and the whole
+    // feature would stop at the upload.
+    await savePaper('2026-12-01', 'Morning set')
+    const second = await savePaper('2026-12-01', 'Evening set')
+    expect(second.id).toBeTruthy()
+    expect(second.replaced_id).toBeNull()
+  })
+
+  it('still replaces a re-upload of the same draft', async () => {
+    const again = await savePaper('2026-12-01', 'Evening set')
+    expect(again.replaced_id).toBeTruthy()
+  })
+
+  it('schedules both, at windows that do not overlap', async () => {
+    const morning = await scheduledPaper('2026-12-02', 6 * 60, 7 * 60)
+    const evening = await scheduledPaper('2026-12-02', 22 * 60, 23 * 60)
+    expect(morning).not.toBe(evening)
+    const { n } = await one<{ n: string }>(
+      `select count(*)::text n from tests where date = '2026-12-02' and status = 'SCHEDULED'`)
+    expect(n).toBe('2')
+  })
+
+  it('refuses two scheduled papers opening at the same minute', async () => {
+    await scheduledPaper('2026-12-03', 22 * 60, 23 * 60)
+    const { id } = await savePaper('2026-12-03', 'A clash')
+    expect(await fails(
+      `update tests set status = 'SCHEDULED', opens_at_min = $2, entry_closes_at_min = $3 where id = $1`,
+      [id, 22 * 60, 23 * 60],
+    )).toMatch(/tests_one_scheduled_per_date_and_opening/)
+  })
+})
