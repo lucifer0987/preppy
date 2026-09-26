@@ -26,7 +26,7 @@ network, nothing to install. Double-click, or `open docs/architecture.html`.
 
 ```bash
 npm install
-npm test          # 363 tests, no database needed
+npm test          # 364 tests, no database needed
 npm run dev       # http://localhost:3000
 ```
 
@@ -40,9 +40,10 @@ commands alone.
 npm run dev                    # develop
 npm run build:prod             # typecheck + tests + production build
 npm run build:local            # production build with source maps, for debugging
-npm test                       # 363 tests
+npm test                       # 364 tests
 npm run check -- paper.json    # validate a paper, app not required
-npm run migrate                # apply pending database migrations
+npm run migrate                # apply pending database migrations (run after pulling)
+npm run migrate -- --status    # what has been applied, what has not
 npm run seed                   # create the accounts, print passwords once
 ```
 
@@ -54,9 +55,9 @@ npm run seed                   # create the accounts, print passwords once
 | `components/` | React components, including the test engine |
 | `lib/` | Pure domain logic: time, scoring, ranking, the paper format |
 | `lib/repo/` | The only place Supabase is called |
-| `supabase/migrations/` | The schema, as a numbered chain. `npm run migrate` applies it |
+| `supabase/migrations/` | The schema, in two numbered files: `0001_baseline.sql` and everything since. `npm run migrate` applies whatever your database is missing |
 | `format/` | A worked paper, a blank template, and a JSON Schema. Both papers state their own shape, so they keep validating whatever the default pattern is set to |
-| `tests/` | 363 tests, including the schema run on real Postgres |
+| `tests/` | 364 tests, including the schema run on real Postgres |
 | `docs/` | The three documents above |
 
 ## The one security rule

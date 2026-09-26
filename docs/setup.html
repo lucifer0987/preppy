@@ -210,7 +210,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>node -v</b>                 <i># needs v20 or newer</i>
 <b>npm install</b>
-<b>npm test</b>                <i># 363 passing means the code is sound</i></pre>
+<b>npm test</b>                <i># 364 passing means the code is sound</i></pre>
 </div>
 
 <p>Then in the Supabase dashboard:</p>
@@ -224,7 +224,7 @@ Either way you should end with eleven tables, each showing an <strong>RLS enable
 
 <div class="note why">
   <h4>Catching up a database made before migrations existed</h4>
-  <p>If the schema was first applied by hand there is no <code>schema_migrations</code> table, so <code>npm run migrate -- --status</code> reports <em>every</em> file as pending, including ones already there. Expected. Run <code>npm run migrate</code> anyway &mdash; each file is written to be safe twice over, so the ones already applied pass through harmlessly and get recorded, and only the new ones change anything.</p>
+  <p>There are two files: <code>0001_baseline.sql</code>, which your database already has, and <code>0002_since_baseline.sql</code>, which it does not. But the baseline was applied by hand, before any of this existed, so nothing was recorded and <code>npm run migrate -- --status</code> reports <em>both</em> as pending. Expected, not a problem. Run <code>npm run migrate</code> anyway &mdash; every file is written to be safe to run twice, so the baseline passes straight through and gets recorded, and only the second file changes anything. After that one run the list is accurate for good.</p>
 </div>
 
 <div class="note care">
@@ -260,6 +260,8 @@ Either way you should end with eleven tables, each showing an <strong>RLS enable
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>npm run dev</b></pre>
 </div>
+<p><strong>After pulling new code:</strong> run <code>npm run migrate</code>. If nothing is pending it says so and stops; if a new file has appeared it applies it. Skipping it is what produces errors like <em>column ... does not exist</em>.</p>
+
 <p>Restart it after editing <code>.env.local</code> &mdash; environment changes are not picked up while it runs. This is the most common thing to trip on.</p>
 </div></section>
 
@@ -277,7 +279,7 @@ Either way you should end with eleven tables, each showing an <strong>RLS enable
 <h2><i>4</i>Shipping a change</h2>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
-<pre><b>npm run build:prod</b>      <i># preflight + typecheck + 363 tests + build</i>
+<pre><b>npm run build:prod</b>      <i># preflight + typecheck + 364 tests + build</i>
 <b>git add -A &amp;&amp; git commit -m "what changed"</b>
 <b>git push</b>                 <i># Vercel deploys by itself</i></pre>
 </div>
@@ -327,7 +329,7 @@ Either way you should end with eleven tables, each showing an <strong>RLS enable
 <div class="tw"><table>
 <tr><th>Command</th><th>What it does</th></tr>
 <tr><td><code>npm run dev</code></td><td>Development server, reloads as you edit</td></tr>
-<tr><td><code>npm test</code></td><td>363 tests. No database needed</td></tr>
+<tr><td><code>npm test</code></td><td>364 tests. No database needed</td></tr>
 <tr><td><code>npm run typecheck</code></td><td>Types only, no build</td></tr>
 <tr><td><code>npm run build:local</code></td><td>Production build with source maps, for debugging</td></tr>
 <tr><td><code>npm run start:local</code></td><td>Serves that build</td></tr>

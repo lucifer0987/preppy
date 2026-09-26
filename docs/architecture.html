@@ -215,9 +215,9 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <div><dt>Routes</dt><dd>22</dd></div>
     <div><dt>Tables</dt><dd>11</dd></div>
     <div><dt>SQL functions</dt><dd>11</dd></div>
-    <div><dt>Migrations</dt><dd>6</dd></div>
+    <div><dt>Migrations</dt><dd>2</dd></div>
     <div><dt>Modules</dt><dd>30<small>lib/</small></dd></div>
-    <div><dt>Tests</dt><dd>363</dd></div>
+    <div><dt>Tests</dt><dd>364</dd></div>
     <div><dt>Runtime deps</dt><dd>8</dd></div>
   </dl>
 </header>
@@ -472,7 +472,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
   <rect x="20" y="160" width="470" height="76" rx="8" fill="none" stroke="#0E767F" stroke-width="2.5"/>
   <text x="38" y="184" font-size="13.5" font-weight="700" fill="currentColor">Pure domain logic</text>
   <text x="38" y="203" font-size="10.5" fill="currentColor" opacity=".7">time &middot; attempt &middot; scoring &middot; leaderboard &middot; paper &middot; csv &middot; images</text>
-  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 363 tests live here</text>
+  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 364 tests live here</text>
 
   <rect x="20" y="252" width="470" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
   <text x="38" y="276" font-size="13.5" font-weight="600" fill="currentColor">Repository</text>
@@ -1019,7 +1019,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 
 <div class="tw"><table>
 <tr><th>Layer</th><th>Status</th></tr>
-<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 363 tests, no database needed</td></tr>
+<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 364 tests, no database needed</td></tr>
 <tr><td>The schema, its functions, triggers and indexes</td><td><strong>Tested against real Postgres.</strong> <code>tests/schema.test.ts</code> applies every migration to an in-process Postgres and exercises each function and guard. <code>tests/migrate.test.ts</code> proves the chain is ordered and that a second run changes nothing</td></tr>
 <tr><td>The queries in <code>lib/repo/</code></td><td><strong>Typechecked only.</strong> The PostgREST calls have never run against a live server</td></tr>
 <tr><td>Supabase Auth and Storage</td><td><strong>Typechecked only</strong></td></tr>
@@ -1082,7 +1082,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <text x="179" y="209" text-anchor="middle" font-weight="600">typecheck</text>
     <line x1="226" y1="205" x2="238" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="238" y="186" width="94" height="38" rx="6" fill="none" stroke="#94202B" stroke-width="2"/>
-    <text x="285" y="209" text-anchor="middle" font-weight="600">363 tests</text>
+    <text x="285" y="209" text-anchor="middle" font-weight="600">364 tests</text>
     <line x1="332" y1="205" x2="344" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="344" y="186" width="84" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
     <text x="386" y="209" text-anchor="middle" font-weight="600">build</text>
@@ -1107,7 +1107,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td><code>npm run start:local</code></td><td><span class="pill local">rare</span></td><td>Serves that build on port 3000</td></tr>
 <tr><td><code>npm run build:prod</code></td><td><span class="pill prod">before shipping</span></td><td>Typecheck, all tests, then build without source maps</td></tr>
 <tr><td><code>npm run start:prod</code></td><td><span class="pill prod">on the host</span></td><td>Serves the production build</td></tr>
-<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>363 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>364 tests. No database needed, about a second</td></tr>
 <tr><td><code>npm run typecheck</code></td><td><span class="pill both">anytime</span></td><td>Checks types without building</td></tr>
 <tr><td><code>npm run seed</code></td><td><span class="pill both">setup</span></td><td>Creates the accounts, prints passwords once</td></tr>
 <tr><td><code>npm run secret</code></td><td><span class="pill both">setup</span></td><td>Prints a random string for CRON_SECRET</td></tr>
@@ -1122,6 +1122,13 @@ figcaption b{color:var(--ink-2); font-weight:600}
 
 <section id="s12"><div class="col">
 <h2><i>12</i>Two databases, not one</h2>
+
+<div class="note care">
+  <h4>Where you are today</h4>
+  <p>There is one Supabase project, <code>preppy-dev</code>, and no deployment. Everything below describes what to do <em>when</em> you put this in front of students &mdash; it is not something you have to act on now, and nothing in the app needs it.</p>
+  <p>One thing does follow from it, though. With a single database, migrations only ever have to be applied in one place, which is why collapsing them into two files was safe. Once <code>preppy-prod</code> exists, the same files have to be run against both, and then the rule about never editing an applied file starts to carry real weight &mdash; production would have run it and your laptop would not, or the other way round.</p>
+</div>
+
 
 <p>You asked whether local and production should share a database. <strong>They should not.</strong> Use two separate Supabase projects.</p>
 
@@ -1224,7 +1231,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <b>npm install</b></pre>
 </div>
 <p>Downloads everything into a <code>node_modules</code> folder. Safe to re-run at any time.</p>
-<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>363 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
+<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>364 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
 </li>
 
 <li>
@@ -1242,33 +1249,48 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <li>
 <h4>Create the tables</h4>
 <p>Left sidebar &rarr; <strong>SQL Editor</strong> &rarr; <strong>New query</strong>.</p>
-<p>The schema is built by a chain of migration files in <code>supabase/migrations/</code>. There are two ways to apply them.</p>
+<p>An empty Supabase project has no tables in it. The two files in
+<code>supabase/migrations/</code> put them there, and a small program called the
+<em>runner</em> applies them for you. There are two ways to do it, and they end
+up in exactly the same place.</p>
 
-<p><strong>Either</strong> let the runner do it. Copy the connection string from <strong>Settings &rarr; Database &rarr; Connection string (URI)</strong> into <code>.env.local</code> as <code>DATABASE_URL</code>, then:</p>
+<p><strong>Either</strong> let the runner talk to the database itself. Copy the
+connection string from <strong>Settings &rarr; Database &rarr; Connection string</strong>,
+the one labelled <strong>URI</strong>, and put it in <code>.env.local</code> as
+<code>DATABASE_URL</code> with your database password filled in where it says
+<code>[YOUR-PASSWORD]</code>. Use the direct connection on port <strong>5432</strong>;
+a pooler address on 6543 works differently and can trip the runner. Then:</p>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>npm run migrate</b>
 
-<i>  Applying 6 migrations...
+<i>  Applying 2 migrations...
     applied  0001_baseline.sql
-    applied  0002_test_window.sql</i></pre>
+    applied  0002_since_baseline.sql
+
+  Done. 2 migrations applied in total.</i></pre>
 </div>
 
-<p><strong>Or</strong>, if you would rather not keep a database password around, ask it to print instead and paste the result into the Supabase <strong>SQL Editor</strong>:</p>
+<p><strong>Or</strong>, if you would rather not keep a database password on your
+laptop, ask it to print the SQL and paste that into the Supabase
+<strong>SQL Editor</strong> instead &mdash; one file at a time, in order:</p>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>npm run migrate -- --print</b></pre>
 </div>
-<p>It prints each pending migration in order, with the line that records it as applied. Run <code>npm run migrate -- --status</code> at any time to see what has landed.</p>
-<p>It should say <strong>Success. No rows returned.</strong> That one file created:</p>
+<p>Each block ends with the one line that records it as applied, so do not leave
+that out. Either way, <code>npm run migrate -- --status</code> tells you what has
+landed and what has not, at any time.</p>
+
+<p>Between them the two files create:</p>
 <div class="tw"><table>
 <tr><th>What</th><th>How many</th><th>For</th></tr>
-<tr><td>Tables</td><td>9</td><td>People, papers, attempts, answers, rate limits</td></tr>
+<tr><td>Tables</td><td>11</td><td>People, papers, attempts, answers, the two settings tables, rate limits</td></tr>
 <tr><td>Types</td><td>5</td><td>Roles, paper status, attempt state, section codes</td></tr>
-<tr><td>Functions</td><td>10</td><td>The operations that must be all-or-nothing</td></tr>
-<tr><td>Triggers</td><td>2</td><td>Refusing to delete a paper students have sat</td></tr>
-<tr><td>Indexes</td><td>8</td><td>Speed, and one-counted-attempt-per-person</td></tr>
-<tr><td>Access rules</td><td>9</td><td>Row Level Security on every table</td></tr>
+<tr><td>Functions</td><td>11</td><td>The operations that must be all-or-nothing</td></tr>
+<tr><td>Triggers</td><td>3</td><td>Refusing to delete a paper students have sat; keeping each paper's length in step with its sections</td></tr>
+<tr><td>Indexes</td><td>28</td><td>Speed, plus the keys that enforce uniqueness &mdash; one counted attempt per person, one scheduled paper per opening</td></tr>
+<tr><td>Access rules</td><td>11</td><td>Row Level Security on every table</td></tr>
 </table></div>
 <p><strong>Check it worked:</strong> open <strong>Table Editor</strong>. You should see ten tables, each with an <strong>RLS enabled</strong> badge. That badge is intentional &mdash; it means nothing can read those tables except your own server.</p>
 <div class="note do">
@@ -1417,42 +1439,54 @@ figcaption b{color:var(--ink-2); font-weight:600}
 </div>
 
 <h3>How migrations work</h3>
-<p>The schema is a numbered, forward-only chain in <code>supabase/migrations/</code>. Nothing else defines it.</p>
+
+<div class="note why">
+  <h4>If you have not met migrations before</h4>
+  <p>A database does not just appear with the right tables in it. Something has to create them, and later, when the app needs a new column, something has to add that too &mdash; <em>without</em> throwing away what is already stored.</p>
+  <p>A <strong>migration</strong> is one file of instructions for doing that: "make this table", "add this column", "add this rule". They are numbered, and they are always run in order. A database remembers which ones it has already had, so running them again does nothing.</p>
+  <p>You will not usually write them. You will run one command after pulling new code, and read what it says.</p>
+</div>
+
+<p>There are two files, in <code>supabase/migrations/</code>. Nothing else defines the schema.</p>
+
 <div class="tw"><table>
-<thead><tr><th>File</th><th>What it did</th></tr></thead>
+<thead><tr><th>File</th><th>What it holds</th></tr></thead>
 <tbody>
-<tr><td><code>0001_baseline.sql</code></td><td>The whole schema as it stood the day migrations arrived &mdash; ten tables, ten functions, two triggers, RLS</td></tr>
-<tr><td><code>0002_test_window.sql</code></td><td><code>app_settings</code>: the default window, editable from the admin console</td></tr>
-<tr><td><code>0003_per_paper_window.sql</code></td><td>A window per paper, and more than one paper a day</td></tr>
-<tr><td><code>0004_drafts_share_a_day.sql</code></td><td>Made that index partial, so two drafts for one day can both be uploaded</td></tr>
-<tr><td><code>0005_configurable_pattern.sql</code></td><td><code>default_sections</code> plus <code>tests.attempt_sec</code>: questions, minutes and marking per section, and each paper's own running time</td></tr>
-<tr><td><code>0006_pattern_audit.sql</code></td><td>Who last changed the pattern, and a <code>sync_attempt_sec</code> that follows a section moving between papers rather than only the paper it moved to</td></tr>
+<tr><td><code>0001_baseline.sql</code></td><td>The schema as it was first applied: the tables, the SQL functions, the triggers, and the access rules. This is the file your database already has</td></tr>
+<tr><td><code>0002_since_baseline.sql</code></td><td>Everything added since, in one file: the default window, a window per paper, the default section pattern, and how long each paper runs</td></tr>
 </tbody>
 </table></div>
 
-<p>The baseline is not special to the runner &mdash; it is simply file number one. Each database keeps a <code>schema_migrations</code> table of the versions it has applied; the runner diffs that against the files on disk and applies the difference in filename order. <strong>Each file runs in its own transaction, with its tracking insert inside it</strong>, so a migration either lands completely and is recorded, or does not land at all. A failure leaves you on the last complete version, never half-way through one.</p>
+<p>Two files, not six. The steps that once sat between them were collapsed into one, because they had never been applied to any database &mdash; there was no history to preserve. That was a one-off tidy-up rather than the normal way of working, and the paragraph below says what happens next time.</p>
+
+<p>The baseline is not special to the runner; it is simply file number one. Each database keeps a <code>schema_migrations</code> table listing the versions it has had. The runner compares that list against the files on disk and applies whatever is missing, in order. <strong>Each file runs inside a transaction with its own tracking entry</strong>, so a file either lands completely and is recorded, or does not land at all. A failure leaves the database on the last complete version, never half-way through one.</p>
 
 <div class="tw"><table>
 <thead><tr><th>Command</th><th>Does</th></tr></thead>
 <tbody>
 <tr><td><code>npm run migrate</code></td><td>Applies everything pending</td></tr>
-<tr><td><code>npm run migrate -- --status</code></td><td>Lists what has landed and what has not</td></tr>
-<tr><td><code>npm run migrate -- --print</code></td><td>Prints the pending SQL instead of running it</td></tr>
+<tr><td><code>npm run migrate -- --status</code></td><td>Lists what has landed and what has not. Changes nothing &mdash; safe to run any time</td></tr>
+<tr><td><code>npm run migrate -- --print</code></td><td>Prints the SQL instead of running it, for pasting into Supabase</td></tr>
 </tbody>
 </table></div>
 
-<p>It needs <code>DATABASE_URL</code> in <code>.env.local</code> &mdash; Supabase &rarr; <strong>Settings</strong> &rarr; <strong>Database</strong> &rarr; <strong>Connection string</strong>, the URI one, with the password filled in. Use the direct connection on port 5432; a pooler URI on 6543 is transaction-mode and the client's prepared statements can trip on it. Without <code>DATABASE_URL</code> the runner does not fail &mdash; it prints the SQL to paste into the Supabase SQL editor, each block ending with the insert that records it.</p>
+<p>It needs <code>DATABASE_URL</code> in <code>.env.local</code> &mdash; Supabase &rarr; <strong>Settings</strong> &rarr; <strong>Database</strong> &rarr; <strong>Connection string</strong>, the <strong>URI</strong> one, with your database password filled in where it says <code>[YOUR-PASSWORD]</code>. Use the direct connection on port <strong>5432</strong>; a pooler address on 6543 works differently and can trip the client. Without <code>DATABASE_URL</code> the runner does not fail &mdash; it prints the SQL to paste into the Supabase SQL editor, each block ending with the line that records it.</p>
 
 <div class="note why">
-  <h4>Bringing a database that predates migrations up to date</h4>
-  <p>If the schema was first applied by hand, there is no <code>schema_migrations</code> table, so <code>--status</code> reports <em>every</em> file as pending &mdash; including ones already there. That is expected. Run <code>npm run migrate</code> anyway: every migration is written to be safe twice over (<code>if not exists</code>, <code>create or replace</code>, guarded <code>do $$</code> blocks), the already-applied files pass through harmlessly and get recorded, and only the genuinely new ones change anything. A test exists purely to prove the whole chain survives that.</p>
+  <h4>Why your database says both files are pending</h4>
+  <p>Your schema was first applied by hand, before any of this existed, so no <code>schema_migrations</code> table was ever written and the runner cannot see what is already there. <code>--status</code> will therefore list <em>both</em> files as pending, including the baseline you already have. That is expected and not a sign of trouble.</p>
+  <p>Run <code>npm run migrate</code> anyway. Every file is written to be safe to run twice &mdash; it says "create this table <em>if it does not exist</em>" rather than "create this table" &mdash; so the baseline passes straight through without touching anything, gets recorded, and only the genuinely new file changes the database. A test exists purely to prove the whole chain survives that.</p>
+  <p>After that one run, the list is accurate for good.</p>
 </div>
 
 <h3>Changing the structure later</h3>
-<p><strong>Write a new migration. Never edit one that has been applied.</strong> A file that has already run will not run again, so editing it changes what a fresh database gets and leaves the existing one behind &mdash; and the two drift apart silently.</p>
+
+<p><strong>Write a new file. Never edit one that has already been applied.</strong> This is the one rule that matters, and it is worth understanding rather than memorising: your database has recorded that it ran <code>0002</code>, so it will never run it again. Editing that file changes what a <em>fresh</em> database gets and leaves yours behind, and the two drift apart with nothing to tell you.</p>
+
+<p>So the next change is <code>0003_something.sql</code>, the one after that is <code>0004</code>, and the count grows. That is normal and not a sign the files need collapsing again.</p>
 
 <div class="term">
-  <div class="term-bar"><i></i><i></i><i></i><span>supabase/migrations/0005_whatever_it_is.sql</span></div>
+  <div class="term-bar"><i></i><i></i><i></i><span>supabase/migrations/0003_whatever_it_is.sql</span></div>
 <pre><b>begin;</b>
 
 <i>-- Safe to run twice, like every migration here.</i>
@@ -1461,9 +1495,9 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <b>commit;</b></pre>
 </div>
 
-<p>Number it one higher than the last, run it against <code>preppy-dev</code>, check the app still works, and only then against production.</p>
+<p>Number it one higher than the last, run <code>npm run migrate</code>, and check the app still works.</p>
 
-<p>There are no down migrations. Reversing a schema change correctly is rare, and a rollback file that has never been run is a false promise. To undo something, write the next migration &mdash; which is exactly what <code>0004</code> is: <code>0003</code> created an index that turned out to be too strict, and <code>0004</code> replaced it.</p>
+<p>There are no "down" migrations &mdash; no way to run one backwards. Reversing a schema change correctly is rare, and a rollback file that has never once been executed is a guess about a situation you are not in. To undo something, write the next migration.</p>
 
 <h3>Backups</h3>
 <div class="tw"><table>
@@ -1585,7 +1619,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code></td><td>preppy-prod &rarr; service_role</td></tr>
 <tr><td><code>CRON_SECRET</code></td><td>The string from step 2</td></tr>
 </table></div>
-<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 363 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
+<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 364 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
 <p><strong>Check it worked:</strong> the deployment goes green and the URL shows the countdown page.</p>
 </li>
 
@@ -1709,7 +1743,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <ol>
 <li><strong>Which database am I talking to?</strong> Check the URL in <code>.env.local</code> against the project name in Supabase.</li>
 <li><strong>Did the schema actually apply?</strong> Table Editor, ten tables, RLS badges.</li>
-<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 363 pass, the logic is fine and the problem is configuration or a query.</li>
+<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 364 pass, the logic is fine and the problem is configuration or a query.</li>
 </ol>
 
 <p class="end">

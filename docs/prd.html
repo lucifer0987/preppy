@@ -715,7 +715,7 @@ html{scroll-behavior:smooth}
 <tr><td>Framework</td><td><strong>Next.js 15, App Router, TypeScript</strong></td><td>UI and backend in one project. TypeScript kept deliberately — it catches mistakes before they run</td></tr>
 <tr><td>Backend</td><td><strong>Route Handlers + Server Actions</strong></td><td>No separate service. All JavaScript</td></tr>
 <tr><td>Database</td><td><strong>Supabase Postgres</strong></td><td></td></tr>
-<tr><td>DB access</td><td><strong><code>supabase-js</code> + generated types</strong></td><td>No ORM, no migration tool to learn</td></tr>
+<tr><td>DB access</td><td><strong><code>supabase-js</code> + generated types</strong></td><td>No ORM. The migration runner is a hundred lines in the repo, not a framework</td></tr>
 <tr><td>Auth</td><td><strong>Supabase Auth</strong></td><td>Username → <code>&lt;username&gt;@preppy.local</code>. No custom crypto</td></tr>
 <tr><td>Storage</td><td><strong>Supabase Storage</strong></td><td>Question images</td></tr>
 <tr><td>Paper validation</td><td><strong>Hand-written validator</strong> in a Server Action</td><td>Every message names the field path; <code>format/schema.json</code> mirrors it for editors</td></tr>
@@ -841,7 +841,7 @@ html{scroll-behavior:smooth}
 <tr><td><strong>A window per paper</strong><br>on <code>tests</code>, with the global setting demoted to a default</td><td>The times were a constant, then a global setting, and both made a second paper in a day impossible. Each paper now carries its own window, chosen when it is scheduled. The hard stop stays derived as entry close plus one paper, so the full-attempt guarantee holds whatever is chosen, and a database constraint refuses a window running past midnight</td></tr>
 <tr><td><strong>More than one paper a day</strong><br>and one attempt at a time</td><td>A date no longer identifies a paper. Scheduling refuses windows that overlap, and a database index allows a student only one counted attempt in progress across every paper, since two at once would split 45 minutes across two clocks</td></tr>
 <tr><td><strong>Nothing keys off the calendar day</strong></td><td>Answers unlocking, joining the leaderboard and entering the archive all waited for midnight or 00:01. They now wait for the paper's own hard stop, so a paper that ran at breakfast is reviewable by mid-morning</td></tr>
-<tr><td><strong>Numbered migrations</strong><br><code>supabase/migrations/</code></td><td>One re-runnable schema file worked while every change was additive. A numbered chain with a runner records what has been applied, so dev and production cannot silently diverge</td></tr>
+<tr><td><strong>Numbered migrations</strong><br><code>supabase/migrations/</code></td><td>One re-runnable schema file worked while every change was additive. A numbered chain with a runner records what has been applied, so dev and production cannot silently diverge Collapsed to two files &mdash; the baseline and everything since &mdash; once it was clear the intermediate steps had never been applied to any database. The next change is a third file.</td></tr>
 <tr><td><strong>Two builds</strong><br><code>build:local</code> and <code>build:prod</code></td><td>Production gates on typecheck and the full suite and ships no source maps; local keeps them so a stack trace is worth reading</td></tr>
 </table></div>
 
@@ -850,7 +850,7 @@ html{scroll-behavior:smooth}
 
 <div class="good">
   <h4>The one thing still unproven</h4>
-  <p>The schema and its functions are exercised against real Postgres, and 363 tests cover the pure logic. What has never run is the layer that talks to Supabase over the network: the queries in <code>lib/repo/</code>, signing in, and reading an image out of Storage. The engineering reference has a ten-minute walkthrough that exercises nearly all of it.</p>
+  <p>The schema and its functions are exercised against real Postgres, and 364 tests cover the pure logic. What has never run is the layer that talks to Supabase over the network: the queries in <code>lib/repo/</code>, signing in, and reading an image out of Storage. The engineering reference has a ten-minute walkthrough that exercises nearly all of it.</p>
 </div>
 </div></section>
 

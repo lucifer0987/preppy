@@ -232,6 +232,23 @@ describe("keeping a paper's length in step", () => {
   })
 })
 
+describe('a window has to be a time of day', () => {
+  it('refuses minutes outside the clock, on a draft as well as a scheduled paper', async () => {
+    // A draft is exempt from "must fit inside its day" -- it has no night yet --
+    // but not from being a time at all. Collapsing the migrations showed the
+    // schema had lost this when the day-fit rule was rewritten: 9999 was taken.
+    const { id } = await savePaper('2027-04-01', 'Window range')
+    for (const bad of [9999, -100, 1440]) {
+      expect(await fails('update tests set opens_at_min = $2 where id = $1', [id, bad]), String(bad))
+        .toMatch(/tests_window_is_a_time_of_day/)
+      expect(await fails('update tests set entry_closes_at_min = $2 where id = $1', [id, bad]), String(bad))
+        .toMatch(/tests_window_is_a_time_of_day/)
+    }
+    expect(await fails('update tests set opens_at_min = 0 where id = $1', [id])).toBeNull()
+    expect(await fails('update tests set entry_closes_at_min = 1439 where id = $1', [id])).toBeNull()
+  })
+})
+
 describe('the default pattern', () => {
   it('starts as the pattern the product shipped with', async () => {
     const { rows } = await db.query<{ code: string; q: number; d: number; c: string; n: string }>(
