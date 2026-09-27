@@ -456,6 +456,15 @@ h2, h3 { text-wrap: balance; }
   max-width: 68ch;
 }
 
+/**
+ * A wider measure, for a page's opening sentence. 68ch is right for a
+ * paragraph you read down; a single line introducing a screen stopped less
+ * than halfway across and wrapped for no reason.
+ */
+@utility measure-wide {
+  max-width: 92ch;
+}
+
 @utility card {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -485,7 +494,8 @@ h2, h3 { text-wrap: balance; }
   justify-content: center;
   gap: 0.5rem;
   border-radius: var(--radius-control);
-  padding: 0.7rem 1.25rem;
+  padding: 0.8rem 1.5rem;
+    font-size: 0.9375rem;
   font-family: var(--font-display);
   font-weight: 700;
   line-height: 1.2;

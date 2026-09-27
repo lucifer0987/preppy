@@ -52,7 +52,9 @@ export async function scheduleAction(formData: FormData) {
     ? { opensAtMin, entryClosesAtMin }
     : undefined
 
-  await run(id, () => schedulePaper(id, admin.id, date, times), `/admin/papers/${id}?scheduled=1`)
+  // Scheduling is the end of the job, so it lands back on the list rather than
+    // on the paper you have just finished with.
+    await run(id, () => schedulePaper(id, admin.id, date, times), '/admin/papers?scheduled=1')
 }
 
 export async function unscheduleAction(formData: FormData) {

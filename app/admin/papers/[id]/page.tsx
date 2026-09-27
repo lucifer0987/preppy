@@ -81,26 +81,26 @@ export default async function PaperPreview(
       <BackLink href="/admin/papers">Papers</BackLink>
 
       {q['error'] && (
-        <Flash tone="bad" className="mt-4">
+        <Flash tone="bad" className="mt-4 mb-5">
           {q['error']}
         </Flash>
       )}
       {q['new'] && (
-        <Flash tone="good" className="mt-4">
+        <Flash tone="good" className="mt-4 mb-5">
           {q['replaced']
             ? 'Replaced the earlier draft for this date. Read it through below, then schedule it.'
             : 'Saved as a draft. Read it through below, then schedule it.'}
         </Flash>
       )}
       {q['rescored'] && (
-        <Flash tone="good" className="mt-4">
+        <Flash tone="good" className="mt-4 mb-5">
           Q{q['rescored']} changed from {q['from']} to {q['to']}. {q['of']} attempt
           {q['of'] === '1' ? '' : 's'} rescored, {q['changed']} score
           {q['changed'] === '1' ? '' : 's'} moved.
         </Flash>
       )}
       {q['scheduled'] && (
-        <Flash tone="good" className="mt-4">
+        <Flash tone="good" className="mt-4 mb-5">
           Scheduled. It unlocks at {paperLabels(record.window).opens} on {formatIstDate(paper.date)}.
         </Flash>
       )}

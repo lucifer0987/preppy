@@ -51,7 +51,7 @@ export function PageHeader({ title, lede, actions, meta, compact = false }: {
           ? 'text-xl font-black tracking-tight sm:text-2xl'
           : 'text-3xl font-black tracking-tight sm:text-4xl'}>{title}</h1>
         {meta && <div className="mt-1.5 text-sm text-ink-soft">{meta}</div>}
-        {lede && <p className="mt-2 max-w-2xl text-ink-soft">{lede}</p>}
+        {lede && <p className="measure-wide mt-2 text-ink-soft">{lede}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2.5">{actions}</div>}
     </header>

@@ -16,7 +16,8 @@ import { CountUp } from '../../../../components/CountUp'
 import { ResultSound } from '../../../../components/ResultSound'
 import { SoundToggle } from '../../../../components/SoundToggle'
 import { ThemeToggle } from '../../../../components/ThemeToggle'
-import { Flash, TableShell, Th } from '../../../../components/Page'
+import { Flash } from '../../../../components/Page'
+import { SectionShape } from '../../../../components/SectionShape'
 
 export const dynamic = 'force-dynamic'
 
@@ -246,60 +247,65 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
         </div>
       </div>
 
-      <section className="mt-4">
-        <h2 className="eyebrow">By section</h2>
-        {/* Nine columns of digits: the shared shell scrolls sideways on a phone
-            rather than making the whole page do it. */}
-        <div className="mt-3">
-          <TableShell minWidth="48rem">
-            <thead>
-              <tr className="border-b border-line">
-                <Th>Section</Th>
-                <Th align="right">Score</Th>
-                <Th align="right">Attempted</Th>
-                <Th align="right">Right</Th>
-                <Th align="right">Wrong</Th>
-                <Th align="right">Skipped</Th>
-                <Th align="right">Not reached</Th>
-                <Th align="right">Accuracy</Th>
-                <Th align="right">Time used</Th>
-              </tr>
-            </thead>
-            <tbody className="numeral">
-              {sections.map((s) => (
-                <tr key={s.code} className="border-b border-line last:border-0">
-                  <td className="px-3 py-2.5 font-display font-semibold">
+      {/* Sectional marks are the point of this page, so they are cards rather
+          than nine columns of digits in a table. Each carries its own answer
+          shape, which is how a student already recognises the section. */}
+      <section className="mt-5">
+        <h2 className="eyebrow">Marks by section</h2>
+        <ul className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {sections.map((s, i) => {
+            const acc = s.accuracyPct
+            return (
+              <li key={s.code} className="card p-5">
+                <div className="flex items-center gap-2.5">
+                  <SectionShape index={i} />
+                  <h3 className="min-w-0 flex-1 truncate font-display text-sm font-bold">
                     {SECTION_NAMES[s.code as SectionCode]}
-                  </td>
-                  <td className="px-3 py-2.5 text-right font-bold">{s.score.toFixed(2)}</td>
-                  <td className="px-3 py-2.5 text-right">{s.attempted}</td>
-                  <td className="px-3 py-2.5 text-right font-semibold text-good-ink">{s.correct}</td>
-                  <td className="px-3 py-2.5 text-right font-semibold text-bad-ink">{s.wrong}</td>
-                  <td className="px-3 py-2.5 text-right text-ink-soft">{s.skipped}</td>
-                  <td className="px-3 py-2.5 text-right text-ink-soft">{s.notReached}</td>
-                  <td className="px-3 py-2.5">
-                    {s.accuracyPct === null ? (
-                      <span className="block text-right text-ink-faint">&mdash;</span>
-                    ) : (
-                      <span className="flex items-center justify-end gap-2">
-                        <span className="hidden h-1.5 w-16 overflow-hidden rounded-pill bg-surface-sunken sm:block">
-                          <span
-                            className={`block h-full rounded-pill ${
-                              s.accuracyPct >= 60 ? 'bg-good' : s.accuracyPct >= 35 ? 'bg-warn' : 'bg-bad'
-                            }`}
-                            style={{ width: `${s.accuracyPct.toFixed(0)}%` }}
-                          />
-                        </span>
-                        <span className="w-9 text-right">{s.accuracyPct.toFixed(0)}%</span>
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2.5 text-right">{clock(timeByCode.get(s.code) ?? null)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </TableShell>
-        </div>
+                  </h3>
+                </div>
+
+                <p className="numeral mt-3 flex items-baseline gap-1.5">
+                  <span className={`text-4xl font-black ${
+                    s.score > 0 ? 'text-ink' : s.score < 0 ? 'text-bad-ink' : 'text-ink-faint'
+                  }`}>
+                    {s.score.toFixed(2)}
+                  </span>
+                  <span className="text-xs font-semibold text-ink-faint">marks</span>
+                </p>
+
+                <dl className="numeral mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                  <span className="flex gap-1"><dt className="text-ink-faint">Right</dt>
+                    <dd className="font-bold text-good-ink">{s.correct}</dd></span>
+                  <span className="flex gap-1"><dt className="text-ink-faint">Wrong</dt>
+                    <dd className="font-bold text-bad-ink">{s.wrong}</dd></span>
+                  <span className="flex gap-1"><dt className="text-ink-faint">Blank</dt>
+                    <dd className="font-bold">{s.skipped + s.notReached}</dd></span>
+                </dl>
+
+                <div className="mt-3 border-t border-line pt-3">
+                  <div className="flex items-baseline justify-between gap-2 text-xs">
+                    <span className="text-ink-faint">Accuracy</span>
+                    <span className="numeral font-bold">
+                      {acc === null ? '—' : `${acc.toFixed(0)}%`}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-pill bg-surface-sunken">
+                    <div
+                      className={`h-full rounded-pill ${
+                        acc === null ? 'bg-line-strong'
+                        : acc >= 60 ? 'bg-good' : acc >= 35 ? 'bg-warn' : 'bg-bad'
+                      }`}
+                      style={{ width: `${acc === null ? 0 : acc.toFixed(0)}%` }}
+                    />
+                  </div>
+                  <p className="numeral mt-2 text-[0.6875rem] text-ink-faint">
+                    {clock(timeByCode.get(s.code) ?? null)} used of {s.attempted} attempted
+                  </p>
+                </div>
+              </li>
+            )
+          })}
+        </ul>
       </section>
 
       {/* Two columns only when both are there. Pacing has nothing to say on a

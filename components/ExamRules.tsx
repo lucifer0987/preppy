@@ -18,9 +18,9 @@ export function ExamRules({ compact = false }: { compact?: boolean }) {
         the next one.
       </li>
       <li>
-        <strong>Marking is not answering.</strong> <em>Mark for review</em> flags the question
-        and leaves you on it; <em>Mark &amp; next</em> flags it and moves you on. Either way it
-        scores as blank unless an option is also chosen.
+        <strong>Marking is not answering.</strong> <em>Mark for review &amp; next</em> flags the
+        question and moves you on, so you can come back to it from the palette. A flagged
+        question still scores as blank unless an option is also chosen.
       </li>
       <li>
         <strong>Full screen is required.</strong> Esc always works &mdash; no page can take that

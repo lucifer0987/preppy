@@ -10,6 +10,7 @@ import { BeginButton } from './BeginButton'
 import { entryRefusal } from './entry'
 import { BackLink, Flash, PageHeader } from '../../../components/Page'
 import { ExamRules } from '../../../components/ExamRules'
+import { SectionShape } from '../../../components/SectionShape'
 import { ThemeToggle } from '../../../components/ThemeToggle'
 
 export const dynamic = 'force-dynamic'
@@ -42,6 +43,10 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
   }[]).sort((a, b) => a.position - b.position)
   const totalQuestions = sections.reduce((n, s) => n + s.question_count, 0)
   const totalMinutes = Math.round(sections.reduce((n, s) => n + s.duration_sec, 0) / 60)
+  // What a flawless paper is worth, so the marking card can end on it.
+  const totalMarks = sections.reduce(
+    (n, s) => n + Number(s.question_count) * Number(s.marks_correct), 0,
+  )
   const marks = new Set(sections.map((s) => `+${Number(s.marks_correct)} correct, −${Number(s.marks_negative)} wrong`))
 
   // A counted paper already sat goes to its result; a running one resumes.
@@ -75,44 +80,80 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
         <Flash tone="bad" className="mt-4">{error}</Flash>
       )}
 
-      {/* The pattern is a short list of figures and the rules are six
-          sentences: side by side past lg they read as one briefing, where
-          stacked they were two screenfuls with the Begin button off the end
-          of both. The rules column is wider because it holds prose. */}
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_1.35fr] lg:items-start">
-        <section className="card p-6">
-          <h2 className="eyebrow">The pattern</h2>
-          <ul className="mt-3 space-y-1.5">
-            {sections.map((s) => (
-              <li key={s.code} className="flex items-baseline justify-between gap-4 text-sm">
-                <span>
-                  <span className="numeral mr-2 text-ink-faint">{s.position}.</span>
-                  {SECTION_NAMES[s.code]}
-                </span>
-                <span className="numeral shrink-0 text-ink-soft">
-                  {s.question_count} questions &middot; {Math.round(s.duration_sec / 60)} min
-                </span>
-              </li>
-            ))}
-          </ul>
-          <p className="numeral mt-4 border-t border-line pt-3 font-semibold">
-            {totalQuestions} questions &middot; {totalMinutes} minutes &middot;{' '}
-            {marks.size === 1 ? [...marks][0] : 'marking varies by section'}, 0 unattempted
+      {/* The paper you are about to sit, laid out the way the result will lay
+          it back out afterwards: four sections, each behind its own answer
+          shape. It used to be a list of figures with a number in front of it,
+          which told you the same thing and showed you nothing. */}
+      <section className="mt-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+          <h2 className="eyebrow">What you are about to sit</h2>
+          <p className="numeral text-sm font-bold">
+            {totalQuestions} questions &middot; {totalMinutes} minutes
           </p>
-          {marks.size > 1 && (
-            <ul className="mt-2 space-y-1 text-xs text-ink-soft">
-              {sections.map((s) => (
-                <li key={s.code}>{SECTION_NAMES[s.code]}: +{Number(s.marks_correct)} correct, &minus;{Number(s.marks_negative)} wrong</li>
-              ))}
-            </ul>
-          )}
-        </section>
+        </div>
 
+        <ol className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {sections.map((s, i) => (
+            <li key={s.code} className="card p-5">
+              <div className="flex items-center gap-3">
+                <SectionShape index={i} size="lg" />
+                <span className="numeral text-xs font-bold text-ink-faint">
+                  Section {s.position}
+                </span>
+              </div>
+              <h3 className="mt-3 font-display text-base font-black leading-tight">
+                {SECTION_NAMES[s.code]}
+              </h3>
+              <p className="numeral mt-2.5 flex items-baseline gap-1.5">
+                <span className="text-3xl font-black">{s.question_count}</span>
+                <span className="text-xs font-semibold text-ink-faint">questions</span>
+              </p>
+              <p className="numeral mt-2 border-t border-line pt-2.5 text-xs text-ink-soft">
+                {Math.round(s.duration_sec / 60)} minutes &middot; +{Number(s.marks_correct)}
+                {' '}/ &minus;{Number(s.marks_negative)}
+              </p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-[1.35fr_1fr] lg:items-start">
         <section className="card p-6">
           <h2 className="eyebrow">Before you begin</h2>
           <div className="mt-3"><ExamRules /></div>
           <p className="mt-3 border-t border-line pt-3 text-sm font-semibold">
             Your timer starts the moment you press Begin, not when this page opened.
+          </p>
+        </section>
+
+        <section className="card flex flex-col p-6">
+          <h2 className="eyebrow">Marking</h2>
+          <dl className="mt-3 space-y-2.5 text-sm">
+            <div className="flex items-baseline justify-between gap-3">
+              <dt className="text-ink-soft">A right answer</dt>
+              <dd className="numeral font-bold text-good-ink">
+                +{Number(sections[0]?.marks_correct ?? 1)}
+              </dd>
+            </div>
+            <div className="flex items-baseline justify-between gap-3">
+              <dt className="text-ink-soft">A wrong answer</dt>
+              <dd className="numeral font-bold text-bad-ink">
+                &minus;{Number(sections[0]?.marks_negative ?? 0)}
+              </dd>
+            </div>
+            <div className="flex items-baseline justify-between gap-3">
+              <dt className="text-ink-soft">Left blank</dt>
+              <dd className="numeral font-bold">0</dd>
+            </div>
+          </dl>
+          {marks.size > 1 && (
+            <p className="mt-3 text-xs text-ink-faint">
+              Marking varies by section; each card above carries its own.
+            </p>
+          )}
+          <p className="numeral mt-auto border-t border-line pt-3 text-sm">
+            <span className="font-bold">{totalMarks}</span>
+            <span className="text-ink-faint"> marks for a perfect paper</span>
           </p>
         </section>
       </div>

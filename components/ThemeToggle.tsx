@@ -23,7 +23,15 @@ const KEY = 'preppy-theme'
  * browser's storage, and one frame of the wrong icon is worse than one frame
  * of nothing.
  */
-export function ThemeToggle({ tone = 'default' }: { tone?: 'default' | 'invert' }) {
+export function ThemeToggle({ tone = 'default', variant = 'icon' }: {
+  tone?: 'default' | 'invert'
+  /**
+   * 'row' is the labelled form used where the switch sits with other
+   * account-level actions rather than in a header. Same control, same state;
+   * only the shape differs.
+   */
+  variant?: 'icon' | 'row'
+}) {
   const [theme, setTheme] = useState<Theme | null>(null)
 
   useEffect(() => {
@@ -52,11 +60,31 @@ export function ThemeToggle({ tone = 'default' }: { tone?: 'default' | 'invert' 
   }
 
   if (theme === null) {
-    return <span className="block h-9 w-9 shrink-0" aria-hidden="true" />
+    return variant === 'row'
+      ? <span className="block h-9" aria-hidden="true" />
+      : <span className="block h-10 w-10 shrink-0" aria-hidden="true" />
   }
 
   const next = theme === 'dark' ? 'light' : 'dark'
 
+  if (variant === 'row') {
+    return (
+      <button
+        type="button"
+        onClick={toggle}
+        aria-label={`Switch to ${next} mode`}
+        className="flex w-full items-center gap-2.5 rounded-control px-3 py-2 text-sm
+                   font-semibold text-ink-soft transition hover:bg-surface-sunken hover:text-ink"
+      >
+        <span className="grid h-4 w-4 shrink-0 place-items-center opacity-70">
+          {theme === 'dark' ? <Moon /> : <Sun />}
+        </span>
+        <span className="flex-1 text-left">{theme === 'dark' ? 'Dark' : 'Light'} mode</span>
+        <span aria-hidden="true" className="text-xs font-bold text-ink-faint">Switch</span>
+      </button>
+    )
+  }
+  
   return (
     <button
       type="button"
@@ -64,9 +92,9 @@ export function ThemeToggle({ tone = 'default' }: { tone?: 'default' | 'invert' 
       title={`Switch to ${next} mode`}
       aria-label={`Switch to ${next} mode`}
       className={[
-        'grid h-9 w-9 shrink-0 place-items-center rounded-pill transition',
+        'grid h-10 w-10 shrink-0 place-items-center rounded-pill transition',
         tone === 'invert'
-          ? 'text-white/70 hover:bg-white/15 hover:text-white'
+          ? 'text-white/75 hover:bg-white/15 hover:text-white'
           : 'text-ink-faint hover:bg-surface-sunken hover:text-ink',
       ].join(' ')}
     >

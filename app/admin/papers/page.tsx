@@ -2,18 +2,26 @@ import Link from 'next/link'
 import { listPapers } from '../../../lib/repo/papers'
 import { formatIstDate, istDate, paperLabels, windowState } from '../../../lib/time'
 import { requireAdmin } from '../../../lib/guard'
-import { PageHeader } from '../../../components/Page'
+import { Flash, PageHeader } from '../../../components/Page'
 
 export const dynamic = 'force-dynamic'
 
-export default async function PapersPage() {
+export default async function PapersPage({
+  searchParams,
+}: { searchParams: Promise<Record<string, string>> }) {
   await requireAdmin()
+  const { scheduled } = await searchParams
   const papers = await listPapers()
   const today = istDate()
 
   return (
-    <>
-      <PageHeader compact
+      <>
+        {scheduled && (
+          <Flash tone="good" className="mb-5">
+            Scheduled. It is live on the night you picked; open it again to move it back to draft.
+          </Flash>
+        )}
+        <PageHeader compact
         title="Papers"
         lede="Everything drafted or published. Open one to preview it, correct a key, or rehearse it as a dry run."
         actions={
