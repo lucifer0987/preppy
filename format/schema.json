@@ -145,13 +145,13 @@
         "from": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 55,
+          "maximum": 800,
           "description": "First question this material covers."
         },
         "to": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 55,
+          "maximum": 800,
           "description": "Last question this material covers, inclusive."
         },
         "text": {
@@ -211,8 +211,8 @@
         "number": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 55,
-          "description": "Position within the paper, continuous across all four sections. The ceiling of 55 is the database's, not the pattern's: questionCount accepts more, but a paper holding more than 55 questions is refused on insert until that constraint is widened."
+          "maximum": 800,
+          "description": "Position within the paper: unique per section, continuous across the paper, and inside the band its section owns. The ceiling is four sections at the Paper pattern screen's own maximum of 200 a section, not the count of any one exam pattern."
         },
         "text": {
           "type": "string",

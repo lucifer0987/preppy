@@ -218,7 +218,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <div><dt>SQL functions</dt><dd>11</dd></div>
     <div><dt>Migrations</dt><dd>2</dd></div>
     <div><dt>Modules</dt><dd>30<small>lib/</small></dd></div>
-    <div><dt>Tests</dt><dd>394</dd></div>
+    <div><dt>Tests</dt><dd>397</dd></div>
     <div><dt>Runtime deps</dt><dd>8</dd></div>
   </dl>
 </header>
@@ -495,7 +495,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
   <rect x="20" y="160" width="470" height="76" rx="8" fill="none" stroke="#0E767F" stroke-width="2.5"/>
   <text x="38" y="184" font-size="13.5" font-weight="700" fill="currentColor">Pure domain logic</text>
   <text x="38" y="203" font-size="10.5" fill="currentColor" opacity=".7">time &middot; attempt &middot; scoring &middot; leaderboard &middot; paper &middot; csv &middot; images</text>
-  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 394 tests live here</text>
+  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 348 of the 397 tests live here</text>
 
   <rect x="20" y="252" width="470" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
   <text x="38" y="276" font-size="13.5" font-weight="600" fill="currentColor">Repository</text>
@@ -1048,7 +1048,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 
 <div class="tw"><table>
 <tr><th>Layer</th><th>Status</th></tr>
-<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 394 tests, no database needed</td></tr>
+<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 397 tests, no database needed</td></tr>
 <tr><td>The schema, its functions, triggers and indexes</td><td><strong>Tested against real Postgres.</strong> <code>tests/schema.test.ts</code> applies every migration to an in-process Postgres and exercises each function and guard. <code>tests/migrate.test.ts</code> proves the chain is ordered and that a second run changes nothing</td></tr>
 <tr><td>The queries &mdash; what <code>lib/repo/</code> actually asks PostgREST for</td><td><strong>Tested against the real project, on request.</strong> <code>npm run test:live</code> runs every read the app makes against the Supabase project in <code>.env.local</code>. Read-only, so it is safe to point at production, and skipped when there are no credentials. It exists because a select that forgets a column is invisible to both TypeScript and pglite &mdash; and had already shipped twice</td></tr>
 <tr><td>The queries in <code>lib/repo/</code></td><td><strong>Typechecked only.</strong> The PostgREST calls have never run against a live server</td></tr>
@@ -1438,7 +1438,7 @@ words.</p>
     <text x="179" y="209" text-anchor="middle" font-weight="600">typecheck</text>
     <line x1="226" y1="205" x2="238" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="238" y="186" width="94" height="38" rx="6" fill="none" stroke="#94202B" stroke-width="2"/>
-    <text x="285" y="209" text-anchor="middle" font-weight="600">394 tests</text>
+    <text x="285" y="209" text-anchor="middle" font-weight="600">397 tests</text>
     <line x1="332" y1="205" x2="344" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="344" y="186" width="84" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
     <text x="386" y="209" text-anchor="middle" font-weight="600">build</text>
@@ -1463,7 +1463,7 @@ words.</p>
 <tr><td><code>npm run start:local</code></td><td><span class="pill local">rare</span></td><td>Serves that build on port 3000</td></tr>
 <tr><td><code>npm run build:prod</code></td><td><span class="pill prod">before shipping</span></td><td>Typecheck, all tests, then build without source maps</td></tr>
 <tr><td><code>npm run start:prod</code></td><td><span class="pill prod">on the host</span></td><td>Serves the production build</td></tr>
-<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>394 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>397 tests. No database needed, about a second</td></tr>
 <tr><td><code>npm run test:live</code></td><td><span class="pill both">after touching a query</span></td><td>Runs every read <code>lib/repo/</code> makes against the real project in <code>.env.local</code>. Read-only. Skipped when there are no credentials</td></tr>
 <tr><td><code>npm run typecheck</code></td><td><span class="pill both">anytime</span></td><td>Checks types without building</td></tr>
 <tr><td><code>npm run seed</code></td><td><span class="pill both">setup</span></td><td>Creates the accounts, prints passwords once</td></tr>
@@ -1592,7 +1592,7 @@ words.</p>
 <b>npm install</b></pre>
 </div>
 <p>Downloads everything into a <code>node_modules</code> folder. Safe to re-run at any time.</p>
-<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>394 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
+<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>397 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
 </li>
 
 <li>
@@ -1715,6 +1715,7 @@ up in exactly the same place.</p>
     applied  0002_since_baseline.sql
     applied  0003_managing_a_live_paper.sql
     applied  0004_deleting_a_paper_that_was_sat.sql
+    applied  0005_a_paper_may_hold_more_than_55_questions.sql
 
   Done. 4 migrations applied in total.</i></pre>
 </div>
@@ -1874,6 +1875,7 @@ landed and what has not, at any time.</p>
 <tr><td><code>0002_since_baseline.sql</code></td><td>Everything added since, in one file: the default window, a window per paper, the default section pattern, and how long each paper runs</td></tr>
 <tr><td><code>0003_managing_a_live_paper.sql</code></td><td>What an admin can do to a paper after it has gone out: <code>tests.ended_at</code> for an early end, and the two functions behind replacing its questions and scoring it again</td></tr>
 <tr><td><code>0004_deleting_a_paper_that_was_sat.sql</code></td><td>The deliberate route past the delete guard, for throwing a broken paper away along with the attempts on it</td></tr>
+<tr><td><code>0005_a_paper_may_hold_more_than_55_questions.sql</code></td><td>Widens the bound on <code>questions.number</code> from 55 to 800. The 55 was one exam's pattern written into the schema, and it outlived the point where counts became configurable</td></tr>
 </tbody>
 </table></div>
 
@@ -1905,10 +1907,10 @@ landed and what has not, at any time.</p>
 
 <p><strong>Write a new file. Never edit one that has already been applied.</strong> This is the one rule that matters, and it is worth understanding rather than memorising: your database has recorded that it ran <code>0002</code>, so it will never run it again. Editing that file changes what a <em>fresh</em> database gets and leaves yours behind, and the two drift apart with nothing to tell you.</p>
 
-<p>So the next change is <code>0003_something.sql</code>, the one after that is <code>0004</code>, and the count grows. That is normal and not a sign the files need collapsing again.</p>
+<p>So the next change is <code>0006_something.sql</code>, the one after that is <code>0007</code>, and the count grows. That is normal and not a sign the files need collapsing again.</p>
 
 <div class="term">
-  <div class="term-bar"><i></i><i></i><i></i><span>supabase/migrations/0003_whatever_it_is.sql</span></div>
+  <div class="term-bar"><i></i><i></i><i></i><span>supabase/migrations/0006_whatever_it_is.sql</span></div>
 <pre><b>begin;</b>
 
 <i>-- Safe to run twice, like every migration here.</i>
@@ -2065,7 +2067,7 @@ landed and what has not, at any time.</p>
 <tr><td><code>SUPABASE_SECRET_KEY</code><br><small>or <code>..._SERVICE_ROLE_KEY</code></small></td><td>preppy-prod &rarr; a secret key<br><small>or its legacy service_role key</small></td></tr>
 <tr><td><code>CRON_SECRET</code></td><td>The string from step 2</td></tr>
 </table></div>
-<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 394 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
+<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 397 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
 <p><strong>Check it worked:</strong> the deployment goes green and the URL shows the countdown page.</p>
 </li>
 
@@ -2189,7 +2191,7 @@ landed and what has not, at any time.</p>
 <ol>
 <li><strong>Which database am I talking to?</strong> Check the URL in <code>.env.local</code> against the project name in Supabase.</li>
 <li><strong>Did the schema actually apply?</strong> Table Editor, ten tables, RLS badges.</li>
-<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 394 pass, the logic is fine and the problem is configuration or a query.</li>
+<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 397 pass, the logic is fine and the problem is configuration or a query.</li>
 </ol>
 
 <p class="end">

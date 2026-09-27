@@ -200,6 +200,44 @@ describe("a paper's own length", () => {
   })
 })
 
+describe("a paper's own size", () => {
+  // The bound used to be 55, the IBPS SO (IT) pattern written into the schema.
+  // Counts became configurable in two places afterwards -- the Paper pattern
+  // screen and a paper's own questionCount, both capped at 200 a section --
+  // and neither was reconciled with it. A 60-question paper passed every check
+  // the admin could see and then failed on insert with a raw constraint
+  // violation. These pin the two halves together: whatever the form accepts,
+  // the table has to take.
+  const addQuestion = async (testId: string, number: number) => {
+    const { sid } = await one<{ sid: string }>(
+      `select id sid from sections where test_id = $1 and code = 'PK'`, [testId])
+    return fails(
+      `insert into questions (section_id, number, text, options, correct_option)
+       values ($1, $2, 'A question long enough to be real.', '{"A":"x","B":"y"}'::jsonb, 'A')`,
+      [sid, number])
+  }
+
+  it('takes a question numbered past the 55 of any one exam pattern', async () => {
+    const { id } = await savePaper('2027-03-01', 'A long one')
+    expect(await addQuestion(id, 56)).toBeNull()
+    expect(await addQuestion(id, 800)).toBeNull()
+  })
+
+  it('still refuses a number outside the bound, in either direction', async () => {
+    const { id } = await savePaper('2027-03-02', 'Out of bounds')
+    expect(await addQuestion(id, 0)).toMatch(/questions_number_check/)
+    expect(await addQuestion(id, 801)).toMatch(/questions_number_check/)
+  })
+
+  it('accepts four sections at the pattern form’s own maximum', async () => {
+    // 200 a section is what app/admin/pattern/PatternForm.tsx allows, so four
+    // of them is the largest paper the console can describe. The ceiling is
+    // that number, and this is what says so.
+    const { id } = await savePaper('2027-03-03', 'The largest describable paper')
+    expect(await addQuestion(id, 4 * 200)).toBeNull()
+  })
+})
+
 describe("keeping a paper's length in step", () => {
   it('survives the paper being deleted, sections and all', async () => {
     // The sections cascade, so the trigger fires once per section while the
