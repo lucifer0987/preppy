@@ -54,14 +54,14 @@ export default async function ArchivePage() {
 
         {failure ? (
           <p role="alert" className="mt-6 rounded-card border border-bad/30 bg-bad/10 p-5 font-semibold text-bad-ink">
-            Past papers could not be loaded just now. Try again in a moment.
+            Past papers would not load. Nothing is lost — try again in a moment.
             <span className="mt-1 block text-sm font-normal text-ink-soft">{failure}</span>
           </p>
         ) : rows.length === 0 ? (
           <div className="mt-6">
             <Empty>
-              No papers have closed yet. Each one appears here the moment it closes, which is its
-              last-entry time plus however long it runs.
+              No paper has finished yet. One appears here the moment it does, with every
+              question, its key and a worked solution — whether or not you sat it.
             </Empty>
           </div>
         ) : (
@@ -90,7 +90,7 @@ export default async function ArchivePage() {
                         {r.rank !== null ? (
                           <StatusChip tone="done">{ordinal(r.rank)} of {r.cohortSize}</StatusChip>
                         ) : (
-                          <span className="text-xs text-ink-faint">rank once it closes</span>
+                          <span className="text-xs text-ink-faint">ranked when it finishes</span>
                         )}
                       </>
                     ) : (

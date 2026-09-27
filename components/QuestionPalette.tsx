@@ -37,9 +37,15 @@ const SHAPE: Record<PaletteState, { className: string; clipPath?: string }> = {
   'answered-marked': { className: 'rounded-full bg-marked text-white' },
 }
 
+/**
+ * These also read out to a screen reader as "Question 7, seen but left blank",
+ * so they are written as descriptions rather than as status codes. "Not
+ * answered" and "not visited" were the two most confusable states in the
+ * palette and never said what actually separates them.
+ */
 const LABEL: Record<PaletteState, string> = {
-  'not-visited': 'not visited',
-  'not-answered': 'not answered',
+  'not-visited': 'not opened yet',
+  'not-answered': 'seen but left blank',
   answered: 'answered',
   marked: 'marked for review',
   'answered-marked': 'answered and marked for review',
@@ -73,7 +79,7 @@ export function QuestionPalette({
 }) {
   return (
     <div>
-      <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">Question palette</p>
+      <h2 className="eyebrow">Questions</h2>
 
       <div className="mt-3 grid grid-cols-5 gap-1.5">
         {states.map(({ number, state }) => (
@@ -113,7 +119,7 @@ export function QuestionPalette({
               )}
             </span>
             <span>
-              <span className="capitalize">{LABEL[s]}</span>
+              <span className="first-letter:uppercase">{LABEL[s]}</span>
               {AT_END[s] && <span className="text-ink-soft/80"> &rarr; {AT_END[s]}</span>}
             </span>
           </li>

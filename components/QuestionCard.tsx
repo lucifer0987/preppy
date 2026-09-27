@@ -44,8 +44,8 @@ export function QuestionCard({
       {/* prose-question caps the measure near 68 characters: a full-width line
           of comprehension text is measurably slower to read, and this is read
           under a clock. */}
-      <p className="prose-question text-ink">
-        <span className="numeral mr-2.5 align-baseline text-sm font-bold text-ink-faint">
+      <p className="prose-question text-ink sm:text-[1.0625rem] sm:leading-[1.7]">
+        <span className="numeral mr-2.5 align-baseline text-sm font-bold text-accent">
           Q{question.number}
         </span>
         {question.text}

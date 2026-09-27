@@ -87,8 +87,8 @@ export default async function LeaderboardPage({
       <div className="mt-6">
         {failure ? (
           <Flash tone="bad">
-            The leaderboard could not be loaded just now. Nothing has been lost; try again in a
-            moment. ({failure})
+            The board would not load. Every score is still recorded — it is the reading of
+            them that failed. Try again in a moment. ({failure})
           </Flash>
         ) : test ? (
           <PaperRankList standings={standings} meUserId={user.id} />

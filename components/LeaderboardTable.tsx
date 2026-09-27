@@ -22,7 +22,7 @@ export function LeaderboardTable({
     return (
       <p className="rounded-card border border-dashed border-line-strong bg-surface-sunken p-8
                     text-center text-ink-soft">
-        Nothing yet. The board fills in once the first paper has closed.
+        The board is empty until the first paper finishes. Sit one and you are on it.
       </p>
     )
   }

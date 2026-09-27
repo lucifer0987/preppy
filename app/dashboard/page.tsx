@@ -229,9 +229,9 @@ export default async function Dashboard({
           <Link href="/archive" className="text-sm font-bold text-accent">All papers &rarr;</Link>
         </div>
         {archive === null ? (
-          <p className="mt-3 text-sm text-ink-soft">Past papers could not be loaded just now.</p>
+          <p className="mt-3 text-sm text-ink-soft">Past papers would not load. Nothing is lost — try again in a moment.</p>
         ) : archive.length === 0 ? (
-          <p className="mt-3 text-sm text-ink-soft">No paper has closed yet. Each one opens here at midnight.</p>
+          <p className="mt-3 text-sm text-ink-soft">No paper has finished yet. Each one turns up here as soon as it does.</p>
         ) : (
           <ul className="mt-3 divide-y divide-black/10">
             {archive.slice(0, 5).map((a) => (
@@ -243,7 +243,7 @@ export default async function Dashboard({
                       <>
                         <span className="rounded-full bg-answered px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-white">Attempted</span>
                         <span className="font-bold">{a.score?.toFixed(2)}</span>
-                        <span className="text-ink-soft">{a.rank !== null ? `${ordinal(a.rank)} of ${a.cohortSize}` : 'rank when it closes'}</span>
+                        <span className="text-ink-soft">{a.rank !== null ? `${ordinal(a.rank)} of ${a.cohortSize}` : 'ranked when it finishes'}</span>
                       </>
                     ) : (
                       <span className="rounded-full bg-surface-sunken border border-line px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-ink-soft">Not attempted</span>
@@ -259,11 +259,11 @@ export default async function Dashboard({
       <section className="card p-6" aria-labelledby="board-panel">
         <div className="flex items-baseline justify-between gap-4 px-1">
           <h2 id="board-panel" className="eyebrow">Leaderboard</h2>
-          <Link href="/leaderboard" className="text-sm font-bold text-accent">Filters and podium &rarr;</Link>
+          <Link href="/leaderboard" className="text-sm font-bold text-accent">Full board &rarr;</Link>
         </div>
         <div className="mt-3">
           {board === null
-            ? <p className="card p-6 text-sm text-ink-soft">The leaderboard could not be loaded just now.</p>
+            ? <p className="card p-6 text-sm text-ink-soft">The board would not load. Your scores are safe; try again in a moment.</p>
             : <LeaderboardTable rows={board} meUserId={user.id} compact />}
         </div>
       </section>

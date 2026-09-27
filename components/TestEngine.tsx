@@ -483,8 +483,15 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
         </p>
       )}
 
-      <div className="shell grid gap-6 py-6 lg:grid-cols-[minmax(0,1fr)_17rem]">
-        <main className="min-w-0 select-none card p-6 sm:p-8 lg:p-10">
+      {/* The card used to be as tall as its question, so the controls sat in a
+          different place for a one-line sum than for a comprehension passage,
+          and the page below it was empty. It now fills the screen and the
+          controls are pinned to the bottom of it: under time pressure the
+          thing you reach for should not move. */}
+      <div className="shell grid gap-5 py-5 lg:min-h-[calc(100dvh-5.5rem)]
+                      lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-stretch">
+        <main className="card flex min-w-0 select-none flex-col p-6 sm:p-8 lg:p-10">
+          <div className="flex-1">
           {/* Shown on every question in the group, not just the first (FR-6.4.10). */}
           {question.directions && (
             <DirectionsBlock
@@ -510,38 +517,81 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
             onSelect={choose}
           />
 
-          <div className="mt-6 flex flex-wrap gap-2 border-t border-line pt-4">
-            <Btn onClick={() => go(-1)} disabled={index === 0}>Previous</Btn>
-            <Btn onClick={clearResponse} disabled={!current.selected}>Clear response</Btn>
-            <Btn onClick={toggleMark} tone="mark">
-              {current.marked ? 'Unmark' : 'Mark for review'}
-            </Btn>
-            <Btn onClick={markAndNext} tone="mark" disabled={current.marked && atEnd}>
-              Mark for review &amp; next
-            </Btn>
-            <Btn onClick={() => go(1)} tone="primary" disabled={atEnd}>
-              Save &amp; next
-            </Btn>
-            <Btn onClick={() => setConfirming(true)} tone="next" className="ml-auto" disabled={advancing}>
-              {advancing ? 'Saving…' : <>{isLastSection ? 'End test' : 'Next section'} &rarr;</>}
-            </Btn>
           </div>
 
-          <p className="mt-4 text-xs text-ink-soft">
-            Keys: <kbd>1</kbd>&ndash;<kbd>5</kbd> choose &middot; <kbd>Enter</kbd> next &middot;{' '}
-            <kbd>M</kbd> mark &middot; <kbd>&larr;</kbd> <kbd>&rarr;</kbd> move
-          </p>
+          {/* Question-level controls only. Leaving the section is a decision
+              about the whole section, so it lives in the section panel rather
+              than one keystroke away from Save & next. */}
+          <div className="mt-8 border-t border-line pt-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <Btn onClick={() => go(-1)} disabled={index === 0}>Previous</Btn>
+              <Btn onClick={clearResponse} disabled={!current.selected}>Clear</Btn>
+              <Btn onClick={toggleMark} tone="mark">
+                {current.marked ? 'Unmark' : 'Mark for review'}
+              </Btn>
+              <Btn onClick={markAndNext} tone="mark" disabled={current.marked && atEnd}>
+                Mark &amp; next
+              </Btn>
+              <Btn onClick={() => go(1)} tone="primary" className="ml-auto" disabled={atEnd}>
+                Save &amp; next
+              </Btn>
+            </div>
+
+            <p className="numeral mt-3 text-xs text-ink-faint">
+              <kbd>1</kbd>&ndash;<kbd>5</kbd> choose &middot; <kbd>Enter</kbd> next &middot;{' '}
+              <kbd>M</kbd> mark &middot; <kbd>&larr;</kbd> <kbd>&rarr;</kbd> move
+            </p>
+          </div>
         </main>
 
-        <aside className="card p-5 lg:sticky lg:top-20 lg:self-start">
-          <QuestionPalette
-            states={states}
-            current={question.number}
-            onJump={(n) => {
-              const i = section.questions.findIndex((q) => q.number === n)
-              if (i >= 0) setIndex(i)
-            }}
-          />
+        <aside className="flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start">
+          <div className="card p-5">
+            <QuestionPalette
+              states={states}
+              current={question.number}
+              onJump={(n) => {
+                const i = section.questions.findIndex((q) => q.number === n)
+                if (i >= 0) setIndex(i)
+              }}
+            />
+          </div>
+
+          {/* Where the section stands, and the one way out of it. */}
+          <div className="card p-5">
+            <h2 className="eyebrow">This section</h2>
+            {/* These three add up to the section. "Marked" is not a fourth
+                row because a marked question is also a blank one, and four
+                figures that do not sum to the total read as an error. */}
+            <dl className="numeral mt-3 space-y-1.5 text-sm">
+              <div className="flex items-baseline justify-between gap-3">
+                <dt className="text-ink-soft">Answered</dt>
+                <dd className="font-bold text-good-ink">{tally.answered}</dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-3">
+                <dt className="text-ink-soft">Left blank</dt>
+                <dd className="font-bold">{tally.skipped}</dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-3">
+                <dt className="text-ink-soft">Not opened</dt>
+                <dd className="font-bold">{tally.notReached}</dd>
+              </div>
+            </dl>
+            {tally.marked > 0 && (
+              <p className="mt-2 text-xs text-ink-faint">
+                <span className="numeral">{tally.marked}</span> of those are marked for review.
+                Marking does not answer a question.
+              </p>
+            )}
+            <Btn onClick={() => setConfirming(true)} tone="next"
+                 className="mt-4 w-full" disabled={advancing}>
+              {advancing ? 'Saving…' : <>{isLastSection ? 'End test' : 'Next section'} &rarr;</>}
+            </Btn>
+            <p className="mt-2.5 text-xs text-ink-faint">
+              {isLastSection
+                ? 'Ends the paper. Nothing can be changed afterwards.'
+                : 'Sections run forward only, so this one closes for good.'}
+            </p>
+          </div>
         </aside>
       </div>
 

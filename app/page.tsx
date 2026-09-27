@@ -61,24 +61,26 @@ export default async function Home() {
           <ThemeToggle />
         </div>
 
-        <div className="flex flex-1 items-center py-8 lg:py-10">
-          <div className="grid w-full items-center gap-8 lg:grid-cols-[1.05fr_1fr] lg:gap-14 xl:gap-20">
+        <div className="flex flex-1 items-center py-5 lg:py-6">
+          <div className="grid w-full items-center gap-8 lg:grid-cols-[1.1fr_1fr] lg:gap-14 xl:gap-20">
             <div>
               <p className="inline-flex items-center gap-2 rounded-pill border border-line-strong bg-surface
                             px-3.5 py-1.5 text-[0.6875rem] font-bold uppercase tracking-[0.18em] text-ink-soft">
                 IBPS Specialist Officer &middot; IT
               </p>
 
+              {/* No cohort size in the copy. It was "Five of you", which was
+                  true on the day it was written and is a number that grows. */}
               <h1 className="mt-5 font-display text-5xl font-black leading-[1.02] tracking-tight
-                             sm:text-6xl xl:text-7xl">
-                Five of you.<br />
-                One paper<br />
-                <span className="text-zap-ink">every night.</span>
+                             sm:text-[3.75rem] xl:text-[4.75rem]">
+                One paper a night.<br />
+                <span className="text-zap-ink">One board</span> that<br />
+                never resets.
               </h1>
 
-              <p className="measure mt-4 text-lg leading-relaxed text-ink-soft">
-                Marked the way the real exam marks, timed the way it times. The board never
-                resets, so the paper you sit tonight still counts in March.
+              <p className="measure mt-6 text-lg leading-relaxed text-ink-soft xl:text-xl">
+                Marked and timed the way the real exam marks and times. Every paper you sit
+                stays on the board, so tonight&rsquo;s score is still counting in March.
               </p>
 
               <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3">
@@ -86,41 +88,47 @@ export default async function Home() {
                   Log in
                 </Link>
                 <p className="text-sm text-ink-faint">
-                  Accounts come from your admin.<br className="hidden sm:inline" />
-                  {' '}No sign-up, and no crowd.
+                  Your admin creates the accounts.<br className="hidden sm:inline" />
+                  {' '}There is no sign-up.
                 </p>
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-              <NextPaper next={next} now={now} labels={labels} totals={totals} />
-
-              <section className="card p-5" aria-labelledby="pattern">
-                <h2 id="pattern" className="eyebrow">What a paper looks like</h2>
-                <ul className="mt-3 space-y-2">
-                  {pattern.map((s, i) => (
-                    <li key={s.code} className="flex items-baseline justify-between gap-4 text-sm">
-                      <span className="flex items-baseline gap-2.5 truncate">
-                        <Shape index={i} />
-                        <span className="truncate font-semibold">{SECTION_NAMES[s.code]}</span>
-                      </span>
-                      <span className="numeral shrink-0 text-ink-faint">
-                        {s.questions} &middot; {s.minutes}m
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <p className="numeral mt-3.5 border-t border-line pt-3 text-sm font-bold">
-                  {totals.questions} questions in {totals.minutes} minutes
-                </p>
-                <p className="mt-1 text-xs text-ink-faint">
-                  {marking
-                    ? <>+{marking.correct} for right, &minus;{marking.negative} for wrong, nothing for blank.</>
-                    : <>Marking varies by section; nothing is taken off for a blank.</>}
-                </p>
-              </section>
-            </div>
+            <NextPaper next={next} now={now} labels={labels} totals={totals} />
           </div>
+        </div>
+
+        {/* The shape of a paper, along the foot of the page. It was a card in
+            the right-hand column, which left the bottom third of the screen
+            empty and made the countdown compete with it for attention. The
+            section names are fixed; every figure in here is read from the
+            configured pattern, never written into the copy. */}
+        <div className="border-t border-line pt-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3">
+            <h2 className="eyebrow">What a paper looks like</h2>
+            <p className="numeral text-sm font-bold">
+              {totals.questions} questions in {totals.minutes} minutes
+              {marking && (
+                <span className="font-semibold text-ink-faint">
+                  {' '}&middot; +{marking.correct} right, &minus;{marking.negative} wrong
+                </span>
+              )}
+            </p>
+          </div>
+          <ul className="mt-3.5 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+            {pattern.map((s, i) => (
+              <li key={s.code} className="flex items-center gap-2.5 rounded-control border border-line
+                                          bg-surface px-3.5 py-2.5">
+                <Shape index={i} />
+                <span className="min-w-0 flex-1 text-sm font-semibold leading-tight">
+                  {SECTION_NAMES[s.code]}
+                </span>
+                <span className="numeral shrink-0 text-xs text-ink-faint">
+                  {s.questions} &middot; {s.minutes}m
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </main>

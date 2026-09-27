@@ -112,7 +112,9 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
           <ul className="mt-3 space-y-2.5 text-sm">
             <li><strong>Sections run in order and only forward.</strong> Once you leave a section you cannot return to it.</li>
             <li><strong>Each section has its own timer.</strong> Finishing early does not add time to the next one.</li>
-            <li><strong>Full screen is required.</strong> Your browser will always let you leave it with Esc; if you do, the question is covered until you return, the count is recorded and shown on your result, and <strong>your timer keeps running</strong>. It never ends your test. It is a deterrent, not a lock.</li>
+            <li><strong>Full screen is required.</strong> Esc always works &mdash; no page can take
+            that away &mdash; but the question is covered until you come back, the exit is counted
+            on your result, and <strong>the clock keeps running</strong>. It never ends your test.</li>
             <li><strong>Two numbers are recorded:</strong> how many times you left full screen, and how many times you switched away. Your admin sees them too. Nothing else is logged.</li>
             <li><strong>One device at a time.</strong> Beginning signs your account out everywhere else.</li>
             <li><strong>Your timer starts the moment you press Begin</strong>, not when this page opened.</li>
