@@ -195,36 +195,55 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  /* A lit violet room, not a dark grey one.
+  /* A quiet ground, with the violet saved for the things that are violet.
 
-     These were a near-grey plum for a while, chasing Material's advice to
-     start from #121212 and tint. The advice is sound for a neutral product
-     and wrong for this one: desaturating the brand out of the surfaces left
-     every card a shade of brown-grey, a card lifted 1.08 off the page and a
-     border 1.24 off the card. Nothing had an edge, and the whole app read as
-     switched off.
+     This is the third attempt and the first one built from a measurement
+     rather than an instinct, so the reasoning is worth keeping.
 
-     The landing page never had that problem, because it was the one screen
-     that kept the brand violet in its ground. So these are its palette,
-     pushed a little further apart than a landing page needs: a card now lifts
-     1.22 and a border 1.42, with the stronger border at 2.10 so an input has
-     a visible outline. */
-  --page: #1c0a38;
-  --surface: #2e1a58;
-  --surface-sunken: #25123f;
-  --surface-raised: #3a2168;
-  /* Brighter than the surfaces rather than darker: on a violet page a darker
-     panel reads as a hole, and this is used for the things that should feel
-     raised -- the podium, the login panel. */
-  --surface-invert: #42207a;
+     Attempt one desaturated the brand out of the surfaces entirely, following
+     Material's advice to start at #121212 and tint. Cards lifted 1.08 off the
+     page and borders 1.24 off the cards; nothing had an edge and the app read
+     as switched off. Attempt two fixed the lift by turning the saturation up
+     to 45-70% -- and a large area of hue-260 violet at 13-22% lightness does
+     not read as violet, it reads as blue. The whole app went blue.
 
-  --text: #ffffff;
-  --text-soft: #cbb9ef;
-  --text-faint: #ab95da;
+     The mistake was treating lift and saturation as one dial. They are two.
+     Lift comes from lightness; saturation only decides how much colour the
+     ground has. So this keeps attempt two's lightness steps and takes the
+     saturation back down to where every product that does this well puts it:
+
+       Testbook's dark surfaces   #1b1b1b, #2b2b2b     0% saturation
+       Testbook's tinted panel    #282a36             15%
+       Unacademy                  #3c4852             15%
+       Preppy's own light theme   slate-100, slate-200  24-30%
+       Preppy's dark, attempt two                      45-70%   <- the bug
+
+     18% here, with the hue nudged from the brand's 260 to 268 so what little
+     colour is left reads purple rather than blue. A card still lifts 1.18 off
+     the page, a border 1.46 off the card, and the stronger border 2.17, so
+     nothing goes back to being edgeless.
+
+     Kahoot is the other half of the answer: their purple is saturated
+     (#46178f, which is where --color-brand-800 came from) and they use it as
+     a panel on a quiet ground, never as the ground itself. --surface-invert
+     and --chrome below are that panel. */
+  --page: #17121c;
+  --surface-sunken: #1e1825;
+  --surface: #282130;
+  --surface-raised: #352c3f;
+  /* Kahoot's own purple, used the way they use it: a lit panel standing on a
+     quiet ground. 1.56 off the page, and white on it is 11.8. */
+  --surface-invert: var(--color-brand-800);
+
+  --text: #f5f2fa;
+  --text-soft: #c3bad4;
+  /* 4.74 on the raised surface, which is the deepest ground it ever sits on;
+     at #9a90ad it was 4.40 there, just under AA. */
+  --text-faint: #a096b3;
 
   /* Lifted with the surfaces, or the borders disappear into them. */
-  --line: #4a2f7d;
-  --line-strong: #65479f;
+  --line: #443a50;
+  --line-strong: #60526f;
 
   --accent: var(--color-brand-400);
   /* On a light violet fill, white is 3.15:1 -- below AA. The deep brand
@@ -232,12 +251,14 @@
      action on every form, so it cannot be the one thing that fails. */
   --text-on-brand: var(--color-brand-950);
   --accent-hover: var(--color-brand-300);
-  --accent-soft: #38247a;
+  /* A wash behind accent text, not a slab of colour. brand-300 on it is
+     7.10, and it lifts 1.33 off the surface so it reads as a tint. */
+  --accent-soft: #322442;
   --accent-text: var(--color-brand-300);
   --zap: var(--color-zap-400);
   --zap-solid: var(--color-zap-600);
   --zap-ink: var(--color-zap-300);
-  --zap-soft: #521436;
+  --zap-soft: #412030;
 
   --good: var(--color-good-400);
   --warn: var(--color-warn-400);
@@ -413,18 +434,18 @@ h2, h3 { text-wrap: balance; }
 }
 
 :root[data-theme="dark"] [data-room="exam"] {
-  /* Deeper and less saturated than the app's dark, so the room still reads as
-     the quiet one, but the same violet family rather than the grey-plum it
-     used to be: walking from the dashboard into the paper should not look like
-     leaving the product. Chrome and page are the same value on purpose, so the
-     header and the question sit on one surface. */
-  --chrome: #120b20;
+  /* Deeper and quieter than the app's dark, and in the same family, so walking
+     from the dashboard into the paper does not look like leaving the product.
+     Saturation drops again -- 13-16% against the app's 18% -- because this is
+     the room that is trying not to be noticed. Chrome and page are the same
+     value on purpose, so the header and the question sit on one surface. */
+  --chrome: #120f15;
   --chrome-line: rgb(255 255 255 / 0.09);
-  --page: #120b20;
-  --surface: #251749;
-  --surface-sunken: #1a1034;
-  --line: #402c6a;
-  --line-strong: #55407e;
+  --page: #120f15;
+  --surface: #211d26;
+  --surface-sunken: #19151e;
+  --line: #383040;
+  --line-strong: #51475c;
   --accent: var(--color-brand-400);
   --accent-hover: var(--color-brand-300);
   --accent-soft: #38247a;
