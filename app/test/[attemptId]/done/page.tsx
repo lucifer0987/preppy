@@ -112,6 +112,9 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
   const best = previous.reduce((a, r) => Math.max(a, Number(r.total_score ?? 0)), -Infinity)
   const isPersonalBest = counted && previous.length > 0 && score > best
 
+  const hasPacing = sections.some((s) => pacingVerdict(s))
+  const hasSlowest = slowest.some((s) => s.questions.length)
+
   const celebration: CelebrationLevel =
     !counted ? 'none'
     : isPersonalBest ? 'personal-best'
@@ -275,9 +278,12 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
         </div>
       </section>
 
-      {(sections.some((s) => pacingVerdict(s)) || slowest.some((s) => s.questions.length)) && (
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          {sections.some((s) => pacingVerdict(s)) && (
+      {/* Two columns only when both are there. Pacing has nothing to say on a
+          paper sat quickly, and a lone card at half width reads as a column
+          that failed to load. */}
+      {(hasPacing || hasSlowest) && (
+        <div className={`mt-4 grid gap-4 ${hasPacing && hasSlowest ? 'lg:grid-cols-2' : ''}`}>
+          {hasPacing && (
             <section className="card p-5">
               <h2 className="eyebrow">Pacing</h2>
               <ul className="mt-3 space-y-2 text-sm">
@@ -293,7 +299,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
             </section>
           )}
 
-          {slowest.some((s) => s.questions.length) && (
+          {hasSlowest && (
             <section className="card p-5">
               <h2 className="eyebrow">Where the time went</h2>
               <p className="mt-1 text-xs text-ink-soft">Your three slowest questions in each section.</p>

@@ -488,9 +488,8 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
           and the page below it was empty. It now fills the screen and the
           controls are pinned to the bottom of it: under time pressure the
           thing you reach for should not move. */}
-      <div className="shell grid gap-5 py-5 lg:min-h-[calc(100dvh-5.5rem)]
-                      lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-stretch">
-        <main className="card flex min-w-0 select-none flex-col p-6 sm:p-8 lg:p-10">
+      <div className="shell grid gap-5 py-5 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-stretch">
+        <main className="card flex min-w-0 select-none flex-col p-6 sm:p-8 lg:min-h-[32rem] lg:p-9">
           <div className="flex-1">
           {/* Shown on every question in the group, not just the first (FR-6.4.10). */}
           {question.directions && (
@@ -582,7 +581,7 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
                 Marking does not answer a question.
               </p>
             )}
-            <Btn onClick={() => setConfirming(true)} tone="next"
+            <Btn onClick={() => setConfirming(true)}
                  className="mt-4 w-full" disabled={advancing}>
               {advancing ? 'Saving…' : <>{isLastSection ? 'End test' : 'Next section'} &rarr;</>}
             </Btn>
