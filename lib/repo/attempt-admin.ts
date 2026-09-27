@@ -61,13 +61,16 @@ export function isCounted(a: Pick<AdminAttemptRow, 'state' | 'isDryRun'>): boole
  * history"), every paper they have attempted.
  */
 export async function getAttemptsByTest(
-  { testId, userId }: { testId?: string; userId?: string } = {},
+  { testId, userId, trackId }: { testId?: string; userId?: string; trackId?: string } = {},
 ): Promise<AdminTestAttempts[]> {
   const client = db()
 
   let testQuery = client.from('tests').select('id, date, title').order('date', { ascending: false })
   if (testId) testQuery = testQuery.eq('id', testId)
   else if (!userId) testQuery = testQuery.lte('date', istDate()).limit(30)
+  // Scoped like every other console screen. Without it two exams' papers sit
+  // in one list, and on a day both ran they are two rows with the same date.
+  if (trackId && !testId) testQuery = testQuery.eq('track_id', trackId)
   const { data: tests, error: testError } = await testQuery
   if (testError) throw new Error(`Could not list the papers: ${testError.message}`)
   if (!tests?.length) return []

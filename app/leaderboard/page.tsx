@@ -34,14 +34,23 @@ export default async function LeaderboardPage({
   let board: Awaited<ReturnType<typeof getLeaderboard>> = { rows: [], maxMarks: 0, papers: 0 }
   let standings: Awaited<ReturnType<typeof getPaperStandings>> = null
   let papers: Awaited<ReturnType<typeof boardPapers>> = []
+  /** The paper actually being shown: `?test=` only when it is one of theirs. */
+  let asked: string | undefined
   try {
-    ;[papers, board, standings] = await Promise.all([
-      // Scoped to the papers this student may look at.
-      track ? boardPapers(track.id, user.id) : Promise.resolve([]),
-      test || !track
+    // Scoped to the papers this student may look at: their own exam's, and of
+    // those only the ones they have finished or that have closed.
+    papers = track ? await boardPapers(track.id, user.id) : []
+    // `?test=` comes out of the URL, so it is checked against that list rather
+    // than trusted. Without this, one id was enough to read the rank list of a
+    // paper on another exam entirely -- names and scores of people this
+    // student shares nothing with (FR-5.3, FR-6.10.5). The dropdown is not a
+    // security boundary; it only decides what is easy to find.
+    asked = test && papers.some((p) => p.id === test) ? test : undefined
+    ;[board, standings] = await Promise.all([
+      asked || !track
         ? Promise.resolve({ rows: [], maxMarks: 0, papers: 0 })
         : getLeaderboard(track.id, lastN ? { lastN } : {}),
-      test ? getPaperStandings(test, user.id) : Promise.resolve(null),
+      asked ? getPaperStandings(asked, user.id) : Promise.resolve(null),
     ])
   } catch (e) {
     failure = (e as Error).message
@@ -54,14 +63,14 @@ export default async function LeaderboardPage({
       <PageHeader
         title="Leaderboard"
         lede="Points across the last seven papers, or every paper ever, or one on its own. A result joins the board the moment it is scored."
-        meta={!test && board.rows.length > 0
+        meta={!asked && board.rows.length > 0
           ? <span className="numeral">
               {lastN ? `Last ${lastN} papers` : 'All time'} &middot; {board.rows.length} on the board
             </span>
           : undefined}
       />
 
-      <BoardFilters basePath="/leaderboard" window={win} test={test} papers={papers} />
+      <BoardFilters basePath="/leaderboard" window={win} test={asked} papers={papers} />
 
       <div className="mt-6">
         {failure ? (
@@ -69,7 +78,7 @@ export default async function LeaderboardPage({
             The board would not load. Every score is still recorded; it is the reading of
             them that failed. Try again in a moment. ({failure})
           </Flash>
-        ) : test ? (
+        ) : asked ? (
           <PaperRankList standings={standings} meUserId={user.id} />
         ) : (
           <LeaderboardTable rows={board.rows} maxMarks={board.maxMarks} meUserId={user.id} />

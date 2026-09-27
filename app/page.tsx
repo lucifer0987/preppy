@@ -10,7 +10,7 @@ import { ServiceWorker } from '../components/ServiceWorker'
 import { entryClosesAt, formatIstDate, opensAt, paperLabels, windowLabels } from '../lib/time'
 import type { PaperWindow } from '../lib/time'
 import { getWindow } from '../lib/repo/settings'
-import { defaultAttemptMinutes, getPattern } from '../lib/repo/tracks'
+import { defaultAttemptMinutes, defaultTrack, getPattern } from '../lib/repo/tracks'
 import { upcomingPapers } from '../lib/repo/papers'
 
 /**
@@ -42,7 +42,7 @@ export default async function Home({
   // than by an error page, so a failure here is logged and stepped over -- the
   // dashboard, where a student needs the truth, still fails loudly.
   const { live, next } = isConfigured()
-    ? await upcomingPapers(now).catch(nextUnavailable)
+    ? await upcomingPapers(now, (await defaultTrack())?.id).catch(nextUnavailable)
     : { live: null, next: null }
   // A paper that is open right now is the answer to "what happens next",
   // so it wins over the one after it. Without this a visitor arriving during

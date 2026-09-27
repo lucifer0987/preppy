@@ -6,6 +6,8 @@ import { voidAttemptAction } from './actions'
 import { ConfirmButton } from './ConfirmButton'
 import { db } from '../../../lib/supabase/admin'
 import { Empty, PageHeader, Flash, StatusChip, TableShell, Th } from '../../../components/Page'
+import { TrackSwitcher } from '../../../components/TrackSwitcher'
+import { consoleTrack, listTracks } from '../../../lib/repo/tracks'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,8 +15,13 @@ export default async function AttemptsPage({
   searchParams,
 }: { searchParams: Promise<Record<string, string>> }) {
   await requireAdmin()
-  const { test, user, error, done } = await searchParams
-  const groups = await getAttemptsByTest({ testId: test, userId: user })
+  const { test, user, error, done, track: slug } = await searchParams
+  const [tracks, track] = await Promise.all([listTracks(), consoleTrack(slug)])
+  // One person's attempts are theirs wherever they were sat, so a track filter
+  // on that view would hide their own history from them.
+  const groups = await getAttemptsByTest({
+    testId: test, userId: user, ...(user ? {} : { trackId: track?.id }),
+  })
   const { data: person } = user
     ? await db().from('profiles').select('display_name, username').eq('id', user).maybeSingle()
     : { data: null }
@@ -29,6 +36,8 @@ export default async function AttemptsPage({
           ? <Link href="/admin/attempts" className="btn btn-quiet">Show everyone</Link>
           : undefined}
       />
+
+      {!user && <TrackSwitcher tracks={tracks} current={track} basePath="/admin/attempts" />}
 
       {error && <Flash tone="bad" className="mt-4">{error}</Flash>}
       {done && (

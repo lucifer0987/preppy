@@ -137,7 +137,19 @@ export const getPattern = cache(async (trackId?: string): Promise<Pattern> => {
     .order('position')
 
   if (error || !data?.length) {
+    // A read that failed falls back, as the window does: the site must not go
+    // down over it. A track that genuinely has no sections is a different
+    // thing and should be impossible -- createTrack seeds one and
+    // save_track_pattern refuses to leave one empty -- so it is said out loud
+    // rather than quietly papered over with a pattern nobody chose.
     if (error) console.error(`[tracks] Could not read the pattern: ${error.message}`)
+    else {
+      console.error(
+        `[tracks] Track ${id} has no sections, so the shipped pattern is standing in for it.\n` +
+        '         Set its pattern on the admin console (Pattern), because papers are ' +
+        'being checked against a shape nobody chose.',
+      )
+    }
     return DEFAULT_PATTERN
   }
 
@@ -153,6 +165,29 @@ export const getPattern = cache(async (trackId?: string): Promise<Pattern> => {
     ...(r.label ? { label: r.label as string } : {}),
   }))
 })
+
+/**
+ * May this person be shown this paper at all?
+ *
+ * An admin runs every track, so always. A student follows one, and a paper on
+ * another exam does not exist for them: not to sit, not to read, not to
+ * practise, not even to load an image from.
+ *
+ * Every route that addresses a paper by an id out of the URL has to ask this,
+ * and that is the whole point of it being a function rather than a line
+ * repeated four times. A paper the student was never shown is still one URL
+ * away, and the lists are not a security boundary -- they only decide what is
+ * easy to find.
+ */
+export async function paperOnViewersTrack(
+  user: { role: string; trackId: string | null },
+  paperTrackId: string | null,
+): Promise<boolean> {
+  if (user.role === 'admin') return true
+  if (!paperTrackId) return false
+  const mine = await viewerTrack(user)
+  return Boolean(mine && mine.id === paperTrackId)
+}
 
 /**
  * The pattern behind one paper, for any screen that has a paper in hand and
@@ -220,32 +255,40 @@ export function patternProblem(pattern: Pattern): string | null {
 /**
  * Replace one track's pattern.
  *
- * Written as a delete and an insert rather than a row-by-row update, because
- * the set of sections itself can change now: a track that drops General
- * Awareness has a row to remove, not a row to edit. Both statements are inside
- * one call so a half-written pattern cannot be read.
+ * A replacement rather than a row-by-row update, because the set of sections
+ * itself can change: a track that drops General Awareness has a row to remove,
+ * not a row to edit.
+ *
+ * One transaction in the database (save_track_pattern in supabase/migrations),
+ * and that matters more here than it looks. This was a DELETE followed by an
+ * INSERT as two PostgREST calls, so a failure between them left the track with
+ * no sections -- and getPattern reads a track with no sections as the shipped
+ * default. A half-written save did not raise anything; it quietly turned the
+ * track into a different exam.
  */
 export async function savePattern(trackId: string, next: Pattern, adminId: string): Promise<void> {
   const problem = patternProblem(next)
   if (problem) throw new Error(problem)
 
-  const stamp = { updated_at: new Date().toISOString(), updated_by: adminId }
-  const rows = next.map((s, i) => ({
-    track_id: trackId,
-    code: s.code,
-    position: i + 1,
-    label: s.label?.trim() || null,
-    question_count: s.questions,
-    duration_sec: s.minutes * 60,
-    marks_correct: s.marksCorrect,
-    marks_negative: s.marksNegative,
-    ...stamp,
-  }))
-
-  const { error: del } = await db().from('track_sections').delete().eq('track_id', trackId)
-  if (del) throw new Error(`Could not save the pattern: ${del.message}`)
-  const { error } = await db().from('track_sections').insert(rows)
-  if (error) throw new Error(`Could not save the pattern: ${error.message}`)
+  const { error } = await db().rpc('save_track_pattern', {
+    p: {
+      track_id: trackId,
+      updated_by: adminId,
+      sections: next.map((s) => ({
+        code: s.code,
+        label: s.label?.trim() || null,
+        question_count: s.questions,
+        duration_sec: s.minutes * 60,
+        marks_correct: s.marksCorrect,
+        marks_negative: s.marksNegative,
+      })),
+    },
+  })
+  if (!error) return
+  if (/NO_SUCH_TRACK/.test(error.message)) throw new Error('That exam no longer exists.')
+  if (/EMPTY_PATTERN/.test(error.message)) throw new Error('A track needs at least one section.')
+  if (/NO_TRACK/.test(error.message)) throw new Error('No exam was named, so nothing was saved.')
+  throw new Error(`Could not save the pattern, so nothing was changed: ${error.message}`)
 }
 
 export async function getPatternMeta(

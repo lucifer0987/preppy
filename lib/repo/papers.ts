@@ -72,6 +72,8 @@ export interface PaperSummary {
 
 export interface PaperRecord {
   id: string
+  /** The exam it belongs to, which decides who may be shown it. */
+  trackId: string | null
   status: string
   /** Its own window, since a day may hold more than one paper. */
   window: PaperWindow
@@ -124,13 +126,14 @@ export async function savePaper(paper: Paper, trackId: string): Promise<SaveResu
 export async function getPaperById(id: string): Promise<PaperRecord | null> {
   const { data: test, error } = await db()
     .from('tests')
-    .select(`id, title, status, published_at, rescored_at, key_version, ${PAPER_WINDOW_COLUMNS}`)
+    .select(`id, title, status, track_id, published_at, rescored_at, key_version, ${PAPER_WINDOW_COLUMNS}`)
     .eq('id', id)
     .maybeSingle()
   if (error) throw new Error(`Could not load the paper: ${error.message}`)
   if (!test) return null
   return {
     id: test.id as string,
+    trackId: (test.track_id as string | null) ?? null,
     status: test.status as string,
     window: paperWindowOf(test),
     publishedAt: (test.published_at as string | null) ?? null,
@@ -227,7 +230,7 @@ export async function loadPublishedPapers(trackId?: string): Promise<PaperRecord
       // The window columns matter here too: every record this builds carries a
       // window, and paperWindowOf refuses a row read without them -- which is
       // what the export had been doing.
-      .select(`id, title, status, published_at, rescored_at, key_version, ${PAPER_WINDOW_COLUMNS}`)
+      .select(`id, title, status, track_id, published_at, rescored_at, key_version, ${PAPER_WINDOW_COLUMNS}`)
       .eq('status', 'SCHEDULED')
     return (trackId ? q.eq('track_id', trackId) : q).order('date').range(from, to)
   })
@@ -259,6 +262,7 @@ export async function loadPublishedPapers(trackId?: string): Promise<PaperRecord
     const parts = byTest.get(t['id'] as string)!
     return {
       id: t['id'] as string,
+      trackId: (t['track_id'] as string | null) ?? null,
       status: t['status'] as string,
       window: paperWindowOf(t),
       publishedAt: (t['published_at'] as string | null) ?? null,

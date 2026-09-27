@@ -387,6 +387,65 @@ describe('an exam track', () => {
   })
 })
 
+describe('save_track_pattern', () => {
+  // The delete and the inserts have to be one transaction. They used to be two
+  // PostgREST calls, so a failure between them left a track with no sections
+  // -- and a track with no sections reads as the shipped default pattern, so
+  // nothing raised and the track had quietly become a different exam.
+  const pattern = (trackId: string, sections: Record<string, unknown>[]) =>
+    JSON.stringify({ track_id: trackId, sections })
+
+  const shape = (code: string, q = 10) => ({
+    code, label: null, question_count: q, duration_sec: 600,
+    marks_correct: 1, marks_negative: 0.25,
+  })
+
+  it('replaces the whole pattern, numbering the positions in order', async () => {
+    const t = (await one<{ id: string }>(
+      `insert into tracks (slug, name, position) values ('p-ok', 'Ok', 80) returning id`)).id
+    await db.query('select save_track_pattern($1)', [pattern(t, [
+      shape('REASONING', 20), shape('GENERAL_AWARENESS', 15), shape('PK', 5),
+    ])])
+    const { rows } = await db.query<{ code: string; position: number; question_count: number }>(
+      'select code, position, question_count from track_sections where track_id = $1 order by position', [t])
+    expect(rows.map((r) => [r.code, r.position, r.question_count])).toEqual([
+      ['REASONING', 1, 20], ['GENERAL_AWARENESS', 2, 15], ['PK', 3, 5],
+    ])
+  })
+
+  it('leaves the old pattern untouched when the new one cannot be written', async () => {
+    const t = (await one<{ id: string }>(
+      `insert into tracks (slug, name, position) values ('p-roll', 'Rollback', 81) returning id`)).id
+    await db.query('select save_track_pattern($1)', [pattern(t, [shape('QUANT', 15), shape('ENGLISH', 10)])])
+
+    // question_count 0 fails its check constraint, and it is the second row,
+    // so the delete and the first insert have already happened.
+    const failed = await fails('select save_track_pattern($1)',
+      [pattern(t, [shape('PK', 12), shape('REASONING', 0)])])
+    expect(failed).toMatch(/question_count/)
+
+    const { rows } = await db.query<{ code: string }>(
+      'select code from track_sections where track_id = $1 order by position', [t])
+    expect(rows.map((r) => r.code)).toEqual(['QUANT', 'ENGLISH'])
+  })
+
+  it('refuses to leave a track with no sections at all', async () => {
+    const t = (await one<{ id: string }>(
+      `insert into tracks (slug, name, position) values ('p-empty', 'Empty', 82) returning id`)).id
+    await db.query('select save_track_pattern($1)', [pattern(t, [shape('QUANT')])])
+    expect(await fails('select save_track_pattern($1)', [pattern(t, [])])).toMatch(/EMPTY_PATTERN/)
+    const left = await one<{ n: number }>(
+      'select count(*)::int as n from track_sections where track_id = $1', [t])
+    expect(left.n).toBe(1)
+  })
+
+  it('refuses a track that is not there, rather than writing nothing quietly', async () => {
+    expect(await fails('select save_track_pattern($1)',
+      [pattern('00000000-0000-0000-0000-0000000000ff', [shape('QUANT')])]))
+      .toMatch(/NO_SUCH_TRACK/)
+  })
+})
+
 /** The shipped pattern, for a track made inside a test. */
 const savePattern = (trackId: string) => db.query(
   `insert into track_sections (track_id, code, position, question_count, duration_sec,

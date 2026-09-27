@@ -7,6 +7,7 @@ import { db } from '../../../lib/supabase/admin'
 import { findAttempt, loadAttempt, startAttempt } from '../../../lib/repo/attempts'
 import { entryRefusal, practiceRefusal } from './entry'
 import { paperWindowOf } from '../../../lib/repo/papers'
+import { paperOnViewersTrack } from '../../../lib/repo/tracks'
 
 /**
  * Begin. The server stamps started_at here, on this action, not on page load
@@ -29,8 +30,10 @@ export async function beginAction(formData: FormData) {
       + `${practice ? '&practice=1' : ''}&error=${encodeURIComponent(message)}`)
 
   const { data: test } = await db()
-    .from('tests').select('id, status, date, opens_at_min, entry_closes_at_min, attempt_sec, ended_at').eq('id', testId).maybeSingle()
+    .from('tests').select('id, status, date, track_id, opens_at_min, entry_closes_at_min, attempt_sec, ended_at').eq('id', testId).maybeSingle()
   if (!test) redirect('/dashboard')
+  // Re-checked here as well as on the briefing, because this is the door.
+  if (!(await paperOnViewersTrack(user, test.track_id as string | null))) redirect('/dashboard')
 
   // The admin can never hold a counted attempt (FR-5.2); a practice run is
   // the same machinery asked for on purpose.

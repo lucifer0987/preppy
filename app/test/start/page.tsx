@@ -3,7 +3,7 @@ import { requireUser } from '../../../lib/guard'
 import { db } from '../../../lib/supabase/admin'
 import { findAttempt } from '../../../lib/repo/attempts'
 import { sectionName, type SectionCode } from '../../../lib/types'
-import { patternForPaper } from '../../../lib/repo/tracks'
+import { paperOnViewersTrack, patternForPaper } from '../../../lib/repo/tracks'
 import { formatIstDate, paperLabels } from '../../../lib/time'
 import { PAPER_WINDOW_COLUMNS, paperWindowOf } from '../../../lib/repo/papers'
 import { beginAction } from './actions'
@@ -34,9 +34,13 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
 
   const { data: test } = await db()
     .from('tests')
-    .select(`id, title, status, ${PAPER_WINDOW_COLUMNS}, sections(code, position, duration_sec, question_count, marks_correct, marks_negative)`)
+    .select(`id, title, status, track_id, ${PAPER_WINDOW_COLUMNS}, sections(code, position, duration_sec, question_count, marks_correct, marks_negative)`)
     .eq('id', testId).maybeSingle()
   if (!test) redirect('/dashboard')
+  // A paper on another exam does not exist for this student, however they
+  // came by its id (FR-6.10.1). Back to the dashboard, as for one that is
+  // genuinely not there: which of the two it was is not their business.
+  if (!(await paperOnViewersTrack(user, test.track_id as string | null))) redirect('/dashboard')
 
   // A dry run for an admin, a practice run for a student: the same engine and
   // the same timers, counted nowhere either way.

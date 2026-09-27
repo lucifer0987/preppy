@@ -4,6 +4,7 @@ import { db } from '../../../../../lib/supabase/admin'
 import { PAPER_ID_PATTERN, readPaperImage } from '../../../../../lib/repo/images'
 import { opensAt } from '../../../../../lib/time'
 import { paperWindowOf } from '../../../../../lib/repo/papers'
+import { paperOnViewersTrack } from '../../../../../lib/repo/tracks'
 
 /**
  * Serves a paper's image to someone allowed to see the paper.
@@ -25,7 +26,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ testId:
   if (!PAPER_ID_PATTERN.test(testId)) return new Response('Not found.', { status: 404 })
 
   if (user.role !== 'admin') {
-    const { data: test } = await db().from('tests').select('date, status, opens_at_min, entry_closes_at_min, attempt_sec, ended_at').eq('id', testId).maybeSingle()
+    const { data: test } = await db().from('tests').select('date, status, track_id, opens_at_min, entry_closes_at_min, attempt_sec, ended_at').eq('id', testId).maybeSingle()
+    // Another exam's diagram is another exam's paper, one file at a time.
+    if (test && !(await paperOnViewersTrack(user, test.track_id as string | null))) {
+      return new Response('Not found.', { status: 404 })
+    }
     const open = test && test.status === 'SCHEDULED'
       && Date.now() >= opensAt(paperWindowOf(test)).getTime()
     if (!open) return new Response('Not found.', { status: 404 })

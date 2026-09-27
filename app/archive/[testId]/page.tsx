@@ -8,7 +8,7 @@ import { getPaperById } from '../../../lib/repo/papers'
 import { QuestionCard } from '../../../components/QuestionCard'
 import { DirectionsBlock } from '../../../components/DirectionsBlock'
 import { sectionName, type OptionLabel, type SectionCode } from '../../../lib/types'
-import { patternForPaper, viewerTrack } from '../../../lib/repo/tracks'
+import { paperOnViewersTrack, patternForPaper, viewerTrack } from '../../../lib/repo/tracks'
 import { formatIstDate, paperClosed } from '../../../lib/time'
 import { findAttempt } from '../../../lib/repo/attempts'
 
@@ -34,6 +34,10 @@ export default async function ArchiveDetail({
   // had its id.
   const record = await getPaperById(testId)
   if (!record || record.status !== 'SCHEDULED') notFound()
+  // Another exam's paper is not this student's to read, closed or not. Not
+  // found rather than refused: which exam a paper belongs to is not something
+  // they need told (FR-6.10.1).
+  if (!(await paperOnViewersTrack(user, record.trackId))) notFound()
   const { paper } = record
   // Section names come from the paper's own track, so an Agriculture paper
   // never says (CSE).
