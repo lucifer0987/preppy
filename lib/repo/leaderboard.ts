@@ -33,7 +33,7 @@ const windowOf = (t: Record<string, unknown>): PaperWindow => ({
  * Every counted attempt on every paper the board includes.
  *
  * A paper joins the board at 00:01 the morning after it runs (lib/time.ts
- * onBoard), so nothing about tonight is visible to anyone else while it is
+ * onBoard), so nothing about a running paper is visible to anyone else while it is
  * open. Its own attempt is visible to its owner at once, on the result page.
  *
  * Attempts left open past their hard stop are scored first. The finalise job
@@ -207,7 +207,7 @@ export async function getArchive(userId: string): Promise<ArchiveRow[]> {
   const today = istDate()
 
   // A paper enters the archive at its own hard stop, so today's morning paper
-  // is already here while tonight's is not. The date filter is only an upper
+  // is already here while a paper still running is not. The date filter is only an upper
   // bound; the real one is below.
   const candidates = await selectAll<Record<string, unknown>>('papers', (from, to) =>
     client.from('tests').select('id, date, title, opens_at_min, entry_closes_at_min, attempt_sec, ended_at')

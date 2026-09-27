@@ -34,7 +34,7 @@ export default async function UploadPage({
           compact
           title="Replace the questions"
           meta={<span className="numeral">{target.paper.title ?? 'Untitled'} &middot; {formatIstDate(lock.date)}</span>}
-          lede="Upload the corrected file. The paper keeps its night, its window and its place in the schedule; only what is inside it changes."
+          lede="Upload the corrected file. The paper keeps its day, its window and its place in the schedule; only what is inside it changes."
         />
         {lock.realAttempts > 0 ? (
           <Flash tone="bad" className="mt-5">
@@ -49,7 +49,7 @@ export default async function UploadPage({
               <h2 className="eyebrow">What this changes</h2>
               <ul className="mt-3 space-y-2.5 text-sm text-ink-soft">
                 <li><span className="font-semibold text-ink">Every question goes</span> and the ones in this file take their place.</li>
-                <li><span className="font-semibold text-ink">The night does not move.</span> The file must carry the same date, {formatIstDate(lock.date)}.</li>
+                <li><span className="font-semibold text-ink">The day does not move.</span> The file must carry the same date, {formatIstDate(lock.date)}.</li>
                 <li><span className="font-semibold text-ink">Images are replaced too</span>, so send them again with the file.</li>
                 <li><span className="font-semibold text-ink">Nobody has sat it</span>, which is the only reason this is allowed at all.</li>
               </ul>
@@ -83,7 +83,7 @@ export default async function UploadPage({
               ['Checked', 'Every rule in the format runs before a row is written. Errors block it; warnings do not.'],
               ['Saved as a draft', 'A draft is invisible to students. Nothing about it is live.'],
               ['Read it through', 'The next screen shows every question exactly as a student will see it.'],
-              ['Scheduled by you', 'It only goes live when you pick the night and confirm you have read it.'],
+              ['Scheduled by you', 'It only goes live when you pick the day and window and confirm you have read it.'],
             ].map(([h, b], i) => (
               <li key={h} className="flex gap-3">
                 <span className="numeral mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-pill

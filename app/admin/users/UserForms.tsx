@@ -145,7 +145,7 @@ function RenameButtons({ onCancel }: { onCancel: () => void }) {
  * Reset a password, in two presses.
  *
  * One press used to do it, and it ends every session the account has open --
- * including a student halfway through tonight's paper. Asking twice costs the
+ * including a student halfway through a paper. Asking twice costs the
  * admin a click and costs a misclick nothing.
  */
 export function ResetPasswordForm({ userId, username }: { userId: string; username: string }) {

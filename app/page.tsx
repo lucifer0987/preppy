@@ -6,7 +6,7 @@ import { currentUser } from '../lib/auth'
 import { isConfigured } from '../lib/env'
 import { SECTION_NAMES, patternTotals, uniformMarking } from '../lib/types'
 import { Wordmark } from '../components/Wordmark'
-import { formatIstDate, opensAt, paperLabels, windowLabels } from '../lib/time'
+import { entryClosesAt, formatIstDate, opensAt, paperLabels, windowLabels } from '../lib/time'
 import type { PaperWindow } from '../lib/time'
 import { defaultAttemptMinutes, getPattern, getWindow } from '../lib/repo/settings'
 import { upcomingPapers } from '../lib/repo/papers'
@@ -37,7 +37,7 @@ export default async function Home() {
   const { live, next } = isConfigured()
     ? await upcomingPapers(now).catch(nextUnavailable)
     : { live: null, next: null }
-  // A paper that is open right now is the answer to "what happens tonight",
+  // A paper that is open right now is the answer to "what happens next",
   // so it wins over the one after it. Without this a visitor arriving during
   // the window was told nothing was scheduled.
   const labels = live ? paperLabels(live.window)
@@ -80,14 +80,14 @@ export default async function Home() {
                   day it was written and is a number that grows. */}
               <h1 className="mt-5 font-display text-5xl font-black leading-[1.02] tracking-tight
                              sm:text-[3.75rem] xl:text-[4.75rem]">
-                One paper a night.<br />
+                One paper a day.<br />
                 <span className="text-zap-ink">One board</span> that<br />
                 never resets.
               </h1>
 
               <p className="measure mt-6 text-lg leading-relaxed text-ink-soft xl:text-xl">
                 Marked and timed the way the real exam marks and times. Every paper you sit
-                stays on the board, so tonight&rsquo;s score is still counting in March.
+                stays on the board, so today&rsquo;s score is still counting in March.
               </p>
 
               <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3">
@@ -103,7 +103,7 @@ export default async function Home() {
 
             {/* One card, not two stacked and not a strip along the foot: when
                 the paper is scheduled and its shape sit together they read as
-                one answer to "what am I in for tonight". Every figure comes
+                one answer to "what am I in for". Every figure comes
                 from the configured pattern; only the section names are fixed. */}
             <section className="card overflow-hidden" aria-labelledby="next-paper">
               <NextPaper live={live} next={next} now={now} labels={labels} totals={totals} />
@@ -153,8 +153,8 @@ export default async function Home() {
  * scheduled, the lookup failed, Supabase not configured yet -- says so.
  */
 function NextPaper({ live, next, now, labels, totals }: {
-  live: { window: PaperWindow } | null
-  next: { window: PaperWindow } | null
+  live: { window: PaperWindow; title: string | null } | null
+  next: { window: PaperWindow; title: string | null } | null
   now: Date
   labels: { opens: string; closes: string }
   totals: { minutes: number }
@@ -163,18 +163,28 @@ function NextPaper({ live, next, now, labels, totals }: {
     return (
       <div className="p-5 sm:p-6">
         <div className="flex items-baseline justify-between gap-3">
-          <h2 id="next-paper" className="eyebrow">Tonight&rsquo;s paper</h2>
+          <h2 id="next-paper" className="eyebrow">Open now</h2>
           <span className="numeral shrink-0 text-xs text-ink-faint">
             {formatIstDate(live.window.date)}
           </span>
         </div>
-        <p className="mt-2.5 font-display text-2xl font-black text-good-ink">Open now</p>
+        <p className="mt-2 font-display text-2xl font-black text-good-ink">
+          {live.title ?? 'Today\u2019s paper'}
+        </p>
         <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">
           Log in and start it. You get the full {totals.minutes} minutes however late you
-          begin, as long as you begin before last entry.
+          begin, as long as you begin before entry closes.
         </p>
+        {/* A live paper has a clock too, and it is the one that matters: not
+            when it opens, but how long is left to get in. */}
+        <div className="mt-3.5">
+          <Countdown targetIso={entryClosesAt(live.window).toISOString()} nowIso={now.toISOString()}
+                     label="Entry closes in" tone="on-surface" />
+        </div>
         <p className="numeral mt-3.5 border-t border-line pt-3 text-xs text-ink-faint">
-          Last entry {labels.closes}.
+          Entry closes {labels.closes}. {next
+            ? <>Then {formatIstDate(next.window.date)} at {paperLabels(next.window).opens}.</>
+            : null}
         </p>
       </div>
     )
@@ -187,7 +197,7 @@ function NextPaper({ live, next, now, labels, totals }: {
         <p className="mt-2.5 font-display text-2xl font-black">Nothing scheduled yet</p>
         <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">
           Papers go up a day at a time. The countdown appears here the moment your admin
-          schedules one &mdash; and a night without a paper never breaks anyone&rsquo;s streak.
+          schedules one &mdash; and a day without a paper never breaks anyone&rsquo;s streak.
         </p>
         <p className="mt-3.5 border-t border-line pt-3 text-xs text-ink-faint">
           They usually open at {labels.opens}, with last entry {labels.closes}.

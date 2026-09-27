@@ -64,9 +64,16 @@ export function Countdown({
   }, [target, serverNow, router])
 
   const clamped = Math.max(0, remaining)
-  const hours = Math.floor(clamped / 3_600_000)
-  const minutes = Math.floor((clamped % 3_600_000) / 60_000)
+  const days = Math.floor(clamped / 86_400_000)
   const seconds = Math.floor((clamped % 60_000) / 1000)
+  const minutes = Math.floor((clamped % 3_600_000) / 60_000)
+  // Three cells always, but which three depends on how far away it is. A paper
+  // eleven days out read "284 HRS", which is a date written the long way
+  // round; past a day the seconds are the part nobody needs.
+  const far = days >= 1
+  const hours = far
+    ? Math.floor((clamped % 86_400_000) / 3_600_000)
+    : Math.floor(clamped / 3_600_000)
 
   return (
     <div
@@ -75,14 +82,17 @@ export function Countdown({
       // A timer that announced every second would make the page unusable with
       // a screen reader, so the label carries the information once instead.
       aria-live="off"
-      aria-label={`${label} ${hours} hours ${minutes} minutes`}
+      aria-label={far
+        ? `${label} ${days} days ${hours} hours`
+        : `${label} ${hours} hours ${minutes} minutes`}
       // Only reached when a caller omits nowIso: the server's Date.now() and
       // the browser's then differ, and the first tick corrects it.
       suppressHydrationWarning
     >
+      {far && <Cell value={days} label={days === 1 ? 'day' : 'days'} tone={tone} />}
       <Cell value={hours} label="hrs" tone={tone} />
       <Cell value={minutes} label="min" tone={tone} />
-      <Cell value={seconds} label="sec" tone={tone} />
+      {!far && <Cell value={seconds} label="sec" tone={tone} />}
     </div>
   )
 }

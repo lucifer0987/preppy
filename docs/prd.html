@@ -387,7 +387,7 @@ html{scroll-behavior:smooth}
   <div class="ct key"><time>13:00 &amp; 01:00</time><div><h5>Finalise</h5><p>Force-submit and score any attempt still open. <em>The only scheduled job, run twice a day.</em></p></div></div>
 </div>
 <div class="fr"><p><b class="id">FR-4.1</b><strong>Entry closes at 23:15 while the window runs to midnight.</strong> The 45-minute tail exists so a student starting at the last possible moment still gets their full 45 minutes.</p></div>
-<div class="fr"><p><b class="id">FR-4.2</b><strong>Score appears the instant a student submits; rank waits for the paper to close.</strong> The result page shows the score and its full breakdown at once. Everything that compares one student with another — the leaderboard, "2nd of 5", the leaderboard delta, the best-and-average comparison, archive ranks, streaks — takes the paper in at its own hard stop, once every attempt on it has had to end. That is what keeps FR-5.3 true: nobody can read off a rank who has or has not sat tonight's paper.</p></div>
+<div class="fr"><p><b class="id">FR-4.2</b><strong>Score appears the instant a student submits; rank waits for the paper to close.</strong> The result page shows the score and its full breakdown at once. Everything that compares one student with another — the leaderboard, "2nd of 5", the leaderboard delta, the best-and-average comparison, archive ranks, streaks — takes the paper in at its own hard stop, once every attempt on it has had to end. That is what keeps FR-5.3 true: nobody can read off a rank who has or has not sat the paper that is running.</p></div>
 <div class="fr"><p><b class="id">FR-4.3</b>Correct answers and solutions are withheld from <strong>every</strong> user — including those who already submitted — until 00:00.</p></div>
 <h3>Lifecycle</h3>
 <p><strong>Test:</strong> <code>DRAFT</code> → <code>SCHEDULED</code> → <code>LIVE</code> → <code>CLOSED</code>. <code>LIVE</code> and <code>CLOSED</code> are <strong>derived from the clock</strong>, not written by a job.</p>
@@ -426,7 +426,7 @@ html{scroll-behavior:smooth}
 <li>Cohort average comparison bars on the result page.</li>
 <li>"% of the cohort got this right" in the answer review.</li>
 <li>Participation counts on archive rows.</li>
-<li>Any indication of who has or has not submitted tonight.</li>
+<li>Any indication of who has or has not submitted a paper still running.</li>
 <li>Any view of another student's answers, timings, attempt detail or violation counters.</li>
 </ul>
 </div></section>
@@ -445,22 +445,24 @@ html{scroll-behavior:smooth}
 <div class="fr"><p><b class="id">FR-6.1.2</b>Admin-created users must change their password on first login.</p></div>
 <div class="fr"><p><b class="id">FR-6.1.3</b>No self-service recovery — there is no email to send it to. The admin resets passwords, and the login screen says so.</p></div>
 <div class="fr"><p><b class="id">FR-6.1.4</b>Starting a test invalidates that user's other sessions.</p></div>
+<div class="fr"><p><b class="id">FR-6.1.5</b><strong>Your account is yours.</strong> One screen holds both things anybody may change about themselves: the display name the board and the archive use, and the password. Renaming yourself needed an admin for no reason anyone could name &mdash; the username is the login and stays where it is, but what the board calls you is not an administrative fact. The action reads the signed-in user from the session and never from the form, so it cannot reach another account however it is submitted. While a first-login password change is being forced, the screen shows only that: your name is not the thing standing between you and the paper.</p></div>
 
 <h3>6.2 &nbsp;Home screen — logged out</h3>
-<p>Product name, tonight's pattern summary, and a single <strong>Log in</strong> action. No sign-up link. Where the paper stands decides the rest: a <strong>live countdown</strong> to the next paper's unlock when one is scheduled, <strong>&ldquo;open now&rdquo;</strong> with its last entry while one is running, and the plain truth when there is neither &mdash; a fabricated countdown to a moment nothing happens at is worse than no countdown.</p>
+<p>Product name, the pattern summary, and a single <strong>Log in</strong> action. No sign-up link. Where the paper stands decides the rest: a <strong>live countdown</strong> to the next paper's unlock when one is scheduled, <strong>&ldquo;open now&rdquo;</strong> with its last entry while one is running, and the plain truth when there is neither &mdash; a fabricated countdown to a moment nothing happens at is worse than no countdown.</p>
 <div class="fr"><p><b class="id">FR-6.2.1</b>No public leaderboard preview. With five members, an "anonymised top 5" is the entire cohort.</p></div>
 
 <h3>6.3 &nbsp;Dashboard</h3>
-<h4>Panel 1 — Tonight's test</h4>
+<h4>Panel 1 — The paper that is open</h4>
 <div class="tw"><table>
 <tr><th>Condition</th><th>Display</th></tr>
 <tr><td>Open, not attempted, entry still open</td><td>Entry card: date, pattern, marking, a countdown to last entry, <strong>Start test</strong></td></tr>
 <tr><td>Open, in progress</td><td><strong>Resume test</strong> with the live remaining time of the current section</td></tr>
 <tr><td>Open, entry closed, not attempted</td><td>"Entry closed at <em>its</em> last-entry time", and the next paper</td></tr>
-<tr><td>Already submitted, paper still running</td><td>Score, a countdown to the paper's own close, and <strong>See your result</strong>. <em>Never</em> Start test &mdash; entry staying open is a fact about the paper, not about this student</td></tr>
+<tr><td>Already submitted, another paper scheduled</td><td>Score, <strong>See your result</strong>, and a countdown to <em>the next paper</em> &mdash; because that is the next thing that happens to them. <em>Never</em> Start test: entry staying open is a fact about the paper, not about this student</td></tr>
+<tr><td>Already submitted, nothing after it</td><td>Score, <strong>See your result</strong>, and a countdown to this paper's own close, when the answers and the rank arrive</td></tr>
 <tr><td>Already submitted, paper closed</td><td>Score, rank, <strong>See your result</strong> and <strong>Review answers</strong></td></tr>
-<tr><td>Nothing open</td><td>The next paper: its date and unlock time, a countdown when that is inside a day and a half, and the current streak</td></tr>
-<tr><td>Nothing scheduled</td><td>"No paper tonight", said plainly. A night without one never breaks a streak</td></tr>
+<tr><td>Nothing open</td><td>The next paper: its title, date and unlock time, a countdown to it however far off, and the current streak</td></tr>
+<tr><td>Nothing scheduled</td><td>&ldquo;Nothing open right now&rdquo;, said plainly. A day without a paper never breaks a streak</td></tr>
 </table></div>
 <div class="fr"><p><b class="id">FR-6.3.1</b><strong>Start Test</strong> opens a briefing: pattern, marking, section order, the one-way section rule, the full-screen policy, and "your timer starts the moment you press Begin". The server stamps <code>started_at</code> on that action.</p></div>
 <h4>Panel 2 — Test archive</h4>
@@ -600,7 +602,7 @@ html{scroll-behavior:smooth}
 <p>This is how a paper gets proofread at full speed, and it is why FR-5.2 can be so blunt: the admin has a first-class way to take tests that is <strong>structurally incapable of competing</strong>.</p>
 <h4>Users, tests &amp; export</h4>
 <p>Create a single user; bulk-create from CSV; auto-generate passwords; rename anyone &mdash; students and admins alike &mdash; by pressing the name; reset a password; activate/deactivate; view any student's attempt history. Browse every test with all questions, keys and solutions, and edit any of them after publication.</p>
-<div class="fr"><p><b class="id">FR-6.9.6</b><strong>A reset asks twice.</strong> Setting a new password ends every session the account has open, including a student halfway through tonight's paper, so it is two presses rather than one. The username is the login and never changes; the display name is what the board and the archive show, so it is editable at any time.</p></div>
+<div class="fr"><p><b class="id">FR-6.9.6</b><strong>A reset asks twice.</strong> Setting a new password ends every session the account has open, including a student halfway through a paper, so it is two presses rather than one. The username is the login and never changes; the display name is what the board and the archive show, so it is editable at any time &mdash; by an admin here, and by the person themselves (FR-6.1.5).</p></div>
 <div class="fr"><p><b class="id">FR-6.9.3</b><strong>Rescore.</strong> Editing a key on a closed test offers Rescore, which recomputes every affected attempt. Because the leaderboard is computed on read, <strong>nothing else needs recomputing</strong> — the board is correct on the next page load. Affected students see a "this test was rescored" notice.</p></div>
 <div class="fr"><p><b class="id">FR-6.9.4</b><strong>One item statistic.</strong> The admin sees <strong>% correct</strong> per question and nothing else per item. Any item below 10% correct is flagged for key review. This is the minimum needed to catch a bad key, which is the only reason item statistics exist here.</p></div>
 <div class="fr"><p><b class="id">FR-6.9.5</b>A single <strong>Export question bank (JSON)</strong> action producing every test ever published, with sections, questions, options, keys and solutions.</p></div>
@@ -758,7 +760,7 @@ html{scroll-behavior:smooth}
 <tr><td>Finalise</td><td class="n">13:00, 01:00</td><td>Force-submit and score any attempt still in progress. That is the whole job, and the admin can also run it on demand.</td></tr>
 </table></div>
 <div class="fr"><p><b class="id">FR-10.3</b>The job is <strong>idempotent</strong> — re-running produces identical output — and can be triggered manually from the admin console.</p></div>
-<p><strong>The v1.1 publish-reminder job is dropped.</strong> With no SMTP configured there is nowhere to send a reminder, so it would have needed a whole notification channel to be useful. Instead the admin dashboard shows tonight's status — <strong>Scheduled</strong> or <strong>Not scheduled</strong> — as its first element. For the reminder itself, a recurring 21:45 phone alarm does the job with no code.</p>
+<p><strong>The v1.1 publish-reminder job is dropped.</strong> With no SMTP configured there is nowhere to send a reminder, so it would have needed a whole notification channel to be useful. Instead the admin dashboard leads with today's papers and where each one stands. For the reminder itself, a recurring 21:45 phone alarm does the job with no code.</p>
 <h3>The one security rule</h3>
 <div class="fr"><p><b class="id">FR-10.4</b><strong>Never query Supabase from the browser.</strong> All database access happens in server code using the secret key &mdash; <code>sb_secret_...</code>, or the legacy <code>service_role</code> key it replaces &mdash; held in a server-only environment variable. Row Level Security is enabled on every table with <strong>deny-all</strong> policies as a backstop, so the publishable key the browser does hold reads nothing.</p></div>
 <p>Deliberately simpler than per-table RLS policies. With six accounts, writing and debugging fine-grained policies is more risk than it removes — and one memorable rule is easier to follow correctly than a dozen policies.</p>
@@ -801,7 +803,7 @@ html{scroll-behavior:smooth}
 <tr><th>Who</th><th>Sees</th></tr>
 <tr><td>The student, <br>about themselves only</td><td>Each paper's result page and review, and their streak. There is no progress page or trend view.</td></tr>
 <tr><td>The admin</td><td><strong>% correct per question</strong> — the single statistic needed to catch a bad key — plus each attempt's score, duration and two violation counters</td></tr>
-<tr><td>Nobody</td><td>Cohort averages · per-question cohort statistics · another student's timings or answers · who has submitted tonight</td></tr>
+<tr><td>Nobody</td><td>Cohort averages · per-question cohort statistics · another student's timings or answers · who has submitted a paper still running</td></tr>
 </table></div>
 <p><strong>Operational monitoring</strong> is whatever Vercel and Supabase already provide. No custom metrics pipeline.</p>
 </div></section>
@@ -827,8 +829,8 @@ html{scroll-behavior:smooth}
 <div class="tw"><table>
 <tr><th style="width:38px">#</th><th>Risk</th><th>Severity</th><th>Mitigation</th></tr>
 <tr><td>R1</td><td><strong>A malformed paper</strong> — a hand-edited JSON file has a typo, a miscounted section or a wrong key</td><td>Med / Likely</td><td>Strict parse with line and column; fail-loud validation; JSON Schema in the editor; <code>npm run check</code>; mandatory preview; <strong>dry run</strong>; shipped template and sample</td></tr>
-<tr><td>R2</td><td><strong>Admin burnout</strong> — one person owes 55 questions a night</td><td>High / Likely</td><td>5-minute publish target; schedule ahead; drafts; "no test tonight" does not break streaks</td></tr>
-<tr><td>R3</td><td><strong>Missed night because nobody was reminded</strong></td><td>Med / Likely</td><td>Admin dashboard leads with tonight's status. Accepted: no automated reminder exists — a phone alarm is the intended mitigation</td></tr>
+<tr><td>R2</td><td><strong>Admin burnout</strong> — one person owes 55 questions a night</td><td>High / Likely</td><td>5-minute publish target; schedule ahead; drafts; a day without a paper does not break streaks</td></tr>
+<tr><td>R3</td><td><strong>Missed paper because nobody was reminded</strong></td><td>Med / Likely</td><td>Admin dashboard leads with today's papers. Accepted: no automated reminder exists — a phone alarm is the intended mitigation</td></tr>
 <tr><td>R4</td><td><strong>A wrong key corrupts scores</strong></td><td>High / Occasional</td><td>Rescore is P0; items below 10% correct auto-flagged; read-time leaderboard means no cache to invalidate</td></tr>
 <tr><td>R5</td><td><strong>Full-screen cannot be enforced</strong></td><td>Med / Certain</td><td>Stated honestly; blocking overlay; timer keeps running; counters; a trusted cohort of five</td></tr>
 <tr><td>R6</td><td><strong>Counters give no forensic detail</strong></td><td>Low / Certain</td><td>Accepted deliberately. Deterrence is the goal, not prosecution</td></tr>
@@ -906,7 +908,7 @@ html{scroll-behavior:smooth}
 </table></div>
 <p class="end">
 <b>Requirement index</b><br>
-FR-3.1–3.4 pattern, marking, not-reached · FR-4.1–4.3 the clock · FR-5.1 no sign-up · FR-5.2 admin attempts are dry runs · FR-5.3 students see only the leaderboard · FR-6.1.1–4 auth · FR-6.2.1 no public preview · FR-6.3.1–4 dashboard · FR-6.4.1–11 test engine · FR-6.5.1–8 integrity · FR-6.7.1–6 leaderboard · FR-6.9.1–11 admin, dry run, rescore, export, and managing a paper already out · FR-7.1–2 paper format · FR-8.1 no celebration mid-section · FR-9.1 was_visited · FR-9.2 the DB is the question bank · FR-10.1–4 architecture · FR-13.1 key confidentiality
+FR-3.1–3.4 pattern, marking, not-reached · FR-4.1–4.3 the clock · FR-5.1 no sign-up · FR-5.2 admin attempts are dry runs · FR-5.3 students see only the leaderboard · FR-6.1.1–5 auth · FR-6.2.1 no public preview · FR-6.3.1–4 dashboard · FR-6.4.1–11 test engine · FR-6.5.1–8 integrity · FR-6.7.1–6 leaderboard · FR-6.9.1–11 admin, dry run, rescore, export, and managing a paper already out · FR-7.1–2 paper format · FR-8.1 no celebration mid-section · FR-9.1 was_visited · FR-9.2 the DB is the question bank · FR-10.1–4 architecture · FR-13.1 key confidentiality
 </p>
 </div></section>
 

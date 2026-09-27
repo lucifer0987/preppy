@@ -546,7 +546,7 @@ h2, h3 { text-wrap: balance; }
   &:hover:not(:disabled) { background: var(--accent-hover); }
 }
 
-/* The one that means "this is the thing you came here to do": begin tonight's
+/* The one that means "this is the thing you came here to do": begin the
    paper, log in. Loud on purpose, and rare on purpose -- at most one per
    screen, or it stops meaning anything. */
 @utility btn-zap {

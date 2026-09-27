@@ -20,7 +20,7 @@ export const dynamic = 'force-dynamic'
 type Attempt = NonNullable<Awaited<ReturnType<typeof findAttempt>>>
 
 /**
- * Three panels: tonight's paper, the archive, the leaderboard (PRD 6.3).
+ * Three panels: the paper that is open, the archive, the leaderboard (PRD 6.3).
  *
  * Panel 1 follows the 6.3 table row by row. Every branch is decided from the
  * clock and the attempt's own state on read, and every countdown refreshes the
@@ -39,18 +39,20 @@ export default async function Dashboard({
   // A day can hold more than one paper, so this is whichever is open now and
   // whichever opens next, rather than a lookup by date.
   const { live: openPaper, next: nextPaper } = await upcomingPapers(now)
-  const tonight = openPaper ? { id: openPaper.id, date: openPaper.window.date, title: openPaper.title } : null
+  // Whichever paper is open right now -- papers carry their own windows, so
+  // this is not "tonight's" and has not been for a while.
+  const openNow = openPaper ? { id: openPaper.id, date: openPaper.window.date, title: openPaper.title } : null
   const labels = paperLabels(openPaper?.window ?? nextPaper?.window ?? defaultPaperWindow(today, await getWindow()))
   const live = Boolean(openPaper)
 
-  let attempt: Attempt | null = tonight ? await findAttempt(tonight.id as string, user.id, false) : null
+  let attempt: Attempt | null = openNow ? await findAttempt(openNow.id as string, user.id, false) : null
   let remainingSec = 0
   if (attempt?.state === 'IN_PROGRESS') {
     // loadAttempt rolls forward any section that ran out while nobody was
     // looking, and scores the attempt if that finished it, so what shows here
     // agrees with what the test page would say.
     const snapshot = await loadAttempt(attempt.id as string)
-    if (snapshot?.status.finished) attempt = await findAttempt(tonight!.id as string, user.id, false)
+    if (snapshot?.status.finished) attempt = await findAttempt(openNow!.id as string, user.id, false)
     else remainingSec = snapshot?.status.remainingSec ?? 0
   }
 
@@ -62,13 +64,22 @@ export default async function Dashboard({
   // this one -- whether they sat it, or entry closed without them.
   const doneWithLive = Boolean(attempt && attempt.state !== 'IN_PROGRESS')
   const entryStillOpen = Boolean(openPaper && canStartAttempt(openPaper.window, now))
-  const afterTonight = live && (doneWithLive || (!attempt && !entryStillOpen)) ? nextPaper : null
+  const afterThis = live && (doneWithLive || (!attempt && !entryStillOpen)) ? nextPaper : null
 
   // The hero panel is full width; its text was capped at max-w-3xl, so half of
   // it sat empty on any laptop. The two states that have a clock and a button
   // put them in a column of their own, which is also the better reading order:
   // what the paper is on the left, what to do about it on the right.
-  const heroAside =
+  // The right-hand column: one clock and, where there is something to do, one
+  // button. Which clock is the whole of this decision, and the rule is "the
+  // next thing that happens to you" -- your section running out, entry
+  // closing, your answers unlocking, or the next paper opening. A dashboard
+  // with no clock on it is the state this panel should almost never be in.
+  const nextOpen = nextPaper ? opensAt(nextPaper.window).toISOString() : null
+  const heroAside: {
+    label: string; targetIso: string; countdownLabel: string
+    href?: string; cta?: string
+  } | null =
     attempt && attempt.state === 'IN_PROGRESS'
       ? {
           label: 'Time left in this section',
@@ -80,29 +91,48 @@ export default async function Dashboard({
       // `!attempt` matters: entry staying open is about the paper, not about
       // this student, and without it the panel went on offering "Start test"
       // to somebody who had already handed the paper in.
-      : live && tonight && openPaper && entryStillOpen && !attempt
+      : openPaper && entryStillOpen && !attempt
         ? {
             label: `Entry closes at ${labels.closes}`,
             targetIso: entryClosesAt(openPaper.window).toISOString(),
             countdownLabel: 'Entry closes in',
-            href: `/test/start?test=${tonight.id}`,
+            href: `/test/start?test=${openPaper.id}`,
             cta: 'Start test',
           }
-        // Handed in, paper still running: the clock that matters now is the
-        // one to the answers, so the column keeps its shape instead of
-        // emptying out the moment you finish.
-        : attempt && openPaper && tonight && !paperClosed(openPaper.window, now)
+        // Handed this one in. The next paper is what happens to them next, so
+        // it gets the clock; the result is still one press away.
+        : attempt && attempt.state !== 'IN_PROGRESS' && nextOpen && nextPaper
           ? {
-              label: `Answers unlock at ${labels.hardStop}`,
-              targetIso: hardStopAt(openPaper.window).toISOString(),
-              countdownLabel: 'Answers unlock in',
+              label: `Next paper opens at ${paperLabels(nextPaper.window).opens}`,
+              targetIso: nextOpen,
+              countdownLabel: 'Next paper opens in',
               href: `/test/${attempt.id}/done`,
               cta: 'See your result',
             }
-          : null
+          // Nothing after it, so the clock that is left is the one to the
+          // answers on the paper they have just sat.
+          : attempt && openPaper && !paperClosed(openPaper.window, now)
+            ? {
+                label: `Answers unlock at ${labels.hardStop}`,
+                targetIso: hardStopAt(openPaper.window).toISOString(),
+                countdownLabel: 'Answers unlock in',
+                href: `/test/${attempt.id}/done`,
+                cta: 'See your result',
+              }
+            // Nothing of theirs is running: the next paper, however far off.
+            // It used to be hidden past a day and a half, which is exactly
+            // when a countdown is the friendliest thing on the page.
+            : nextOpen && nextPaper
+              ? {
+                  label: `Next paper opens at ${paperLabels(nextPaper.window).opens}`,
+                  targetIso: nextOpen,
+                  countdownLabel: 'Next paper opens in',
+                  ...(attempt ? { href: `/test/${attempt.id}/done`, cta: 'See your result' } : {}),
+                }
+              : null
 
   // Panels 2 and 3. Either failing must not take the whole dashboard down:
-  // tonight's paper is the panel that matters once the window opens.
+  // the open paper is the panel that matters once its window opens.
   const [board, archive] = await Promise.all([
     getLeaderboard().catch((e: Error) => { console.error('[dashboard] board', e.message); return null }),
     getArchive(user.id).catch((e: Error) => { console.error('[dashboard] archive', e.message); return null }),
@@ -133,7 +163,7 @@ export default async function Dashboard({
         <div className="relative flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
         <div className="min-w-0 max-w-xl">
         <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">
-          {live || attempt ? "Tonight's paper" : 'Next paper'}
+          {live || attempt ? "Today's paper" : 'Next paper'}
         </h2>
 
         {attempt && attempt.state === 'IN_PROGRESS' ? (
@@ -151,9 +181,9 @@ export default async function Dashboard({
               The admin set it aside, so it does not count and has no score. Ask them if you are not
               sure why.
             </p>
-            {afterTonight && <NextPaper paper={afterTonight} nowIso={nowIso} now={now} />}
+            {afterThis && <NextPaper paper={afterThis} />}
           </>
-        ) : attempt && tonight ? (
+        ) : attempt && openNow ? (
           <>
             <p className="mt-2 text-4xl font-black tabular-nums">{Number(attempt.total_score ?? 0).toFixed(2)}</p>
             <p className="mt-1 text-sm font-semibold text-white/80">
@@ -174,18 +204,18 @@ export default async function Dashboard({
                         className="btn btn-invert inline-block px-7 py-3.5">
                     See your result
                   </Link>
-                  <Link href={`/archive/${tonight.id}`}
+                  <Link href={`/archive/${openNow.id}`}
                         className="btn btn-invert inline-block bg-white/15 px-7 py-3.5 text-white">
                     Review answers
                   </Link>
                 </>
               ) : null}
             </div>
-            {afterTonight && <NextPaper paper={afterTonight} nowIso={nowIso} now={now} />}
+            {afterThis && <NextPaper paper={afterThis} />}
           </>
-        ) : live && tonight && openPaper && canStartAttempt(openPaper.window, now) ? (
+        ) : live && openNow && openPaper && canStartAttempt(openPaper.window, now) ? (
           <>
-            <p className="mt-2 text-2xl font-black">{tonight.title ?? 'Daily mock'}</p>
+            <p className="mt-2 text-2xl font-black">{openNow.title ?? 'Daily mock'}</p>
             <p className="mt-1 text-white/70">{formatIstDate(today)}</p>
             <p className="mt-3 text-sm font-semibold tabular-nums">
               {openPaper.shape.questions} questions &middot; {openPaper.shape.minutes} minutes
@@ -199,12 +229,12 @@ export default async function Dashboard({
             <p className="mt-2 text-2xl font-black">
               Entry closed at {labels.closes}
             </p>
-            <NextPaper paper={afterTonight} nowIso={nowIso} now={now} />
+            <NextPaper paper={afterThis} />
           </>
         ) : (
           <>
-            {!tonight && <p className="mt-1.5 font-display text-2xl font-black">No paper tonight.</p>}
-            <NextPaper paper={upcoming} nowIso={nowIso} now={now} />
+            {!openNow && <p className="mt-1.5 font-display text-2xl font-black">Nothing open right now.</p>}
+            <NextPaper paper={upcoming} />
             {mine && mine.currentStreak > 0 && (
               <p className="mt-4 flex flex-wrap items-center gap-2 text-sm font-semibold">
                 Your streak <StreakBadge days={mine.currentStreak} size="lg" />
@@ -232,9 +262,13 @@ export default async function Dashboard({
               <Countdown targetIso={heroAside.targetIso} nowIso={nowIso}
                          label={heroAside.countdownLabel} />
             </div>
-            <Link href={heroAside.href} className="btn btn-zap mt-4 w-full px-7 py-3.5">
-              {heroAside.cta}
-            </Link>
+            {/* Not every clock has something to press: a paper four days
+                out is worth counting down to and cannot be started. */}
+            {heroAside.href && heroAside.cta && (
+              <Link href={heroAside.href} className="btn btn-zap mt-4 w-full px-7 py-3.5">
+                {heroAside.cta}
+              </Link>
+            )}
           </div>
         )}
         </div>
@@ -292,33 +326,24 @@ export default async function Dashboard({
 }
 
 /** A countdown to the next scheduled paper, or a plain statement that there is none. */
-function NextPaper({ paper, nowIso, now }: {
-  paper: { title: string | null; window: PaperWindow } | null
-  nowIso: string
-  now: Date
-}) {
+/**
+ * The line about what comes next. The clock for it lives in the column on the
+ * right, which is where every clock on this panel lives, so this says the
+ * thing a clock cannot: which paper, and when.
+ */
+function NextPaper({ paper }: { paper: { title: string | null; window: PaperWindow } | null }) {
   if (!paper) {
     return (
       <p className="mt-3 text-white/70">
-        No paper is scheduled yet. Check back later; a night without one never breaks your streak.
+        No paper is scheduled yet. Check back later; a day without one never breaks your streak.
       </p>
     )
   }
-  // A clock is only a clock while it means something. Two days out it reads
-  // "284 HRS", which is a date written the long way round -- so past that, the
-  // date is the whole of it.
-  const soon = opensAt(paper.window).getTime() - now.getTime() < 36 * 3600_000
   return (
-    <>
-      <p className="mt-3 text-sm text-white/70">
-        Next paper: {formatIstDate(paper.window.date)} at {paperLabels(paper.window).opens}
-      </p>
-      {soon && (
-        <div className="mt-2">
-          <Countdown targetIso={opensAt(paper.window).toISOString()} nowIso={nowIso} />
-        </div>
-      )}
-    </>
+    <p className="mt-3 text-sm text-white/70">
+      Next: <span className="font-semibold text-white">{paper.title ?? 'Daily mock'}</span>
+      {' '}&middot; {formatIstDate(paper.window.date)} at {paperLabels(paper.window).opens}
+    </p>
   )
 }
 

@@ -70,13 +70,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
           <ThemeToggle variant="row" />
 
-          <Link href="/change-password"
+          <Link href="/account"
                 className="flex items-center gap-2.5 rounded-control px-3 py-2 text-sm font-semibold
                            text-ink-soft transition hover:bg-surface-sunken hover:text-ink">
             <svg viewBox="0 0 20 20" aria-hidden="true" className="h-4 w-4 shrink-0 fill-current opacity-70">
               <path d="M10 1.5a4 4 0 00-4 4V8H5.5A1.5 1.5 0 004 9.5v7A1.5 1.5 0 005.5 18h9a1.5 1.5 0 001.5-1.5v-7A1.5 1.5 0 0014.5 8H14V5.5a4 4 0 00-4-4zm-2 4a2 2 0 114 0V8H8V5.5z" />
             </svg>
-            Your password
+            Your account
           </Link>
 
           <Link href="/dashboard"

@@ -18,7 +18,7 @@ export default async function PapersPage({
       <>
         {scheduled && (
           <Flash tone="good" className="mb-5">
-            Scheduled. It is live on the night you picked; open it again to move it back to draft.
+            Scheduled. It runs in the window you picked; open it again to move it back to draft.
           </Flash>
         )}
         <PageHeader compact
@@ -34,7 +34,7 @@ export default async function PapersPage({
         <div className="mt-6">
           <Empty>
             No papers yet. Upload one and it lands here as a draft, ready to read through
-            before you give it a night.
+            before you give it a day and a window.
           </Empty>
         </div>
       ) : (
@@ -44,7 +44,7 @@ export default async function PapersPage({
             const label =
               p.status === 'DRAFT' ? 'Draft'
               : p.window.endedAt ? 'Ended early'
-              : state === 'BEFORE_OPEN' ? (p.date === today ? 'Live tonight' : 'Scheduled')
+              : state === 'BEFORE_OPEN' ? (p.date === today ? 'Opens today' : 'Scheduled')
               : state === 'CLOSED' ? 'Finished'
               : 'Live now'
             const tone =
@@ -66,7 +66,7 @@ export default async function PapersPage({
                     <span className="numeral mt-0.5 block text-xs text-ink-faint">
                       {formatIstDate(p.date)}
                       {p.status === 'DRAFT'
-                        ? ' · no night yet'
+                        ? ' · not scheduled yet'
                         : p.window.endedAt
                           ? ` · ${l.opens}, ended early`
                           : ` · ${l.opens} to ${l.closes}`}

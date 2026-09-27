@@ -12,7 +12,7 @@ import { FinaliseButton } from './FinaliseButton'
  * Rebuilt for density. It used to be a full-screen decorative panel, two
  * figures, and the six sections repeated as large tiles with a sentence each
  * -- the same list the rail already shows, taking a screen to say it. What an
- * admin opens this page to learn is whether tonight is covered, so that is the
+ * admin opens this page to learn is whether today is covered, so that is the
  * first line, and the rest is counts and the three things they actually do.
  */
 export const dynamic = 'force-dynamic'
@@ -24,7 +24,7 @@ export default async function AdminHome({
   const { password } = await searchParams
   const today = istDate()
 
-  const [tonightRes, students, scheduled, drafts, attempts] = await Promise.all([
+  const [todayRes, students, scheduled, drafts, attempts] = await Promise.all([
     db().from('tests')
       .select('id, date, title, status, opens_at_min, entry_closes_at_min, attempt_sec, ended_at')
       .eq('date', today),
@@ -37,7 +37,7 @@ export default async function AdminHome({
 
   const now = new Date()
   // A day can hold more than one paper, so this is a list rather than a verdict.
-  const papers = (tonightRes.data ?? [])
+  const papers = (todayRes.data ?? [])
     .map((t) => ({
       id: t.id as string,
       title: (t.title as string | null) ?? null,
@@ -77,7 +77,7 @@ export default async function AdminHome({
 
       <section className="mt-6">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <h2 className="eyebrow">Tonight</h2>
+          <h2 className="eyebrow">Today</h2>
           {papers.length > 0 && (
             <p className="numeral text-xs text-ink-faint">
               {papers.length} paper{papers.length === 1 ? '' : 's'} on {formatIstDate(today)}
@@ -90,7 +90,7 @@ export default async function AdminHome({
                           border-dashed border-line-strong bg-surface-sunken px-4 py-3.5">
             <p className="text-sm text-ink-soft">
               <span className="font-semibold text-ink">No paper will unlock today.</span>{' '}
-              Nobody&rsquo;s streak breaks for a night without one.
+              Nobody&rsquo;s streak breaks for a day without one.
             </p>
             <Link href="/admin/papers/upload"
                   className="ml-auto text-sm font-bold text-accent underline underline-offset-4">

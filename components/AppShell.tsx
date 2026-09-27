@@ -90,15 +90,16 @@ function Tab({ href, active, children }: { href: string; active: boolean; childr
 /**
  * Plain links rather than a dropdown: two items do not earn a menu, and a
  * details/summary that needs JavaScript to close on outside clicks is a worse
- * experience than showing both.
+ * experience than showing both. The name doubles as the way into the account
+ * screen, which is where it is changed.
  */
 function UserMenu({ name }: { name: string }) {
   const initials = name.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase()
   return (
     <div className="flex items-center gap-2">
-      <Link href="/change-password"
+      <Link href="/account"
             className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 transition hover:bg-surface-sunken"
-            title={`${name} — change password`}>
+            title={`${name} — your name and password`}>
         <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent-soft
                          font-display text-xs font-black text-accent">
           {initials || '?'}

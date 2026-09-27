@@ -3,26 +3,32 @@ import type { Metadata } from 'next'
 import { requireAnySignedIn } from '../../lib/guard'
 import { logoutAction } from '../login/actions'
 import { ChangePasswordForm } from './ChangePasswordForm'
+import { renameSelfAction } from './actions'
+import { NameField } from '../../components/NameField'
 import { ThemeToggle } from '../../components/ThemeToggle'
 import { Wordmark } from '../../components/Wordmark'
 
-export const metadata: Metadata = { title: 'Your password' }
+export const metadata: Metadata = { title: 'Your account' }
 export const dynamic = 'force-dynamic'
 
 /**
- * Deliberately not inside the app shell.
+ * Your account: your name, and your password.
  *
- * A forced change is the first thing a new account sees, before there is
- * anything to navigate to. Offering tabs to a dashboard that will bounce you
- * straight back here would be a dead end, so this page stays on its own and
- * offers exactly two ways out: on, or sign out.
+ * Deliberately not inside the app shell. A forced password change is the first
+ * thing a new account sees, before there is anything to navigate to, and
+ * offering tabs to a dashboard that will bounce you straight back here would
+ * be a dead end. So the page stays on its own and, while the change is forced,
+ * shows nothing but the change: your name is not the thing standing between
+ * you and the paper.
  */
-export default async function ChangePasswordPage() {
+export default async function AccountPage() {
   const user = await requireAnySignedIn()
   const forced = user.mustChangePassword
   // An admin who came here from the console rail belongs back in the console,
   // not in the student view.
-  const home = user.role === 'admin' ? { href: '/admin', label: 'Back to the console' } : { href: '/dashboard', label: 'Back to today' }
+  const home = user.role === 'admin'
+    ? { href: '/admin', label: 'Back to the console' }
+    : { href: '/dashboard', label: 'Back to the dashboard' }
 
   return (
     <main className="shell relative flex min-h-dvh items-center justify-center py-10">
@@ -44,15 +50,31 @@ export default async function ChangePasswordPage() {
       )}
 
       <h1 className={`text-3xl font-black tracking-tight ${forced ? 'mt-5' : 'mt-7'}`}>
-        {forced ? 'Choose your own password' : 'Change your password'}
+        {forced ? 'Choose your own password' : 'Your account'}
       </h1>
       <p className="mt-2 text-ink-soft">
         {forced
           ? 'Your admin set the one you just used, which means they know it. Pick your own.'
-          : 'You will stay signed in on this device. Every other device is signed out.'}
+          : 'Two things, both yours to change.'}
       </p>
 
-      <ChangePasswordForm />
+      {!forced && (
+        <section className="card mt-6 p-5">
+          <NameField displayName={user.displayName} action={renameSelfAction} />
+        </section>
+      )}
+
+      <section className={forced ? '' : 'card mt-4 p-5'}>
+        {!forced && (
+          <>
+            <p className="eyebrow">Your password</p>
+            <p className="measure mt-1.5 text-sm text-ink-soft">
+              You will stay signed in on this device. Every other device is signed out.
+            </p>
+          </>
+        )}
+        <ChangePasswordForm />
+      </section>
 
       <div className="mt-7 space-y-3 border-t border-line pt-4">
         <p className="text-sm text-ink-soft">

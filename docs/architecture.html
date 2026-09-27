@@ -337,7 +337,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><th>Guard</th><th>Sends you away if</th><th>Used by</th></tr>
 <tr><td><code>requireUser()</code></td><td>Not signed in, or you still have an admin-set password</td><td>Every student page</td></tr>
 <tr><td><code>requireAdmin()</code></td><td>The above, or you are not an admin</td><td>The whole <code>/admin</code> segment</td></tr>
-<tr><td><code>requireAnySignedIn()</code></td><td>Not signed in</td><td>Only the change-password page, which must not redirect to itself</td></tr>
+<tr><td><code>requireAnySignedIn()</code></td><td>Not signed in</td><td>Only <code>/account</code>, which holds the forced password change and so must not redirect to itself</td></tr>
 </table></div>
 </div></section>
 
@@ -1126,7 +1126,7 @@ from borders and shadow, and colour kept for state.</p>
 <p>What it replaced: the home page was a full-screen decorative panel, two
 figures, and all six sections repeated as large tiles with a sentence each
 &mdash; the rail&rsquo;s own list, said twice, taking a screen to do it. It is
-now four counts sharing hairlines, tonight&rsquo;s papers as rows, and the one
+now four counts sharing hairlines, today&rsquo;s papers as rows, and the one
 job an admin runs by hand. The window and pattern screens each stated their
 current setting in a dark panel; both are the same figures strip now. Inner
 pages take <code>PageHeader compact</code> and drop their back link, because
@@ -1958,7 +1958,7 @@ landed and what has not, at any time.</p>
 <tr><td>Papers</td><td>Everything drafted or published. Open one to preview, correct an answer key, dry-run it, or manage it once it is out</td></tr>
 <tr><td>Attempts</td><td>Every attempt with score, duration and the two integrity counters. Void one here if you must. Your own dry runs are not listed: they count for nothing and each replaces the last</td></tr>
 <tr><td>Board</td><td>The leaderboard the students see, with the same two filters &mdash; a window in papers, or one paper's own rank list. An admin has no row on it</td></tr>
-<tr><td>People</td><td>Create accounts singly or by pasting a CSV. Rename anyone, students and admins alike, by pressing the name. Reset passwords, in two presses because a reset ends every session the account has open. Deactivate without losing history</td></tr>
+<tr><td>People</td><td>Create accounts singly or by pasting a CSV. Rename anyone, students and admins alike, by pressing the name &mdash; though everybody can do that for themselves on <code>/account</code>. Reset passwords, in two presses because a reset ends every session the account has open. Deactivate without losing history</td></tr>
 <tr><td>Nightly window</td><td>When papers unlock and the last moment anyone may start one. Shows what students will see before you save</td></tr>
 <tr><td>Paper pattern</td><td>Questions, minutes and marking per section &mdash; what a paper is given when its file does not say. Shows the totals, and which question numbers each section would hold, before you save</td></tr>
 <tr><td>Download a blank template</td><td>On the Paper pattern screen. A skeleton built from the pattern as it stands, so it follows any change made there</td></tr>
@@ -1967,7 +1967,7 @@ landed and what has not, at any time.</p>
 
 <div class="note care">
   <h4>There is no automated reminder</h4>
-  <p>With no email configured there is nowhere to send one. The admin home shows tonight's status the moment you open it; for the reminder itself, a recurring alarm on your phone, set for a quarter of an hour before the paper opens, does the job with no code.</p>
+  <p>With no email configured there is nowhere to send one. The admin home lists today's papers and their state the moment you open it; for the reminder itself, a recurring alarm on your phone, set for a quarter of an hour before the paper opens, does the job with no code.</p>
 </div>
 </div></section>
 

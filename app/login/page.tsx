@@ -69,7 +69,7 @@ export default async function LoginPage({
 
         <div className="relative mt-auto max-w-lg">
           <h2 className="font-display text-5xl font-black leading-[1.05] tracking-tight">
-            Sit tonight&rsquo;s paper.<br />
+            Sit today&rsquo;s paper.<br />
             <span className="text-gold-300">See where</span> it puts you.
           </h2>
           <p className="mt-5 text-lg leading-relaxed text-white/70">

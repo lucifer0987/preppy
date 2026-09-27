@@ -1,15 +1,40 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 import { revokeSessions, signIn } from '../../lib/auth'
 import { requireAnySignedIn } from '../../lib/guard'
 import { LIMITS, retryMessage } from '../../lib/rate-limit'
 import { hit, waitFor } from '../../lib/repo/rate-limit'
 import { authClient } from '../../lib/supabase/session'
 import { db } from '../../lib/supabase/admin'
-import type { ChangePasswordState } from './state'
+import { setDisplayName } from '../../lib/repo/users'
+import type { ChangePasswordState, RenameSelfState } from './state'
 
 const MIN_LENGTH = 8
+
+/**
+ * Changing your own name.
+ *
+ * The username is the login and belongs to whoever created the account; the
+ * display name is how the board and the archive refer to you, and there is no
+ * reason that should need an admin. It only ever writes to the signed-in
+ * user's own row -- the id comes from the session, never from the form.
+ */
+export async function renameSelfAction(
+  _prev: RenameSelfState, formData: FormData,
+): Promise<RenameSelfState> {
+  const user = await requireAnySignedIn()
+  try {
+    const savedName = await setDisplayName(user.id, String(formData.get('displayName') ?? ''))
+    // The name is printed on the board and in every archive row, not just here.
+    revalidatePath('/leaderboard')
+    revalidatePath('/admin/users')
+    return { error: null, savedName }
+  } catch (e) {
+    return { error: (e as Error).message, savedName: null }
+  }
+}
 
 /**
  * Changing your own password (FR-6.1.2).
@@ -66,7 +91,7 @@ export async function changePasswordAction(
   try {
     if (check.ok && check.sessionId) await revokeSessions(user.id, check.sessionId)
   } catch (e) {
-    console.error('[change-password]', (e as Error).message)
+    console.error('[account]', (e as Error).message)
   }
 
   await db().from('profiles').update({ must_change_password: false }).eq('id', user.id)

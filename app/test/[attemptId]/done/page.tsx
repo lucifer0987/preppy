@@ -30,7 +30,7 @@ export const dynamic = 'force-dynamic'
  * else (FR-5.3): the score and its breakdown are shown the moment they submit,
  * and every cohort-derived figure -- the two ranks, the best score, the
  * average -- waits for the paper's own hard stop, so nobody can read off this
- * page who has already sat tonight's paper. Once it has closed, the board
+ * page who has already sat the paper. Once it has closed, the board
  * shows the cohort their scores anyway, and a result you cannot place against
  * anything is half a result. Answers unlock at the same moment (FR-4.3).
  *
@@ -247,7 +247,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
 
         {counted && !ranked && (
           <p className="relative mt-5 border-t border-white/15 pt-4 text-sm font-semibold text-white/80">
-            Your rank, the best score on the night and what the room averaged all appear at{' '}
+            Your rank, the best score on this paper and what the room averaged all appear at{' '}
             <span className="numeral">{paperLabels(paperWindow).hardStop}</span>, when this paper
             closes and the leaderboard takes it in.
           </p>
@@ -267,7 +267,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
           <div className="mt-4 space-y-3.5">
             {([
               ['You', score, 'you'],
-              ['Best on the night', cohort.best, 'best'],
+              ['Best on this paper', cohort.best, 'best'],
               ['What the room averaged', cohort.average, 'average'],
             ] as const).map(([label, value, kind]) => {
               const ceiling = Math.max(bounds?.max ?? 0, cohort.best, score, 1)

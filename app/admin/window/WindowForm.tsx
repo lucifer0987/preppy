@@ -55,7 +55,7 @@ export function WindowForm(
         <TimeField
           name="openAt" label="Papers unlock at" defaultValue={openAt}
           onChange={onOpen}
-          hint="When tonight's paper becomes available."
+          hint="When a paper scheduled with these times becomes available."
         />
         <TimeField
           name="entryCloseAt" label="Last moment to start" defaultValue={closeAt}

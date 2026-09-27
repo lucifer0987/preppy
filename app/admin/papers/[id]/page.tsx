@@ -104,7 +104,7 @@ export default async function PaperPreview(
       )}
       {q['replaced'] && (
         <Flash tone="good" className="mt-4 mb-5">
-          The questions were replaced. The paper keeps the night and the window it already had &mdash;
+          The questions were replaced. The paper keeps the day and the window it already had &mdash;
           read it through again below.
         </Flash>
       )}
@@ -250,14 +250,14 @@ export default async function PaperPreview(
           <input type="hidden" name="id" value={id} />
           <h2 className="text-xl font-black">Schedule this paper</h2>
           <p className="mt-1 text-sm text-ink-soft">
-            Pick the night and the window below. Until it opens you can still move it back to draft.
+            Pick the day and the window below. Until it opens you can still move it back to draft.
           </p>
           {/* The date input keeps the platform calendar -- picking a day from a grid
                is the one thing it does better than anything hand-built -- but it now
                sits in the app's own field, and accent-color points its selection at
                the brand instead of the system blue. */}
           <div className="mt-4">
-            <DateField name="date" label="Night" defaultValue={defaultDate} min={istDate()} />
+            <DateField name="date" label="Day" defaultValue={defaultDate} min={istDate()} />
           </div>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">

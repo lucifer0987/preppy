@@ -31,7 +31,7 @@ function usable(user: CurrentUser | null, opts: GuardOptions): user is CurrentUs
 export async function requireUser(opts: GuardOptions = {}): Promise<CurrentUser> {
   const user = await currentUser()
   if (!user || (!user.isActive && !opts.allowInactive)) redirect('/login')
-  if (user.mustChangePassword) redirect('/change-password')
+  if (user.mustChangePassword) redirect('/account')
   return user
 }
 
@@ -41,7 +41,7 @@ export async function requireAdmin(): Promise<CurrentUser> {
   return user
 }
 
-/** For the change-password page itself, which must not redirect to itself. */
+/** For the account page itself, which must not redirect to itself. */
 export async function requireAnySignedIn(): Promise<CurrentUser> {
   const user = await currentUser()
   if (!user || !user.isActive) redirect('/login')
