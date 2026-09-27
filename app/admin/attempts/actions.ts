@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { actionAdmin } from '../../../lib/guard'
-import { deleteDryRun, voidAttempt } from '../../../lib/repo/attempt-admin'
+import { voidAttempt } from '../../../lib/repo/attempt-admin'
 
 /** Back to the list the admin was looking at, with what happened. */
 async function run(formData: FormData, work: (id: string) => Promise<void>, done: string) {
@@ -24,8 +24,4 @@ async function run(formData: FormData, work: (id: string) => Promise<void>, done
 
 export async function voidAttemptAction(formData: FormData) {
   await run(formData, voidAttempt, 'voided')
-}
-
-export async function deleteDryRunAction(formData: FormData) {
-  await run(formData, deleteDryRun, 'deleted')
 }

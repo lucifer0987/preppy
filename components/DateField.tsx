@@ -22,9 +22,20 @@ function fromIso(s: string): Date {
   const [y, m, d] = s.split('-').map(Number)
   return new Date(y ?? 2026, (m ?? 1) - 1, d ?? 1)
 }
-const LONG = new Intl.DateTimeFormat('en-IN', {
-  weekday: 'short', day: 'numeric', month: 'long', year: 'numeric',
-})
+/**
+ * Spelled out by hand rather than by Intl.
+ *
+ * Intl.DateTimeFormat('en-IN') disagrees with itself across ICU versions:
+ * Node rendered "Fri 9 October, 2026" and the browser "Fri, 9 October 2026",
+ * which is a hydration mismatch on every schedule form. Nothing here depends
+ * on the reader's locale -- the whole product is one cohort in one timezone --
+ * so the format is simply written down.
+ */
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December']
+const longDate = (d: Date) =>
+  `${WEEKDAYS[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`
 
 export function DateField({ name, defaultValue, min, label }: {
   name: string
@@ -63,7 +74,7 @@ export function DateField({ name, defaultValue, min, label }: {
         aria-expanded={open}
         className="field mt-1.5 flex w-full max-w-xs items-center justify-between gap-3 text-left"
       >
-        <span className="font-semibold">{LONG.format(selected)}</span>
+        <span className="font-semibold">{longDate(selected)}</span>
         <svg viewBox="0 0 20 20" aria-hidden="true" className="h-4 w-4 shrink-0 fill-ink-faint">
           <path d="M4 3h12a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1zm0 4v9h12V7zM6 1.5h1.5V4H6zm6.5 0H14V4h-1.5z" />
         </svg>

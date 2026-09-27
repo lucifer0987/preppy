@@ -82,7 +82,7 @@ export interface AttemptCore {
 export async function loadAttemptCore(attemptId: string): Promise<AttemptCore | null> {
   const { data: a, error } = await db()
     .from('attempts')
-    .select('id, user_id, test_id, state, is_dry_run, started_at, fullscreen_exits, tab_switches, tests(date, opens_at_min, entry_closes_at_min, attempt_sec), attempt_sections(section_id, started_at, ended_at, end_reason, sections(code, position, duration_sec))')
+    .select('id, user_id, test_id, state, is_dry_run, started_at, fullscreen_exits, tab_switches, tests(date, opens_at_min, entry_closes_at_min, attempt_sec, ended_at), attempt_sections(section_id, started_at, ended_at, end_reason, sections(code, position, duration_sec))')
     .eq('id', attemptId)
     .maybeSingle()
   // A failed read is not "no such attempt": callers treat null as gone.
@@ -192,6 +192,16 @@ async function closeExpiredSections(core: AttemptCore, now: Date): Promise<Secti
  * that already exists (see below).
  */
 export async function startAttempt(testId: string, userId: string, isDryRun: boolean): Promise<string> {
+  // A dry run is a rehearsal, not a record. The one before it goes the moment
+  // there is a new one, so an admin who runs through a paper three times
+  // leaves one row behind rather than three -- and nothing that looks, to
+  // anyone reading the console later, like somebody sat the paper.
+  if (isDryRun) {
+    await db().from('attempts').delete()
+      .eq('test_id', testId).eq('user_id', userId).eq('is_dry_run', true)
+      .neq('state', 'IN_PROGRESS')
+  }
+
   // One transaction (start_attempt in supabase/migrations): the attempt and all
   // its section rows exist together, or neither does. A running dry run is
   // returned rather than doubled.

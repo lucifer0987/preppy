@@ -19,6 +19,7 @@ const TABS = [
   { href: '/admin/papers', label: 'Papers', d: 'M5 2h7l4 4v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm6 1.5V7h3.5z' },
   { href: '/admin/users', label: 'People', d: 'M7 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm6 0a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM2 16c0-2.5 2.2-4 5-4s5 1.5 5 4v1H2zm11 1v-1c0-1.4-.5-2.6-1.3-3.5.6-.2 1.3-.3 2-.3 2.4 0 4.3 1.3 4.3 3.4V17z' },
   { href: '/admin/attempts', label: 'Attempts', d: 'M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm1 4v4.3l3 1.7-.8 1.4L9 11V6z' },
+  { href: '/admin/board', label: 'Board', d: 'M3 12h4v6H3zm5.5-5h3v11h-3zM14 3h3v15h-3z' },
   { href: '/admin/pattern', label: 'Pattern', d: 'M3 3h6v6H3zm8 0h6v6h-6zM3 11h6v6H3zm8 0h6v6h-6z' },
   { href: '/admin/window', label: 'Window', d: 'M4 3h12a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm0 4v9h12V7zM6 1.5h1.5V4H6zm6.5 0H14V4h-1.5z' },
 ] as const

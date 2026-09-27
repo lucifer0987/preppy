@@ -2,10 +2,10 @@
 
 import { redirect } from 'next/navigation'
 import { readPaper, summarise } from '../../../../lib/paper'
-import { savePaper, scheduledDates } from '../../../../lib/repo/papers'
+import { paperLock, replacePaperContent, savePaper, scheduledDates } from '../../../../lib/repo/papers'
 import { deletePaperImages, savePaperImages, type ImageUpload } from '../../../../lib/repo/images'
 import { IMAGE_NAME_PATTERN, MAX_IMAGE_BYTES, imageType } from '../../../../lib/images'
-import { istDate } from '../../../../lib/time'
+import { formatIstDate, istDate } from '../../../../lib/time'
 import { actionAdmin } from '../../../../lib/guard'
 import { LIMITS } from '../../../../lib/rate-limit'
 import { hit } from '../../../../lib/repo/rate-limit'
@@ -28,6 +28,11 @@ export async function uploadAction(_prev: UploadState, formData: FormData): Prom
   if (wait > 0) {
     return { ...emptyUpload, fatal: `That is a lot of uploads in a short time. Try again in ${Math.ceil(wait / 60)} minute(s).` }
   }
+
+  // Set when this upload is a corrected version of a paper that already
+  // exists, rather than a new one. The paper keeps its id, its night and its
+  // place in the schedule; only what is inside it changes.
+  const replaceId = String(formData.get('replaceId') ?? '') || null
 
   const file = formData.get('paper')
   if (!(file instanceof File) || file.size === 0) {
@@ -78,7 +83,7 @@ export async function uploadAction(_prev: UploadState, formData: FormData): Prom
 
   let takenDates: string[]
   try {
-    takenDates = await scheduledDates()
+    takenDates = await scheduledDates(replaceId ?? undefined)
   } catch (e) {
     return { ...emptyUpload, fileName: file.name, fatal: (e as Error).message }
   }
@@ -88,6 +93,38 @@ export async function uploadAction(_prev: UploadState, formData: FormData): Prom
 
   if (!publishable || !paper) {
     return { issues, fileName: file.name, fatal: null }
+  }
+
+  if (replaceId) {
+    const lock = await paperLock(replaceId)
+    if (!lock) return { issues, fileName: file.name, fatal: 'That paper no longer exists.' }
+    // A file for a different night is almost always the wrong file. The
+    // replacement keeps the paper's own night, so saying so beats silently
+    // moving the questions to a date they were not written for.
+    if (paper.date !== lock.date) {
+      return {
+        issues, fileName: file.name,
+        fatal: `This file is dated ${formatIstDate(paper.date)}, but the paper it would replace runs on `
+          + `${formatIstDate(lock.date)}. Fix the date in the file, or upload it as a new paper.`,
+      }
+    }
+    try {
+      await replacePaperContent(replaceId, paper)
+    } catch (e) {
+      return { issues, fileName: file.name, fatal: (e as Error).message }
+    }
+    // The old images go only once the new questions are in: a failure above
+    // leaves the paper exactly as it was, pictures included.
+    await deletePaperImages(replaceId)
+    try {
+      await savePaperImages(replaceId, images)
+    } catch (e) {
+      return {
+        issues, fileName: file.name,
+        fatal: `The questions were replaced, but their images were not: ${(e as Error).message} Upload it again.`,
+      }
+    }
+    redirect(`/admin/papers/${replaceId}?replaced=1`)
   }
 
   // Saved as a DRAFT. It reaches SCHEDULED only by an explicit second action

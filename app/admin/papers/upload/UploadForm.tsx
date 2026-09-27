@@ -7,7 +7,10 @@ import { emptyUpload } from './state'
 import type { Issue } from '../../../../lib/types'
 import { Flash } from '../../../../components/Page'
 
-export function UploadForm() {
+export function UploadForm({ replaceId }: {
+  /** Set when this upload corrects a paper that already exists. */
+  replaceId?: string
+}) {
   const [state, action] = useActionState(uploadAction, emptyUpload)
   const errors = state.issues.filter((i) => i.severity === 'error')
   const warnings = state.issues.filter((i) => i.severity === 'warning')
@@ -15,6 +18,7 @@ export function UploadForm() {
   return (
     <>
       <form action={action} className="card p-5 sm:p-6">
+        {replaceId && <input type="hidden" name="replaceId" value={replaceId} />}
         <label className="block">
           <span className="eyebrow">Paper file</span>
           <input
@@ -47,7 +51,7 @@ export function UploadForm() {
           Every file the paper names in <code className="rounded bg-surface-sunken px-1.5 py-0.5">images</code>,
           under 2 MB each. Up to 10 MB with the paper.
         </p>
-        <Submit />
+        <Submit label={replaceId ? 'Check and replace' : 'Check this paper'} />
       </form>
 
       {state.fatal && (
@@ -90,15 +94,11 @@ function IssueList({ title, tone, issues }: { title: string; tone: 'error' | 'wa
   )
 }
 
-function Submit() {
+function Submit({ label }: { label: string }) {
   const { pending } = useFormStatus()
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="btn btn-primary mt-5"
-    >
-      {pending ? 'Reading...' : 'Check this paper'}
+    <button type="submit" disabled={pending} className="btn btn-primary mt-5">
+      {pending ? 'Reading...' : label}
     </button>
   )
 }

@@ -39,16 +39,31 @@ export async function finaliseOverdueForUser(userId: string, now = new Date()): 
   return finaliseOverdue(now, userId)
 }
 
-async function finaliseOverdue(now: Date, userId: string | null): Promise<FinaliseReport> {
+/**
+ * Every attempt still open on one paper, closed and scored now.
+ *
+ * Used when an admin ends a paper early: the stamp on the paper has already
+ * brought its hard stop forward to this instant, so every running attempt is
+ * overdue by the time this runs and the ordinary sweep closes it. Nothing
+ * here decides to cut anyone short -- the paper did.
+ */
+export async function finaliseOverdueForTest(testId: string, now = new Date()): Promise<FinaliseReport> {
+  return finaliseOverdue(now, null, testId)
+}
+
+async function finaliseOverdue(
+  now: Date, userId: string | null, testId?: string,
+): Promise<FinaliseReport> {
   const client = db()
 
   // Every open attempt is a candidate; its hard stop decides. There are only
   // ever a handful, and a date filter would miss dry runs of future papers.
   let query = client
     .from('attempts')
-    .select('id, is_dry_run, started_at, tests!inner(date, opens_at_min, entry_closes_at_min, attempt_sec, sections(duration_sec))')
+    .select('id, is_dry_run, started_at, tests!inner(date, opens_at_min, entry_closes_at_min, attempt_sec, ended_at, sections(duration_sec))')
     .eq('state', 'IN_PROGRESS')
   if (userId) query = query.eq('user_id', userId)
+  if (testId) query = query.eq('test_id', testId)
   const { data: attempts, error } = await query
 
   if (error) throw new Error(`Could not list open attempts: ${error.message}`)
@@ -58,6 +73,7 @@ async function finaliseOverdue(now: Date, userId: string | null): Promise<Finali
   for (const a of attempts ?? []) {
     const test = a.tests as unknown as {
       date: string; opens_at_min: number; entry_closes_at_min: number; attempt_sec: number
+      ended_at: string | null
       sections: { duration_sec: number }[]
     } | null
     if (!test) continue
@@ -68,6 +84,7 @@ async function finaliseOverdue(now: Date, userId: string | null): Promise<Finali
         opensAtMin: test.opens_at_min,
         entryClosesAtMin: test.entry_closes_at_min,
         attemptMinutes: Math.round(test.attempt_sec / 60),
+        endedAt: test.ended_at,
       },
       startedAt: new Date(a.started_at as string),
       sections: test.sections.map((s) => ({ durationSec: s.duration_sec })),

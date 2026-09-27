@@ -4,7 +4,7 @@ import { selectAll } from './select-all'
 import { db } from '../supabase/admin'
 
 /** The four columns every window needs, and the shape the app uses. */
-export const PAPER_WINDOW_COLUMNS = 'date, opens_at_min, entry_closes_at_min, attempt_sec'
+export const PAPER_WINDOW_COLUMNS = 'date, opens_at_min, entry_closes_at_min, attempt_sec, ended_at'
 
 export function paperWindowOf(row: Record<string, unknown>): PaperWindow {
   const date = row['date']
@@ -21,7 +21,19 @@ export function paperWindowOf(row: Record<string, unknown>): PaperWindow {
       'That paper was read without its window columns. Select PAPER_WINDOW_COLUMNS alongside the rest.',
     )
   }
-  return { date, opensAtMin, entryClosesAtMin, attemptMinutes: Math.round(attemptSec / 60) }
+  // Absent is not the same as null here: a select that forgot ended_at would
+  // read a paper an admin has ended as one still running, which is the whole
+  // point of the column. Missing is an error; null means "never ended".
+  if (!('ended_at' in row)) {
+    throw new Error(
+      'That paper was read without ended_at. Select PAPER_WINDOW_COLUMNS alongside the rest.',
+    )
+  }
+  return {
+    date, opensAtMin, entryClosesAtMin,
+    attemptMinutes: Math.round(attemptSec / 60),
+    endedAt: (row['ended_at'] as string | null) ?? null,
+  }
 }
 import { paperToRows, rowsToPaper, savePaperPayload, type PaperRows } from '../paper-rows'
 import { readQuestion, summarise } from '../paper'
@@ -259,8 +271,13 @@ export async function listPapers(): Promise<PaperSummary[]> {
 }
 
 /** Dates that already hold a scheduled paper, for the upload's DATE_TAKEN check. */
-export async function scheduledDates(): Promise<string[]> {
-  const { data, error } = await db().from('tests').select('date').eq('status', 'SCHEDULED')
+export async function scheduledDates(exceptId?: string): Promise<string[]> {
+  // `exceptId` is for a replacement upload: the paper being replaced holds the
+  // night, and it is the very paper the new file is for, so counting it would
+  // reject every correct file.
+  let query = db().from('tests').select('date').eq('status', 'SCHEDULED')
+  if (exceptId) query = query.neq('id', exceptId)
+  const { data, error } = await query
   if (error) throw new Error(`Could not check which dates are taken: ${error.message}`)
   return (data ?? []).map((t) => t.date as string)
 }
@@ -294,6 +311,14 @@ export interface PaperLock {
   canSchedule: boolean
   canUnschedule: boolean
   canDelete: boolean
+  /** The window can still be moved: scheduled, not ended, not finished. */
+  canRetime: boolean
+  /** It is running (or finishing) and can be stopped for everybody. */
+  canEndNow: boolean
+  /** Its questions can be swapped: nobody has sat it. */
+  canReplace: boolean
+  /** Deleting is possible but takes real attempts with it. */
+  needsForceToDelete: boolean
   /** Why unscheduling or deleting is refused, for the UI and the error. */
   reason: string | null
 }
@@ -318,6 +343,7 @@ export async function paperLock(id: string): Promise<PaperLock | null> {
         ? 'This paper has already gone live, so it cannot be removed or unscheduled.'
         : null
 
+  const ended = Boolean(window.endedAt)
   return {
     date,
     status,
@@ -327,7 +353,14 @@ export async function paperLock(id: string): Promise<PaperLock | null> {
     // Any draft: the admin assigns the night when scheduling it.
     canSchedule: status === 'DRAFT',
     canUnschedule: status === 'SCHEDULED' && !opened && realAttempts === 0,
-    canDelete: realAttempts === 0 && (status === 'DRAFT' || !opened),
+    // A paper nobody has sat can always go, opened or not: there is nothing
+    // to lose by removing it, and being unable to is what used to force an
+    // admin to leave a broken paper live until midnight.
+    canDelete: realAttempts === 0,
+    canRetime: status === 'SCHEDULED' && !ended && state !== 'CLOSED',
+    canEndNow: status === 'SCHEDULED' && !ended && (state === 'OPEN' || state === 'ENTRY_CLOSED'),
+    canReplace: realAttempts === 0,
+    needsForceToDelete: realAttempts > 0,
     reason,
   }
 }
@@ -455,14 +488,147 @@ export async function unschedulePaper(id: string): Promise<void> {
   if (!data?.length) throw new Error('The paper changed while you were looking at it. Reload and try again.')
 }
 
-export async function deletePaper(id: string): Promise<void> {
+/**
+ * Move a live paper's window (FR: the admin's own flexibility).
+ *
+ * The case this exists for is the one the schedule form cannot reach: the
+ * paper is already out, somebody has not sat it yet, and the admin wants to
+ * hold the door open a little longer. Entry close moves, and with it the hard
+ * stop, so a student who starts at the new last moment still gets the whole
+ * paper.
+ *
+ * Once the paper has opened, the opening time is fixed -- moving it would
+ * rewrite when attempts that are already running were allowed to begin.
+ */
+export async function retimePaper(
+  id: string, times: { opensAtMin?: number; entryClosesAtMin: number },
+): Promise<void> {
   const lock = await lockOrThrow(id)
-  if (!lock.canDelete) throw new Error(lock.reason ?? 'This paper can no longer be deleted.')
-  let query = db().from('tests').delete().eq('id', id)
-  if (lock.status === 'SCHEDULED') query = stillBeforeOpen(query)
-  const { data, error } = await query.select('id')
+  if (lock.status !== 'SCHEDULED') throw new Error('Only a scheduled paper has a window to move.')
+  if (lock.window.endedAt) throw new Error('This paper was ended early, so its window no longer applies.')
+  if (lock.state === 'CLOSED') throw new Error('This paper has finished. Its window can no longer be moved.')
+
+  const opened = lock.state !== 'BEFORE_OPEN'
+  if (opened && times.opensAtMin !== undefined && times.opensAtMin !== lock.window.opensAtMin) {
+    throw new Error('This paper has already opened, so only the last moment to start can still move.')
+  }
+
+  const window: PaperWindow = {
+    date: lock.date,
+    opensAtMin: opened ? lock.window.opensAtMin : (times.opensAtMin ?? lock.window.opensAtMin),
+    entryClosesAtMin: times.entryClosesAtMin,
+    attemptMinutes: lock.window.attemptMinutes,
+    endedAt: null,
+  }
+
+  const problem = paperWindowProblem(window)
+  if (problem) throw new Error(problem)
+  if (windowState(window) === 'CLOSED') {
+    throw new Error('That would put the whole paper in the past. Pick a later time.')
+  }
+
+  const clash = await overlappingPaper(window, id)
+  if (clash) {
+    throw new Error(
+      `That overlaps ${clash.title ?? 'another paper'} on the same day, which runs ${clash.labels}. `
+      + 'A student can only sit one paper at a time, so pick a window that does not overlap.',
+    )
+  }
+
+  const { data, error } = await db()
+    .from('tests')
+    .update({ opens_at_min: window.opensAtMin, entry_closes_at_min: window.entryClosesAtMin })
+    .eq('id', id).eq('status', 'SCHEDULED').is('ended_at', null)
+    .select('id')
+  if (error) {
+    if (error.code === '23505') {
+      throw new Error('Another paper already opens at that exact time on this day. Pick a different time.')
+    }
+    throw new Error(`Could not move the window: ${error.message}`)
+  }
+  if (!data?.length) throw new Error('The paper changed while you were looking at it. Reload and try again.')
+}
+
+/**
+ * End a paper now, for everybody, whatever its times say.
+ *
+ * Two things happen together, and the order matters: the paper is stamped
+ * first, so nobody can start one in the gap, and then every attempt still
+ * running is closed and scored exactly as the nightly job would close an
+ * overdue one. From the stamp onwards the paper reads as CLOSED everywhere --
+ * answers and solutions unlock, it enters the archive, and the leaderboard
+ * takes it in.
+ */
+export async function endPaperNow(id: string): Promise<{ finalised: number; failed: number }> {
+  const lock = await lockOrThrow(id)
+  if (lock.status !== 'SCHEDULED') throw new Error('A draft has not started, so it cannot be ended.')
+  if (lock.state === 'BEFORE_OPEN') {
+    throw new Error('This paper has not opened yet. Move it back to draft or change its window instead.')
+  }
+  if (lock.window.endedAt) throw new Error('This paper has already been ended.')
+
+  const { data, error } = await db()
+    .from('tests').update({ ended_at: new Date().toISOString() })
+    .eq('id', id).eq('status', 'SCHEDULED').is('ended_at', null)
+    .select('id')
+  if (error) throw new Error(`Could not end the paper: ${error.message}`)
+  if (!data?.length) throw new Error('The paper changed while you were looking at it. Reload and try again.')
+
+  // Imported here rather than at the top: finalise.ts reads papers, and a
+  // static import both ways is a cycle.
+  const { finaliseOverdueForTest } = await import('./finalise')
+  const report = await finaliseOverdueForTest(id)
+  return { finalised: report.finalised.length, failed: report.failed.length }
+}
+
+/**
+ * Put different questions in a paper that is already out.
+ *
+ * The paper keeps its id, its date, its window and its place in the schedule,
+ * so every link still works and nobody has to schedule it again; only what is
+ * inside it changes. Whoever has not sat it yet simply gets the new version.
+ *
+ * Refused once a student has sat it: their answers point at the questions this
+ * replaces, and a score against questions that no longer exist means nothing.
+ * Delete the paper in that case, which says plainly what goes with it.
+ */
+export async function replacePaperContent(id: string, paper: Paper): Promise<void> {
+  const lock = await lockOrThrow(id)
+  if (lock.realAttempts > 0) {
+    throw new Error(
+      `${lock.realAttempts} student${lock.realAttempts === 1 ? ' has' : 's have'} already sat this paper, `
+      + 'so its questions cannot be swapped underneath them. Delete it and upload the new one instead.',
+    )
+  }
+
+  const { error } = await db().rpc('replace_paper_content', {
+    p_test: id, p: savePaperPayload(paperToRows(paper)),
+  })
+  if (!error) return
+  if (/NO_SUCH_PAPER/.test(error.message)) throw new Error('That paper no longer exists.')
+  if (/PAPER_HAS_ATTEMPTS/.test(error.message)) {
+    throw new Error('Somebody sat this paper while you were uploading. Nothing was changed.')
+  }
+  throw new Error(`Could not replace the paper: ${error.message}`)
+}
+
+/**
+ * Remove a paper and everything under it.
+ *
+ * A paper nobody has sat goes without ceremony, whether or not it has opened:
+ * being unable to remove a live paper is what used to leave a broken one on
+ * screen until midnight. One that has been sat needs `force`, because the
+ * attempts, their answers and their scores go with it -- so the screen that
+ * offers it says exactly how many.
+ */
+export async function deletePaper(id: string, opts: { force?: boolean } = {}): Promise<void> {
+  const lock = await lockOrThrow(id)
+  if (lock.realAttempts > 0 && !opts.force) {
+    throw new Error(lock.reason ?? 'This paper has been sat, so it cannot be deleted.')
+  }
+  const { data, error } = await db().from('tests').delete().eq('id', id).select('id')
   if (error) throw new Error(`Could not delete the paper: ${error.message}`)
-  if (!data?.length) throw new Error('The paper opened while you were looking at it, so it was kept.')
+  if (!data?.length) throw new Error('That paper no longer exists.')
   await deletePaperImages(id)
 }
 

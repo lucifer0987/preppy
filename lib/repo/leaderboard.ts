@@ -24,6 +24,9 @@ const windowOf = (t: Record<string, unknown>): PaperWindow => ({
   opensAtMin: t['opens_at_min'] as number,
   entryClosesAtMin: t['entry_closes_at_min'] as number,
   attemptMinutes: Math.round((t['attempt_sec'] as number) / 60),
+  // A paper an admin ended early joins the board from that moment, not from
+  // the hard stop its times would have given it.
+  endedAt: (t['ended_at'] as string | null) ?? null,
 })
 
 /**
@@ -47,7 +50,7 @@ async function loadCounted(now = new Date()): Promise<Counted> {
   // Today is a cheap upper bound; which papers have actually closed depends on
   // each one's own times, so the real filter happens here rather than in SQL.
   const candidates = await selectAll<Record<string, unknown>>('papers', (from, to) =>
-    client.from('tests').select('id, date, opens_at_min, entry_closes_at_min, attempt_sec')
+    client.from('tests').select('id, date, opens_at_min, entry_closes_at_min, attempt_sec, ended_at')
       .eq('status', 'SCHEDULED').lte('date', istDate(now))
       .order('date').range(from, to))
 
@@ -65,7 +68,7 @@ async function loadCounted(now = new Date()): Promise<Counted> {
   // instead of listing every paper id in a URL that grows every night.
   const attempts = await selectAll<Record<string, unknown>>('attempts', (from, to) =>
     client.from('attempts')
-      .select('id, user_id, total_score, correct, attempted, time_spent_sec, profiles(username, display_name), tests!inner(date, status, opens_at_min, entry_closes_at_min, attempt_sec)')
+      .select('id, user_id, total_score, correct, attempted, time_spent_sec, profiles(username, display_name), tests!inner(date, status, opens_at_min, entry_closes_at_min, attempt_sec, ended_at)')
       .eq('is_dry_run', false)
       .in('state', COUNTED_STATES)
       .eq('tests.status', 'SCHEDULED')
@@ -140,7 +143,7 @@ export interface PaperStandingRow {
  */
 export async function getPaperStandings(testId: string): Promise<{ date: string; rows: PaperStandingRow[] } | null> {
   const { data: test, error } = await db()
-    .from('tests').select('date, status, opens_at_min, entry_closes_at_min, attempt_sec').eq('id', testId).maybeSingle()
+    .from('tests').select('date, status, opens_at_min, entry_closes_at_min, attempt_sec, ended_at').eq('id', testId).maybeSingle()
   if (error) throw new Error(`Could not load the paper: ${error.message}`)
   if (!test || test.status !== 'SCHEDULED' || !paperClosed(windowOf(test))) return null
   // As for the board: anyone left open past the hard stop is scored first, so
@@ -172,7 +175,7 @@ export async function getPaperStandings(testId: string): Promise<{ date: string;
 /** Papers with a rank list to show: every paper on the board, newest first. */
 export async function boardPapers(): Promise<{ id: string; date: string; title: string | null }[]> {
   const candidates = await selectAll<Record<string, unknown>>('papers', (from, to) =>
-    db().from('tests').select('id, date, title, opens_at_min, entry_closes_at_min, attempt_sec')
+    db().from('tests').select('id, date, title, opens_at_min, entry_closes_at_min, attempt_sec, ended_at')
       .eq('status', 'SCHEDULED').lte('date', istDate())
       .order('date', { ascending: false }).range(from, to))
   return candidates
@@ -207,7 +210,7 @@ export async function getArchive(userId: string): Promise<ArchiveRow[]> {
   // is already here while tonight's is not. The date filter is only an upper
   // bound; the real one is below.
   const candidates = await selectAll<Record<string, unknown>>('papers', (from, to) =>
-    client.from('tests').select('id, date, title, opens_at_min, entry_closes_at_min, attempt_sec')
+    client.from('tests').select('id, date, title, opens_at_min, entry_closes_at_min, attempt_sec, ended_at')
       .eq('status', 'SCHEDULED').lte('date', today)
       .order('date', { ascending: false }).range(from, to))
 

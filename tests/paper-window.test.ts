@@ -6,10 +6,28 @@ vi.mock('../lib/supabase/admin', () => ({ db: () => { throw new Error('not used'
 const { PAPER_WINDOW_COLUMNS, paperWindowOf, shapeOf } = await import('../lib/repo/papers')
 
 describe('building a window from a row', () => {
-  it('reads the three columns', () => {
+  it('reads the window columns', () => {
     expect(paperWindowOf({
       date: '2026-11-01', opens_at_min: 360, entry_closes_at_min: 420, attempt_sec: 45 * 60,
-    })).toEqual({ date: '2026-11-01', opensAtMin: 360, entryClosesAtMin: 420, attemptMinutes: 45 })
+      ended_at: null,
+    })).toEqual({
+      date: '2026-11-01', opensAtMin: 360, entryClosesAtMin: 420, attemptMinutes: 45, endedAt: null,
+    })
+  })
+
+  it('carries an early end through', () => {
+    expect(paperWindowOf({
+      date: '2026-11-01', opens_at_min: 360, entry_closes_at_min: 420, attempt_sec: 45 * 60,
+      ended_at: '2026-11-01T05:00:00Z',
+    }).endedAt).toBe('2026-11-01T05:00:00Z')
+  })
+
+  it('refuses a row whose select forgot ended_at', () => {
+    // Absent reads exactly like "never ended", so a paper an admin had ended
+    // would look to that caller like one still running.
+    expect(() => paperWindowOf({
+      date: '2026-11-01', opens_at_min: 360, entry_closes_at_min: 420, attempt_sec: 45 * 60,
+    })).toThrow(/ended_at/)
   })
 
   it('refuses a row whose select forgot the window columns', () => {
@@ -26,7 +44,7 @@ describe('building a window from a row', () => {
   })
 
   it('names the columns a select needs', () => {
-    for (const c of ['date', 'opens_at_min', 'entry_closes_at_min', 'attempt_sec']) {
+    for (const c of ['date', 'opens_at_min', 'entry_closes_at_min', 'attempt_sec', 'ended_at']) {
       expect(PAPER_WINDOW_COLUMNS).toContain(c)
     }
   })

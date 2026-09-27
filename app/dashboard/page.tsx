@@ -6,8 +6,8 @@ import { getArchive, getLeaderboard } from '../../lib/repo/leaderboard'
 import { ordinal } from '../../lib/leaderboard'
 import { LeaderboardTable } from '../../components/LeaderboardTable'
 import {
-  canStartAttempt, defaultPaperWindow, entryClosesAt, formatIstDate, istDate, istParts, opensAt,
-  paperClosed, paperLabels, type PaperWindow,
+  canStartAttempt, defaultPaperWindow, entryClosesAt, formatIstDate, hardStopAt, istDate, istParts,
+  opensAt, paperClosed, paperLabels, type PaperWindow,
 } from '../../lib/time'
 import { getWindow } from '../../lib/repo/settings'
 import { upcomingPapers } from '../../lib/repo/papers'
@@ -77,7 +77,10 @@ export default async function Dashboard({
           href: `/test/${attempt.id}`,
           cta: 'Resume test',
         }
-      : live && tonight && openPaper && entryStillOpen
+      // `!attempt` matters: entry staying open is about the paper, not about
+      // this student, and without it the panel went on offering "Start test"
+      // to somebody who had already handed the paper in.
+      : live && tonight && openPaper && entryStillOpen && !attempt
         ? {
             label: `Entry closes at ${labels.closes}`,
             targetIso: entryClosesAt(openPaper.window).toISOString(),
@@ -85,7 +88,18 @@ export default async function Dashboard({
             href: `/test/start?test=${tonight.id}`,
             cta: 'Start test',
           }
-        : null
+        // Handed in, paper still running: the clock that matters now is the
+        // one to the answers, so the column keeps its shape instead of
+        // emptying out the moment you finish.
+        : attempt && openPaper && tonight && !paperClosed(openPaper.window, now)
+          ? {
+              label: `Answers unlock at ${labels.hardStop}`,
+              targetIso: hardStopAt(openPaper.window).toISOString(),
+              countdownLabel: 'Answers unlock in',
+              href: `/test/${attempt.id}/done`,
+              cta: 'See your result',
+            }
+          : null
 
   // Panels 2 and 3. Either failing must not take the whole dashboard down:
   // tonight's paper is the panel that matters once the window opens.
@@ -137,7 +151,7 @@ export default async function Dashboard({
               The admin set it aside, so it does not count and has no score. Ask them if you are not
               sure why.
             </p>
-            {afterTonight && <NextPaper paper={afterTonight} nowIso={nowIso} />}
+            {afterTonight && <NextPaper paper={afterTonight} nowIso={nowIso} now={now} />}
           </>
         ) : attempt && tonight ? (
           <>
@@ -151,19 +165,23 @@ export default async function Dashboard({
                 ? 'Answers and solutions are open now.'
                 : `Answers unlock at ${labels.hardStop}.`}
             </p>
+            {/* Only once there is no aside carrying it: while the paper is
+                still running the countdown column owns this button. */}
             <div className="mt-4 flex flex-wrap gap-3">
-              <Link href={`/test/${attempt.id}/done`}
-                    className="btn btn-invert inline-block px-7 py-3.5">
-                See your result
-              </Link>
-              {paperClosed(openPaper!.window, now) && (
-                <Link href={`/archive/${tonight.id}`}
-                      className="inline-block rounded-control bg-white/15 px-7 py-3.5 font-black text-white">
-                  Review answers
-                </Link>
-              )}
+              {paperClosed(openPaper!.window, now) ? (
+                <>
+                  <Link href={`/test/${attempt.id}/done`}
+                        className="btn btn-invert inline-block px-7 py-3.5">
+                    See your result
+                  </Link>
+                  <Link href={`/archive/${tonight.id}`}
+                        className="btn btn-invert inline-block bg-white/15 px-7 py-3.5 text-white">
+                    Review answers
+                  </Link>
+                </>
+              ) : null}
             </div>
-            {afterTonight && <NextPaper paper={afterTonight} nowIso={nowIso} />}
+            {afterTonight && <NextPaper paper={afterTonight} nowIso={nowIso} now={now} />}
           </>
         ) : live && tonight && openPaper && canStartAttempt(openPaper.window, now) ? (
           <>
@@ -181,12 +199,12 @@ export default async function Dashboard({
             <p className="mt-2 text-2xl font-black">
               Entry closed at {labels.closes}
             </p>
-            <NextPaper paper={afterTonight} nowIso={nowIso} />
+            <NextPaper paper={afterTonight} nowIso={nowIso} now={now} />
           </>
         ) : (
           <>
             {!tonight && <p className="mt-1.5 font-display text-2xl font-black">No paper tonight.</p>}
-            <NextPaper paper={upcoming} nowIso={nowIso} />
+            <NextPaper paper={upcoming} nowIso={nowIso} now={now} />
             {mine && mine.currentStreak > 0 && (
               <p className="mt-4 flex flex-wrap items-center gap-2 text-sm font-semibold">
                 Your streak <StreakBadge days={mine.currentStreak} size="lg" />
@@ -274,8 +292,10 @@ export default async function Dashboard({
 }
 
 /** A countdown to the next scheduled paper, or a plain statement that there is none. */
-function NextPaper({ paper, nowIso }: {
-  paper: { title: string | null; window: PaperWindow } | null; nowIso: string
+function NextPaper({ paper, nowIso, now }: {
+  paper: { title: string | null; window: PaperWindow } | null
+  nowIso: string
+  now: Date
 }) {
   if (!paper) {
     return (
@@ -284,12 +304,20 @@ function NextPaper({ paper, nowIso }: {
       </p>
     )
   }
+  // A clock is only a clock while it means something. Two days out it reads
+  // "284 HRS", which is a date written the long way round -- so past that, the
+  // date is the whole of it.
+  const soon = opensAt(paper.window).getTime() - now.getTime() < 36 * 3600_000
   return (
     <>
       <p className="mt-3 text-sm text-white/70">
-          Next paper: {formatIstDate(paper.window.date)} at {paperLabels(paper.window).opens}
-        </p>
-      <div className="mt-2"><Countdown targetIso={opensAt(paper.window).toISOString()} nowIso={nowIso} /></div>
+        Next paper: {formatIstDate(paper.window.date)} at {paperLabels(paper.window).opens}
+      </p>
+      {soon && (
+        <div className="mt-2">
+          <Countdown targetIso={opensAt(paper.window).toISOString()} nowIso={nowIso} />
+        </div>
+      )}
     </>
   )
 }

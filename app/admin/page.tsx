@@ -26,7 +26,7 @@ export default async function AdminHome({
 
   const [tonightRes, students, scheduled, drafts, attempts] = await Promise.all([
     db().from('tests')
-      .select('id, date, title, status, opens_at_min, entry_closes_at_min, attempt_sec')
+      .select('id, date, title, status, opens_at_min, entry_closes_at_min, attempt_sec, ended_at')
       .eq('date', today),
     db().from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student'),
     db().from('tests').select('*', { count: 'exact', head: true }).eq('status', 'SCHEDULED'),

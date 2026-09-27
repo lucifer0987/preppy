@@ -8,7 +8,9 @@ import {
 } from '../../../../lib/scoring'
 import { ordinal } from '../../../../lib/leaderboard'
 import { getPaperById } from '../../../../lib/repo/papers'
-import { getResultStanding, type ResultStanding } from '../../../../lib/repo/leaderboard'
+import {
+  getPaperStandings, getResultStanding, type ResultStanding,
+} from '../../../../lib/repo/leaderboard'
 import { formatIstDate, paperClosed, paperLabels } from '../../../../lib/time'
 import { paperWindowOf } from '../../../../lib/repo/papers'
 import { Celebration, type CelebrationLevel } from '../../../../components/Celebration'
@@ -16,7 +18,7 @@ import { CountUp } from '../../../../components/CountUp'
 import { ResultSound } from '../../../../components/ResultSound'
 import { SoundToggle } from '../../../../components/SoundToggle'
 import { ThemeToggle } from '../../../../components/ThemeToggle'
-import { Flash } from '../../../../components/Page'
+import { Flash, TableShell, Th } from '../../../../components/Page'
 import { SectionShape } from '../../../../components/SectionShape'
 
 export const dynamic = 'force-dynamic'
@@ -24,11 +26,13 @@ export const dynamic = 'force-dynamic'
 /**
  * The result (PRD section 6.6).
  *
- * Everything here is about this student and nobody else (FR-5.3): no cohort
- * average, no comparison bars. The score and its breakdown are shown the
- * moment the student submits. The two rank figures, the only cohort-derived
- * numbers, wait for the leaderboard's 00:01 refresh, so nobody can learn from
- * a rank who else has sat tonight's paper. Answers unlock at midnight (FR-4.3).
+ * Until the paper closes, everything here is about this student and nobody
+ * else (FR-5.3): the score and its breakdown are shown the moment they submit,
+ * and every cohort-derived figure -- the two ranks, the best score, the
+ * average -- waits for the paper's own hard stop, so nobody can read off this
+ * page who has already sat tonight's paper. Once it has closed, the board
+ * shows the cohort their scores anyway, and a result you cannot place against
+ * anything is half a result. Answers unlock at the same moment (FR-4.3).
  *
  * The paper itself is loaded for its shape (bounds, section bands) only.
  * Nothing from it beyond numbers reaches the page, and nothing reaches a
@@ -44,7 +48,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
   // result, so only affected students see the notice (FR-6.9.3).
   const { data: attempt } = await client
     .from('attempts')
-    .select('id, user_id, test_id, state, is_dry_run, total_score, section_scores, attempted, correct, wrong, skipped, not_reached, time_spent_sec, fullscreen_exits, tab_switches, rescored_at, tests(date, title, status, opens_at_min, entry_closes_at_min, attempt_sec)')
+    .select('id, user_id, test_id, state, is_dry_run, total_score, section_scores, attempted, correct, wrong, skipped, not_reached, time_spent_sec, fullscreen_exits, tab_switches, rescored_at, tests(date, title, status, opens_at_min, entry_closes_at_min, attempt_sec, ended_at)')
     .eq('id', attemptId)
     .maybeSingle()
 
@@ -62,7 +66,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
   const counted = !attempt.is_dry_run && attempt.state !== 'VOIDED'
   const ranked = counted && paperClosed(paperWindow)
 
-  const [record, sectionRows, responseRows, earlier, standing] = await Promise.all([
+  const [record, sectionRows, responseRows, earlier, standing, standings] = await Promise.all([
     getPaperById(testId),
     client.from('attempt_sections')
       .select('started_at, ended_at, sections(code, duration_sec)')
@@ -86,6 +90,15 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
           return null
         })
       : Promise.resolve<ResultStanding | null>(null),
+    // What everyone else scored on this paper. Only ever read once the paper
+    // is on the board, and only ever reduced to two figures -- the best and
+    // the average -- so no name leaves this query.
+    ranked
+      ? getPaperStandings(testId).catch((e: Error) => {
+          console.error('[result] could not compare', e.message)
+          return null
+        })
+      : Promise.resolve<Awaited<ReturnType<typeof getPaperStandings>>>(null),
   ])
 
   const bounds = record ? scoreBounds(record.paper) : null
@@ -112,6 +125,19 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
   const previous = earlier.data ?? []
   const best = previous.reduce((a, r) => Math.max(a, Number(r.total_score ?? 0)), -Infinity)
   const isPersonalBest = counted && previous.length > 0 && score > best
+
+  // Reduced to figures before it reaches the page: the best on the night and
+  // what the room averaged, never who scored what.
+  const cohort = standings && standings.rows.length > 0
+    ? {
+        of: standings.rows.length,
+        best: Math.max(...standings.rows.map((r) => r.score)),
+        average: standings.rows.reduce((n, r) => n + r.score, 0) / standings.rows.length,
+      }
+    : null
+
+  const attempted = (attempt.attempted as number | null) ?? 0
+  const accuracyPct = attempted === 0 ? null : ((attempt.correct as number) / attempted) * 100
 
   const hasPacing = sections.some((s) => pacingVerdict(s))
   const hasSlowest = slowest.some((s) => s.questions.length)
@@ -154,195 +180,220 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
           screenful. The score leads, the things you read once sit beside it,
           and the section table gets the full width because it has nine
           columns and actually wants them. */}
-      <div className="mt-4 grid gap-4 lg:grid-cols-[1.4fr_1fr] xl:grid-cols-[1.55fr_1fr]">
-        <section className="relative flex flex-col justify-center overflow-hidden rounded-card
-                            bg-play-purple p-6 text-center text-white shadow-high sm:p-8">
-          <div aria-hidden="true"
-               className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-brand-500/30 blur-3xl" />
-          <div className="relative">
+      {/* One band of headline figures, then the comparison, then a row per
+          section: the shape a result screen wants, because it is the order the
+          questions come in -- what did I get, where does that put me, and
+          which section did it come from. */}
+      <section className="relative mt-4 overflow-hidden rounded-card bg-play-purple p-6 text-white
+                          shadow-high sm:p-8">
+        <div aria-hidden="true"
+             className="pointer-events-none absolute -right-20 -top-28 h-72 w-72 rounded-full bg-brand-500/30 blur-3xl" />
+
+        <div className="relative grid gap-7 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:items-center lg:gap-10">
+          <div>
             {attempt.is_dry_run && (
-              <p className="mb-3 inline-block rounded-full bg-white/20 px-3 py-1 text-[10px] font-bold uppercase tracking-widest">
+              <p className="mb-3 inline-block rounded-full bg-white/20 px-3 py-1 text-[10px]
+                            font-bold uppercase tracking-widest">
                 Dry run &middot; not counted
               </p>
             )}
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">Your score</p>
-            <p className="numeral mt-2 text-6xl font-black sm:text-7xl">
-              <CountUp value={score} />
+            <p className="text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-white/60">
+              Your score
+            </p>
+            <p className="mt-1.5 flex items-baseline gap-2">
+              <span className="numeral text-6xl font-black leading-none sm:text-7xl">
+                <CountUp value={score} />
+              </span>
+              {bounds && <span className="numeral text-lg font-bold text-white/55">/ {bounds.max}</span>}
             </p>
             {bounds && (
-              <>
-                <p className="numeral mt-1 text-white/70">out of {bounds.max}</p>
-                <div className="mx-auto mt-4 h-2 w-full max-w-xs overflow-hidden rounded-pill bg-white/15">
-                  <div
-                    className="h-full rounded-pill bg-white/90"
-                    style={{ width: `${Math.max(0, Math.min(100, (score / bounds.max) * 100)).toFixed(1)}%` }}
-                  />
-                </div>
-              </>
-            )}
-            {standing?.paper && (
-              <p className="mt-3 text-2xl font-black">
-                {ordinal(standing.paper.rank)} of {standing.paper.of}
-              </p>
-            )}
-            {counted && !ranked && (
-              <p className="measure mx-auto mt-3 text-sm font-semibold text-white/80">
-                Your rank on this paper appears at {paperLabels(paperWindow).hardStop}, when
-                the leaderboard takes in tonight&rsquo;s results.
-              </p>
+              <div className="mt-4 h-2 w-full overflow-hidden rounded-pill bg-white/15">
+                <div className="h-full rounded-pill bg-white/90"
+                     style={{ width: `${Math.max(0, Math.min(100, (score / bounds.max) * 100)).toFixed(1)}%` }} />
+              </div>
             )}
             {isPersonalBest && (
-              <p className="chip mt-3 gap-1.5 bg-zap-solid px-4 py-1.5 text-sm text-white shadow-high">
+              <p className="chip mt-4 gap-1.5 bg-zap-solid px-4 py-1.5 text-sm text-white shadow-high">
                 <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3.5 w-3.5 fill-current">
                   <path d="M8 0.8l2.1 4.3 4.7.7-3.4 3.3.8 4.7L8 11.6l-4.2 2.2.8-4.7L1.2 5.8l4.7-.7z" />
                 </svg>
                 Personal best
               </p>
             )}
-
-            {/* Five figures on one line wrapped mid-phrase on a phone. As cells
-                they wrap as whole facts, and line up as figures should. */}
-            <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-control border border-white/15 bg-white/10 sm:grid-cols-3 lg:grid-cols-5">
-              <Tally label="Correct" value={attempt.correct as number} />
-              <Tally label="Wrong" value={attempt.wrong as number} />
-              <Tally label="Skipped" value={attempt.skipped as number} />
-              <Tally label="Not reached" value={attempt.not_reached as number} />
-              <Tally label="Minutes" value={minutes} />
-            </dl>
           </div>
-        </section>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 lg:content-start">
-          {standing && standing.board.after !== null && (
-            <section className="card p-5">
-              <h2 className="eyebrow">Leaderboard</h2>
-              <p className="mt-2 text-sm">
-                <BoardDelta before={standing.board.before} after={standing.board.after} of={standing.board.of} />
-              </p>
-            </section>
-          )}
+          <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-control border border-white/15
+                         bg-white/10 sm:grid-cols-3">
+            <Tally
+              label="Rank on this paper"
+              value={standing?.paper ? ordinal(standing.paper.rank) : '—'}
+              hint={standing?.paper ? `of ${standing.paper.of}` : ranked ? undefined : 'when it closes'}
+            />
+            <Tally
+              label="Accuracy"
+              value={accuracyPct === null ? '—' : `${accuracyPct.toFixed(0)}%`}
+              hint={attempted === 0 ? 'nothing attempted' : `${attempt.correct} of ${attempted} attempted`}
+            />
+            <Tally label="Time used" value={`${minutes}`} hint="minutes" />
+            <Tally label="Right" value={attempt.correct as number} />
+            <Tally label="Wrong" value={attempt.wrong as number} />
+            <Tally
+              label="Unanswered"
+              value={(attempt.skipped as number) + (attempt.not_reached as number)}
+              hint={`${attempt.not_reached} never reached`}
+            />
+          </dl>
+        </div>
 
-          <section className="card p-5">
-            <h2 className="eyebrow">Answers</h2>
-            {unlocked && test.status === 'SCHEDULED' ? (
-              <Link href={`/archive/${testId}`} className="btn btn-primary mt-3 px-5 py-2.5 text-sm">
-                Review your answers
-              </Link>
-            ) : (
-              <p className="mt-2 text-sm text-ink-soft">
-                {unlocked
-                  ? 'This paper is not published, so it has no review page.'
-                  : 'Answers and solutions unlock at midnight, for everyone at once.'}
-              </p>
-            )}
-          </section>
+        {counted && !ranked && (
+          <p className="relative mt-5 border-t border-white/15 pt-4 text-sm font-semibold text-white/80">
+            Your rank, the best score on the night and what the room averaged all appear at{' '}
+            <span className="numeral">{paperLabels(paperWindow).hardStop}</span>, when this paper
+            closes and the leaderboard takes it in.
+          </p>
+        )}
+      </section>
 
-          <section className="card p-5">
-            <h2 className="eyebrow">Full screen</h2>
-            <p className="numeral mt-2 text-sm">
-              Left full screen <strong>{attempt.fullscreen_exits}</strong>{' '}
-              {attempt.fullscreen_exits === 1 ? 'time' : 'times'} &middot; switched away{' '}
-              <strong>{attempt.tab_switches}</strong> {attempt.tab_switches === 1 ? 'time' : 'times'}.
+      {/* Only once the paper is closed, which is also when the board shows the
+          cohort these numbers anyway. Two figures, no names. */}
+      {cohort && (
+        <section className="card mt-4 p-5 sm:p-6">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <h2 className="eyebrow">Where this sits</h2>
+            <p className="numeral text-xs text-ink-faint">
+              {cohort.of} sat this paper
             </p>
-          </section>
+          </div>
+          <div className="mt-4 space-y-3.5">
+            {([
+              ['You', score, 'you'],
+              ['Best on the night', cohort.best, 'best'],
+              ['What the room averaged', cohort.average, 'average'],
+            ] as const).map(([label, value, kind]) => {
+              const ceiling = Math.max(bounds?.max ?? 0, cohort.best, score, 1)
+              const pct = Math.max(0, Math.min(100, (value / ceiling) * 100))
+              return (
+                <div key={kind}>
+                  <div className="flex items-baseline justify-between gap-3 text-sm">
+                    <span className={kind === 'you' ? 'font-bold text-ink' : 'text-ink-soft'}>{label}</span>
+                    <span className={`numeral font-bold ${kind === 'you' ? 'text-accent' : 'text-ink'}`}>
+                      {value.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 h-2.5 overflow-hidden rounded-pill bg-surface-sunken">
+                    <div
+                      className={`h-full rounded-pill ${
+                        kind === 'you' ? 'bg-accent' : kind === 'best' ? 'bg-gold' : 'bg-line-strong'
+                      }`}
+                      style={{ width: `${pct.toFixed(1)}%` }}
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          {standing?.board.after !== null && standing && (
+            <p className="mt-4 border-t border-line pt-3.5 text-sm text-ink-soft">
+              <BoardDelta before={standing.board.before} after={standing.board.after} of={standing.board.of} />
+            </p>
+          )}
+        </section>
+      )}
 
-          {/* Beside the score rather than in a row of its own: this column was
-              two short cards against a tall scoreboard, and pacing is the one
-              thing on the page a student reads straight after the number. */}
+      {/* A table, not four cards: eight figures a section is what a section is,
+          and lined up in columns they can be compared down as well as across. */}
+      <section className="mt-4">
+        <h2 className="eyebrow">Section by section</h2>
+        <div className="mt-3">
+          <TableShell minWidth="54rem">
+            <thead>
+              <tr className="border-b border-line bg-surface-sunken">
+                <Th className="pl-4">Section</Th>
+                <Th align="right">Marks</Th>
+                <Th align="right">Attempted</Th>
+                <Th align="right">Right</Th>
+                <Th align="right">Wrong</Th>
+                <Th align="right">Unanswered</Th>
+                <Th>Accuracy</Th>
+                <Th align="right" className="pr-4">Time</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {sections.map((sec, i) => {
+                const acc = sec.accuracyPct
+                const used = timeByCode.get(sec.code) ?? null
+                return (
+                  <tr key={sec.code} className="border-b border-line last:border-0">
+                    <td className="py-3 pl-4 pr-3">
+                      <span className="flex items-center gap-2.5">
+                        <SectionShape index={i} />
+                        <span className="min-w-0 font-semibold">{SECTION_NAMES[sec.code as SectionCode]}</span>
+                      </span>
+                    </td>
+                    <td className="px-3 py-3 text-right">
+                      <span className={`numeral text-lg font-black ${
+                        sec.score > 0 ? 'text-ink' : sec.score < 0 ? 'text-bad-ink' : 'text-ink-faint'
+                      }`}>
+                        {sec.score.toFixed(2)}
+                      </span>
+                    </td>
+                    <td className="numeral px-3 py-3 text-right text-ink-soft">{sec.attempted}</td>
+                    <td className="numeral px-3 py-3 text-right font-bold text-good-ink">{sec.correct}</td>
+                    <td className="numeral px-3 py-3 text-right font-bold text-bad-ink">{sec.wrong}</td>
+                    <td className="numeral px-3 py-3 text-right text-ink-soft">
+                      {sec.skipped + sec.notReached}
+                    </td>
+                    <td className="w-40 px-3 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <span className="h-2 flex-1 overflow-hidden rounded-pill bg-surface-sunken">
+                          <span
+                            className={`block h-full rounded-pill ${
+                              acc === null ? '' : acc >= 60 ? 'bg-good' : acc >= 35 ? 'bg-warn' : 'bg-bad'
+                            }`}
+                            style={{ width: `${acc === null ? 0 : acc.toFixed(0)}%` }}
+                          />
+                        </span>
+                        <span className="numeral w-10 shrink-0 text-right text-xs font-bold">
+                          {acc === null ? '—' : `${acc.toFixed(0)}%`}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="numeral px-3 py-3 pr-4 text-right text-ink-soft">{clock(used)}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </TableShell>
+        </div>
+      </section>
+
+      {(hasPacing || hasSlowest) && (
+        <div className={`mt-4 grid gap-4 ${hasPacing && hasSlowest ? 'lg:grid-cols-2' : ''}`}>
           {hasPacing && (
-            <section className="card p-5 sm:col-span-2 lg:col-span-1">
+            <section className="card p-5">
               <h2 className="eyebrow">Pacing</h2>
               <ul className="mt-3 space-y-2 text-sm">
-                {sections.map((s) => {
-                  const verdict = pacingVerdict(s)
+                {sections.map((sec) => {
+                  const verdict = pacingVerdict(sec)
                   return verdict ? (
-                    <li key={s.code}>
-                      <span className="font-semibold">{SECTION_NAMES[s.code as SectionCode]}:</span> {verdict}
+                    <li key={sec.code}>
+                      <span className="font-semibold">{SECTION_NAMES[sec.code as SectionCode]}:</span> {verdict}
                     </li>
                   ) : null
                 })}
               </ul>
             </section>
           )}
-        </div>
-      </div>
 
-      {/* Sectional marks are the point of this page, so they are cards rather
-          than nine columns of digits in a table. Each carries its own answer
-          shape, which is how a student already recognises the section. */}
-      <section className="mt-5">
-        <h2 className="eyebrow">Marks by section</h2>
-        <ul className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {sections.map((s, i) => {
-            const acc = s.accuracyPct
-            return (
-              <li key={s.code} className="card p-5">
-                <div className="flex items-center gap-2.5">
-                  <SectionShape index={i} />
-                  <h3 className="min-w-0 flex-1 truncate font-display text-sm font-bold">
-                    {SECTION_NAMES[s.code as SectionCode]}
-                  </h3>
-                </div>
-
-                <p className="numeral mt-3 flex items-baseline gap-1.5">
-                  <span className={`text-4xl font-black ${
-                    s.score > 0 ? 'text-ink' : s.score < 0 ? 'text-bad-ink' : 'text-ink-faint'
-                  }`}>
-                    {s.score.toFixed(2)}
-                  </span>
-                  <span className="text-xs font-semibold text-ink-faint">marks</span>
-                </p>
-
-                <dl className="numeral mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs">
-                  <span className="flex gap-1"><dt className="text-ink-faint">Right</dt>
-                    <dd className="font-bold text-good-ink">{s.correct}</dd></span>
-                  <span className="flex gap-1"><dt className="text-ink-faint">Wrong</dt>
-                    <dd className="font-bold text-bad-ink">{s.wrong}</dd></span>
-                  {/* One word for both, because the card has room for three
-                      figures and the hero above already splits skipped from
-                      never reached. "Blank" beside a hero reading "not reached
-                      55" looked like two different numbers for one thing. */}
-                  <span className="flex gap-1"><dt className="text-ink-faint">Unanswered</dt>
-                    <dd className="font-bold">{s.skipped + s.notReached}</dd></span>
-                </dl>
-
-                <div className="mt-3 border-t border-line pt-3">
-                  <div className="flex items-baseline justify-between gap-2 text-xs">
-                    <span className="text-ink-faint">Accuracy</span>
-                    <span className="numeral font-bold">
-                      {acc === null ? '—' : `${acc.toFixed(0)}%`}
-                    </span>
-                  </div>
-                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-pill bg-surface-sunken">
-                    <div
-                      className={`h-full rounded-pill ${
-                        acc === null ? 'bg-line-strong'
-                        : acc >= 60 ? 'bg-good' : acc >= 35 ? 'bg-warn' : 'bg-bad'
-                      }`}
-                      style={{ width: `${acc === null ? 0 : acc.toFixed(0)}%` }}
-                    />
-                  </div>
-                  <p className="numeral mt-2 text-[0.6875rem] text-ink-faint">
-                    {clock(timeByCode.get(s.code) ?? null)} used of {s.attempted} attempted
-                  </p>
-                </div>
-              </li>
-            )
-          })}
-        </ul>
-      </section>
-
-      {hasSlowest && (
-        <div className="mt-4">
           {hasSlowest && (
             <section className="card p-5">
               <h2 className="eyebrow">Where the time went</h2>
               <p className="mt-1 text-xs text-ink-soft">Your three slowest questions in each section.</p>
               <ul className="numeral mt-3 space-y-2 text-sm">
-                {slowest.map((s) => s.questions.length ? (
-                  <li key={s.code}>
-                    <span className="font-display font-semibold">{SECTION_NAMES[s.code]}:</span>{' '}
-                    {s.questions.map((q) => `Q${q.questionNumber} (${clock(q.timeSpentSec)})`).join(' · ')}
+                {slowest.map((sec) => sec.questions.length ? (
+                  <li key={sec.code}>
+                    <span className="font-display font-semibold">{SECTION_NAMES[sec.code]}:</span>{' '}
+                    {sec.questions.map((q) => `Q${q.questionNumber} (${clock(q.timeSpentSec)})`).join(' · ')}
                   </li>
                 ) : null)}
               </ul>
@@ -351,6 +402,40 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
         </div>
       )}
 
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <section className="card p-5">
+          <h2 className="eyebrow">Answers</h2>
+          {unlocked && test.status === 'SCHEDULED' ? (
+            <>
+              <p className="mt-2 text-sm text-ink-soft">
+                Every question, its key and a worked solution, with yours marked.
+              </p>
+              <Link href={`/archive/${testId}`} className="btn btn-primary mt-3 px-5 py-2.5 text-sm">
+                Review your answers
+              </Link>
+            </>
+          ) : (
+            <p className="mt-2 text-sm text-ink-soft">
+              {unlocked
+                ? 'This paper is not published, so it has no review page.'
+                : `Answers and solutions unlock at ${paperLabels(paperWindow).hardStop}, for everyone at once.`}
+            </p>
+          )}
+        </section>
+
+        <section className="card p-5">
+          <h2 className="eyebrow">Full screen</h2>
+          <p className="numeral mt-2 text-sm">
+            Left full screen <strong>{attempt.fullscreen_exits}</strong>{' '}
+            {attempt.fullscreen_exits === 1 ? 'time' : 'times'} &middot; switched away{' '}
+            <strong>{attempt.tab_switches}</strong> {attempt.tab_switches === 1 ? 'time' : 'times'}.
+          </p>
+          <p className="mt-1.5 text-xs text-ink-faint">
+            Counted, never timed. Your admin sees the same two numbers.
+          </p>
+        </section>
+      </div>
+
       <Link href="/dashboard" className="btn btn-primary mt-8">
         Back to dashboard
       </Link>
@@ -358,12 +443,18 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
   )
 }
 
-/** One figure in the score panel's breakdown. */
-function Tally({ label, value }: { label: string; value: number }) {
+/** One figure in the headline band. */
+function Tally({ label, value, hint }: {
+  label: string
+  value: React.ReactNode
+  /** A second line, for the denominator a figure means nothing without. */
+  hint?: string
+}) {
   return (
-    <div className="bg-play-purple px-3 py-2.5">
-      <dt className="text-[0.625rem] font-bold uppercase tracking-widest text-white/60">{label}</dt>
-      <dd className="numeral mt-0.5 text-xl font-bold">{value}</dd>
+    <div className="bg-play-purple px-3.5 py-3">
+      <dt className="text-[0.625rem] font-bold uppercase tracking-[0.12em] text-white/60">{label}</dt>
+      <dd className="numeral mt-0.5 text-xl font-bold leading-tight">{value}</dd>
+      {hint && <dd className="numeral mt-0.5 text-[0.6875rem] text-white/50">{hint}</dd>}
     </div>
   )
 }

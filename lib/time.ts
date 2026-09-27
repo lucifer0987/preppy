@@ -160,6 +160,21 @@ export interface PaperWindow {
    * stop and cut its last entrant off halfway.
    */
   attemptMinutes: number
+  /**
+   * When an admin ended this paper early, as an ISO instant, or null.
+   *
+   * It beats every derived time on the paper: no new attempt may start, a
+   * running one stops here, and answers, the archive and the leaderboard open
+   * from this moment rather than from entry close plus one paper.
+   */
+  endedAt?: string | null
+}
+
+/** The instant an early end took effect, or null. */
+const endedAtMs = (p: PaperWindow): number | null => {
+  if (!p.endedAt) return null
+  const t = Date.parse(p.endedAt)
+  return Number.isFinite(t) ? t : null
 }
 
 /** The default window a new paper is offered, from the global setting. */
@@ -182,12 +197,21 @@ export const entryClosesAt = (p: PaperWindow) => istInstant(p.date, 0, p.entryCl
  * entrant still gets the full attempt FR-4.1 promises. Expressed as minutes
  * from midnight so a stop of exactly 24:00 stays on the paper's own date.
  */
-export const hardStopAt = (p: PaperWindow) =>
-  istInstant(p.date, 0, p.entryClosesAtMin + p.attemptMinutes)
+export const hardStopAt = (p: PaperWindow) => {
+  const ended = endedAtMs(p)
+  const derived = istInstant(p.date, 0, p.entryClosesAtMin + p.attemptMinutes)
+  // An admin ending the paper can only bring the stop forward. Taking the
+  // earlier of the two means a stale ended_at can never extend a paper.
+  return ended === null ? derived : new Date(Math.min(ended, derived.getTime()))
+}
 
 /** Where a paper sits relative to now. */
 export function windowState(p: PaperWindow, at: Date = new Date()): WindowState {
   const t = at.getTime()
+  // An explicit end beats the times on the paper: entry close may still be
+  // hours away, and the paper is over all the same.
+  const ended = endedAtMs(p)
+  if (ended !== null && t >= ended) return 'CLOSED'
   if (t < opensAt(p).getTime()) return 'BEFORE_OPEN'
   if (t < entryClosesAt(p).getTime()) return 'OPEN'
   if (t < hardStopAt(p).getTime()) return 'ENTRY_CLOSED'

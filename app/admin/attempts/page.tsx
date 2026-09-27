@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { getAttemptsByTest, isCounted } from '../../../lib/repo/attempt-admin'
 import { requireAdmin } from '../../../lib/guard'
 import { formatIstDate } from '../../../lib/time'
-import { deleteDryRunAction, voidAttemptAction } from './actions'
+import { voidAttemptAction } from './actions'
 import { ConfirmButton } from './ConfirmButton'
 import { db } from '../../../lib/supabase/admin'
 import { Empty, PageHeader, Flash, StatusChip, TableShell, Th } from '../../../components/Page'
@@ -33,7 +33,7 @@ export default async function AttemptsPage({
       {error && <Flash tone="bad" className="mt-4">{error}</Flash>}
       {done && (
         <Flash tone="good" className="mt-4">
-          {done === 'voided' ? 'Voided. It no longer counts on the leaderboard.' : 'Dry run deleted.'}
+          Voided. It no longer counts on the leaderboard.
         </Flash>
       )}
 
@@ -83,8 +83,7 @@ export default async function AttemptsPage({
                           <span className="flex flex-wrap items-center gap-2">
                             <Link href={`/admin/attempts?user=${a.userId}`}
                                   className="font-semibold hover:underline">{a.displayName}</Link>
-                            {a.isDryRun && <StatusChip tone="draft">Dry run</StatusChip>}
-                          </span>
+                            </span>
                         </td>
                         <td className="px-3 py-2.5 text-right font-bold">
                           {a.totalScore === null ? '—' : a.totalScore.toFixed(2)}
@@ -107,10 +106,6 @@ export default async function AttemptsPage({
                             <ConfirmButton action={voidAttemptAction} fields={{ attemptId: a.id, back }}
                                            label="Void" confirm="Take it off the leaderboard for good?" />
                           )}
-                          {a.isDryRun && a.state !== 'IN_PROGRESS' && (
-                            <ConfirmButton action={deleteDryRunAction} fields={{ attemptId: a.id, back }}
-                                           label="Delete" confirm="Delete this dry run?" />
-                          )}
                         </td>
                       </tr>
                     )
@@ -123,6 +118,7 @@ export default async function AttemptsPage({
       )}
 
       <p className="measure-wide mt-6 text-sm text-ink-soft">
+        Your own dry runs are not listed: they count for nothing and each one replaces the last.
         The two counters tell you <em>that</em> something happened, never when or for how long.
         That was the trade made when integrity logging was cut to two integers: the counter deters,
         and there is no event log to keep or to purge. Voiding an attempt removes it from the

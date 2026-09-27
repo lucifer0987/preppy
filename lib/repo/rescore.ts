@@ -3,7 +3,7 @@ import { db } from '../supabase/admin'
 import { getPaperById } from './papers'
 import { itemVerdict, scoreAttempt, type ItemTally, type ResponseInput } from '../scoring'
 import { selectAll } from './select-all'
-import { OPTION_LABELS, type OptionLabel } from '../types'
+import { OPTION_LABELS, type OptionLabel, type SectionCode } from '../types'
 
 /**
  * Correcting an answer key after a paper has run (FR-6.9.3).
@@ -61,7 +61,7 @@ export async function correctAnswerKey(
   const before = question.correct_option as OptionLabel
 
   for (let attempt = 0; attempt < 3; attempt++) {
-    const computed = await scoreAgainst(testId, number, newAnswer)
+    const computed = await scoreAgainst(testId, { number, answer: newAnswer })
     const { error } = await client.rpc('apply_rescore', {
       p_test: testId, p_question: questionId, p_answer: newAnswer, p_rows: computed.rows,
     })
@@ -79,18 +79,79 @@ export async function correctAnswerKey(
   throw new Error('Students kept finishing while the rescore ran. Nothing was changed; try again in a minute.')
 }
 
-/** Every finished attempt on the paper, scored as if `number` had key `answer`. */
-async function scoreAgainst(testId: string, number: number, answer: OptionLabel) {
+/**
+ * Score every finished attempt again against the paper as it now stands.
+ *
+ * Correcting a key has always done this for the one question it touched. This
+ * is the same write for everything else that moves a score without moving a
+ * key -- the marking of a section, most of all -- so the board and the results
+ * never disagree with the paper they came from.
+ *
+ * Nothing here decides what changed; the caller has already written it. This
+ * only makes the stored scores agree with it again.
+ */
+export async function rescorePaper(testId: string): Promise<{ rescored: number; moved: number }> {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const computed = await scoreAgainst(testId)
+    const { error } = await db().rpc('apply_paper_rescore', { p_test: testId, p_rows: computed.rows })
+    if (!error) return { rescored: computed.rows.length, moved: computed.changed.length }
+    if (!/RESCORE_STALE/.test(error.message)) throw new Error(`Could not rescore: ${error.message}`)
+    // Someone finished the paper meanwhile; score again with them included.
+  }
+  throw new Error('Students kept finishing while the rescore ran. Nothing was changed; try again in a minute.')
+}
+
+/**
+ * Change what a section's questions are worth, and settle every score that
+ * already depended on the old numbers.
+ *
+ * The two writes are not one transaction, and do not need to be: the rescore
+ * is idempotent, so a failure between them leaves scores that are merely
+ * stale and running it again fixes them. Scores written against marks that
+ * were never saved would be the unrecoverable order, which is why the marks
+ * go first.
+ */
+export async function setSectionMarks(
+  testId: string,
+  marks: { code: SectionCode; marksCorrect: number; marksNegative: number }[],
+): Promise<{ rescored: number; moved: number }> {
+  for (const m of marks) {
+    if (!(m.marksCorrect > 0 && m.marksCorrect <= 10)) {
+      throw new Error('A right answer must be worth more than 0 and at most 10 marks.')
+    }
+    if (!(m.marksNegative >= 0 && m.marksNegative <= 10)) {
+      throw new Error('A wrong answer must cost between 0 and 10 marks.')
+    }
+    const { error } = await db().from('sections')
+      .update({ marks_correct: m.marksCorrect, marks_negative: m.marksNegative })
+      .eq('test_id', testId).eq('code', m.code)
+    if (error) throw new Error(`Could not save the marking: ${error.message}`)
+  }
+  return rescorePaper(testId)
+}
+
+/**
+ * Every finished attempt on the paper, scored against the paper as it stands
+ * -- optionally with one key swapped, which is what a key correction works out
+ * before it writes anything.
+ */
+async function scoreAgainst(
+  testId: string, override?: { number: number; answer: OptionLabel },
+) {
   const client = db()
   const record = await getPaperById(testId)
   if (!record) throw new Error('That paper no longer exists.')
-  const paper = {
-    ...record.paper,
-    sections: record.paper.sections.map((s) => ({
-      ...s,
-      questions: s.questions.map((q) => (q.number === number ? { ...q, answer } : q)),
-    })),
-  }
+  const paper = override
+    ? {
+        ...record.paper,
+        sections: record.paper.sections.map((s) => ({
+          ...s,
+          questions: s.questions.map((q) => (
+            q.number === override.number ? { ...q, answer: override.answer } : q
+          )),
+        })),
+      }
+    : record.paper
 
   const attempts = await selectAll<Record<string, unknown>>('attempts', (from, to) =>
     client.from('attempts')

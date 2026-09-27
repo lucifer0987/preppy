@@ -1,11 +1,65 @@
 import { UploadForm } from './UploadForm'
 import { requireAdmin } from '../../../../lib/guard'
-import { PageHeader } from '../../../../components/Page'
+import { BackLink, Flash, PageHeader } from '../../../../components/Page'
+import { getPaperById, paperLock } from '../../../../lib/repo/papers'
+import { formatIstDate } from '../../../../lib/time'
 
 export const dynamic = 'force-dynamic'
 
-export default async function UploadPage() {
+export default async function UploadPage({
+  searchParams,
+}: { searchParams: Promise<Record<string, string>> }) {
   await requireAdmin()
+  // `?replace=` turns this screen into "here is a corrected version of that
+  // paper": same checks, same format, but the result goes into the paper that
+  // already exists instead of making another one.
+  const { replace } = await searchParams
+  const target = replace ? await getPaperById(replace) : null
+  const lock = replace && target ? await paperLock(replace) : null
+
+  if (replace && (!target || !lock)) {
+    return (
+      <>
+        <BackLink href="/admin/papers">Papers</BackLink>
+        <Flash tone="bad" className="mt-4">That paper no longer exists.</Flash>
+      </>
+    )
+  }
+
+  if (target && lock) {
+    return (
+      <>
+        <BackLink href={`/admin/papers/${replace}`}>Back to the paper</BackLink>
+        <PageHeader
+          compact
+          title="Replace the questions"
+          meta={<span className="numeral">{target.paper.title ?? 'Untitled'} &middot; {formatIstDate(lock.date)}</span>}
+          lede="Upload the corrected file. The paper keeps its night, its window and its place in the schedule; only what is inside it changes."
+        />
+        {lock.realAttempts > 0 ? (
+          <Flash tone="bad" className="mt-5">
+            {lock.realAttempts} student{lock.realAttempts === 1 ? ' has' : 's have'} already sat this
+            paper, so its questions cannot be swapped underneath them. Delete it and upload the new
+            one as a fresh paper.
+          </Flash>
+        ) : (
+          <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start">
+            <UploadForm replaceId={replace} />
+            <aside className="card p-5">
+              <h2 className="eyebrow">What this changes</h2>
+              <ul className="mt-3 space-y-2.5 text-sm text-ink-soft">
+                <li><span className="font-semibold text-ink">Every question goes</span> and the ones in this file take their place.</li>
+                <li><span className="font-semibold text-ink">The night does not move.</span> The file must carry the same date, {formatIstDate(lock.date)}.</li>
+                <li><span className="font-semibold text-ink">Images are replaced too</span>, so send them again with the file.</li>
+                <li><span className="font-semibold text-ink">Nobody has sat it</span>, which is the only reason this is allowed at all.</li>
+              </ul>
+            </aside>
+          </div>
+        )}
+      </>
+    )
+  }
+
   return (
     <>
       {/* One sentence, not two saying the same thing: the lede used to promise

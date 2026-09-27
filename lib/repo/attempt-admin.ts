@@ -38,6 +38,15 @@ export interface AdminTestAttempts {
 /** A finished attempt that counts: the only kind that may be voided. */
 export const FINISHED_STATES = ['SUBMITTED', 'AUTO_SUBMITTED'] as const
 
+/** How many students are sitting this paper at this moment. */
+export async function countRunningAttempts(testId: string): Promise<number> {
+  const { count, error } = await db()
+    .from('attempts').select('id', { count: 'exact', head: true })
+    .eq('test_id', testId).eq('is_dry_run', false).eq('state', 'IN_PROGRESS')
+  if (error) throw new Error(`Could not count who is sitting it: ${error.message}`)
+  return count ?? 0
+}
+
 export function isCounted(a: Pick<AdminAttemptRow, 'state' | 'isDryRun'>): boolean {
   return !a.isDryRun && (FINISHED_STATES as readonly string[]).includes(a.state)
 }
@@ -67,6 +76,11 @@ export async function getAttemptsByTest(
     .from('attempts')
     .select('id, test_id, user_id, state, is_dry_run, total_score, attempted, correct, not_reached, time_spent_sec, fullscreen_exits, tab_switches, submitted_at, profiles(username, display_name)')
     .in('test_id', tests.map((t) => t.id as string))
+    // Dry runs are the admin's own rehearsals and are counted nowhere, so
+    // listing them here only made the console look as though more people had
+    // sat the paper than had. The engine still needs the row while the
+    // rehearsal runs; this screen never does.
+    .eq('is_dry_run', false)
     .order('total_score', { ascending: false, nullsFirst: false })
   if (userId) attemptQuery = attemptQuery.eq('user_id', userId)
   const { data: attempts, error: attemptError } = await attemptQuery
@@ -113,18 +127,6 @@ export async function getAttemptsByTest(
  * progress would be flipped back when it submits, and a dry run is never on
  * the leaderboard to begin with. The filters make that part of the write.
  */
-/**
- * Dry runs are the admin's own rehearsals and "can be repeated and deleted
- * freely" (FR-6.9.2). The filter makes a counted attempt impossible to delete
- * this way; those can only be voided, which keeps the row.
- */
-export async function deleteDryRun(attemptId: string): Promise<void> {
-  const { data, error } = await db()
-    .from('attempts').delete().eq('id', attemptId).eq('is_dry_run', true).select('id')
-  if (error) throw new Error(`Could not delete that dry run: ${error.message}`)
-  if (!data?.length) throw new Error('Only a dry run can be deleted.')
-}
-
 export async function voidAttempt(attemptId: string): Promise<void> {
   const { data, error } = await db()
     .from('attempts')

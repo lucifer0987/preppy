@@ -101,6 +101,12 @@ export default async function PaperPreview(
           {q['changed'] === '1' ? '' : 's'} moved.
         </Flash>
       )}
+      {q['replaced'] && (
+        <Flash tone="good" className="mt-4 mb-5">
+          The questions were replaced. The paper keeps the night and the window it already had &mdash;
+          read it through again below.
+        </Flash>
+      )}
       {q['scheduled'] && (
         <Flash tone="good" className="mt-4 mb-5">
           Scheduled. It unlocks at {paperLabels(record.window).opens} on {formatIstDate(paper.date)}.
@@ -123,7 +129,16 @@ export default async function PaperPreview(
             )}
           </>
         }
-        actions={<StatusChip tone={badgeTone}>{badge}</StatusChip>}
+        actions={
+          <>
+            <StatusChip tone={badgeTone}>{badge}</StatusChip>
+            {scheduled && (
+              <Link href={`/admin/papers/${id}/manage`} className="btn btn-quiet px-4 py-2 text-sm">
+                Manage
+              </Link>
+            )}
+          </>
+        }
       />
 
       <section className="card mt-6 p-5">
@@ -147,11 +162,17 @@ export default async function PaperPreview(
           >
             Dry run
           </Link>
-          {lock.canDelete && (
+          {scheduled ? (
+            <div className="ml-auto">
+              <Link href={`/admin/papers/${id}/manage`} className="btn btn-quiet">
+                Manage this paper
+              </Link>
+            </div>
+          ) : lock.canDelete ? (
             <div className="ml-auto">
               <DeleteButton id={id} label={`the paper for ${formatIstDate(paper.date)}`} />
             </div>
-          )}
+          ) : null}
         </div>
         {lock.reason && (
           <p className="mt-3 text-sm font-semibold text-ink-soft">{lock.reason}</p>
