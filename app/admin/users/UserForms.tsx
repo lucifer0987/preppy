@@ -28,18 +28,25 @@ export function CreateUserForm() {
 
   return (
     <>
-      <form action={action} className="mt-4 grid gap-3 card p-5 sm:grid-cols-[1fr_1fr_auto_auto]">
+      <form action={action} className="card mt-4 grid gap-3 p-5 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
         <Field name="username" label="Username" placeholder="student6" />
         <Field name="displayName" label="Display name" placeholder="Student Six" />
-        <label className="block">
-          <span className="eyebrow">Role</span>
-          <select name="role" defaultValue="student"
-                  className="field mt-1.5">
-            <option value="student">Student</option>
-            <option value="admin">Admin</option>
-          </select>
-        </label>
-        <div className="flex items-end">
+        <fieldset className="sm:col-span-2">
+          <legend className="eyebrow">Role</legend>
+          <div className="mt-1.5 inline-flex rounded-control border border-line-strong bg-surface-sunken p-0.5">
+            {([['student', 'Student', 'Sits papers and appears on the board'],
+               ['admin', 'Admin', 'Uploads and schedules; never counted']] as const).map(([v, label, hint], i) => (
+              <label key={v} title={hint}
+                     className="relative cursor-pointer rounded-[0.6rem] px-3.5 py-1.5 text-sm font-semibold
+                                text-ink-soft transition has-[:checked]:bg-surface has-[:checked]:text-ink
+                                has-[:checked]:shadow-low">
+                <input type="radio" name="role" value={v} defaultChecked={i === 0} className="sr-only" />
+                {label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <div className="sm:col-start-3 sm:row-start-1">
           <Submit label="Create" pendingLabel="Creating..." />
         </div>
       </form>

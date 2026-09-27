@@ -127,7 +127,7 @@ export default async function PaperPreview(
         <div className="flex flex-wrap items-center gap-3">
           {lock.canSchedule && (
             <a href="#schedule" className="btn btn-primary">
-              Read it through, then schedule at the end &darr;
+              Schedule this paper &darr;
             </a>
           )}
           {lock.canUnschedule && (
@@ -140,7 +140,7 @@ export default async function PaperPreview(
               colours, and they would fight the green this button keeps. */}
           <Link
             href={`/test/start?test=${id}`}
-            className="btn border border-go/60 bg-surface text-go transition hover:bg-go/10"
+            className="btn btn-quiet"
           >
             Dry run
           </Link>
@@ -194,7 +194,7 @@ export default async function PaperPreview(
           <h2 className="sticky top-0 z-10 -mx-2 bg-page/95 px-2 py-2 text-lg font-black backdrop-blur">
             {SECTION_NAMES[section.code as SectionCode]}
             <span className="ml-2 text-sm font-semibold text-ink-soft">
-              {section.questions.length} q &middot; {section.durationMinutes} min
+              {section.questions.length} questions &middot; {section.durationMinutes} min
             </span>
           </h2>
 

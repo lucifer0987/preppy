@@ -116,7 +116,7 @@ export default async function Home() {
                         <span className="truncate font-semibold">{SECTION_NAMES[s.code]}</span>
                       </span>
                       <span className="numeral shrink-0 text-xs text-ink-faint">
-                        {s.questions} &middot; {s.minutes}m
+                        {s.questions} Q &middot; {s.minutes} min
                       </span>
                     </li>
                   ))}

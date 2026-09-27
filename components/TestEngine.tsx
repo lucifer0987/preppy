@@ -6,6 +6,7 @@ import { QuestionCard } from './QuestionCard'
 import { DirectionsBlock } from './DirectionsBlock'
 import { QuestionPalette, paletteState, type PaletteState } from './QuestionPalette'
 import { SectionTimer } from './SectionTimer'
+import { ExamRules } from './ExamRules'
 import { ThemeToggle } from './ThemeToggle'
 import { SECTION_NAMES, type OptionLabel } from '../lib/types'
 import type { AttemptSnapshot } from '../lib/repo/attempts'
@@ -90,6 +91,8 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
   const [switches, setSwitches] = useState(snapshot.tabSwitches)
   const [offline, setOffline] = useState(false)
   const [confirming, setConfirming] = useState(false)
+    // The rules were readable on the briefing page and nowhere after it.
+    const [showRules, setShowRules] = useState(false)
   const [advancing, setAdvancing] = useState(false)
 
   const question = section.questions[index]!
@@ -468,6 +471,18 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
               onExpire={onExpire}
               onResync={onResync}
             />
+            <button
+              type="button"
+              onClick={() => setShowRules(true)}
+              title="Read the rules again"
+              aria-label="Instructions"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-pill text-white/70
+                         transition hover:bg-white/15 hover:text-white"
+            >
+              <svg viewBox="0 0 20 20" aria-hidden="true" className="h-[18px] w-[18px] fill-current">
+                <path d="M10 1.5a8.5 8.5 0 100 17 8.5 8.5 0 000-17zM9 5h2v2H9V5zm0 3.5h2v6H9v-6z" />
+              </svg>
+            </button>
             <ThemeToggle tone="invert" />
           </span>
         </div>
@@ -488,9 +503,9 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
           and the page below it was empty. It now fills the screen and the
           controls are pinned to the bottom of it: under time pressure the
           thing you reach for should not move. */}
-      <div className="shell grid gap-5 py-5 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-stretch">
-        <main className="card flex min-w-0 select-none flex-col p-6 sm:p-8 lg:min-h-[32rem] lg:p-9">
-          <div className="flex-1">
+      <div className="shell grid gap-5 py-5 lg:h-[calc(100dvh-4.25rem)] lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-stretch">
+        <main className="card flex min-w-0 select-none flex-col overflow-hidden p-0 lg:h-full">
+          <div className="min-h-0 flex-1 overflow-y-auto p-6 sm:p-8 lg:p-9">
           {/* Shown on every question in the group, not just the first (FR-6.4.10). */}
           {question.directions && (
             <DirectionsBlock
@@ -521,15 +536,17 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
           {/* Question-level controls only. Leaving the section is a decision
               about the whole section, so it lives in the section panel rather
               than one keystroke away from Save & next. */}
-          <div className="mt-8 border-t border-line pt-4">
+          <div className="shrink-0 border-t border-line px-6 py-4 sm:px-8 lg:px-9">
             <div className="flex flex-wrap items-center gap-2">
               <Btn onClick={() => go(-1)} disabled={index === 0}>Previous</Btn>
               <Btn onClick={clearResponse} disabled={!current.selected}>Clear</Btn>
-              <Btn onClick={toggleMark} tone="mark">
+              <Btn onClick={toggleMark} tone="mark"
+                    title="Flag this question and stay on it">
                 {current.marked ? 'Unmark' : 'Mark for review'}
               </Btn>
-              <Btn onClick={markAndNext} tone="mark" disabled={current.marked && atEnd}>
-                Mark &amp; next
+              <Btn onClick={markAndNext} tone="mark" disabled={current.marked && atEnd}
+                    title="Flag this question and move to the next one">
+                Mark &amp; next &rarr;
               </Btn>
               <Btn onClick={() => go(1)} tone="primary" className="ml-auto" disabled={atEnd}>
                 Save &amp; next
@@ -594,6 +611,8 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
         </aside>
       </div>
 
+      {showRules && <RulesDialog onClose={() => setShowRules(false)} />}
+      
       {confirming && (
         <ConfirmDialog
           isLast={isLastSection}
@@ -607,6 +626,25 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
   )
 }
 
+
+/** The same rules the briefing page shows, reachable without leaving the paper. */
+function RulesDialog({ onClose }: { onClose: () => void }) {
+  return (
+    <div role="dialog" aria-modal="true" aria-labelledby="rules-title"
+         className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-6">
+      <div className="card max-h-[80dvh] w-full max-w-lg overflow-y-auto p-6">
+        <h2 id="rules-title" className="text-xl font-black">Instructions</h2>
+        <p className="mt-1 text-sm text-ink-soft">
+          Nothing here has changed since you pressed Begin. Your timer is still running.
+        </p>
+        <div className="mt-4"><ExamRules compact /></div>
+        <button type="button" onClick={onClose} className="btn btn-primary mt-5 w-full">
+          Back to the paper
+        </button>
+      </div>
+    </div>
+  )
+}
 
 /**
  * FR-6.5.3. Every browser guarantees Esc leaves full screen and no page can
@@ -701,13 +739,14 @@ function Row({ label, value }: { label: string; value: number }) {
 }
 
 function Btn({
-  children, onClick, disabled, tone, className = '',
+  children, onClick, disabled, tone, className = '', title,
 }: {
   children: React.ReactNode
   onClick: () => void
   disabled?: boolean
   tone?: 'primary' | 'mark' | 'next'
   className?: string
+  title?: string
 }) {
   // mark and go are tokens rather than the fixed palette fills: these are text
   // and border colours, and the fills are too dark to read on a dark page.
@@ -718,7 +757,7 @@ function Btn({
     : 'border-line-strong text-ink-soft hover:border-accent'
   return (
     <button
-      type="button" onClick={onClick} disabled={disabled}
+      type="button" onClick={onClick} disabled={disabled} title={title}
       className={`rounded-control border-2 px-5 py-2.5 text-sm font-bold transition disabled:opacity-40 ${style} ${className}`}
     >
       {children}

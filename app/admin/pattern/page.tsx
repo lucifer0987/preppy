@@ -37,7 +37,7 @@ export default async function PatternPage() {
                                       border border-line bg-surface px-3 py-2">
             <span className="truncate font-display font-semibold">{SECTION_NAMES[s.code]}</span>
             <span className="shrink-0 text-xs text-ink-faint">
-              {s.questions} q &middot; {s.minutes} min &middot; +{s.marksCorrect}/&minus;{s.marksNegative}
+              {s.questions} questions &middot; {s.minutes} min &middot; +{s.marksCorrect}/&minus;{s.marksNegative}
             </span>
           </li>
         ))}

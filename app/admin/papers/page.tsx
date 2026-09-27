@@ -50,7 +50,7 @@ export default async function PapersPage() {
                   <span className="font-bold tabular-nums">{formatIstDate(p.date)}</span>
                   <span className="text-xs tabular-nums text-ink-soft">{paperLabels(p.window).opens}</span>
                   <span className="text-ink-soft">{p.title ?? 'Untitled'}</span>
-                  <span className="ml-auto text-sm tabular-nums text-ink-soft">{p.questionCount} q</span>
+                  <span className="ml-auto text-sm tabular-nums text-ink-soft">{p.questionCount} questions</span>
                   <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-white ${tone}`}>
                     {label}
                   </span>

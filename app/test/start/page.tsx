@@ -9,6 +9,7 @@ import { beginAction } from './actions'
 import { BeginButton } from './BeginButton'
 import { entryRefusal } from './entry'
 import { BackLink, Flash, PageHeader } from '../../../components/Page'
+import { ExamRules } from '../../../components/ExamRules'
 import { ThemeToggle } from '../../../components/ThemeToggle'
 
 export const dynamic = 'force-dynamic'
@@ -89,7 +90,7 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
                   {SECTION_NAMES[s.code]}
                 </span>
                 <span className="numeral shrink-0 text-ink-soft">
-                  {s.question_count} q &middot; {Math.round(s.duration_sec / 60)} min
+                  {s.question_count} questions &middot; {Math.round(s.duration_sec / 60)} min
                 </span>
               </li>
             ))}
@@ -109,16 +110,10 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
 
         <section className="card p-6">
           <h2 className="eyebrow">Before you begin</h2>
-          <ul className="mt-3 space-y-2.5 text-sm">
-            <li><strong>Sections run in order and only forward.</strong> Once you leave a section you cannot return to it.</li>
-            <li><strong>Each section has its own timer.</strong> Finishing early does not add time to the next one.</li>
-            <li><strong>Full screen is required.</strong> Esc always works &mdash; no page can take
-            that away &mdash; but the question is covered until you come back, the exit is counted
-            on your result, and <strong>the clock keeps running</strong>. It never ends your test.</li>
-            <li><strong>Two numbers are recorded:</strong> how many times you left full screen, and how many times you switched away. Your admin sees them too. Nothing else is logged.</li>
-            <li><strong>One device at a time.</strong> Beginning signs your account out everywhere else.</li>
-            <li><strong>Your timer starts the moment you press Begin</strong>, not when this page opened.</li>
-          </ul>
+          <div className="mt-3"><ExamRules /></div>
+          <p className="mt-3 border-t border-line pt-3 text-sm font-semibold">
+            Your timer starts the moment you press Begin, not when this page opened.
+          </p>
         </section>
       </div>
 

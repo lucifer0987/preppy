@@ -116,6 +116,10 @@
 /* ------------------------------------------------------- semantic tokens */
 :root {
   color-scheme: light;
+  /* Native widgets -- checkboxes, radios, the date and time pickers -- draw
+     their selection in the system accent unless told otherwise, which put a
+     blue highlight inside an app that has no blue in it. */
+  accent-color: var(--accent);
 
   --page: var(--color-slate-100);
   --surface: var(--color-slate-0);
