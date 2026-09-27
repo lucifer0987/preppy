@@ -69,13 +69,14 @@ export default async function PaperPreview(
   const scheduled = status === 'SCHEDULED'
   const badge =
     !scheduled ? 'Draft'
+    : lock.window.endedAt ? 'Ended early'
     : lock.state === 'BEFORE_OPEN' ? 'Scheduled'
     : lock.state === 'CLOSED' ? 'Finished'
     : 'Live now'
   const badgeTone =
     badge === 'Draft' ? 'draft' as const
     : badge === 'Scheduled' ? 'waiting' as const
-    : badge === 'Finished' ? 'done' as const
+    : badge === 'Finished' || badge === 'Ended early' ? 'done' as const
     : 'live' as const
 
   return (

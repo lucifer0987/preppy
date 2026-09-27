@@ -43,13 +43,14 @@ export default async function PapersPage({
             const state = windowState(p.window)
             const label =
               p.status === 'DRAFT' ? 'Draft'
+              : p.window.endedAt ? 'Ended early'
               : state === 'BEFORE_OPEN' ? (p.date === today ? 'Live tonight' : 'Scheduled')
               : state === 'CLOSED' ? 'Finished'
               : 'Live now'
             const tone =
               label === 'Draft' ? 'draft' as const
               : label === 'Live now' ? 'live' as const
-              : label === 'Finished' ? 'done' as const
+              : label === 'Finished' || label === 'Ended early' ? 'done' as const
               : 'waiting' as const
             const l = paperLabels(p.window)
 
@@ -64,7 +65,11 @@ export default async function PapersPage({
                     <span className="block truncate font-bold text-ink">{p.title ?? 'Untitled'}</span>
                     <span className="numeral mt-0.5 block text-xs text-ink-faint">
                       {formatIstDate(p.date)}
-                      {p.status === 'DRAFT' ? ' · no night yet' : ` · ${l.opens} to ${l.closes}`}
+                      {p.status === 'DRAFT'
+                        ? ' · no night yet'
+                        : p.window.endedAt
+                          ? ` · ${l.opens}, ended early`
+                          : ` · ${l.opens} to ${l.closes}`}
                     </span>
                   </span>
                   <span className="numeral text-sm text-ink-soft">

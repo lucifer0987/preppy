@@ -13,7 +13,12 @@ export function entryRefusal(
   if (w.date !== istDate(now)) return 'That is not today\'s paper. A paper can only be taken on its own day.'
   if (canStartAttempt(w, now)) return null
   const { opens, closes } = paperLabels(w)
-  return windowState(w, now) === 'BEFORE_OPEN'
-    ? `This paper unlocks at ${opens}.`
-    : `Entry for this paper closed at ${closes}.`
+  if (windowState(w, now) === 'BEFORE_OPEN') return `This paper unlocks at ${opens}.`
+  // An early end is named rather than dressed up as the clock: "entry closed
+  // at 11:15 PM" is a lie when an admin stopped the paper at nine. Checked
+  // after the opening time, because a stamp in the future has not happened.
+  if (w.endedAt && now.getTime() >= Date.parse(w.endedAt)) {
+    return 'This paper was ended early by your admin, so it can no longer be started.'
+  }
+  return `Entry for this paper closed at ${closes}.`
 }

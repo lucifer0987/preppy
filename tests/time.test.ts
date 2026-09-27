@@ -258,3 +258,39 @@ describe('labels for display', () => {
       .toBe('8:15 AM')
   })
 })
+
+describe('a paper an admin ended early', () => {
+  const stamp = ist(D, 22, 30).toISOString()
+  const ended = { ...W, endedAt: stamp }
+
+  it('is still an ordinary paper until the stamp', () => {
+    expect(windowState(ended, ist(D, 21, 0))).toBe('BEFORE_OPEN')
+    expect(windowState(ended, ist(D, 22, 15))).toBe('OPEN')
+    expect(canStartAttempt(ended, ist(D, 22, 15))).toBe(true)
+  })
+
+  it('is closed from the stamp on, whatever its own times say', () => {
+    // Entry would otherwise run to 23:15 and the paper to midnight.
+    expect(windowState(ended, ist(D, 22, 30))).toBe('CLOSED')
+    expect(windowState(ended, ist(D, 23, 0))).toBe('CLOSED')
+    expect(canStartAttempt(ended, ist(D, 23, 0))).toBe(false)
+    expect(paperClosed(ended, ist(D, 22, 30))).toBe(true)
+  })
+
+  it('brings the hard stop forward, which is what stops a running attempt', () => {
+    expect(hardStopAt(ended).getTime()).toBe(ist(D, 22, 30).getTime())
+  })
+
+  it('can only ever bring the stop forward, never push it out', () => {
+    // A stamp after the derived stop -- a stale row, a clock skew -- must not
+    // extend the paper past the day its constraint keeps it inside.
+    const late = { ...W, endedAt: ist('2026-09-27', 6, 0).toISOString() }
+    expect(hardStopAt(late).getTime()).toBe(hardStopAt(W).getTime())
+  })
+
+  it('ignores a stamp that is not a date', () => {
+    const junk = { ...W, endedAt: 'not a time' }
+    expect(hardStopAt(junk).getTime()).toBe(hardStopAt(W).getTime())
+    expect(windowState(junk, ist(D, 22, 15))).toBe('OPEN')
+  })
+})

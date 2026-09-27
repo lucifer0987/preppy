@@ -107,7 +107,9 @@ export default async function ManagePaper({ params, searchParams }: {
               : 'It is already open, so the opening time is fixed. Moving the last moment to start also moves the finish, because whoever starts last still gets the whole paper.'
             : ended
               ? 'This paper was ended early, so its times no longer decide anything.'
-              : 'This paper has finished. Its window can no longer be moved.'}
+              : lock.status === 'DRAFT'
+                ? 'A draft has no window yet. It gets one when you schedule it, on the paper screen.'
+                : 'This paper has finished. Its window can no longer be moved.'}
         </p>
 
         {lock.canRetime ? (

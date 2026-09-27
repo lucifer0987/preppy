@@ -1,11 +1,10 @@
-import Link from 'next/link'
 import { AppShell } from '../../components/AppShell'
-import { PageHeader, Flash, TableShell, Th } from '../../components/Page'
+import { PageHeader, Flash } from '../../components/Page'
 import { requireUser } from '../../lib/guard'
 import { boardPapers, getLeaderboard, getPaperStandings } from '../../lib/repo/leaderboard'
 import { LeaderboardTable } from '../../components/LeaderboardTable'
-import { ordinal } from '../../lib/leaderboard'
-import { formatIstDate } from '../../lib/time'
+import { BoardFilters } from '../../components/BoardFilters'
+import { PaperRankList } from '../../components/PaperRankList'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,43 +45,7 @@ export default async function LeaderboardPage({
         lede="Cumulative points across every paper. It never resets, and takes each paper in once that paper closes."
       />
 
-      <div className="card mt-6 flex flex-wrap items-center gap-x-4 gap-y-3 p-3">
-        <nav className="flex flex-wrap gap-1" aria-label="Window">
-          {/* Counted in papers, not days: a day may hold more than one, so the
-                label says which. */}
-            {([['All time', undefined], ['Last 7 papers', '7'], ['Last 30 papers', '30']] as const)
-              .map(([label, value]) => (
-            <Link
-              key={label}
-              href={value ? `/leaderboard?window=${value}` : '/leaderboard'}
-              aria-current={!test && (value ?? undefined) === win ? 'page' : undefined}
-              className={[
-                'rounded-full px-4 py-2 text-sm font-semibold transition',
-                !test && (value ?? undefined) === win
-                  ? 'bg-accent-soft text-accent'
-                  : 'text-ink-soft hover:bg-surface-sunken hover:text-ink',
-              ].join(' ')}
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
-        {papers.length > 0 && (
-          <form method="get" action="/leaderboard" className="flex items-center gap-2">
-            <label htmlFor="paper" className="text-sm font-bold text-ink-soft">One paper</label>
-            <select
-              id="paper" name="test" defaultValue={test ?? ''}
-              className="field w-auto rounded-full px-3 py-1.5 text-sm font-semibold"
-            >
-              <option value="" disabled>Choose…</option>
-              {papers.map((p) => (
-                <option key={p.id} value={p.id}>{formatIstDate(p.date)}{p.title ? ` · ${p.title}` : ''}</option>
-              ))}
-            </select>
-            <button className="pill-brand px-4 py-1.5 text-sm">Show</button>
-          </form>
-        )}
-      </div>
+      <BoardFilters basePath="/leaderboard" window={win} test={test} papers={papers} />
 
       <div className="mt-6">
         {failure ? (
@@ -104,66 +67,5 @@ export default async function LeaderboardPage({
       )}
     </main>
     </AppShell>
-  )
-}
-
-/** One paper's standings: rank by score alone, equal scores sharing a place. */
-function PaperRankList({
-  standings, meUserId,
-}: {
-  standings: Awaited<ReturnType<typeof getPaperStandings>>
-  meUserId: string
-}) {
-  if (!standings) {
-    return (
-      <p className="rounded-card border border-dashed border-line-strong p-8 text-center text-ink-soft">
-        That paper is not on the board yet. A paper joins it when its own window closes and every attempt on it has had to end.
-      </p>
-    )
-  }
-  if (!standings.rows.length) {
-    return (
-      <p className="rounded-card border border-dashed border-line-strong p-8 text-center text-ink-soft">
-        Nobody sat the paper for {formatIstDate(standings.date)}.
-      </p>
-    )
-  }
-  return (
-    <div>
-      {/* The date heading used to sit inside the scroll container and slid out
-          of view with the table. */}
-      <h2 className="eyebrow">{formatIstDate(standings.date)}</h2>
-      <div className="mt-3">
-        <TableShell minWidth="26rem">
-          <thead>
-            <tr className="border-b border-line">
-              <Th>#</Th>
-              <Th>Student</Th>
-              <Th align="right">Score</Th>
-              <Th align="right">Accuracy</Th>
-            </tr>
-          </thead>
-          <tbody className="numeral">
-            {standings.rows.map((row) => {
-              const me = row.userId === meUserId
-              return (
-                <tr key={row.userId}
-                    className={`border-b border-line last:border-0 ${me ? 'bg-accent/10 font-semibold' : ''}`}>
-                  <td className="px-3 py-2.5 font-bold">{ordinal(row.rank)}</td>
-                  <td className="px-3 py-2.5 font-display">
-                    {row.displayName}
-                    {me && <span className="ml-2 text-[10px] uppercase tracking-widest text-accent">you</span>}
-                  </td>
-                  <td className="px-3 py-2.5 text-right font-bold">{row.score.toFixed(2)}</td>
-                  <td className="px-3 py-2.5 text-right text-ink-soft">
-                    {row.accuracyPct === null ? '—' : `${row.accuracyPct.toFixed(0)}%`}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </TableShell>
-      </div>
-    </div>
   )
 }

@@ -101,7 +101,9 @@ export default async function AdminHome({
           <ul className="mt-2 overflow-hidden rounded-card border border-line bg-surface">
             {papers.map((p) => {
               const l = paperLabels(p.window)
-              const state = p.status === 'DRAFT' ? 'DRAFT' : windowState(p.window, now)
+              const state = p.status === 'DRAFT' ? 'DRAFT'
+            : p.window.endedAt ? 'ENDED'
+            : windowState(p.window, now)
               return (
                 <li key={p.id} className="border-b border-line last:border-0">
                   <Link href={`/admin/papers/${p.id}`}
@@ -149,9 +151,10 @@ function Kpi({ label, value, tone = 'plain' }: {
 }
 
 /** A paper's state today, in a word. */
-function stateWord(state: 'DRAFT' | ReturnType<typeof windowState>): string {
+function stateWord(state: 'DRAFT' | 'ENDED' | ReturnType<typeof windowState>): string {
   switch (state) {
     case 'DRAFT': return 'draft'
+    case 'ENDED': return 'ended early'
     case 'BEFORE_OPEN': return 'scheduled'
     case 'OPEN': return 'live now'
     case 'ENTRY_CLOSED': return 'finishing'
@@ -159,7 +162,7 @@ function stateWord(state: 'DRAFT' | ReturnType<typeof windowState>): string {
   }
 }
 
-function chipTone(state: 'DRAFT' | ReturnType<typeof windowState>) {
+function chipTone(state: 'DRAFT' | 'ENDED' | ReturnType<typeof windowState>) {
   switch (state) {
     case 'DRAFT': return 'draft' as const
     case 'BEFORE_OPEN': return 'waiting' as const

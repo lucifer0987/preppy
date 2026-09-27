@@ -211,7 +211,11 @@ function assemble(
 export async function loadPublishedPapers(): Promise<PaperRecord[]> {
   const client = db()
   const tests = await selectAll<Record<string, unknown>>('papers', (from, to) =>
-    client.from('tests').select('id, date, title, status, published_at, rescored_at, key_version')
+    client.from('tests')
+      // The window columns matter here too: every record this builds carries a
+      // window, and paperWindowOf refuses a row read without them -- which is
+      // what the export had been doing.
+      .select(`id, title, status, published_at, rescored_at, key_version, ${PAPER_WINDOW_COLUMNS}`)
       .eq('status', 'SCHEDULED').order('date').range(from, to))
   if (!tests.length) return []
 

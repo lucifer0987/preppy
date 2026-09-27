@@ -17,7 +17,8 @@
     "check": "tsx scripts/parse.ts",
     "build:format": "tsx scripts/build-format.ts",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:live": "vitest run --config vitest.live.config.ts"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",
