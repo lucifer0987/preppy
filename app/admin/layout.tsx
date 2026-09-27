@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { AdminNav } from '../../components/AdminNav'
 import { ThemeToggle } from '../../components/ThemeToggle'
 import { Wordmark } from '../../components/Wordmark'
 import { requireAdmin } from '../../lib/guard'
@@ -27,7 +28,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <header className="sticky top-0 z-30 border-b border-line bg-surface/85 backdrop-blur
                          supports-[backdrop-filter]:bg-surface/70"
               style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
-        <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-5">
+        <div className="shell flex h-16 items-center gap-4">
           <Link href="/admin" className="flex shrink-0 items-center gap-2.5" aria-label="Preppy admin">
             <Wordmark size="sm" />
             <span className="hidden rounded-full border border-line-strong px-2 py-0.5 text-[0.625rem]
@@ -36,11 +37,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </span>
           </Link>
 
+          <AdminNav variant="bar" />
+
           <div className="ml-auto flex items-center gap-2">
             <ThemeToggle />
             <Link href="/dashboard"
-                  className="rounded-full px-3 py-1.5 text-sm font-semibold text-ink-soft transition
-                             hover:bg-surface-sunken hover:text-ink">
+                  className="hidden rounded-full px-3 py-1.5 text-sm font-semibold text-ink-soft transition
+                             hover:bg-surface-sunken hover:text-ink sm:inline-block">
               Student view
             </Link>
             <span className="hidden items-center gap-2 rounded-full bg-surface-sunken py-1 pl-1 pr-3 sm:flex">
@@ -61,9 +64,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </form>
           </div>
         </div>
+
+        <AdminNav variant="row" />
       </header>
 
-      <main className="mx-auto max-w-6xl px-5 py-10">{children}</main>
+      <main className="shell py-8 sm:py-10">{children}</main>
     </div>
   )
 }

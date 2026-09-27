@@ -36,8 +36,8 @@ export default async function ArchiveDetail({
 
   if (!paperClosed(record.window)) {
     return (
-      <main className="mx-auto max-w-xl px-6 py-16 text-center">
-        <div className="card p-8 text-center">
+      <main className="shell py-16">
+        <div className="card mx-auto max-w-xl p-8 text-center">
           <span className="grid h-12 w-12 place-items-center rounded-full bg-accent-soft mx-auto">
             <svg viewBox="0 0 20 20" aria-hidden="true" className="h-5 w-5 fill-accent">
               <path d="M10 1.5a4 4 0 00-4 4V8H5.5A1.5 1.5 0 004 9.5v7A1.5 1.5 0 005.5 18h9a1.5 1.5 0 001.5-1.5v-7A1.5 1.5 0 0014.5 8H14V5.5a4 4 0 00-4-4zm-2 4a2 2 0 114 0V8H8V5.5z" />
@@ -87,7 +87,7 @@ export default async function ArchiveDetail({
 
   return (
     <AppShell user={user} current="archive">
-    <main className="mx-auto max-w-4xl px-5 pt-6">
+    <main className="shell pt-6">
       <BackLink href="/archive">Past papers</BackLink>
       <PageHeader
         title={paper.title ?? 'Daily mock'}
@@ -95,70 +95,82 @@ export default async function ArchiveDetail({
         lede="Every question with its key and worked solution. Yours are marked where you answered."
       />
 
-      <nav className="mt-5 flex flex-wrap gap-2" aria-label="Filter by section">
-        {[['All sections', undefined] as const, ...paper.sections.map((s) => [SECTION_NAMES[s.code as SectionCode], s.code] as const)].map(
-          ([label, value]) => (
-            <FilterLink key={label} label={label}
-                        href={hrefFor(testId, { filter, section: value })}
-                        active={(value ?? undefined) === sectionFilter} />
-          ),
-        )}
-      </nav>
-      {attempt && (
-        <nav className="mt-2 flex flex-wrap gap-2" aria-label="Filter by your answers">
-          {([['Everything', undefined], ['I got these wrong', 'wrong'], ['I never reached these', 'missed']] as const).map(
-            ([label, value]) => (
-              <FilterLink key={label} label={label}
-                          href={hrefFor(testId, { filter: value, section: sectionFilter })}
-                          active={(value ?? undefined) === filter} />
-            ),
+      {/* Reading a paper is a reading task, so the questions keep a measure
+          rather than stretching to 1900px. The width goes to the filters
+          instead: a rail that stays put while you scroll, where before they
+          were two rows of chips you scrolled away from and lost. */}
+      <div className="mt-5 grid gap-6 xl:grid-cols-[15rem_minmax(0,1fr)] xl:gap-10">
+        <div className="xl:sticky xl:top-24 xl:self-start">
+          <nav className="flex flex-wrap gap-2 xl:flex-col xl:items-start" aria-label="Filter by section">
+            <h2 className="eyebrow w-full">Sections</h2>
+            {[['All sections', undefined] as const, ...paper.sections.map((s) => [SECTION_NAMES[s.code as SectionCode], s.code] as const)].map(
+              ([label, value]) => (
+                <FilterLink key={label} label={label}
+                            href={hrefFor(testId, { filter, section: value })}
+                            active={(value ?? undefined) === sectionFilter} />
+              ),
+            )}
+          </nav>
+          {attempt && (
+            <nav className="mt-5 flex flex-wrap gap-2 xl:flex-col xl:items-start" aria-label="Filter by your answers">
+              <h2 className="eyebrow w-full">Yours</h2>
+              {([['Everything', undefined], ['I got these wrong', 'wrong'], ['I never reached these', 'missed']] as const).map(
+                ([label, value]) => (
+                  <FilterLink key={label} label={label}
+                              href={hrefFor(testId, { filter: value, section: sectionFilter })}
+                              active={(value ?? undefined) === filter} />
+                ),
+              )}
+            </nav>
           )}
-        </nav>
-      )}
+        </div>
 
-      {!attempt && (
-        <p className="mt-5 rounded-control bg-surface px-5 py-4 text-sm text-ink-soft">
-          You did not sit this paper, so there is nothing of yours to compare. The questions and
-          solutions are all here.
-        </p>
-      )}
+        <div className="min-w-0 max-w-4xl">
+          {!attempt && (
+            <p className="rounded-control border border-line bg-surface px-5 py-4 text-sm text-ink-soft">
+              You did not sit this paper, so there is nothing of yours to compare. The questions and
+              solutions are all here.
+            </p>
+          )}
 
-      {paper.sections.filter((s) => !sectionFilter || s.code === sectionFilter).map((section) => {
-        const visible = section.questions.filter((q) => keep(q.number, q.answer))
-        if (!visible.length) return null
-        return (
-          <section key={section.code} className="mt-8">
-            <h2 className="text-lg font-black">{SECTION_NAMES[section.code as SectionCode]}</h2>
-            <ol className="mt-3 space-y-4">
-              {visible.map((question) => {
-                const block = section.directions?.find(
-                  (b) => question.number >= b.from && question.number <= b.to,
-                )
-                const r = mine.get(question.number)
-                return (
-                  <li key={question.number} className="card p-5">
-                    {block && <DirectionsBlock block={block} testId={testId} />}
-                    {attempt && (
-                      <p className="mb-3 flex flex-wrap gap-x-3 text-[11px] font-bold uppercase tracking-widest text-ink-soft">
-                        <span>
-                          {!r || !r.visited ? 'You never reached this'
-                            : r.selected === null ? 'You saw this and skipped it'
-                            : r.selected === question.answer ? 'You got this right'
-                            : 'You got this wrong'}
-                        </span>
-                        {r && r.visited && r.timeSpentSec > 0 && (
-                          <span className="tabular-nums">Your time {clock(r.timeSpentSec)}</span>
+          {paper.sections.filter((s) => !sectionFilter || s.code === sectionFilter).map((section) => {
+            const visible = section.questions.filter((q) => keep(q.number, q.answer))
+            if (!visible.length) return null
+            return (
+              <section key={section.code} className="mt-6 first:mt-0">
+                <h2 className="text-lg font-black">{SECTION_NAMES[section.code as SectionCode]}</h2>
+                <ol className="mt-3 space-y-4">
+                  {visible.map((question) => {
+                    const block = section.directions?.find(
+                      (b) => question.number >= b.from && question.number <= b.to,
+                    )
+                    const r = mine.get(question.number)
+                    return (
+                      <li key={question.number} className="card p-5">
+                        {block && <DirectionsBlock block={block} testId={testId} />}
+                        {attempt && (
+                          <p className="mb-3 flex flex-wrap gap-x-3 text-[11px] font-bold uppercase tracking-widest text-ink-soft">
+                            <span>
+                              {!r || !r.visited ? 'You never reached this'
+                                : r.selected === null ? 'You saw this and skipped it'
+                                : r.selected === question.answer ? 'You got this right'
+                                : 'You got this wrong'}
+                            </span>
+                            {r && r.visited && r.timeSpentSec > 0 && (
+                              <span className="numeral">Your time {clock(r.timeSpentSec)}</span>
+                            )}
+                          </p>
                         )}
-                      </p>
-                    )}
-                    <QuestionCard question={question} testId={testId} selected={r?.selected ?? null} reveal disabled />
-                  </li>
-                )
-              })}
-            </ol>
-          </section>
-        )
-      })}
+                        <QuestionCard question={question} testId={testId} selected={r?.selected ?? null} reveal disabled />
+                      </li>
+                    )
+                  })}
+                </ol>
+              </section>
+            )
+          })}
+        </div>
+      </div>
     </main>
     </AppShell>
   )

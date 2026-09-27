@@ -23,7 +23,7 @@ export function AppShell({ user, current, children }: {
       <header className="sticky top-0 z-30 border-b border-line bg-surface/85 backdrop-blur
                          supports-[backdrop-filter]:bg-surface/70"
               style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
-        <div className="mx-auto flex h-16 max-w-5xl items-center gap-6 px-5">
+        <div className="shell flex h-16 items-center gap-6">
           <Link href="/dashboard" className="shrink-0" aria-label="Preppy, go to dashboard">
             <Wordmark size="sm" />
           </Link>
@@ -36,7 +36,7 @@ export function AppShell({ user, current, children }: {
 
           <div className="ml-auto flex items-center gap-2">
             <ThemeToggle />
-          <SoundToggle initial={user.soundEnabled} compact />
+            <SoundToggle initial={user.soundEnabled} compact />
             {user.role === 'admin' && (
               <Link href="/admin"
                     className="hidden rounded-full border border-line-strong px-3 py-1.5 text-xs
@@ -50,7 +50,7 @@ export function AppShell({ user, current, children }: {
         </div>
 
         {/* On a phone the tabs move below the mark, where they still fit. */}
-        <nav className="flex gap-1 overflow-x-auto border-t border-line px-3 py-1.5 sm:hidden"
+        <nav className="shell flex gap-1 overflow-x-auto border-t border-line py-1.5 sm:hidden"
              aria-label="Main">
           <Tab href="/dashboard" active={current === 'dashboard'}>Today</Tab>
           <Tab href="/leaderboard" active={current === 'leaderboard'}>Leaderboard</Tab>
@@ -60,7 +60,7 @@ export function AppShell({ user, current, children }: {
 
       {children}
 
-      <footer className="mx-auto max-w-5xl px-5 pb-10 pt-16">
+      <footer className="shell pb-10 pt-16">
         <p className="border-t border-line pt-5 text-xs text-ink-faint">
           Preppy &middot; daily mock tests for IBPS Specialist Officer (IT)
         </p>

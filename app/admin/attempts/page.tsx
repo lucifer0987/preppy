@@ -5,7 +5,7 @@ import { formatIstDate } from '../../../lib/time'
 import { deleteDryRunAction, voidAttemptAction } from './actions'
 import { ConfirmButton } from './ConfirmButton'
 import { db } from '../../../lib/supabase/admin'
-import { BackLink, PageHeader, Flash } from '../../../components/Page'
+import { BackLink, PageHeader, Flash, TableShell, Th } from '../../../components/Page'
 
 export const dynamic = 'force-dynamic'
 
@@ -52,28 +52,32 @@ export default async function AttemptsPage({
               </span>
             </h2>
 
-            <div className="mt-3 overflow-x-auto card p-5">
-              <table className="w-full border-collapse text-sm tabular-nums">
+            {/* The padding used to sit inside the scroll container, so the
+                right-hand gutter scrolled away and the last column ran into
+                the border. TableShell keeps the frame still and scrolls only
+                the table. */}
+            <div className="mt-3">
+              <TableShell minWidth="56rem">
                 <thead>
-                  <tr className="text-left text-[10px] uppercase tracking-widest text-ink-soft">
-                    <th className="py-2 pr-3 font-bold">Student</th>
-                    <th className="py-2 px-2 text-right font-bold">Score</th>
-                    <th className="py-2 px-2 text-right font-bold">Right</th>
-                    <th className="py-2 px-2 text-right font-bold">Tried</th>
-                    <th className="py-2 px-2 text-right font-bold">Not reached</th>
-                    <th className="py-2 px-2 text-right font-bold">Time</th>
-                    <th className="py-2 px-2 text-right font-bold" title="Left full screen">FS</th>
-                    <th className="py-2 px-2 text-right font-bold" title="Switched away">Tab</th>
-                    <th className="py-2 pr-3 font-bold">How it ended</th>
-                    <th className="py-2 font-bold" />
+                  <tr className="border-b border-line">
+                    <Th>Student</Th>
+                    <Th align="right">Score</Th>
+                    <Th align="right">Right</Th>
+                    <Th align="right">Tried</Th>
+                    <Th align="right">Not reached</Th>
+                    <Th align="right">Time</Th>
+                    <Th align="right">FS</Th>
+                    <Th align="right">Tab</Th>
+                    <Th>How it ended</Th>
+                    <Th />
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="numeral">
                   {group.attempts.map((a) => {
                     const noisy = a.fullscreenExits + a.tabSwitches >= 5
                     return (
-                      <tr key={a.id} className={`border-t border-line ${a.state === 'VOIDED' ? 'opacity-50' : ''}`}>
-                        <td className="py-2.5 pr-3">
+                      <tr key={a.id} className={`border-b border-line last:border-0 ${a.state === 'VOIDED' ? 'opacity-50' : ''}`}>
+                        <td className="px-3 py-2.5">
                           <Link href={`/admin/attempts?user=${a.userId}`} className="font-semibold hover:underline">{a.displayName}</Link>
                           {a.isDryRun && (
                             <span className="ml-2 rounded-full bg-surface-sunken border border-line px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-ink-soft">
@@ -81,23 +85,23 @@ export default async function AttemptsPage({
                             </span>
                           )}
                         </td>
-                        <td className="py-2.5 px-2 text-right font-bold">
+                        <td className="px-3 py-2.5 text-right font-bold">
                           {a.totalScore === null ? '—' : a.totalScore.toFixed(2)}
                         </td>
-                        <td className="py-2.5 px-2 text-right text-good-ink">{a.correct ?? '—'}</td>
-                        <td className="py-2.5 px-2 text-right text-ink-soft">{a.attempted ?? '—'}</td>
-                        <td className="py-2.5 px-2 text-right text-ink-soft">{a.notReached ?? '—'}</td>
-                        <td className="py-2.5 px-2 text-right text-ink-soft">
+                        <td className="px-3 py-2.5 text-right text-good-ink">{a.correct ?? '—'}</td>
+                        <td className="px-3 py-2.5 text-right text-ink-soft">{a.attempted ?? '—'}</td>
+                        <td className="px-3 py-2.5 text-right text-ink-soft">{a.notReached ?? '—'}</td>
+                        <td className="px-3 py-2.5 text-right text-ink-soft">
                           {a.timeSpentSec === null ? '—' : `${Math.round(a.timeSpentSec / 60)}m`}
                         </td>
-                        <td className={`py-2.5 px-2 text-right ${noisy ? 'font-bold text-bad-ink' : 'text-ink-soft'}`}>
+                        <td className={`px-3 py-2.5 text-right ${noisy ? 'font-bold text-bad-ink' : 'text-ink-soft'}`}>
                           {a.fullscreenExits}
                         </td>
-                        <td className={`py-2.5 px-2 text-right ${noisy ? 'font-bold text-bad-ink' : 'text-ink-soft'}`}>
+                        <td className={`px-3 py-2.5 text-right ${noisy ? 'font-bold text-bad-ink' : 'text-ink-soft'}`}>
                           {a.tabSwitches}
                         </td>
-                        <td className="py-2.5 pr-3 text-ink-soft">{describe(a.state)}</td>
-                        <td className="py-2.5 text-right">
+                        <td className="px-3 py-2.5 text-ink-soft">{describe(a.state)}</td>
+                        <td className="px-3 py-2.5 text-right">
                           {isCounted(a) && (
                             <ConfirmButton action={voidAttemptAction} fields={{ attemptId: a.id, back }}
                                            label="Void" confirm="Take it off the leaderboard for good?" />
@@ -111,7 +115,7 @@ export default async function AttemptsPage({
                     )
                   })}
                 </tbody>
-              </table>
+              </TableShell>
             </div>
           </section>
         ))

@@ -22,7 +22,8 @@ export default async function ChangePasswordPage() {
   const forced = user.mustChangePassword
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-6 py-12">
+    <main className="shell flex min-h-dvh items-center justify-center py-12">
+      <div className="w-full max-w-md">
       <div className="flex items-center justify-between">
         <Wordmark size="sm" />
         <ThemeToggle />
@@ -66,6 +67,7 @@ export default async function ChangePasswordPage() {
             </button>
           </form>
         </div>
+      </div>
       </div>
     </main>
   )

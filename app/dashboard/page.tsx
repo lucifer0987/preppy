@@ -74,7 +74,7 @@ export default async function Dashboard({
 
   return (
     <AppShell user={user} current="dashboard">
-    <main className="mx-auto max-w-5xl px-5 pt-8">
+    <main className="shell pt-8">
       <header>
         <p className="eyebrow">{greeting(now)}</p>
         <h1 className="mt-1 text-4xl font-black tracking-tight">{user.displayName}</h1>
@@ -93,7 +93,7 @@ export default async function Dashboard({
           <div className="absolute inset-0 opacity-[0.06]"
                style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '26px 26px' }} />
         </div>
-        <div className="relative">
+        <div className="relative max-w-3xl">
         <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">
           {live || attempt ? "Tonight's paper" : 'Next paper'}
         </h2>
@@ -141,7 +141,7 @@ export default async function Dashboard({
               </Link>
               {paperClosed(openPaper!.window, now) && (
                 <Link href={`/archive/${tonight.id}`}
-                      className="inline-block rounded-control bg-surface/15 px-7 py-3.5 font-black text-white">
+                      className="inline-block rounded-control bg-white/15 px-7 py-3.5 font-black text-white">
                   Review answers
                 </Link>
               )}

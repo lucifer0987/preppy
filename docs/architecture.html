@@ -1072,6 +1072,35 @@ eighteen pages.</p>
   which is most of them.</p>
 </div>
 
+<h3>One frame, every screen</h3>
+<p>Every page used to choose its own width: 672&nbsp;px on the result page,
+1024&nbsp;px in the student shell, 1152&nbsp;px in the admin. The app changed
+shape as you moved through it, and on a laptop most of the screen was margin.</p>
+
+<p>There is now one <code>shell</code> utility, and it is the viewport minus
+gutters that grow with it &mdash; 16&nbsp;px on a phone, 44&nbsp;px on a desktop,
+capped only past 1920&nbsp;px. Every header, page and footer uses it, which is
+also what makes them line up with each other.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Utility</th><th>What it is for</th></tr></thead>
+<tbody>
+<tr><td><code>shell</code></td><td>The page's horizontal frame. Full width, fluid gutters, safe-area aware so a notched phone in landscape does not put the first column under the notch</td></tr>
+<tr><td><code>measure</code></td><td>A reading width (68&nbsp;ch) for prose <em>inside</em> a full-width shell. A line of text 1900&nbsp;px wide is unreadable however much screen you have</td></tr>
+</tbody>
+</table></div>
+
+<div class="note care">
+  <h4>Width is not the same as using the width</h4>
+  <p>Stretching a 672&nbsp;px column to 1900&nbsp;px makes a page worse, not
+  better: one line of content per screenful. The pages that gained the most room
+  were given something to do with it instead &mdash; the result page puts the
+  score beside the things you read once and gives the nine-column section table
+  the full width; the briefing reads as two columns; the review page spends the
+  width on a filter rail that stays put while you scroll, and keeps the questions
+  themselves at a measure, because reading a paper is a reading task.</p>
+</div>
+
 <h3>A fill colour is not a text colour</h3>
 <p>This is the one rule in the system that is not obvious, and breaking it is
 invisible to whoever does it.</p>
@@ -1133,7 +1162,8 @@ the logo and the accessibility rule are one decision rather than two.</p>
 <tbody>
 <tr><td><code>app/globals.css</code></td><td>The whole system: scales, semantic tokens, all three theme states, and the primitives &mdash; <code>card</code>, <code>eyebrow</code>, <code>numeral</code>, <code>chip</code>, <code>field</code>, <code>pill-brand</code>, and <code>btn</code> with <code>btn-primary</code> / <code>btn-invert</code> / <code>btn-quiet</code>. <code>btn</code> owns the press, disabled and reduced-motion states, so a button never re-implements them</td></tr>
 <tr><td><code>components/Page.tsx</code></td><td>The furniture every inner page was drawing by hand: <code>PageHeader</code>, <code>BackLink</code>, <code>Stat</code>, <code>TableShell</code>, <code>Th</code>, <code>Empty</code>, <code>StatusChip</code>, and <code>Flash</code> for the line a page shows after something happened</td></tr>
-<tr><td><code>components/ThemeToggle.tsx</code></td><td>The three-state theme switch, in the header of every shell</td></tr>
+<tr><td><code>components/ThemeToggle.tsx</code></td><td>The three-state theme switch. On every screen, including the landing page and the exam</td></tr>
+<tr><td><code>components/AdminNav.tsx</code></td><td>The admin console's tabs. There were none: getting from Attempts to People meant going back to the console home and picking a tile, every time</td></tr>
 <tr><td><code>components/AppShell.tsx</code></td><td>The frame every signed-in student page sits in. Each of them drew its own header before, so the way back differed page to page</td></tr>
 <tr><td><code>components/Wordmark.tsx</code></td><td>The mark, drawn as SVG so it scales and takes the theme with it</td></tr>
 <tr><td><code>app/admin/layout.tsx</code></td><td>The admin shell, and the outer half of the admin authorisation check</td></tr>

@@ -52,7 +52,7 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
   const refusal = isDryRun ? null : entryRefusal(test.status as string, paperWindow)
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
+    <main className="shell py-10">
       <div className="flex items-center justify-between gap-3">
         <BackLink href={isDryRun ? `/admin/papers/${testId}` : '/dashboard'}>Back</BackLink>
         <ThemeToggle />
@@ -74,42 +74,51 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
         <Flash tone="bad" className="mt-4">{error}</Flash>
       )}
 
-      <section className="mt-6 card p-6">
-        <h2 className="eyebrow">The pattern</h2>
-        <ul className="mt-3 space-y-1.5">
-          {sections.map((s) => (
-            <li key={s.code} className="flex items-baseline justify-between gap-4 text-sm">
-              <span><span className="mr-2 font-mono text-ink-soft">{s.position}.</span>{SECTION_NAMES[s.code]}</span>
-              <span className="tabular-nums text-ink-soft">
-                {s.question_count} q &middot; {Math.round(s.duration_sec / 60)} min
-              </span>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-4 border-t border-line pt-3 font-semibold tabular-nums">
-          {totalQuestions} questions &middot; {totalMinutes} minutes &middot;{' '}
-          {marks.size === 1 ? [...marks][0] : 'marking varies by section'}, 0 unattempted
-        </p>
-        {marks.size > 1 && (
-          <ul className="mt-2 space-y-1 text-xs text-ink-soft">
+      {/* The pattern is a short list of figures and the rules are six
+          sentences: side by side past lg they read as one briefing, where
+          stacked they were two screenfuls with the Begin button off the end
+          of both. The rules column is wider because it holds prose. */}
+      <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_1.35fr] lg:items-start">
+        <section className="card p-6">
+          <h2 className="eyebrow">The pattern</h2>
+          <ul className="mt-3 space-y-1.5">
             {sections.map((s) => (
-              <li key={s.code}>{SECTION_NAMES[s.code]}: +{Number(s.marks_correct)} correct, −{Number(s.marks_negative)} wrong</li>
+              <li key={s.code} className="flex items-baseline justify-between gap-4 text-sm">
+                <span>
+                  <span className="numeral mr-2 text-ink-faint">{s.position}.</span>
+                  {SECTION_NAMES[s.code]}
+                </span>
+                <span className="numeral shrink-0 text-ink-soft">
+                  {s.question_count} q &middot; {Math.round(s.duration_sec / 60)} min
+                </span>
+              </li>
             ))}
           </ul>
-        )}
-      </section>
+          <p className="numeral mt-4 border-t border-line pt-3 font-semibold">
+            {totalQuestions} questions &middot; {totalMinutes} minutes &middot;{' '}
+            {marks.size === 1 ? [...marks][0] : 'marking varies by section'}, 0 unattempted
+          </p>
+          {marks.size > 1 && (
+            <ul className="mt-2 space-y-1 text-xs text-ink-soft">
+              {sections.map((s) => (
+                <li key={s.code}>{SECTION_NAMES[s.code]}: +{Number(s.marks_correct)} correct, &minus;{Number(s.marks_negative)} wrong</li>
+              ))}
+            </ul>
+          )}
+        </section>
 
-      <section className="mt-4 card p-6">
-        <h2 className="eyebrow">Before you begin</h2>
-        <ul className="mt-3 space-y-2.5 text-sm">
-          <li><strong>Sections run in order and only forward.</strong> Once you leave a section you cannot return to it.</li>
-          <li><strong>Each section has its own timer.</strong> Finishing early does not add time to the next one.</li>
-          <li><strong>Full screen is required.</strong> Your browser will always let you leave it with Esc; if you do, the question is covered until you return, the count is recorded and shown on your result, and <strong>your timer keeps running</strong>. It never ends your test. It is a deterrent, not a lock.</li>
-          <li><strong>Two numbers are recorded:</strong> how many times you left full screen, and how many times you switched away. Your admin sees them too. Nothing else is logged.</li>
-          <li><strong>One device at a time.</strong> Beginning signs your account out everywhere else.</li>
-          <li><strong>Your timer starts the moment you press Begin</strong>, not when this page opened.</li>
-        </ul>
-      </section>
+        <section className="card p-6">
+          <h2 className="eyebrow">Before you begin</h2>
+          <ul className="mt-3 space-y-2.5 text-sm">
+            <li><strong>Sections run in order and only forward.</strong> Once you leave a section you cannot return to it.</li>
+            <li><strong>Each section has its own timer.</strong> Finishing early does not add time to the next one.</li>
+            <li><strong>Full screen is required.</strong> Your browser will always let you leave it with Esc; if you do, the question is covered until you return, the count is recorded and shown on your result, and <strong>your timer keeps running</strong>. It never ends your test. It is a deterrent, not a lock.</li>
+            <li><strong>Two numbers are recorded:</strong> how many times you left full screen, and how many times you switched away. Your admin sees them too. Nothing else is logged.</li>
+            <li><strong>One device at a time.</strong> Beginning signs your account out everywhere else.</li>
+            <li><strong>Your timer starts the moment you press Begin</strong>, not when this page opened.</li>
+          </ul>
+        </section>
+      </div>
 
       {refusal ? (
         <p className="mt-6 rounded-control bg-surface px-5 py-4 text-center font-semibold">{refusal}</p>

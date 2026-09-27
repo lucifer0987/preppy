@@ -6,6 +6,7 @@ import { QuestionCard } from './QuestionCard'
 import { DirectionsBlock } from './DirectionsBlock'
 import { QuestionPalette, paletteState, type PaletteState } from './QuestionPalette'
 import { SectionTimer } from './SectionTimer'
+import { ThemeToggle } from './ThemeToggle'
 import { SECTION_NAMES, type OptionLabel } from '../lib/types'
 import type { AttemptSnapshot } from '../lib/repo/attempts'
 import {
@@ -429,36 +430,47 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
         />
       )}
 
-      <header className="sticky top-0 z-30 flex flex-wrap items-center gap-3 bg-play-purple px-4 py-3 text-white">
-        {/* The section name is this screen's title, and it was a span, so a
-            45-minute exam had no heading structure at all. TestEngine remounts
-            per section, so this correctly changes as the student moves on. */}
-        <h1 className="font-black">{SECTION_NAMES[section.code]}</h1>
-        <span className="text-sm text-white/70 tabular-nums">
-          Question {index + 1} of {section.questions.length}
-        </span>
-        <span className="text-xs text-white/50 tabular-nums">
-          Section {section.position} of {section.totalSections}
-        </span>
-        <span className="ml-auto flex items-center gap-2">
-          {snapshot.isDryRun && (
-            <span className="rounded-full bg-surface/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest">
-              Dry run
-            </span>
-          )}
-          <span
-            title="Times you left full screen or switched away"
-            className="rounded-full bg-surface/20 px-2.5 py-1 font-mono text-xs"
-          >
-            &#9888; {exits + switches}
+      {/* Six things competed for one row here, which on a 360px phone wrapped
+          into a header three lines deep and pushed the question off screen. The
+          clock and the section name are what a student looks at under time, so
+          they hold the first row at every width and the rest gives way: the
+          section counter is redundant with the palette below on a phone, and
+          the question counter shrinks rather than wraps. The inner shell is what
+          lines the header up with the content underneath it. */}
+      <header className="sticky top-0 z-30 bg-play-purple text-white">
+        <div className="shell flex items-center gap-x-3 gap-y-1 py-2.5">
+          {/* The section name is this screen's title, and it was a span, so a
+              45-minute exam had no heading structure at all. TestEngine remounts
+              per section, so this correctly changes as the student moves on. */}
+          <h1 className="truncate font-black">{SECTION_NAMES[section.code]}</h1>
+          <span className="numeral shrink-0 text-sm text-white/70">
+            <span className="hidden sm:inline">Question </span>
+            {index + 1}/{section.questions.length}
           </span>
-          <SectionTimer
-            deadlineMs={clock.deadlineMs}
-            serverNowMs={clock.serverNowMs}
-            onExpire={onExpire}
-            onResync={onResync}
-          />
-        </span>
+          <span className="numeral hidden shrink-0 text-xs text-white/50 md:inline">
+            Section {section.position} of {section.totalSections}
+          </span>
+          <span className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
+            {snapshot.isDryRun && (
+              <span className="hidden rounded-full bg-white/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest sm:inline">
+                Dry run
+              </span>
+            )}
+            <span
+              title="Times you left full screen or switched away"
+              className="numeral rounded-full bg-white/20 px-2.5 py-1 text-xs"
+            >
+              &#9888; {exits + switches}
+            </span>
+            <SectionTimer
+              deadlineMs={clock.deadlineMs}
+              serverNowMs={clock.serverNowMs}
+              onExpire={onExpire}
+              onResync={onResync}
+            />
+            <ThemeToggle tone="invert" />
+          </span>
+        </div>
       </header>
 
       {offline && (
@@ -468,7 +480,7 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
         </p>
       )}
 
-      <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_240px]">
+      <div className="shell grid gap-6 py-6 lg:grid-cols-[minmax(0,1fr)_17rem]">
         <main className="min-w-0 select-none card p-6">
           {/* Shown on every question in the group, not just the first (FR-6.4.10). */}
           {question.directions && (

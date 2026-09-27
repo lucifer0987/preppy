@@ -5,7 +5,7 @@ import { formatIstDate, istDate } from '../../../lib/time'
 import { CreateUserForm, ResetPasswordForm } from './UserForms'
 import { BulkImport } from './BulkImport'
 import { toggleActiveAction } from './actions'
-import { BackLink, PageHeader } from '../../../components/Page'
+import { BackLink, PageHeader, TableShell, Th } from '../../../components/Page'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,25 +21,25 @@ export default async function UsersPage() {
       <CreateUserForm />
       <BulkImport />
 
-      <div className="mt-8 overflow-x-auto card p-5">
-        <table className="w-full border-collapse text-sm">
+      <div className="mt-8">
+        <TableShell minWidth="46rem">
           <thead>
-            <tr className="text-left text-[10px] uppercase tracking-widest text-ink-soft">
-              <th className="py-2 pr-3 font-bold">Username</th>
-              <th className="py-2 pr-3 font-bold">Name</th>
-              <th className="py-2 pr-3 font-bold">Role</th>
-              <th className="py-2 px-2 text-right font-bold">Papers</th>
-              <th className="py-2 pr-3 font-bold">Last seen</th>
-              <th className="py-2 pr-3 font-bold">Status</th>
-              <th className="py-2 font-bold" />
+            <tr className="border-b border-line">
+              <Th>Username</Th>
+              <Th>Name</Th>
+              <Th>Role</Th>
+              <Th align="right">Papers</Th>
+              <Th>Last seen</Th>
+              <Th>Status</Th>
+              <Th />
             </tr>
           </thead>
           <tbody>
             {users.map((u) => (
-              <tr key={u.id} className="border-t border-line align-top">
-                <td className="py-3 pr-3 font-mono font-semibold">{u.username}</td>
-                <td className="py-3 pr-3">{u.displayName}</td>
-                <td className="py-3 pr-3">
+              <tr key={u.id} className="border-b border-line align-top last:border-0">
+                <td className="numeral px-3 py-3 font-semibold">{u.username}</td>
+                <td className="px-3 py-3">{u.displayName}</td>
+                <td className="px-3 py-3">
                   {u.role === 'admin' ? (
                     <span className="pill-brand px-2 py-0.5 text-[10px] uppercase tracking-widest">
                       admin
@@ -48,7 +48,7 @@ export default async function UsersPage() {
                     <span className="text-ink-soft">student</span>
                   )}
                 </td>
-                <td className="py-3 px-2 text-right tabular-nums">
+                <td className="px-3 py-3 text-right tabular-nums">
                   {u.role === 'admin' ? '—' : (
                     <Link href={`/admin/attempts?user=${u.id}`} className="font-bold text-accent underline"
                           aria-label={`${u.attemptCount} papers: see ${u.displayName}'s attempts`}>
@@ -56,10 +56,10 @@ export default async function UsersPage() {
                     </Link>
                   )}
                 </td>
-                <td className="py-3 pr-3 text-ink-soft">
+                <td className="px-3 py-3 text-ink-soft">
                   {u.lastLoginAt ? formatIstDate(istDate(new Date(u.lastLoginAt))) : 'never'}
                 </td>
-                <td className="py-3 pr-3">
+                <td className="px-3 py-3">
                   {u.isActive
                     ? <span className="text-good-ink">active</span>
                     : <span className="text-bad-ink">inactive</span>}
@@ -69,7 +69,7 @@ export default async function UsersPage() {
                     </span>
                   )}
                 </td>
-                <td className="py-3">
+                <td className="px-3 py-3">
                   <div className="flex flex-col items-end gap-1">
                     <ResetPasswordForm userId={u.id} username={u.username} />
                     {u.id !== me.id && (
@@ -86,7 +86,7 @@ export default async function UsersPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </TableShell>
       </div>
 
       <p className="mt-4 text-sm text-ink-soft">

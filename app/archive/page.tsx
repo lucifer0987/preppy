@@ -36,7 +36,7 @@ export default async function ArchivePage() {
 
   return (
     <AppShell user={user} current="archive">
-      <main className="mx-auto max-w-5xl px-5 pt-6">
+      <main className="shell pt-6">
         <PageHeader
           title="Past papers"
           lede="Every paper that has closed, with its answers and solutions. Open one whether or not you sat it."

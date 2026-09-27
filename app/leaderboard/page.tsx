@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { AppShell } from '../../components/AppShell'
-import { PageHeader, Flash } from '../../components/Page'
+import { PageHeader, Flash, TableShell, Th } from '../../components/Page'
 import { requireUser } from '../../lib/guard'
 import { boardPapers, getLeaderboard, getPaperStandings } from '../../lib/repo/leaderboard'
 import { LeaderboardTable } from '../../components/LeaderboardTable'
@@ -40,7 +40,7 @@ export default async function LeaderboardPage({
 
   return (
     <AppShell user={user} current="leaderboard">
-    <main className="mx-auto max-w-5xl px-5 pt-6">
+    <main className="shell pt-6">
       <PageHeader
         title="Leaderboard"
         lede="Cumulative points across every paper. It never resets, and takes each paper in once that paper closes."
@@ -129,36 +129,41 @@ function PaperRankList({
     )
   }
   return (
-    <div className="overflow-x-auto card p-5">
+    <div>
+      {/* The date heading used to sit inside the scroll container and slid out
+          of view with the table. */}
       <h2 className="eyebrow">{formatIstDate(standings.date)}</h2>
-      <table className="mt-3 w-full border-collapse text-sm tabular-nums">
-        <thead>
-          <tr className="text-left text-[10px] uppercase tracking-widest text-ink-soft">
-            <th className="py-2 pr-2 font-bold">#</th>
-            <th className="py-2 pr-3 font-bold">Student</th>
-            <th className="py-2 px-2 text-right font-bold">Score</th>
-            <th className="py-2 pl-2 text-right font-bold">Accuracy</th>
-          </tr>
-        </thead>
-        <tbody>
-          {standings.rows.map((row) => {
-            const me = row.userId === meUserId
-            return (
-              <tr key={row.userId} className={`border-t border-line ${me ? 'bg-accent/10 font-semibold' : ''}`}>
-                <td className="py-2.5 pr-2 font-bold">{ordinal(row.rank)}</td>
-                <td className="py-2.5 pr-3">
-                  {row.displayName}
-                  {me && <span className="ml-2 text-[10px] uppercase tracking-widest text-accent">you</span>}
-                </td>
-                <td className="py-2.5 px-2 text-right font-bold">{row.score.toFixed(2)}</td>
-                <td className="py-2.5 pl-2 text-right text-ink-soft">
-                  {row.accuracyPct === null ? '—' : `${row.accuracyPct.toFixed(0)}%`}
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
+      <div className="mt-3">
+        <TableShell minWidth="26rem">
+          <thead>
+            <tr className="border-b border-line">
+              <Th>#</Th>
+              <Th>Student</Th>
+              <Th align="right">Score</Th>
+              <Th align="right">Accuracy</Th>
+            </tr>
+          </thead>
+          <tbody className="numeral">
+            {standings.rows.map((row) => {
+              const me = row.userId === meUserId
+              return (
+                <tr key={row.userId}
+                    className={`border-b border-line last:border-0 ${me ? 'bg-accent/10 font-semibold' : ''}`}>
+                  <td className="px-3 py-2.5 font-bold">{ordinal(row.rank)}</td>
+                  <td className="px-3 py-2.5 font-display">
+                    {row.displayName}
+                    {me && <span className="ml-2 text-[10px] uppercase tracking-widest text-accent">you</span>}
+                  </td>
+                  <td className="px-3 py-2.5 text-right font-bold">{row.score.toFixed(2)}</td>
+                  <td className="px-3 py-2.5 text-right text-ink-soft">
+                    {row.accuracyPct === null ? '—' : `${row.accuracyPct.toFixed(0)}%`}
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </TableShell>
+      </div>
     </div>
   )
 }

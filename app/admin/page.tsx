@@ -60,7 +60,7 @@ export default async function AdminHome({
           <div className="absolute inset-0 opacity-[0.06]"
                style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '26px 26px' }} />
         </div>
-        <div className="relative">
+        <div className="relative max-w-3xl">
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-[0.6875rem] font-bold uppercase tracking-[0.16em] text-white/60">
             Today &middot; <span className="numeral">{formatIstDate(today)}</span>

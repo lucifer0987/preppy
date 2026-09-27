@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { Countdown } from '../components/Countdown'
+import { ThemeToggle } from '../components/ThemeToggle'
 import { currentUser } from '../lib/auth'
 import { isConfigured } from '../lib/env'
 import { SECTION_NAMES, patternTotals, uniformMarking } from '../lib/types'
@@ -41,59 +42,71 @@ export default async function Home() {
 
   return (
     <main className="min-h-dvh bg-play-purple text-white">
-      <div className="mx-auto flex min-h-dvh max-w-3xl flex-col justify-center px-6 py-16">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">
-          IBPS SO (IT) &middot; daily mock
-        </p>
-        <h1 className="mt-3 text-6xl font-black tracking-tight sm:text-7xl">Preppy</h1>
-        <p className="mt-4 max-w-xl text-lg text-white/80">
-          One paper a night, marked like the real exam, on a leaderboard that never resets.
-        </p>
+      <div className="shell flex min-h-dvh flex-col py-6">
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-white/60 sm:text-xs">
+            IBPS SO (IT) &middot; daily mock
+          </p>
+          <ThemeToggle tone="invert" />
+        </div>
 
-        <section className="mt-10 rounded-card bg-surface/10 p-6" aria-labelledby="next-paper">
-          <h2 id="next-paper" className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">
-            Next paper unlocks in
-          </h2>
-          <div className="mt-3">
-            <Countdown targetIso={(next ? opensAt(next.window) : new Date(now.getTime() + 86_400_000)).toISOString()} nowIso={now.toISOString()} />
+        {/* Two columns past the lg breakpoint: the pitch reads on the left while
+            the two facts a visitor actually came for sit on the right. Stacked
+            below that, and the facts go side by side on a tablet first, because
+            they are short. */}
+        <div className="flex flex-1 items-center py-10 lg:py-14">
+          <div className="grid w-full items-center gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-16 xl:gap-24">
+            <div>
+              <h1 className="text-5xl font-black tracking-tight sm:text-6xl xl:text-7xl">Preppy</h1>
+              <p className="measure mt-5 text-lg text-white/80 sm:text-xl">
+                One paper a night, marked like the real exam, on a leaderboard that never resets.
+              </p>
+              <div className="mt-8 sm:mt-10">
+                <Link href="/login" className="btn btn-invert px-8 py-4 text-lg">
+                  Log in
+                </Link>
+                <p className="mt-3 text-sm text-white/60">
+                  Accounts are issued by your admin. There is no sign-up.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1">
+              <section className="rounded-card bg-white/10 p-6" aria-labelledby="next-paper">
+                <h2 id="next-paper" className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">
+                  Next paper unlocks in
+                </h2>
+                <div className="mt-3">
+                  <Countdown targetIso={(next ? opensAt(next.window) : new Date(now.getTime() + 86_400_000)).toISOString()} nowIso={now.toISOString()} />
+                </div>
+                <p className="mt-4 text-sm text-white/70">
+                  Opens {labels.opens}. Last entry {labels.closes}, so everyone gets the full {totals.minutes} minutes.
+                </p>
+              </section>
+
+              <section className="rounded-card bg-white/10 p-6" aria-labelledby="pattern">
+                <h2 id="pattern" className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">
+                  Tonight&rsquo;s pattern
+                </h2>
+                <ul className="mt-3 space-y-1.5">
+                  {pattern.map((s) => (
+                    <li key={s.code} className="flex items-baseline justify-between gap-4 text-sm">
+                      <span className="font-semibold">{SECTION_NAMES[s.code]}</span>
+                      <span className="numeral text-white/70">
+                        {s.questions} q &middot; {s.minutes} min
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="numeral mt-4 border-t border-white/20 pt-3 text-sm font-semibold">
+                  {totals.questions} questions &middot; {totals.minutes} minutes
+                  {marking
+                    ? <> &middot; +{marking.correct} correct, &minus;{marking.negative} wrong</>
+                    : <> &middot; marking varies by section</>}
+                </p>
+              </section>
+            </div>
           </div>
-          <p className="mt-4 text-sm text-white/70">
-            Opens {labels.opens}. Last entry {labels.closes}, so everyone gets the full {totals.minutes} minutes.
-          </p>
-        </section>
-
-        <section className="mt-6 rounded-card bg-surface/10 p-6" aria-labelledby="pattern">
-          <h2 id="pattern" className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">
-            Tonight&rsquo;s pattern
-          </h2>
-          <ul className="mt-3 space-y-1.5">
-            {pattern.map((s) => (
-              <li key={s.code} className="flex items-baseline justify-between gap-4 text-sm">
-                <span className="font-semibold">{SECTION_NAMES[s.code]}</span>
-                <span className="tabular-nums text-white/70">
-                  {s.questions} q &middot; {s.minutes} min
-                </span>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-4 border-t border-white/20 pt-3 text-sm font-semibold tabular-nums">
-            {totals.questions} questions &middot; {totals.minutes} minutes
-            {marking
-              ? <> &middot; +{marking.correct} correct, &minus;{marking.negative} wrong</>
-              : <> &middot; marking varies by section</>}
-          </p>
-        </section>
-
-        <div className="mt-10">
-          <Link
-            href="/login"
-            className="btn btn-invert inline-block px-8 py-4 text-lg transition hover:bg-white/90"
-          >
-            Log in
-          </Link>
-          <p className="mt-3 text-sm text-white/60">
-            Accounts are issued by your admin. There is no sign-up.
-          </p>
         </div>
       </div>
     </main>

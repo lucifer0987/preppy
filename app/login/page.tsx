@@ -24,7 +24,8 @@ export default async function LoginPage({
 
   if (!isConfigured()) {
     return (
-      <main className="mx-auto flex min-h-dvh max-w-xl flex-col justify-center px-6">
+      <main className="shell flex min-h-dvh flex-col justify-center">
+        <div className="mx-auto w-full max-w-xl">
         <Wordmark />
         <h1 className="mt-6 text-3xl font-black">Not configured yet</h1>
         <p className="mt-3 text-ink-soft">
@@ -34,6 +35,7 @@ export default async function LoginPage({
           <code className="rounded bg-surface px-1.5 py-0.5 font-mono text-sm">.env.local</code>.
         </p>
         <Link href="/" className="mt-6 font-bold text-accent underline underline-offset-4">Back</Link>
+        </div>
       </main>
     )
   }
@@ -67,7 +69,7 @@ export default async function LoginPage({
           </p>
 
           {totals && (
-            <dl className="mt-10 grid grid-cols-3 gap-px overflow-hidden rounded-card border border-white/15 bg-surface/10">
+            <dl className="mt-10 grid grid-cols-3 gap-px overflow-hidden rounded-card border border-white/15 bg-white/10">
               <Stat label="Questions" value={String(totals.questions)} />
               <Stat label="Minutes" value={String(totals.minutes)} />
               <Stat

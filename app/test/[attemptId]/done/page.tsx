@@ -118,7 +118,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
     : 'good'
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
+    <main className="shell py-10">
       {/* Keyed on the attempt, so the moment fires once, not on every revisit. */}
       <Celebration level={celebration} onceKey={`result.${attemptId}`} />
       <ResultSound
@@ -146,45 +146,89 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
         </Flash>
       )}
 
-      <section className="mt-4 rounded-card bg-play-purple p-8 text-center text-white">
-        {attempt.is_dry_run && (
-          <p className="mb-3 inline-block rounded-full bg-surface/20 px-3 py-1 text-[10px] font-bold uppercase tracking-widest">
-            Dry run &middot; not counted
-          </p>
-        )}
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">Your score</p>
-        <p className="mt-2 text-7xl font-black tabular-nums"><CountUp value={score} /></p>
-        {bounds && <p className="mt-1 text-white/70">out of {bounds.max}</p>}
-        {standing?.paper && (
-          <p className="mt-3 text-2xl font-black">
-            {ordinal(standing.paper.rank)} of {standing.paper.of}
-          </p>
-        )}
-        {counted && !ranked && (
-          <p className="mt-3 text-sm font-semibold text-white/80">
-            Your rank on this paper appears at {paperLabels(paperWindow).hardStop}, when
-            the leaderboard takes in tonight&rsquo;s results.
-          </p>
-        )}
-        {isPersonalBest && (
-          <p className="chip btn-invert mt-3 inline-block px-4 py-1.5 text-sm">
-            Personal best
-          </p>
-        )}
-        <p className="mt-4 text-sm text-white/70 tabular-nums">
-          {attempt.correct} correct &middot; {attempt.wrong} wrong &middot;{' '}
-          {attempt.skipped} skipped &middot; {attempt.not_reached} not reached &middot; {minutes} min
-        </p>
-      </section>
+      {/* Nine stacked cards down a 1900px page was one line of content per
+          screenful. The score leads, the things you read once sit beside it,
+          and the section table gets the full width because it has nine
+          columns and actually wants them. */}
+      <div className="mt-4 grid gap-4 lg:grid-cols-[1.4fr_1fr] xl:grid-cols-[1.55fr_1fr]">
+        <section className="relative overflow-hidden rounded-card bg-play-purple p-6 text-center text-white shadow-high sm:p-8">
+          <div aria-hidden="true"
+               className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-brand-500/30 blur-3xl" />
+          <div className="relative">
+            {attempt.is_dry_run && (
+              <p className="mb-3 inline-block rounded-full bg-white/20 px-3 py-1 text-[10px] font-bold uppercase tracking-widest">
+                Dry run &middot; not counted
+              </p>
+            )}
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">Your score</p>
+            <p className="numeral mt-2 text-6xl font-black sm:text-7xl">
+              <CountUp value={score} />
+            </p>
+            {bounds && <p className="numeral mt-1 text-white/70">out of {bounds.max}</p>}
+            {standing?.paper && (
+              <p className="mt-3 text-2xl font-black">
+                {ordinal(standing.paper.rank)} of {standing.paper.of}
+              </p>
+            )}
+            {counted && !ranked && (
+              <p className="measure mx-auto mt-3 text-sm font-semibold text-white/80">
+                Your rank on this paper appears at {paperLabels(paperWindow).hardStop}, when
+                the leaderboard takes in tonight&rsquo;s results.
+              </p>
+            )}
+            {isPersonalBest && (
+              <p className="chip btn-invert mt-3 inline-block px-4 py-1.5 text-sm">
+                Personal best
+              </p>
+            )}
 
-      {standing && standing.board.after !== null && (
-        <section className="mt-4 card p-5">
-          <h2 className="eyebrow">Leaderboard</h2>
-          <p className="mt-2 text-sm">
-            <BoardDelta before={standing.board.before} after={standing.board.after} of={standing.board.of} />
-          </p>
+            {/* Five figures on one line wrapped mid-phrase on a phone. As cells
+                they wrap as whole facts, and line up as figures should. */}
+            <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-control border border-white/15 bg-white/10 sm:grid-cols-3 lg:grid-cols-5">
+              <Tally label="Correct" value={attempt.correct as number} />
+              <Tally label="Wrong" value={attempt.wrong as number} />
+              <Tally label="Skipped" value={attempt.skipped as number} />
+              <Tally label="Not reached" value={attempt.not_reached as number} />
+              <Tally label="Minutes" value={minutes} />
+            </dl>
+          </div>
         </section>
-      )}
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 lg:content-start">
+          {standing && standing.board.after !== null && (
+            <section className="card p-5">
+              <h2 className="eyebrow">Leaderboard</h2>
+              <p className="mt-2 text-sm">
+                <BoardDelta before={standing.board.before} after={standing.board.after} of={standing.board.of} />
+              </p>
+            </section>
+          )}
+
+          <section className="card p-5">
+            <h2 className="eyebrow">Answers</h2>
+            {unlocked && test.status === 'SCHEDULED' ? (
+              <Link href={`/archive/${testId}`} className="btn btn-primary mt-3 px-5 py-2.5 text-sm">
+                Review your answers
+              </Link>
+            ) : (
+              <p className="mt-2 text-sm text-ink-soft">
+                {unlocked
+                  ? 'This paper is not published, so it has no review page.'
+                  : 'Answers and solutions unlock at midnight, for everyone at once.'}
+              </p>
+            )}
+          </section>
+
+          <section className="card p-5">
+            <h2 className="eyebrow">Full screen</h2>
+            <p className="numeral mt-2 text-sm">
+              Left full screen <strong>{attempt.fullscreen_exits}</strong>{' '}
+              {attempt.fullscreen_exits === 1 ? 'time' : 'times'} &middot; switched away{' '}
+              <strong>{attempt.tab_switches}</strong> {attempt.tab_switches === 1 ? 'time' : 'times'}.
+            </p>
+          </section>
+        </div>
+      </div>
 
       <section className="mt-4">
         <h2 className="eyebrow">By section</h2>
@@ -228,71 +272,55 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
         </div>
       </section>
 
-      {sections.some((s) => pacingVerdict(s)) && (
-        <section className="mt-4 card p-5">
-          <h2 className="eyebrow">Pacing</h2>
-          <ul className="mt-3 space-y-2 text-sm">
-            {sections.map((s) => {
-              const verdict = pacingVerdict(s)
-              return verdict ? (
-                <li key={s.code}>
-                  <span className="font-semibold">{SECTION_NAMES[s.code as SectionCode]}:</span> {verdict}
-                </li>
-              ) : null
-            })}
-          </ul>
-        </section>
+      {(sections.some((s) => pacingVerdict(s)) || slowest.some((s) => s.questions.length)) && (
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          {sections.some((s) => pacingVerdict(s)) && (
+            <section className="card p-5">
+              <h2 className="eyebrow">Pacing</h2>
+              <ul className="mt-3 space-y-2 text-sm">
+                {sections.map((s) => {
+                  const verdict = pacingVerdict(s)
+                  return verdict ? (
+                    <li key={s.code}>
+                      <span className="font-semibold">{SECTION_NAMES[s.code as SectionCode]}:</span> {verdict}
+                    </li>
+                  ) : null
+                })}
+              </ul>
+            </section>
+          )}
+
+          {slowest.some((s) => s.questions.length) && (
+            <section className="card p-5">
+              <h2 className="eyebrow">Where the time went</h2>
+              <p className="mt-1 text-xs text-ink-soft">Your three slowest questions in each section.</p>
+              <ul className="numeral mt-3 space-y-2 text-sm">
+                {slowest.map((s) => s.questions.length ? (
+                  <li key={s.code}>
+                    <span className="font-display font-semibold">{SECTION_NAMES[s.code]}:</span>{' '}
+                    {s.questions.map((q) => `Q${q.questionNumber} (${clock(q.timeSpentSec)})`).join(' · ')}
+                  </li>
+                ) : null)}
+              </ul>
+            </section>
+          )}
+        </div>
       )}
 
-      {slowest.some((s) => s.questions.length) && (
-        <section className="mt-4 card p-5">
-          <h2 className="eyebrow">Where the time went</h2>
-          <p className="mt-1 text-xs text-ink-soft">Your three slowest questions in each section.</p>
-          <ul className="mt-3 space-y-2 text-sm tabular-nums">
-            {slowest.map((s) => s.questions.length ? (
-              <li key={s.code}>
-                <span className="font-semibold">{SECTION_NAMES[s.code]}:</span>{' '}
-                {s.questions.map((q) => `Q${q.questionNumber} (${clock(q.timeSpentSec)})`).join(' · ')}
-              </li>
-            ) : null)}
-          </ul>
-        </section>
-      )}
-
-      <section className="mt-4 card p-5">
-        <h2 className="eyebrow">Full screen</h2>
-        <p className="mt-2 text-sm tabular-nums">
-          Left full screen <strong>{attempt.fullscreen_exits}</strong>{' '}
-          {attempt.fullscreen_exits === 1 ? 'time' : 'times'} &middot; switched away{' '}
-          <strong>{attempt.tab_switches}</strong> {attempt.tab_switches === 1 ? 'time' : 'times'}.
-        </p>
-      </section>
-
-      <section className="mt-4 card p-5">
-        <h2 className="eyebrow">Answers</h2>
-        {unlocked && test.status === 'SCHEDULED' ? (
-          <Link
-            href={`/archive/${testId}`}
-            className="btn btn-primary mt-3 px-5 py-2.5 text-sm"
-          >
-            Review your answers
-          </Link>
-        ) : (
-          <p className="mt-2 text-sm text-ink-soft">
-            {unlocked
-              ? 'This paper is not published, so it has no review page.'
-              : 'Answers and solutions unlock at midnight, for everyone at once.'}
-          </p>
-        )}
-      </section>
-
-      <Link
-        href="/dashboard"
-        className="btn btn-primary mt-8"
-      >
+      <Link href="/dashboard" className="btn btn-primary mt-8">
         Back to dashboard
       </Link>
     </main>
+  )
+}
+
+/** One figure in the score panel's breakdown. */
+function Tally({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="bg-play-purple px-3 py-2.5">
+      <dt className="text-[0.625rem] font-bold uppercase tracking-widest text-white/60">{label}</dt>
+      <dd className="numeral mt-0.5 text-xl font-bold">{value}</dd>
+    </div>
   )
 }
 
