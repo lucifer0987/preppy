@@ -33,8 +33,8 @@ const SHAPE: Record<PaletteState, { className: string; clipPath?: string }> = {
     className: 'bg-answered text-white pt-1',
     clipPath: 'polygon(50% 0, 100% 38%, 100% 100%, 0 100%, 0 38%)',
   },
-  marked: { className: 'rounded-full bg-marked text-white' },
-  'answered-marked': { className: 'rounded-full bg-marked text-white' },
+  marked: { className: 'rounded-full bg-marked text-brand-950' },
+  'answered-marked': { className: 'rounded-full bg-marked text-brand-950' },
 }
 
 /**

@@ -16,6 +16,7 @@ import { QuestionEditor } from './QuestionEditor'
 import { DeleteButton } from './DeleteButton'
 import { getItemStats } from '../../../../lib/repo/rescore'
 import { BackLink, PageHeader, StatusChip } from '../../../../components/Page'
+import { TimeField } from '../../../../components/TimeField'
 import { OPTION_LABELS, type OptionLabel, type PaperQuestion } from '../../../../lib/types'
 import { Flash } from '../../../../components/Page'
 
@@ -225,26 +226,21 @@ export default async function PaperPreview(
           <p className="mt-1 text-sm text-ink-soft">
             Pick the night and the window below. Until it opens you can still move it back to draft.
           </p>
-          <label className="mt-4 block text-xs font-bold uppercase tracking-widest text-ink-soft">
-            Night
+          {/* The date input keeps the platform calendar -- picking a day from a grid
+               is the one thing it does better than anything hand-built -- but it now
+               sits in the app's own field, and accent-color points its selection at
+               the brand instead of the system blue. */}
+          <label className="mt-4 block">
+            <span className="eyebrow">Night</span>
             <input type="date" name="date" defaultValue={defaultDate} min={istDate()} required
-                   className="field mt-1" />
+                   className="field numeral mt-1.5 w-auto min-w-48 cursor-pointer" />
           </label>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <label className="block">
-              <span className="eyebrow">Unlocks at</span>
-              <input type="time" name="opensAt" required
-                     defaultValue={hhmm(defaultWindow.opensAtMin)}
-                     className="field mt-1 tabular-nums" />
-            </label>
-            <label className="block">
-              <span className="eyebrow">Last moment to start</span>
-              <input type="time" name="entryClosesAt" required
-                     defaultValue={hhmm(defaultWindow.entryClosesAtMin)}
-                     max="23:15"
-                     className="field mt-1 tabular-nums" />
-            </label>
+            <TimeField name="opensAt" label="Unlocks at"
+                       defaultValue={hhmm(defaultWindow.opensAtMin)} />
+            <TimeField name="entryClosesAt" label="Last moment to start"
+                       defaultValue={hhmm(defaultWindow.entryClosesAtMin)} max="23:15" />
           </div>
           <p className="mt-2 text-xs text-ink-soft">
             Anyone starting before the second time still gets the full {totalMinutes} minutes, so the

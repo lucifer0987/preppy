@@ -174,7 +174,11 @@
   /* Mark for review, and move on. Kept as tokens because they are used as
      text and border colour on the one screen a student sits in for 45
      minutes, and the fixed fills are too dark to read on a dark page. */
-  --mark: #7128bc;
+  /* Flagged for review. It used to be a violet six degrees from --accent, so a
+       row of buttons had two violets in it meaning different things. Gold is the
+       one family nothing else in the palette claims: violet is the interface,
+       green is answered, red is blank, grey is untouched, gold is "come back". */
+    --mark: var(--color-gold-700);
   /* Both are borders and text, never fills, so they are chosen against the
      lightest ground they sit on. The old #26890c read 4.02:1 on the page
      ground, where the test engine's Next button sits, so it went deeper. */
@@ -239,7 +243,7 @@
   --bad-ink: var(--color-bad-400);
   --gold: var(--color-gold-300);
   /* The test screen's two outline buttons, light enough to read on a dark page. */
-  --mark: #b98cf0;
+  --mark: var(--color-gold-300);
   --go: #4ec22e;
 
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4);
@@ -298,7 +302,7 @@
   --color-play-green: var(--color-opt-green);
   --color-answered: #1c7c2e;
   --color-notanswered: #c7102f;
-  --color-marked: #7128bc;
+  --color-marked: var(--color-gold-500);
   --color-notvisited: var(--color-slate-400);
 }
 

@@ -90,7 +90,9 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
   const [exits, setExits] = useState(snapshot.fullscreenExits)
   const [switches, setSwitches] = useState(snapshot.tabSwitches)
   const [offline, setOffline] = useState(false)
-  const [confirming, setConfirming] = useState(false)
+  // Which decision is being confirmed: leaving this section, or ending the
+    // whole paper. Both are one-way, so neither happens without a dialog.
+    const [confirming, setConfirming] = useState<null | 'section' | 'end'>(null)
     // The rules were readable on the briefing page and nowhere after it.
     const [showRules, setShowRules] = useState(false)
   const [advancing, setAdvancing] = useState(false)
@@ -312,7 +314,7 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
 
   // ---------------------------------------------------------------- keyboard
   const rootRef = useRef<HTMLDivElement>(null)
-  const blocked = fullscreen === false || confirming || advancing
+  const blocked = fullscreen === false || confirming !== null || advancing
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       // Nothing may answer a question an overlay is hiding: the full-screen
@@ -373,15 +375,16 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
   }, [flush, resync])
 
   const advance = () => {
-    setConfirming(false)
-    if (advancing) return
+    const kind = confirming
+        setConfirming(null)
+        if (advancing) return
     setAdvancing(true)
     void (async () => {
       // Whatever is queued goes first; a section that has closed refuses it.
       await flush()
       try {
-        if (isLastSection) {
-          const res = await endTestAction(attemptId)
+        if (kind === 'end' || isLastSection) {
+                  const res = await endTestAction(attemptId)
           if (res.refused === 'signed-out') return signedOut()
           if (res.refused === 'error') throw new Error('retry')
           leave()
@@ -540,13 +543,14 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
             <div className="flex flex-wrap items-center gap-2">
               <Btn onClick={() => go(-1)} disabled={index === 0}>Previous</Btn>
               <Btn onClick={clearResponse} disabled={!current.selected}>Clear</Btn>
-              <Btn onClick={toggleMark} tone="mark"
-                    title="Flag this question and stay on it">
-                {current.marked ? 'Unmark' : 'Mark for review'}
-              </Btn>
-              <Btn onClick={markAndNext} tone="mark" disabled={current.marked && atEnd}
-                    title="Flag this question and move to the next one">
-                Mark &amp; next &rarr;
+              {/* One button, not two. Two that both said "mark" left the difference
+                   between them to be guessed at; this one flags the question and moves
+                   on, which is what either of them was for. */}
+              <Btn onClick={current.marked ? toggleMark : markAndNext} tone="mark"
+                   title={current.marked
+                     ? 'Remove the flag from this question'
+                     : 'Flag this question for review and move to the next one'}>
+                {current.marked ? 'Unmark' : <>Mark for review &amp; next &rarr;</>}
               </Btn>
               <Btn onClick={() => go(1)} tone="primary" className="ml-auto" disabled={atEnd}>
                 Save &amp; next
@@ -598,27 +602,40 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
                 Marking does not answer a question.
               </p>
             )}
-            <Btn onClick={() => setConfirming(true)}
-                 className="mt-4 w-full" disabled={advancing}>
-              {advancing ? 'Saving…' : <>{isLastSection ? 'End test' : 'Next section'} &rarr;</>}
-            </Btn>
+            {!isLastSection && (
+              <Btn onClick={() => setConfirming('section')}
+                   className="mt-4 w-full" disabled={advancing}>
+                {advancing ? 'Saving…' : <>Next section &rarr;</>}
+              </Btn>
+            )}
             <p className="mt-2.5 text-xs text-ink-faint">
               {isLastSection
-                ? 'Ends the paper. Nothing can be changed afterwards.'
+                ? 'This is the last section.'
                 : 'Sections run forward only, so this one closes for good.'}
             </p>
+            {/* Always reachable. A student who is finished should not have to walk
+                through the remaining sections to hand the paper in. */}
+            <button
+              type="button"
+              onClick={() => setConfirming('end')}
+              disabled={advancing}
+              className="btn btn-quiet mt-3 w-full border-bad/40 text-bad-ink
+                         hover:border-bad hover:bg-bad/10 hover:text-bad-ink"
+            >
+              End test
+            </button>
           </div>
         </aside>
       </div>
 
       {showRules && <RulesDialog onClose={() => setShowRules(false)} />}
       
-      {confirming && (
+      {confirming !== null && (
         <ConfirmDialog
-          isLast={isLastSection}
+          isLast={confirming === 'end' || isLastSection}
           sectionName={SECTION_NAMES[section.code]}
           tally={tally}
-          onCancel={() => setConfirming(false)}
+          onCancel={() => setConfirming(null)}
           onConfirm={advance}
         />
       )}
@@ -703,12 +720,12 @@ function ConfirmDialog({
          className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-6">
       <div ref={panel} className="w-full max-w-md card p-6">
         <h2 id="confirm-title" className="text-2xl font-black">
-          {isLast ? 'End the test?' : `Leave ${sectionName}?`}
+          {isLast ? 'Hand the paper in?' : `Leave ${sectionName}?`}
         </h2>
         <p className="mt-2 text-ink-soft">
           {isLast
-            ? 'This submits your paper. It cannot be undone.'
-            : 'You cannot come back to this section.'}
+            ? 'This submits everything and scores it. Any section you have not opened is scored as not reached, and nothing can be changed afterwards.'
+            : 'Sections run forward only, so this one closes for good. Anything left blank here stays blank.'}
         </p>
         <dl className="mt-4 grid grid-cols-2 gap-2 text-sm">
           <Row label="Answered" value={tally.answered} />
@@ -720,8 +737,13 @@ function ConfirmDialog({
           <button onClick={onCancel} autoFocus className="flex-1 btn btn-quiet px-5 py-3">
             Go back
           </button>
-          <button onClick={onConfirm} className="btn btn-primary flex-1">
-            {isLast ? 'End test' : 'Next section'}
+          <button
+            onClick={onConfirm}
+            className={isLast
+              ? 'btn flex-1 border border-bad/50 bg-bad/15 text-bad-ink hover:bg-bad/25'
+              : 'btn btn-primary flex-1'}
+          >
+            {isLast ? 'Yes, hand it in' : 'Next section'}
           </button>
         </div>
       </div>

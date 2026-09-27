@@ -167,7 +167,17 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
             <p className="numeral mt-2 text-6xl font-black sm:text-7xl">
               <CountUp value={score} />
             </p>
-            {bounds && <p className="numeral mt-1 text-white/70">out of {bounds.max}</p>}
+            {bounds && (
+              <>
+                <p className="numeral mt-1 text-white/70">out of {bounds.max}</p>
+                <div className="mx-auto mt-4 h-2 w-full max-w-xs overflow-hidden rounded-pill bg-white/15">
+                  <div
+                    className="h-full rounded-pill bg-white/90"
+                    style={{ width: `${Math.max(0, Math.min(100, (score / bounds.max) * 100)).toFixed(1)}%` }}
+                  />
+                </div>
+              </>
+            )}
             {standing?.paper && (
               <p className="mt-3 text-2xl font-black">
                 {ordinal(standing.paper.rank)} of {standing.paper.of}
@@ -267,8 +277,22 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
                   <td className="px-3 py-2.5 text-right font-semibold text-bad-ink">{s.wrong}</td>
                   <td className="px-3 py-2.5 text-right text-ink-soft">{s.skipped}</td>
                   <td className="px-3 py-2.5 text-right text-ink-soft">{s.notReached}</td>
-                  <td className="px-3 py-2.5 text-right">
-                    {s.accuracyPct === null ? '—' : `${s.accuracyPct.toFixed(0)}%`}
+                  <td className="px-3 py-2.5">
+                    {s.accuracyPct === null ? (
+                      <span className="block text-right text-ink-faint">&mdash;</span>
+                    ) : (
+                      <span className="flex items-center justify-end gap-2">
+                        <span className="hidden h-1.5 w-16 overflow-hidden rounded-pill bg-surface-sunken sm:block">
+                          <span
+                            className={`block h-full rounded-pill ${
+                              s.accuracyPct >= 60 ? 'bg-good' : s.accuracyPct >= 35 ? 'bg-warn' : 'bg-bad'
+                            }`}
+                            style={{ width: `${s.accuracyPct.toFixed(0)}%` }}
+                          />
+                        </span>
+                        <span className="w-9 text-right">{s.accuracyPct.toFixed(0)}%</span>
+                      </span>
+                    )}
                   </td>
                   <td className="px-3 py-2.5 text-right">{clock(timeByCode.get(s.code) ?? null)}</td>
                 </tr>
