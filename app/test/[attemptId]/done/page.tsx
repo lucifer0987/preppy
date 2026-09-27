@@ -259,7 +259,13 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
               label="Rank on this paper"
               value={standing?.paper ? ordinal(standing.paper.rank) : '—'}
               hint={standing?.paper
+                // A percentile beside the rank once the cohort is big enough
+                // to have one, because it is the figure the exam itself
+                // reports back and the one a student will compare against.
                 ? `of ${standing.paper.of}${settled ? '' : ' so far'}`
+                  + (standing.paper.percentile === null
+                    ? ''
+                    : ` \u00b7 ${standing.paper.percentile.toFixed(1)} percentile`)
                 : ranked ? undefined : 'not counted'}
             />
             <Tally

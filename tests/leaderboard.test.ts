@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildLeaderboard, ordinal, paperRank, rankDelta, streaks, type AttemptRecord } from '../lib/leaderboard'
+import { buildLeaderboard, ordinal, paperRank, rankDelta, streaks, type AttemptRecord, percentileOf, PERCENTILE_MIN_COHORT } from '../lib/leaderboard'
 
 const rec = (
   user: string, paperKey: string, totalScore: number,
@@ -211,10 +211,10 @@ describe('the result page figures (PRD 6.6)', () => {
       rec('a', DATES[0]!, 30), rec('b', DATES[0]!, 40), rec('c', DATES[0]!, 30),
       rec('d', DATES[0]!, 10), rec('a', DATES[1]!, 50),
     ]
-    expect(paperRank(records, 'a', DATES[0]!)).toEqual({ rank: 2, of: 4 })
-    expect(paperRank(records, 'c', DATES[0]!)).toEqual({ rank: 2, of: 4 })
-    expect(paperRank(records, 'd', DATES[0]!)).toEqual({ rank: 4, of: 4 })
-    expect(paperRank(records, 'a', DATES[1]!)).toEqual({ rank: 1, of: 1 })
+    expect(paperRank(records, 'a', DATES[0]!)).toEqual({ rank: 2, of: 4, percentile: null })
+    expect(paperRank(records, 'c', DATES[0]!)).toEqual({ rank: 2, of: 4, percentile: null })
+    expect(paperRank(records, 'd', DATES[0]!)).toEqual({ rank: 4, of: 4, percentile: null })
+    expect(paperRank(records, 'a', DATES[1]!)).toEqual({ rank: 1, of: 1, percentile: null })
   })
 
   it('is null for a paper the student has no counted attempt on', () => {
@@ -367,5 +367,49 @@ describe('a paper still open, counted from the moment somebody finishes it', () 
   it('falls back to the board when no streak scope is given', () => {
     const rows = buildLeaderboard(records, all)
     expect(rows.find((r) => r.userId === 'b')!.currentStreak).toBe(0)
+  })
+})
+
+describe('percentiles, once there is a cohort to have one (PRD 6.7.10)', () => {
+  // With five students the only percentiles available are 0, 20, 40, 60 and
+  // 80, each moving twenty points when one person has an off day. That is a
+  // coarser measure than "2nd of 5" wearing a decimal point, so below the
+  // threshold there is no percentile at all.
+  const cohort = (n: number) => Array.from({ length: n }, (_, i) => i)
+
+  it('is null for a board no bigger than the threshold', () => {
+    expect(percentileOf(5, cohort(5))).toBeNull()
+    expect(percentileOf(5, cohort(PERCENTILE_MIN_COHORT))).toBeNull()
+  })
+
+  it('appears the moment the board is bigger than it', () => {
+    expect(percentileOf(0, cohort(PERCENTILE_MIN_COHORT + 1))).toBe(0)
+  })
+
+  it('counts the share scoring strictly below, as the exam does', () => {
+    // 40 people, scores 0..39. Scoring 30 beats thirty of them.
+    expect(percentileOf(30, cohort(40))).toBe(75)
+    expect(percentileOf(20, cohort(40))).toBe(50)
+  })
+
+  it('never reaches 100, because the top of the board cannot beat itself', () => {
+    expect(percentileOf(39, cohort(40))).toBe(97.5)
+  })
+
+  it('gives a tie one percentile, as it gives them one rank', () => {
+    const tied = [...cohort(38), 50, 50]
+    expect(percentileOf(50, tied)).toBe(percentileOf(50, tied))
+    expect(percentileOf(50, tied)).toBe(95)
+  })
+
+  it('reaches the board rows, and only above the threshold', () => {
+    const small = buildLeaderboard(
+      [rec('a', DATES[0]!, 10), rec('b', DATES[0]!, 20)], [DATES[0]!])
+    expect(small.every((r) => r.percentile === null)).toBe(true)
+
+    const many = Array.from({ length: 40 }, (_, i) => rec(`u${i}`, DATES[0]!, i))
+    const big = buildLeaderboard(many, [DATES[0]!])
+    expect(big[0]!.percentile).toBe(97.5)
+    expect(big.at(-1)!.percentile).toBe(0)
   })
 })

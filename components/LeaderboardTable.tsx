@@ -45,6 +45,10 @@ export function LeaderboardTable({
   }
 
   const podium = rows.slice(0, 3)
+  // Below PERCENTILE_MIN_COHORT every row's percentile is null, so the column
+  // is absent rather than present and full of dashes. A board that grows past
+  // the threshold grows the column with it.
+  const showPercentile = rows.some((r) => r.percentile !== null)
 
   return (
     <>
@@ -71,6 +75,7 @@ export function LeaderboardTable({
                 <Th align="right">Avg</Th>
                 <Th align="right">Accuracy</Th>
                 <Th align="right">Best</Th>
+                {showPercentile && <Th align="right">Percentile</Th>}
                 <Th align="right" className="pr-5">Streak</Th>
               </tr>
             </thead>
@@ -108,6 +113,9 @@ export function LeaderboardTable({
                     <Td>{row.avgScore.toFixed(1)}</Td>
                     <Td>{row.accuracyPct === null ? '—' : `${row.accuracyPct.toFixed(0)}%`}</Td>
                     <Td>{row.bestScore.toFixed(2)}</Td>
+                    {showPercentile && (
+                      <Td>{row.percentile === null ? '—' : row.percentile.toFixed(1)}</Td>
+                    )}
                     <td className="py-3 pl-2 pr-5 text-right">
                       {row.currentStreak > 0
                         ? <StreakBadge papers={row.currentStreak} />
@@ -130,6 +138,8 @@ export function LeaderboardTable({
           Ranked on total, then average, then accuracy, then the best single paper. Every figure
           here is measured over the window above. A streak counts papers, not days: every paper
           that has closed, plus one still open that you have already sat.
+          {showPercentile && ' A percentile is the share of the board scoring below you, the way '
+            + 'the exam counts it, so the top of the board is never 100.'}
         </p>
       )}
     </>

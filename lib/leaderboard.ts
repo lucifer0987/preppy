@@ -43,6 +43,38 @@ export interface LeaderboardRow {
   currentStreak: number
   /** The longest run of consecutive papers sat, ever (PRD 6.8). */
   longestStreak: number
+  /**
+   * Where this total sits in the cohort, as a percentage of it scoring lower.
+   * Null below PERCENTILE_MIN_COHORT, which is most boards.
+   */
+  percentile: number | null
+}
+
+/**
+ * The cohort a percentile needs before it means anything (PRD 6.7.10).
+ *
+ * With five students the only percentiles available are 0, 20, 40, 60 and 80,
+ * and each of them moves twenty points when one person has an off day. That is
+ * not a finer measure than "2nd of 5", it is a coarser one wearing a decimal
+ * point. So a percentile appears only once the board is bigger than this, and
+ * below it the column is not there at all rather than being there and
+ * meaningless.
+ */
+export const PERCENTILE_MIN_COHORT = 30
+
+/**
+ * The percentile of one score within a cohort: what fraction scored strictly
+ * lower, as a percentage.
+ *
+ * This is the definition the exam itself uses, which is the reason to use it
+ * here: a student comparing the two should not find they disagree. It follows
+ * that nobody ever scores 100 -- the top of the board beats everyone but
+ * themselves -- and that a tie shares a percentile, as it shares a rank.
+ */
+export function percentileOf(score: number, cohort: number[]): number | null {
+  if (cohort.length <= PERCENTILE_MIN_COHORT) return null
+  const below = cohort.filter((s) => s < score).length
+  return Math.round((below / cohort.length) * 1000) / 10
 }
 
 export interface LeaderboardOptions {
@@ -149,13 +181,14 @@ export function rankDelta(
  */
 export function paperRank(
   records: AttemptRecord[], userId: string, paperKey: string,
-): { rank: number; of: number } | null {
+): { rank: number; of: number; percentile: number | null } | null {
   const cohort = records.filter((r) => r.paperKey === paperKey)
   const mine = cohort.find((r) => r.userId === userId)
   if (!mine) return null
   return {
     rank: cohort.filter((r) => r.totalScore > mine.totalScore).length + 1,
     of: cohort.length,
+    percentile: percentileOf(mine.totalScore, cohort.map((r) => r.totalScore)),
   }
 }
 
@@ -187,6 +220,7 @@ function aggregate(
       bestScore: round2(Math.max(...attempts.map((r) => r.totalScore))),
       currentStreak: streaksOf(userId).current,
       longestStreak: streaksOf(userId).longest,
+      percentile: null as number | null,
       cumulativeTimeSec: attempts.reduce((a, r) => a + r.timeSpentSec, 0),
       firstAttemptDate: first,
     }
@@ -211,6 +245,10 @@ function aggregate(
     || a.username.localeCompare(b.username),
   )
 
+  // The same cohort the ranks are drawn from, so a percentile and a rank can
+  // never be computed over different populations.
+  const totals = rows.map((r) => r.totalPoints)
+
   // Standard competition ranking: genuinely tied rows share a rank.
   let rank = 0
   let lastKey = ''
@@ -220,6 +258,7 @@ function aggregate(
     const key = `${row.totalPoints}|${row.avgScore}|${row.accuracyPct}|${row.bestScore}`
     if (key !== lastKey) { rank = i + 1; lastKey = key }
     row.rank = rank
+    row.percentile = percentileOf(row.totalPoints, totals)
   })
 
   return rows.map(({ cumulativeTimeSec: _t, firstAttemptDate: _d, ...row }) => row)

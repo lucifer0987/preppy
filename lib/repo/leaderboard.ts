@@ -174,7 +174,7 @@ export async function getLeaderboard(
 
 export interface ResultStanding {
   /** "2nd of 5" on this paper alone. Null when the attempt does not count. */
-  paper: { rank: number; of: number } | null
+  paper: { rank: number; of: number; percentile: number | null } | null
   /** All-time rank just before this paper and just after it. */
   board: { before: number | null; after: number | null; of: number }
 }
