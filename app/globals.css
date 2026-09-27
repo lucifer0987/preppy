@@ -186,18 +186,26 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --page: var(--color-slate-950);
-  --surface: var(--color-slate-900);
-  --surface-sunken: #171222;
-  --surface-raised: var(--color-slate-800);
+  /* Material's dark-theme guidance, applied rather than paraphrased: the base
+     is #121212 -- a dark grey, deliberately not black, because grey carries
+     elevation and shadow where black flattens them -- and a branded surface is
+     that base with the primary laid over it at a low opacity. These are
+     #121212 with brand-500 at 6, 8, 12 and 18 percent. The old stack ran from
+     #110d18 to #0b0910, which is darker than the recommendation at every step
+     and is why the app read as black rather than dark. */
+  --page: #19161f;
+  --surface: #201a2c;
+  --surface-sunken: #1b1723;
+  --surface-raised: #2a2338;
   --surface-invert: var(--color-brand-950);
 
   --text: #f2eefa;
-  --text-soft: #b7aecb;
-  --text-faint: #8d84a3;
+  --text-soft: #bcb2d0;
+  --text-faint: #968ca9;
 
-  --line: #2f2841;
-  --line-strong: #3f3654;
+  /* Lifted with the surfaces, or the borders would have disappeared into them. */
+  --line: #342e42;
+  --line-strong: #463e57;
 
   --accent: var(--color-brand-400);
   /* On a light violet fill, white is 3.15:1 -- below AA. The deep brand
@@ -391,11 +399,14 @@ h2, h3 { text-wrap: balance; }
 }
 
 :root[data-theme="dark"] [data-room="exam"] {
-  --chrome: #0b0910;
-  --chrome-line: rgb(255 255 255 / 0.08);
-  --page: #0b0910;
-  --surface: #151020;
-  --surface-sunken: #100c1a;
+  /* The exam room takes the same base with only a trace of brand in it, so it
+     stays the calmer of the two rooms without becoming a different product.
+     Chrome and page are the same value on purpose: one surface, one border. */
+  --chrome: #141318;
+  --chrome-line: rgb(255 255 255 / 0.09);
+  --page: #141318;
+  --surface: #1e1c25;
+  --surface-sunken: #191820;
   --accent: var(--color-brand-400);
   --accent-hover: var(--color-brand-300);
   --accent-soft: #241a3d;

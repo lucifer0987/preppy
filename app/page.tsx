@@ -61,16 +61,16 @@ export default async function Home() {
           <ThemeToggle />
         </div>
 
-        <div className="flex flex-1 items-center py-5 lg:py-6">
-          <div className="grid w-full items-center gap-8 lg:grid-cols-[1.1fr_1fr] lg:gap-14 xl:gap-20">
+        <div className="flex flex-1 items-center py-4 lg:py-6">
+          <div className="grid w-full items-center gap-8 lg:grid-cols-[1.05fr_1fr] lg:gap-14 xl:gap-20">
             <div>
               <p className="inline-flex items-center gap-2 rounded-pill border border-line-strong bg-surface
                             px-3.5 py-1.5 text-[0.6875rem] font-bold uppercase tracking-[0.18em] text-ink-soft">
                 IBPS Specialist Officer &middot; IT
               </p>
 
-              {/* No cohort size in the copy. It was "Five of you", which was
-                  true on the day it was written and is a number that grows. */}
+              {/* No cohort size here. It said "Five of you", which was true the
+                  day it was written and is a number that grows. */}
               <h1 className="mt-5 font-display text-5xl font-black leading-[1.02] tracking-tight
                              sm:text-[3.75rem] xl:text-[4.75rem]">
                 One paper a night.<br />
@@ -94,41 +94,42 @@ export default async function Home() {
               </div>
             </div>
 
-            <NextPaper next={next} now={now} labels={labels} totals={totals} />
-          </div>
-        </div>
+            {/* One card, not two stacked and not a strip along the foot: when
+                the paper is scheduled and its shape sit together they read as
+                one answer to "what am I in for tonight". Every figure comes
+                from the configured pattern; only the section names are fixed. */}
+            <section className="card overflow-hidden" aria-labelledby="next-paper">
+              <NextPaper next={next} now={now} labels={labels} totals={totals} />
 
-        {/* The shape of a paper, along the foot of the page. It was a card in
-            the right-hand column, which left the bottom third of the screen
-            empty and made the countdown compete with it for attention. The
-            section names are fixed; every figure in here is read from the
-            configured pattern, never written into the copy. */}
-        <div className="border-t border-line pt-5">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3">
-            <h2 className="eyebrow">What a paper looks like</h2>
-            <p className="numeral text-sm font-bold">
-              {totals.questions} questions in {totals.minutes} minutes
-              {marking && (
-                <span className="font-semibold text-ink-faint">
-                  {' '}&middot; +{marking.correct} right, &minus;{marking.negative} wrong
-                </span>
-              )}
-            </p>
+              <div className="border-t border-line bg-surface-sunken px-5 py-4 sm:px-6">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+                  <h3 className="eyebrow">What a paper looks like</h3>
+                  <p className="numeral text-xs font-bold">
+                    {totals.questions} questions &middot; {totals.minutes} minutes
+                  </p>
+                </div>
+                <ul className="mt-3 space-y-2">
+                  {pattern.map((s, i) => (
+                    <li key={s.code} className="flex items-baseline justify-between gap-4 text-sm">
+                      <span className="flex min-w-0 items-baseline gap-2.5">
+                        <Shape index={i} />
+                        <span className="truncate font-semibold">{SECTION_NAMES[s.code]}</span>
+                      </span>
+                      <span className="numeral shrink-0 text-xs text-ink-faint">
+                        {s.questions} &middot; {s.minutes}m
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                {marking && (
+                  <p className="numeral mt-3 border-t border-line pt-2.5 text-xs text-ink-faint">
+                    +{marking.correct} for a right answer, &minus;{marking.negative} for a wrong one,
+                    nothing for a blank.
+                  </p>
+                )}
+              </div>
+            </section>
           </div>
-          <ul className="mt-3.5 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
-            {pattern.map((s, i) => (
-              <li key={s.code} className="flex items-center gap-2.5 rounded-control border border-line
-                                          bg-surface px-3.5 py-2.5">
-                <Shape index={i} />
-                <span className="min-w-0 flex-1 text-sm font-semibold leading-tight">
-                  {SECTION_NAMES[s.code]}
-                </span>
-                <span className="numeral shrink-0 text-xs text-ink-faint">
-                  {s.questions} &middot; {s.minutes}m
-                </span>
-              </li>
-            ))}
-          </ul>
         </div>
       </div>
     </main>
@@ -152,7 +153,7 @@ function NextPaper({ next, now, labels, totals }: {
 }) {
   if (!next) {
     return (
-      <section className="card p-5" aria-labelledby="next-paper">
+      <div className="p-5 sm:p-6">
         <h2 id="next-paper" className="eyebrow">Next paper</h2>
         <p className="mt-2.5 font-display text-2xl font-black">Nothing scheduled yet</p>
         <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">
@@ -162,12 +163,12 @@ function NextPaper({ next, now, labels, totals }: {
         <p className="mt-3.5 border-t border-line pt-3 text-xs text-ink-faint">
           They usually open at {labels.opens}, with last entry {labels.closes}.
         </p>
-      </section>
+      </div>
     )
   }
 
   return (
-    <section className="card p-5" aria-labelledby="next-paper">
+    <div className="p-5 sm:p-6">
       <div className="flex items-baseline justify-between gap-3">
         <h2 id="next-paper" className="eyebrow">Next paper opens in</h2>
         <span className="numeral shrink-0 text-xs text-ink-faint">
@@ -182,7 +183,7 @@ function NextPaper({ next, now, labels, totals }: {
         Opens {labels.opens}. Last entry {labels.closes}, so whoever starts latest still
         gets the full {totals.minutes} minutes.
       </p>
-    </section>
+    </div>
   )
 }
 

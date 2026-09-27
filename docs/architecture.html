@@ -1101,6 +1101,33 @@ also what makes them line up with each other.</p>
   themselves at a measure, because reading a paper is a reading task.</p>
 </div>
 
+<h3>The dark palette comes from Material, not from taste</h3>
+<p>The dark theme used to run from <code>#110d18</code> down to
+<code>#0b0910</code> in the exam room, and it read as black rather than dark.
+Material&rsquo;s dark-theme guidance is specific about why that is wrong: the
+recommended surface is <code>#121212</code>, a dark grey and deliberately not
+black, because grey can carry elevation and shadow where black flattens both.</p>
+
+<p>The surfaces are now that base with the brand laid over it at a low opacity
+&mdash; which is Material&rsquo;s own recipe for a branded dark theme &mdash;
+stepped by how raised the thing is:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Token</th><th>Value</th><th>Made of</th></tr></thead>
+<tbody>
+<tr><td><code>--page</code></td><td><code>#19161f</code></td><td>#121212 + brand at 6%</td></tr>
+<tr><td><code>--surface-sunken</code></td><td><code>#1b1723</code></td><td>+ 8%</td></tr>
+<tr><td><code>--surface</code></td><td><code>#201a2c</code></td><td>+ 12%</td></tr>
+<tr><td><code>--surface-raised</code></td><td><code>#2a2338</code></td><td>+ 18%</td></tr>
+</tbody>
+</table></div>
+
+<p>The exam room takes the same base with only a trace of brand in it
+(<code>#141318</code>), so it stays the calmer of the two rooms without turning
+into a different product. Lifting the surfaces meant lifting the borders with
+them, or they would have vanished; every text and accent token was re-measured
+against all four and none of them fell below AA.</p>
+
 <h3>A fill colour is not a text colour</h3>
 <p>This is the one rule in the system that is not obvious, and breaking it is
 invisible to whoever does it.</p>

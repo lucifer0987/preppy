@@ -79,7 +79,7 @@ function Submit() {
     <button
       type="submit"
       disabled={pending}
-      className="btn btn-primary w-full py-4 text-lg transition
+      className="btn btn-zap w-full py-4 text-lg transition
                  hover:bg-accent-hover active:translate-y-px disabled:opacity-60"
     >
       {pending ? 'Checking…' : 'Log in'}

@@ -52,7 +52,7 @@ export default async function LoginPage({
     <main className="grid min-h-dvh lg:grid-cols-[1.1fr_1fr]">
       {/* The brand half. Hidden on phones, where it would push the form below
           the fold for no gain. */}
-      <aside className="relative hidden overflow-hidden bg-surface-invert px-12 py-14 text-white lg:flex lg:flex-col">
+      <aside className="relative hidden overflow-hidden bg-surface-invert px-12 py-12 text-white lg:flex lg:flex-col">
         <Glow />
         <div className="relative">
           <Wordmark tone="invert" />
@@ -60,12 +60,12 @@ export default async function LoginPage({
 
         <div className="relative mt-auto max-w-lg">
           <h2 className="font-display text-5xl font-black leading-[1.05] tracking-tight">
-            One paper a night.<br />
-            <span className="text-gold-300">One ranking</span> that never resets.
+            Sit tonight&rsquo;s paper.<br />
+            <span className="text-gold-300">See where</span> it puts you.
           </h2>
           <p className="mt-5 text-lg leading-relaxed text-white/70">
-            Real IBPS marking, a timer per section that only moves forward, and a
-            leaderboard your cohort actually watches.
+            Real marking, a timer per section that only moves forward, and a board that
+            remembers every paper you have ever sat.
           </p>
 
           {totals && (
@@ -86,8 +86,8 @@ export default async function LoginPage({
       </aside>
 
       {/* The form half. */}
-      <div className="flex flex-col justify-center px-6 py-14 sm:px-12">
-        <div className="mx-auto w-full max-w-sm">
+      <div className="flex flex-col justify-center px-6 py-10 sm:px-10 lg:px-14">
+        <div className="mx-auto w-full max-w-md">
           <div className="flex items-center justify-between">
             <div className="lg:hidden">
               <Wordmark />
@@ -95,8 +95,8 @@ export default async function LoginPage({
             <div className="ml-auto"><ThemeToggle /></div>
           </div>
 
-          <h1 className="mt-8 text-4xl font-black tracking-tight lg:mt-0">Log in</h1>
-          <p className="mt-2 text-ink-soft">Username and password. Nothing else.</p>
+          <h1 className="mt-7 text-4xl font-black tracking-tight lg:mt-0">Welcome back</h1>
+          <p className="mt-2 text-ink-soft">Your username and password. Nothing else to fill in.</p>
 
           {signedOut && (
             <p role="status"
@@ -114,9 +114,9 @@ export default async function LoginPage({
 
           <LoginForm />
 
-          <p className="mt-10 border-t border-line pt-5 text-sm text-ink-soft">
-            Forgotten your password? There is no email on file to send a reset to, so ask your admin to
-            set a new one.
+          <p className="mt-8 border-t border-line pt-4 text-sm text-ink-soft">
+            Forgotten it? There is no email on file to send a reset to, so your admin sets a new
+            one for you.
           </p>
         </div>
       </div>
