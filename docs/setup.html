@@ -214,7 +214,7 @@ file has to exist before anything can be written into it.</p>
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>node -v</b>            <i># needs v20 or newer</i>
 <b>npm install</b>
-<b>npm test</b>           <i># 397 passing means the code is sound</i></pre>
+<b>npm test</b>           <i># 442 passing means the code is sound</i></pre>
 </div>
 
 <h3>2 &middot; The Supabase project</h3>
@@ -368,13 +368,26 @@ badge.</p>
 <tr><td>The file was wrong, and somebody has</td><td>End it, then <strong>Delete this paper</strong> &mdash; which takes their attempts with it, and says how many &mdash; then upload the corrected one as a new paper</td></tr>
 </tbody>
 </table></div>
+
+<h3>Preparing people for a second exam</h3>
+<p>Skip this if everybody here is sitting the same exam. With one exam nothing in the console mentions this at all, which is the intended state.</p>
+<div class="tw"><table>
+<thead><tr><th>Step</th><th>Where</th></tr></thead>
+<tbody>
+<tr><td>Add the exam</td><td><strong>Admin &rarr; Exams</strong>. A name, and an address derived from it. It starts on the shipped pattern: four sections, 55 questions, 45 minutes</td></tr>
+<tr><td>Give it its real shape</td><td><strong>Admin &rarr; Pattern</strong>, with the new exam chosen at the top. Add or remove sections, move them, rename them &mdash; Professional Knowledge is where the discipline goes. Do this <em>before</em> uploading anything, since a paper is checked against the pattern of the exam it is for</td></tr>
+<tr><td>Put people on it</td><td><strong>Admin &rarr; People</strong>. An <strong>Exam</strong> column appears once there is more than one; change anybody's from the row. New accounts get a picker</td></tr>
+<tr><td>Upload a paper for it</td><td><strong>Admin &rarr; Upload a paper</strong>, and choose the exam at the top. Two exams may run a paper at the same time on the same day</td></tr>
+</tbody>
+</table></div>
+<p>Closing an exam stops new papers being scheduled on it and changes nothing else: its papers, attempts and leaderboard stay. The last open one cannot be closed.</p>
 </div></section>
 
 <section id="c4"><div class="col">
 <h2><i>4</i>Shipping a change</h2>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
-<pre><b>npm run build:prod</b>      <i># preflight + typecheck + 397 tests + build</i>
+<pre><b>npm run build:prod</b>      <i># preflight + typecheck + 442 tests + build</i>
 <b>git add -A &amp;&amp; git commit -m "what changed"</b>
 <b>git push</b>                 <i># Vercel deploys by itself</i></pre>
 </div>
@@ -431,7 +444,7 @@ means "pass the rest through".</p>
 <thead><tr><th>Command</th><th>What it does</th></tr></thead>
 <tbody>
 <tr><td><code>npm run dev</code></td><td>Development server on port 3000, reloads as you edit. Restart it after editing <code>.env.local</code></td></tr>
-<tr><td><code>npm test</code></td><td>397 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm test</code></td><td>442 tests. No database needed, about a second</td></tr>
 <tr><td><code>npm run test:live</code></td><td>Every read the app makes, run against the real Supabase project in <code>.env.local</code>. Read-only, so it is safe to point anywhere. Worth running after changing a query &mdash; it catches a select that forgot a column, which nothing else does</td></tr>
 <tr><td><code>npm run typecheck</code></td><td>Types only, no build. Faster than a build when you just want to know it compiles</td></tr>
 </tbody>
@@ -464,7 +477,7 @@ means "pass the rest through".</p>
 <tbody>
 <tr><td><code>npm run build:local</code></td><td>Preflight, then a build that keeps source maps so a stack trace names real files. For reproducing something locally</td></tr>
 <tr><td><code>npm run start:local</code></td><td>Serves that build on port 3000</td></tr>
-<tr><td><code>npm run build:prod</code></td><td>Preflight, typecheck, all 397 tests, then a build with no source maps. Any failure stops it</td></tr>
+<tr><td><code>npm run build:prod</code></td><td>Preflight, typecheck, all 442 tests, then a build with no source maps. Any failure stops it</td></tr>
 <tr><td><code>npm run start:prod</code></td><td>Serves the production build</td></tr>
 <tr><td><code>npm run build</code></td><td>The same as <code>build:prod</code>. This is what Vercel runs</td></tr>
 <tr><td><code>npm run start</code></td><td>The same as <code>start:prod</code></td></tr>
@@ -505,14 +518,16 @@ means "pass the rest through".</p>
 <tr><td>Seeding errors</td><td>Tables missing. Run <code>npm run migrate</code></td></tr>
 <tr><td>The sweep did not run</td><td>Admin home &rarr; <strong>Finalise open attempts now</strong></td></tr>
 <tr><td>A paper will not delete</td><td>Somebody has a counted attempt on it. A trigger is refusing</td></tr>
-<tr><td>Leaderboard missing a paper</td><td>A paper joins the board when the first student finishes it, or at its close if nobody did. A paper nobody has sat and that has not closed is on nobody&rsquo;s board yet</td></tr>
+<tr><td>Leaderboard missing a paper</td><td>A paper joins the board when the first student finishes it, or at its close if nobody did. A paper nobody has sat and that has not closed is on nobody&rsquo;s board yet. With more than one exam, check you are looking at the right board</td></tr>
+<tr><td>A student sees no papers at all</td><td><strong>Admin &rarr; People</strong>: their <strong>Exam</strong> is unset, or set to one with nothing scheduled</td></tr>
+<tr><td>An upload is refused for its sections</td><td>It is being checked against the wrong exam. Pick the right one at the top of the upload screen</td></tr>
 <tr><td>Changed <code>.env.local</code>, nothing happened</td><td>Restart <code>npm run dev</code></td></tr>
 </table></div>
 
 <p>Three questions answer most problems:</p>
 <ol>
 <li><strong>Which database am I talking to?</strong> Compare the URL in <code>.env.local</code> with the project name in Supabase.</li>
-<li><strong>Did the schema apply?</strong> Table Editor: eleven tables plus <code>schema_migrations</code>, each with an RLS badge.</li>
+<li><strong>Did the schema apply?</strong> Table Editor: twelve tables plus <code>schema_migrations</code>, each with an RLS badge.</li>
 <li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those pass, it is configuration, not logic.</li>
 </ol>
 

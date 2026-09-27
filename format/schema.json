@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://preppy.local/schema/paper-v1.json",
   "title": "Preppy paper",
-  "description": "The JSON format for a Preppy paper. Four sections in a fixed order; how many questions each holds, how long it runs and what it is worth all come from the configured pattern unless the file says otherwise.",
+  "description": "The JSON format for a Preppy paper. A paper is checked against the pattern of the exam it is uploaded for: which sections it has, in what order, and how many questions each holds all come from that pattern unless the file says otherwise. This schema cannot know which exam you mean, so it accepts any of the six section codes in any order; the app is stricter.",
   "type": "object",
   "required": [
     "format",
@@ -31,44 +31,12 @@
     },
     "sections": {
       "type": "array",
-      "minItems": 4,
-      "maxItems": 4,
-      "description": "Exactly four, in this order: QUANT, REASONING, ENGLISH, PK.",
-      "prefixItems": [
-        {
-          "$ref": "#/$defs/section",
-          "properties": {
-            "code": {
-              "const": "QUANT"
-            }
-          }
-        },
-        {
-          "$ref": "#/$defs/section",
-          "properties": {
-            "code": {
-              "const": "REASONING"
-            }
-          }
-        },
-        {
-          "$ref": "#/$defs/section",
-          "properties": {
-            "code": {
-              "const": "ENGLISH"
-            }
-          }
-        },
-        {
-          "$ref": "#/$defs/section",
-          "properties": {
-            "code": {
-              "const": "PK"
-            }
-          }
-        }
-      ],
-      "items": false
+      "minItems": 1,
+      "maxItems": 6,
+      "description": "The sections of the exam this paper is for, in the order they are sat. Four on the pattern the product ships with (QUANT, REASONING, ENGLISH, PK); a track decides its own, so an editor cannot check the order and the app does.",
+      "items": {
+        "$ref": "#/$defs/section"
+      }
     }
   },
   "$defs": {
@@ -94,7 +62,9 @@
             "QUANT",
             "REASONING",
             "ENGLISH",
-            "PK"
+            "PK",
+            "COMPUTER_AWARENESS",
+            "GENERAL_AWARENESS"
           ]
         },
         "questionCount": {

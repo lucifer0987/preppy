@@ -218,7 +218,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <div><dt>SQL functions</dt><dd>11</dd></div>
     <div><dt>Migrations</dt><dd>2</dd></div>
     <div><dt>Modules</dt><dd>30<small>lib/</small></dd></div>
-    <div><dt>Tests</dt><dd>397</dd></div>
+    <div><dt>Tests</dt><dd>442</dd></div>
     <div><dt>Runtime deps</dt><dd>8</dd></div>
   </dl>
 </header>
@@ -322,7 +322,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <div class="tw"><table>
 <tr><th>Guard</th><th>Where</th><th>What happens if you slip</th></tr>
 <tr><td><code>import 'server-only'</code></td><td>Top of <code>lib/supabase/admin.ts</code>, <code>lib/auth.ts</code></td><td>The build fails. A client component importing it cannot compile</td></tr>
-<tr><td>Row Level Security</td><td>All 9 tables, enabled, no permissive policy</td><td>A leaked <code>anon</code> key reads nothing at all</td></tr>
+<tr><td>Row Level Security</td><td>Every table, enabled, no permissive policy. A test lists them rather than trusting a count</td><td>A leaked <code>anon</code> key reads nothing at all</td></tr>
 <tr><td><code>scripts/check-bundle.ts</code></td><td>Runs after every build</td><td>Scans the emitted client files for the key and fails the build</td></tr>
 </table></div>
 
@@ -339,6 +339,25 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td><code>requireAdmin()</code></td><td>The above, or you are not an admin</td><td>The whole <code>/admin</code> segment</td></tr>
 <tr><td><code>requireAnySignedIn()</code></td><td>Not signed in</td><td>Only <code>/account</code>, which holds the forced password change and so must not redirect to itself</td></tr>
 </table></div>
+
+<h3>Which exam, and who is on it</h3>
+<p>Authorisation answers <em>may you</em>; a track answers <em>which of it</em>. They are separate questions and it is worth not confusing them: a student on the Agriculture track is perfectly entitled to sit an IT paper, in the sense that no rule forbids it. They are simply never offered one, because every read they make is drawn within their own track.</p>
+
+<div class="tw"><table>
+<tr><th>Who is asking</th><th>Which track</th><th>Resolved by</th></tr>
+<tr><td>A student</td><td>Their own, <code>profiles.track_id</code></td><td><code>viewerTrack()</code></td></tr>
+<tr><td>An admin, on a student screen</td><td>The first active one. They follow none, because they run all of them</td><td><code>viewerTrack()</code>, falling through to <code>defaultTrack()</code></td></tr>
+<tr><td>An admin, in the console</td><td><code>?track=&lt;slug&gt;</code>, or the first active one</td><td><code>consoleTrack()</code></td></tr>
+<tr><td>A signed-out visitor</td><td>The first active one, for the shape on the splash page</td><td><code>defaultTrack()</code></td></tr>
+</table></div>
+
+<p>The console's track lives in the URL rather than in a cookie, and that is deliberate: a console page is something an admin bookmarks and pastes to somebody, and hidden state would make two people with the same link look at different papers.</p>
+
+<div class="note care">
+  <h4>A read that forgets the track is a read that mixes exams</h4>
+  <p><code>getLeaderboard</code>, <code>getArchive</code>, <code>boardPapers</code>, <code>listPapers</code> and <code>upcomingPapers</code> all take one, and the first three <em>require</em> it rather than defaulting. A default would have been the quiet kind of bug: everything would work, and one student in ten would be ranked against papers they were never offered. Where a default is genuinely right &mdash; the splash page, which has no viewer to ask &mdash; it is <code>defaultTrack()</code> written out, not an omission.</p>
+</div>
+
 </div></section>
 
 <section id="s3"><div class="col">
@@ -495,7 +514,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
   <rect x="20" y="160" width="470" height="76" rx="8" fill="none" stroke="#0E767F" stroke-width="2.5"/>
   <text x="38" y="184" font-size="13.5" font-weight="700" fill="currentColor">Pure domain logic</text>
   <text x="38" y="203" font-size="10.5" fill="currentColor" opacity=".7">time &middot; attempt &middot; scoring &middot; leaderboard &middot; paper &middot; csv &middot; images</text>
-  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 348 of the 397 tests live here</text>
+  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 388 of the 442 tests live here</text>
 
   <rect x="20" y="252" width="470" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
   <text x="38" y="276" font-size="13.5" font-weight="600" fill="currentColor">Repository</text>
@@ -540,7 +559,8 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <section id="s5"><div class="col">
 <h2><i>5</i>The database</h2>
 
-<p>Eleven tables. Eight hold the product; the other three hold the default window, the default paper pattern, and rate-limit counters.</p>
+<p>Twelve tables. Eight hold the product, two hold the exams and their patterns, and the other two hold the default window and rate-limit counters.</p>
+<p>Two of them arrived with phase 3 and change the shape of everything above: <code>tracks</code> is an exam somebody is preparing for, and <code>track_sections</code> is one track's pattern. A paper belongs to a track, a student follows one, and a leaderboard is drawn within one. What was a fixed four-section pattern belonging to the product is now one row set belonging to one track.</p>
 
 <figure>
 <svg viewBox="0 0 760 420" role="img" aria-label="Entity diagram. Profiles and tests are the two roots. Tests own sections, which own direction blocks and questions. Attempts join a profile to a test and own attempt sections and responses. Rate limits and app settings stand apart, referenced by nothing.">
@@ -599,7 +619,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <text x="512" y="160" font-size="10" opacity=".65">one row, stands apart</text>
 
     <rect x="500" y="196" width="150" height="56" rx="7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 4"/>
-    <text x="512" y="216" font-weight="600">default_sections</text>
+    <text x="512" y="216" font-weight="600">track_sections</text>
     <text x="512" y="233" font-size="10" opacity=".65">default pattern</text>
     <text x="512" y="246" font-size="10" opacity=".65">one row per section</text>
   </g>
@@ -658,7 +678,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <div class="tw"><table>
 <thead><tr><th>Constraint</th><th>On</th><th>What it prevents</th></tr></thead>
 <tbody>
-<tr><td><code>tests_one_scheduled_per_date_and_opening</code></td><td><code>tests</code></td><td>Two <em>scheduled</em> papers opening at the same minute of the same day. Partial on <code>status = 'SCHEDULED'</code>, so drafts for one day may sit side by side while you prepare them.</td></tr>
+<tr><td><code>tests_one_scheduled_per_track_date_and_opening</code></td><td><code>tests</code></td><td>Two <em>scheduled</em> papers on one track opening at the same minute of the same day. Partial on <code>status = 'SCHEDULED'</code>, so drafts for one day may sit side by side while you prepare them. Scoped to the track since phase 3: two exams running at the same moment is not a clash, because a student follows one of them.</td></tr>
 <tr><td><code>attempts_one_live_per_user</code></td><td><code>attempts</code></td><td>A student sitting two counted papers at once, which would split one attempt across two clocks. Partial, so an admin's dry run never blocks anyone.</td></tr>
 <tr><td><code>tests_window_within_the_day</code></td><td><code>tests</code></td><td>Entry closing so late that the last entrant's attempt spills past midnight, onto a date the archive and the board do not key on. Compares against <code>attempt_sec</code>, so a longer paper needs an earlier close.</td></tr>
 </tbody>
@@ -747,6 +767,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <h2><i>7</i>The paper format</h2>
 
 <p>A paper is <strong>one JSON file</strong>, uploaded with its images in the same request. This section is the whole specification &mdash; there is no separate format document.</p>
+<p>It is checked against the pattern of the <em>exam it is uploaded for</em> (PRD 6.10.4), which the upload screen picks and which decides which sections the file must have and in what order. With one exam there is no picker and this is invisible; the rules below are the same either way.</p>
 
 <figure>
 <svg viewBox="0 0 760 210" role="img" aria-label="Pipeline: upload the JSON and its images, parse, validate, preview, then schedule. Nothing is saved until validation passes and nothing goes live until the admin schedules it on the preview screen.">
@@ -854,7 +875,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <thead><tr><th>Where</th><th>What it sets</th><th>Wins when</th></tr></thead>
 <tbody>
 <tr><td>The section's own entry in the file &mdash; <code>questionCount</code>, <code>durationMinutes</code>, <code>marksCorrect</code>, <code>marksNegative</code></td><td>Just this paper</td><td>Always, when present</td></tr>
-<tr><td>Admin console &rarr; <strong>Paper pattern</strong>, stored in <code>default_sections</code></td><td>What a file is given when it stays silent</td><td>The file omits the field</td></tr>
+<tr><td>Admin console &rarr; <strong>Paper pattern</strong>, stored in <code>track_sections</code></td><td>What a file on that exam is given when it stays silent</td><td>The file omits the field</td></tr>
 </tbody>
 </table></div>
 <p><code>questionCount</code> is worth stating even when it matches the default, because it keeps the safety net: the count and the length of the <code>questions</code> array have to agree, so a file that quietly lost a question is still refused. Question numbers are never configured &mdash; they follow from the counts, so section two starts wherever section one ended.</p>
@@ -877,13 +898,13 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td><code>version</code></td><td class="n">yes</td><td>Always <code>1</code></td></tr>
 <tr><td><code>date</code></td><td class="n">yes</td><td><code>YYYY-MM-DD</code>, the day it runs. The times within that day are chosen when it is scheduled, not here. Must be a real day: <code>2026-02-31</code> is refused</td></tr>
 <tr><td><code>title</code></td><td class="n">no</td><td>Up to 80 characters. Left out, the paper is known by its date. The upload screen has a name box that overrides whatever is here, and <strong>Manage</strong> renames a paper afterwards &mdash; nothing keys off the name, so it is free to change at any point</td></tr>
-<tr><td><code>sections</code></td><td class="n">yes</td><td>Exactly four</td></tr>
+<tr><td><code>sections</code></td><td class="n">yes</td><td>Exactly the sections its exam has, in that order. Four on the shipped pattern; a track decides its own (PRD 6.10.2)</td></tr>
 </table></div>
 
 <h4>Section</h4>
 <div class="tw"><table>
 <tr><th>Field</th><th class="n">Required</th><th>Notes</th></tr>
-<tr><td><code>code</code></td><td class="n">yes</td><td><code>QUANT</code> <code>REASONING</code> <code>ENGLISH</code> <code>PK</code></td></tr>
+<tr><td><code>code</code></td><td class="n">yes</td><td><code>QUANT</code> <code>REASONING</code> <code>ENGLISH</code> <code>PK</code> <code>COMPUTER_AWARENESS</code> <code>GENERAL_AWARENESS</code>. A real code that the exam does not have is refused with its own message, naming the ones it does</td></tr>
 <tr><td><code>questionCount</code></td><td class="n">no</td><td>Defaults to the pattern. Given, it must equal the length of <code>questions</code>, so a lost question is still caught</td></tr>
 <tr><td><code>durationMinutes</code></td><td class="n">no</td><td>Defaults to the pattern. The four together decide how long the paper runs, and may not exceed eight hours &mdash; the window a single day can hold</td></tr>
 <tr><td><code>marksCorrect</code></td><td class="n">no</td><td>Default <code>1</code></td></tr>
@@ -948,7 +969,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 </div>
 
 <h3>What blocks publication</h3>
-<p>Wrong question count in a section &middot; sections missing, repeated, extra or out of order &middot; a number outside its section's band &middot; a gap or duplicate in the numbering &middot; a missing <code>answer</code>, or one naming an option that does not exist &middot; options not contiguous from <code>A</code> &middot; question text under 10 characters &middot; a <code>directions</code> range covering questions that are not there, or overlapping another &middot; a table with no headers, or a row whose width does not match them &middot; an empty <code>difficulty</code> &middot; an unknown field anywhere &middot; placeholder text left over from <code>template.json</code> &middot; an image referenced but not uploaded &middot; a date that is not a real day, or that already has a scheduled paper &middot; sections adding up to longer than a paper may run &middot; marks with more than two decimal places, which the column cannot keep &middot; JSON that cannot be read at all.</p>
+<p>Wrong question count in a section &middot; sections missing, repeated, extra or out of order for the exam being uploaded against &middot; a section that exam does not have &middot; a number outside its section's band &middot; a gap or duplicate in the numbering &middot; a missing <code>answer</code>, or one naming an option that does not exist &middot; options not contiguous from <code>A</code> &middot; question text under 10 characters &middot; a <code>directions</code> range covering questions that are not there, or overlapping another &middot; a table with no headers, or a row whose width does not match them &middot; an empty <code>difficulty</code> &middot; an unknown field anywhere &middot; placeholder text left over from <code>template.json</code> &middot; an image referenced but not uploaded &middot; a date that is not a real day, or that already has a scheduled paper on the same exam &middot; sections adding up to longer than a paper may run &middot; marks with more than two decimal places, which the column cannot keep &middot; JSON that cannot be read at all.</p>
 
 <div class="note why">
   <h4>Why a numbering gap is an error, not a warning</h4>
@@ -1022,6 +1043,30 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <p>No email address, no phone number, no address. A username maps to a synthetic internal address that never receives mail, which is why there is no password-reset email and the admin is the recovery path.</p>
 
 <p>Integrity recording is two integers per attempt. There is no event log, no timestamps, and therefore <strong>no retention policy anywhere in this system</strong>. The trade is explicit: the counters tell you <em>that</em> something happened, never when or for how long. For six people who know each other, deterrence was the goal rather than evidence.</p>
+
+<h3>What is written to the device, and why it is not a trade</h3>
+<p>Offline archive reading (PRD 6.12) looked at first like it cut against the rule above: the answer key never reaches the browser, and caching papers means writing them onto a device. Reading it again shows there is nothing being given up.</p>
+
+<p>The archive only ever renders a paper the reader has <strong>finished</strong>, or one that has <strong>closed</strong>. For those, the key is already in the HTML the server sent them &mdash; that is what the archive <em>is</em>. Keeping a copy of a page they were handed leaks nothing they cannot already read. A paper that has not opened is never rendered to them, so it cannot enter the cache at all: the worker stores only a 200, and a locked paper does not return one.</p>
+
+<p>So the design is a whitelist, and reading <code>public/sw.js</code> is the shortest way to see the whole of it:</p>
+
+<div class="tw"><table>
+<tr><th>Path</th><th>Kept?</th><th>Why</th></tr>
+<tr><td><code>/archive</code>, <code>/archive/:id</code></td><td>Yes</td><td>The point of the feature. Already-unlocked papers only, by construction</td></tr>
+<tr><td><code>/api/images/:test/:name</code></td><td>Yes</td><td>A DI chart is part of the question. The route refuses a paper that has not opened, so a 200 is by construction one this reader was allowed</td></tr>
+<tr><td><code>/_next/static/*</code></td><td>Yes</td><td>Content-hashed, so a hit is always the right file</td></tr>
+<tr><td><code>/test/*</code></td><td><strong>Never</strong></td><td>A paper being sat. Its clock belongs to the server, and a timer read from a cache is the wrong timer</td></tr>
+<tr><td><code>/dashboard</code>, <code>/leaderboard</code></td><td>No</td><td>They move through the day. An answer out of date by the time it is read is worse than no answer</td></tr>
+<tr><td><code>/admin/*</code>, <code>/account</code>, everything else</td><td>No</td><td>Nothing asked for it, and a cache is a copy somebody has to reason about later</td></tr>
+</table></div>
+
+<div class="note care">
+  <h4>A cache belongs to the browser, not to the account</h4>
+  <p>Two students on one laptop would otherwise find the first one's past papers still readable after the second signs in. Signing out sends the worker a <code>wipe</code> message, which drops the runtime cache entirely; the shell survives, because it holds the offline page and some fonts and says nothing about anybody. That is why <code>logoutAction</code> redirects to <code>/?left=1</code> rather than to <code>/</code>.</p>
+</div>
+
+<p><code>tests/offline.test.ts</code> reads the shipped <code>public/sw.js</code> and pulls its rules back out of it, rather than restating them. A test holding a copy of the policy would pass while the real file drifted, and the property it is protecting &mdash; the exam room is never cached &mdash; is not one to find out about later.</p>
 </div></section>
 
 <section id="s10"><div class="col">
@@ -1048,7 +1093,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 
 <div class="tw"><table>
 <tr><th>Layer</th><th>Status</th></tr>
-<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 397 tests, no database needed</td></tr>
+<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 388 tests, no database needed</td></tr>
 <tr><td>The schema, its functions, triggers and indexes</td><td><strong>Tested against real Postgres.</strong> <code>tests/schema.test.ts</code> applies every migration to an in-process Postgres and exercises each function and guard. <code>tests/migrate.test.ts</code> proves the chain is ordered and that a second run changes nothing</td></tr>
 <tr><td>The queries &mdash; what <code>lib/repo/</code> actually asks PostgREST for</td><td><strong>Tested against the real project, on request.</strong> <code>npm run test:live</code> runs every read the app makes against the Supabase project in <code>.env.local</code>. Read-only, so it is safe to point at production, and skipped when there are no credentials. It exists because a select that forgets a column is invisible to both TypeScript and pglite &mdash; and had already shipped twice</td></tr>
 <tr><td>The queries in <code>lib/repo/</code></td><td><strong>Typechecked only.</strong> The PostgREST calls have never run against a live server</td></tr>
@@ -1438,7 +1483,7 @@ words.</p>
     <text x="179" y="209" text-anchor="middle" font-weight="600">typecheck</text>
     <line x1="226" y1="205" x2="238" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="238" y="186" width="94" height="38" rx="6" fill="none" stroke="#94202B" stroke-width="2"/>
-    <text x="285" y="209" text-anchor="middle" font-weight="600">397 tests</text>
+    <text x="285" y="209" text-anchor="middle" font-weight="600">442 tests</text>
     <line x1="332" y1="205" x2="344" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="344" y="186" width="84" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
     <text x="386" y="209" text-anchor="middle" font-weight="600">build</text>
@@ -1463,7 +1508,7 @@ words.</p>
 <tr><td><code>npm run start:local</code></td><td><span class="pill local">rare</span></td><td>Serves that build on port 3000</td></tr>
 <tr><td><code>npm run build:prod</code></td><td><span class="pill prod">before shipping</span></td><td>Typecheck, all tests, then build without source maps</td></tr>
 <tr><td><code>npm run start:prod</code></td><td><span class="pill prod">on the host</span></td><td>Serves the production build</td></tr>
-<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>397 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>442 tests. No database needed, about a second</td></tr>
 <tr><td><code>npm run test:live</code></td><td><span class="pill both">after touching a query</span></td><td>Runs every read <code>lib/repo/</code> makes against the real project in <code>.env.local</code>. Read-only. Skipped when there are no credentials</td></tr>
 <tr><td><code>npm run typecheck</code></td><td><span class="pill both">anytime</span></td><td>Checks types without building</td></tr>
 <tr><td><code>npm run seed</code></td><td><span class="pill both">setup</span></td><td>Creates the accounts, prints passwords once</td></tr>
@@ -1592,7 +1637,7 @@ words.</p>
 <b>npm install</b></pre>
 </div>
 <p>Downloads everything into a <code>node_modules</code> folder. Safe to re-run at any time.</p>
-<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>397 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
+<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>442 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
 </li>
 
 <li>
@@ -1716,6 +1761,7 @@ up in exactly the same place.</p>
     applied  0003_managing_a_live_paper.sql
     applied  0004_deleting_a_paper_that_was_sat.sql
     applied  0005_a_paper_may_hold_more_than_55_questions.sql
+    applied  0006_an_exam_track_owns_its_pattern_and_its_papers.sql
 
   Done. 4 migrations applied in total.</i></pre>
 </div>
@@ -1742,7 +1788,7 @@ landed and what has not, at any time.</p>
 <tr><td>Indexes</td><td>29</td><td>Speed, plus the keys that enforce uniqueness &mdash; one counted attempt per person, one scheduled paper per opening</td></tr>
 <tr><td>Access rules</td><td>11</td><td>Row Level Security on every table</td></tr>
 </table></div>
-<p><strong>Check it worked:</strong> open <strong>Table Editor</strong>. You should see eleven tables, each with an <strong>RLS enabled</strong> badge. That badge is intentional &mdash; it means nothing can read those tables except your own server.</p>
+<p><strong>Check it worked:</strong> open <strong>Table Editor</strong>. You should see twelve tables plus <code>schema_migrations</code>, each with an <strong>RLS enabled</strong> badge. That badge is intentional &mdash; it means nothing can read those tables except your own server.</p>
 <div class="note do">
   <h4>Safe to run twice</h4>
   <p>The whole file is written to be re-runnable: it creates nothing that already exists and replaces functions in place. If you are ever unsure whether it applied, run it again. There is a test that proves this &mdash; <em>"applies twice without error"</em>.</p>
@@ -1876,6 +1922,7 @@ landed and what has not, at any time.</p>
 <tr><td><code>0003_managing_a_live_paper.sql</code></td><td>What an admin can do to a paper after it has gone out: <code>tests.ended_at</code> for an early end, and the two functions behind replacing its questions and scoring it again</td></tr>
 <tr><td><code>0004_deleting_a_paper_that_was_sat.sql</code></td><td>The deliberate route past the delete guard, for throwing a broken paper away along with the attempts on it</td></tr>
 <tr><td><code>0005_a_paper_may_hold_more_than_55_questions.sql</code></td><td>Widens the bound on <code>questions.number</code> from 55 to 800. The 55 was one exam's pattern written into the schema, and it outlived the point where counts became configurable</td></tr>
+<tr><td><code>0006_an_exam_track_owns_its_pattern_and_its_papers.sql</code></td><td>Tracks. Adds <code>tracks</code> and <code>track_sections</code>, retires <code>default_sections</code> into it, puts a <code>track_id</code> on <code>tests</code> and <code>profiles</code>, scopes the scheduling index to the track, and adds the two Awareness section codes</td></tr>
 </tbody>
 </table></div>
 
@@ -1907,10 +1954,10 @@ landed and what has not, at any time.</p>
 
 <p><strong>Write a new file. Never edit one that has already been applied.</strong> This is the one rule that matters, and it is worth understanding rather than memorising: your database has recorded that it ran <code>0002</code>, so it will never run it again. Editing that file changes what a <em>fresh</em> database gets and leaves yours behind, and the two drift apart with nothing to tell you.</p>
 
-<p>So the next change is <code>0006_something.sql</code>, the one after that is <code>0007</code>, and the count grows. That is normal and not a sign the files need collapsing again.</p>
+<p>So the next change is <code>0007_something.sql</code>, the one after that is <code>0008</code>, and the count grows. That is normal and not a sign the files need collapsing again.</p>
 
 <div class="term">
-  <div class="term-bar"><i></i><i></i><i></i><span>supabase/migrations/0006_whatever_it_is.sql</span></div>
+  <div class="term-bar"><i></i><i></i><i></i><span>supabase/migrations/0007_whatever_it_is.sql</span></div>
 <pre><b>begin;</b>
 
 <i>-- Safe to run twice, like every migration here.</i>
@@ -2001,8 +2048,9 @@ landed and what has not, at any time.</p>
 <tr><td>Attempts</td><td>Every attempt with score, duration and the two integrity counters. Void one here if you must. Your own dry runs are not listed: they count for nothing and each replaces the last</td></tr>
 <tr><td>Board</td><td>The leaderboard the students see, with the same two filters &mdash; a window in papers, or one paper's own rank list. An admin has no row on it</td></tr>
 <tr><td>People</td><td>Create accounts singly or by pasting a CSV. Rename anyone, students and admins alike, by pressing the name &mdash; though everybody can do that for themselves on <code>/account</code>. Reset passwords, in two presses because a reset ends every session the account has open. Deactivate without losing history</td></tr>
+<tr><td>Exams</td><td>The tracks this install prepares people for. Add one, name it, close one that is finished. Never needed by an install with a single exam, and nothing else in the console mentions a track until a second one exists</td></tr>
 <tr><td>Default times</td><td>When papers unlock and the last moment anyone may start one. Shows what students will see before you save</td></tr>
-<tr><td>Paper pattern</td><td>Questions, minutes and marking per section &mdash; what a paper is given when its file does not say. Shows the totals, and which question numbers each section would hold, before you save</td></tr>
+<tr><td>Paper pattern</td><td>One exam's pattern: which sections it has, in what order, what each is called, and what each is worth. A section can be added, removed, renamed and moved. Shows the totals and which question numbers each section would hold, before you save</td></tr>
 <tr><td>Download a blank template</td><td>On the Paper pattern screen. A skeleton built from the pattern as it stands, so it follows any change made there</td></tr>
 <tr><td>Export question bank</td><td>Every paper ever published, as one JSON file</td></tr>
 </table></div>
@@ -2067,7 +2115,7 @@ landed and what has not, at any time.</p>
 <tr><td><code>SUPABASE_SECRET_KEY</code><br><small>or <code>..._SERVICE_ROLE_KEY</code></small></td><td>preppy-prod &rarr; a secret key<br><small>or its legacy service_role key</small></td></tr>
 <tr><td><code>CRON_SECRET</code></td><td>The string from step 2</td></tr>
 </table></div>
-<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 397 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
+<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 442 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
 <p><strong>Check it worked:</strong> the deployment goes green and the URL shows the countdown page.</p>
 </li>
 
@@ -2191,7 +2239,7 @@ landed and what has not, at any time.</p>
 <ol>
 <li><strong>Which database am I talking to?</strong> Check the URL in <code>.env.local</code> against the project name in Supabase.</li>
 <li><strong>Did the schema actually apply?</strong> Table Editor, ten tables, RLS badges.</li>
-<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 397 pass, the logic is fine and the problem is configuration or a query.</li>
+<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 442 pass, the logic is fine and the problem is configuration or a query.</li>
 </ol>
 
 <p class="end">

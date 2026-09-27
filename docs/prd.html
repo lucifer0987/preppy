@@ -767,7 +767,7 @@ html{scroll-behavior:smooth}
 <!-- 9 -->
 <section id="s9"><div class="col">
 <h2><i>09</i>Data model</h2>
-<p><strong>Eight tables</strong>, plus <code>app_settings</code>, <code>default_sections</code> and <code>rate_limits</code> for the throttles in §13. Dropped from v1.1: <code>options</code> (now a JSON column), <code>integrity_events</code>, <code>leaderboard_snapshots</code>, <code>admin_audit_log</code>.</p>
+<p><strong>Eight tables</strong>, plus <code>tracks</code> and <code>track_sections</code> for the exams and their patterns (§6.10), and <code>app_settings</code> and <code>rate_limits</code> for the default window and the throttles in §13. Dropped from v1.1: <code>options</code> (now a JSON column), <code>integrity_events</code>, <code>leaderboard_snapshots</code>, <code>admin_audit_log</code>.</p>
 <div class="tw"><table>
 <tr><th>Table</th><th>Key fields</th></tr>
 <tr><td><code>profiles</code></td><td>id (= auth.users.id) · username (unique, lower) · display_name · role · is_active · must_change_password · sound_enabled · created_at</td></tr>
@@ -949,7 +949,7 @@ html{scroll-behavior:smooth}
 
 <div class="good">
   <h4>What is still unproven</h4>
-  <p>The schema and its functions are exercised against real Postgres, 397 tests cover the pure logic, and <code>npm run test:live</code> now runs every <em>read</em> the app makes against the real project &mdash; a suite that exists because a select which forgets a column is invisible to both TypeScript and an in-process Postgres, and had already shipped twice. What no automated test reaches is the half that writes: signing in, starting and submitting an attempt, and reading an image out of Storage. The engineering reference has a ten-minute walkthrough that covers those.</p>
+  <p>The schema and its functions are exercised against real Postgres, 442 tests cover the pure logic, and <code>npm run test:live</code> now runs every <em>read</em> the app makes against the real project &mdash; a suite that exists because a select which forgets a column is invisible to both TypeScript and an in-process Postgres, and had already shipped twice. What no automated test reaches is the half that writes: signing in, starting and submitting an attempt, and reading an image out of Storage. The engineering reference has a ten-minute walkthrough that covers those.</p>
 </div>
 </div></section>
 

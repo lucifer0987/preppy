@@ -81,7 +81,6 @@ describe('the shipped format kit', () => {
       ['unknown directions key', (p) => { p.sections[0].directions[0].note = 'x' }],
       ['unknown table key', (p) => { p.sections[0].directions[0].table.caption = 'x' }],
       ['unknown question key', (p) => { p.sections[0].questions[0].answr = 'A' }],
-      ['sections out of order', (p) => { p.sections.reverse() }],
       ['empty table headers', (p) => { p.sections[0].directions[0].table = { headers: [], rows: [] } }],
       ['empty difficulty', (p) => { p.sections[0].questions[0].difficulty = '' }],
       ['text that is only spaces', (p) => { p.sections[0].questions[0].text = '             ' }],
@@ -94,6 +93,18 @@ describe('the shipped format kit', () => {
       expect(validate(JSON.parse(src)), `schema should refuse: ${name}`).toBe(false)
       expect(ok(src).publishable, `validator should refuse: ${name}`).toBe(false)
     }
+  })
+
+  it('leaves the section order to the app, which is the only one that knows', () => {
+    // schema.json is an editor's checker and has no idea which exam a file is
+    // for, so it cannot say that Reasoning comes second -- on some tracks it
+    // does not. It accepts any of the six codes in any order; the app checks
+    // the file against the pattern of the exam it is being uploaded for.
+    const ajv = new (Ajv as any)({ allErrors: true, strict: false })
+    const validate = ajv.compile(schema)
+    const reversed = mutate((p: any) => { p.sections.reverse() })
+    expect(validate(JSON.parse(reversed))).toBe(true)
+    expect(ok(reversed).publishable).toBe(false)
   })
 
   it('keeps the DI table as structured data, not aligned text', () => {
