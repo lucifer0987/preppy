@@ -495,6 +495,26 @@ export async function unschedulePaper(id: string): Promise<void> {
 }
 
 /**
+ * Rename a paper, at any point in its life.
+ *
+ * The name is the only thing about a paper that is purely a label: students
+ * read it on the dashboard and in the archive, and nothing keys off it. So
+ * unlike its questions or its window, it can be changed whenever, including
+ * after the paper has closed.
+ */
+export async function renamePaper(id: string, titleInput: string): Promise<string> {
+  const title = titleInput.trim().replace(/\s+/g, ' ')
+  if (!title) throw new Error('Give the paper a name.')
+  if (title.length > 80) throw new Error('Keep the name under 80 characters.')
+
+  const { data, error } = await db()
+    .from('tests').update({ title }).eq('id', id).select('title').maybeSingle()
+  if (error) throw new Error(`Could not rename the paper: ${error.message}`)
+  if (!data) throw new Error('That paper no longer exists.')
+  return data.title as string
+}
+
+/**
  * Move a live paper's window (FR: the admin's own flexibility).
  *
  * The case this exists for is the one the schedule form cannot reach: the

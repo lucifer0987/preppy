@@ -8,7 +8,7 @@ import { SECTION_NAMES, type SectionCode } from '../../../../../lib/types'
 import { BackLink, Flash, PageHeader, StatusChip, Th } from '../../../../../components/Page'
 import { SectionShape } from '../../../../../components/SectionShape'
 import { TimeField } from '../../../../../components/TimeField'
-import { endNowAction, retimeAction, setMarksAction } from '../actions'
+import { endNowAction, renamePaperAction, retimeAction, setMarksAction } from '../actions'
 import { EndNowButton } from './EndNowButton'
 import { DeleteButton } from '../DeleteButton'
 
@@ -67,6 +67,11 @@ export default async function ManagePaper({ params, searchParams }: {
       />
 
       {q['error'] && <Flash tone="bad" className="mt-4">{q['error']}</Flash>}
+      {q['done'] === 'renamed' && (
+        <Flash tone="good" className="mt-4">
+          Renamed. Every screen that names this paper shows the new one.
+        </Flash>
+      )}
       {q['done'] === 'retimed' && (
         <Flash tone="good" className="mt-4">
           Window moved. It now runs {l.opens} to {l.closes}, and everyone is finished by {l.hardStop}.
@@ -103,6 +108,24 @@ export default async function ManagePaper({ params, searchParams }: {
         <Fact label={ended ? 'Ended' : 'Everyone finished by'}
               value={ended ? formatIstMoment(ended) : l.hardStop} />
       </dl>
+
+      {/* -------------------------------------------------------- its name */}
+      <section className="card mt-6 p-5 sm:p-6">
+        <h2 className="text-lg font-black">What it is called</h2>
+        <p className="measure-wide mt-1 text-sm text-ink-soft">
+          What students see on the dashboard and in the archive. Nothing keys off it, so it can
+          change at any point &mdash; including after the paper has closed.
+        </p>
+        <form action={renamePaperAction} className="mt-5 flex flex-wrap items-end gap-3">
+          <input type="hidden" name="id" value={id} />
+          <label className="block">
+            <span className="eyebrow">Name</span>
+            <input name="title" defaultValue={paper.title ?? ''} required maxLength={80}
+                   className="field mt-1.5 w-full max-w-sm" />
+          </label>
+          <button className="btn btn-primary px-6 py-2.5">Save the name</button>
+        </form>
+      </section>
 
       {/* ------------------------------------------------------ the window */}
       <section className="card mt-6 p-5 sm:p-6">

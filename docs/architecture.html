@@ -874,7 +874,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td><code>format</code></td><td class="n">yes</td><td>Always <code>"preppy-paper"</code></td></tr>
 <tr><td><code>version</code></td><td class="n">yes</td><td>Always <code>1</code></td></tr>
 <tr><td><code>date</code></td><td class="n">yes</td><td><code>YYYY-MM-DD</code>, the night it goes live. Must be a real day: <code>2026-02-31</code> is refused</td></tr>
-<tr><td><code>title</code></td><td class="n">no</td><td>Defaults to the date</td></tr>
+<tr><td><code>title</code></td><td class="n">no</td><td>Up to 80 characters. Left out, the paper is known by its date. The upload screen has a name box that overrides whatever is here, and <strong>Manage</strong> renames a paper afterwards &mdash; nothing keys off the name, so it is free to change at any point</td></tr>
 <tr><td><code>sections</code></td><td class="n">yes</td><td>Exactly four</td></tr>
 </table></div>
 
@@ -1928,6 +1928,7 @@ landed and what has not, at any time.</p>
 <li>
 <h4>Upload and read the preview</h4>
 <p><strong>Admin</strong> &rarr; <strong>Upload a paper</strong>. Attach the <code>.json</code>, and any images it references in the same box. If validation passes it is saved as a <strong>draft</strong> &mdash; not live.</p>
+<p>There is a <strong>name box</strong> on that screen. Leave it blank and the paper is called whatever the file calls it, which is what most papers want; type something and that wins instead. It is applied after validation, so a typed name can never make an invalid file look valid, and the checker still reports on the file as written. Two papers called <em>Daily Mock 002</em> on one day is the case it exists for.</p>
 <p>Then read the preview to the bottom. Every question is rendered with the same component a student sees, so what you approve is literally what they get.</p>
 </li>
 <li>
@@ -1948,6 +1949,7 @@ landed and what has not, at any time.</p>
 <tbody>
 <tr><td><strong>Move the window</strong></td><td>Changes the last moment to start, and with it the finish, so whoever starts at the new time still gets the whole paper. The flexible half: somebody has not sat it yet and you want to hold the door open</td><td>While scheduled and not finished. Once it has opened, the opening time is fixed &mdash; moving it would rewrite when attempts already running were allowed to begin</td></tr>
 <tr><td><strong>End it now, for everyone</strong></td><td>Stamps <code>ended_at</code>, so nobody can start; then closes and scores every attempt still running, exactly as the nightly job closes an overdue one. Answers, the archive and the leaderboard open at once</td><td>While it is open or finishing. Two presses, the second naming how many students are in it</td></tr>
+<tr><td><strong>Rename it</strong></td><td>What students and the archive call it. Nothing keys off the name, so unlike the questions or the window it can change at any point &mdash; including after the paper has closed</td><td>Always</td></tr>
 <tr><td><strong>Change what the questions are worth</strong></td><td>Marking per section, for this paper only, after which every finished attempt is scored again through <code>apply_paper_rescore</code>. The board never disagrees with the marking it came from</td><td>Always. The marks are written first and the rescore second, because stale scores are recoverable by running it again and scores written against unsaved marks are not</td></tr>
 <tr><td><strong>Replace the questions</strong></td><td>Upload a corrected file over the paper. It keeps its id, its night and its place in the schedule; only what is inside it changes, so every link still works and nothing is scheduled again. The file must carry the same date</td><td>Only while nobody has sat it. Their answers point at the questions this deletes, and a score against questions that no longer exist is a number with nothing behind it</td></tr>
 <tr><td><strong>Delete it</strong></td><td>A paper nobody has sat goes whether or not it has opened &mdash; being unable to remove a live one is what left a broken paper on screen until midnight. One that has been sat needs an explicit confirmation, and the screen says how many attempts go with it</td><td>Always, with the second form behind <code>delete_paper_with_attempts</code></td></tr>

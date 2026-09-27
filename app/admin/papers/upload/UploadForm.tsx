@@ -7,9 +7,11 @@ import { emptyUpload } from './state'
 import type { Issue } from '../../../../lib/types'
 import { Flash } from '../../../../components/Page'
 
-export function UploadForm({ replaceId }: {
+export function UploadForm({ replaceId, defaultTitle }: {
   /** Set when this upload corrects a paper that already exists. */
   replaceId?: string
+  /** The name the paper carries now, when one is being replaced. */
+  defaultTitle?: string
 }) {
   const [state, action] = useActionState(uploadAction, emptyUpload)
   const errors = state.issues.filter((i) => i.severity === 'error')
@@ -50,6 +52,20 @@ export function UploadForm({ replaceId }: {
         <p className="mt-3 text-sm text-ink-soft">
           Every file the paper names in <code className="rounded bg-surface-sunken px-1.5 py-0.5">images</code>,
           under 2 MB each. Up to 10 MB with the paper.
+        </p>
+
+        <label className="mt-5 block">
+          <span className="eyebrow">Name it (optional)</span>
+          <input
+            name="title" maxLength={80} defaultValue={defaultTitle ?? ''}
+            placeholder="Leave blank to use the name in the file"
+            className="field mt-2 max-w-sm outline-none transition focus:border-play-purple"
+          />
+        </label>
+        <p className="measure mt-2 text-sm text-ink-soft">
+          This is what students and the archive call it. Most files name themselves and need
+          nothing here; type something only when the file&rsquo;s own name would be confusing
+          &mdash; two papers called the same thing on the same day, say.
         </p>
         <Submit label={replaceId ? 'Check and replace' : 'Check this paper'} />
       </form>

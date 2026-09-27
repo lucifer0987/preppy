@@ -44,7 +44,7 @@ export default async function UploadPage({
           </Flash>
         ) : (
           <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start">
-            <UploadForm replaceId={replace} />
+            <UploadForm replaceId={replace} defaultTitle={target.paper.title ?? ''} />
             <aside className="card p-5">
               <h2 className="eyebrow">What this changes</h2>
               <ul className="mt-3 space-y-2.5 text-sm text-ink-soft">

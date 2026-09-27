@@ -53,6 +53,8 @@ export interface ReadResult {
 }
 
 const MAX_OPTION_CHARS = 300
+/** What fits on a dashboard card and an archive row without truncating. */
+const MAX_TITLE_CHARS = 80
 const MIN_QUESTION_CHARS = 10
 
 /**
@@ -157,6 +159,11 @@ export function readPaper(rawText: string, opts: ReadOptions = {}): ReadResult {
     err('title', 'TITLE_TYPE', '"title" must be a string when present.')
   } else if (isPlaceholder(doc['title'])) {
     placeholderError('title', ['title'], err)
+  } else if (typeof doc['title'] === 'string' && doc['title'].length > MAX_TITLE_CHARS) {
+    // The same cap the console's name box enforces, so a file and a typed
+    // name cannot disagree about what fits on a dashboard card.
+    err('title', 'TITLE_LONG',
+      `"title" is ${doc['title'].length} characters; keep it under ${MAX_TITLE_CHARS}.`)
   }
 
   // ---- sections

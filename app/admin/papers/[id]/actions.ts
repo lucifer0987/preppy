@@ -4,7 +4,8 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { actionAdmin } from '../../../../lib/guard'
 import {
-  deletePaper, endPaperNow, retimePaper, schedulePaper, unschedulePaper, updateQuestionContent,
+  deletePaper, endPaperNow, renamePaper, retimePaper, schedulePaper, unschedulePaper,
+  updateQuestionContent,
 } from '../../../../lib/repo/papers'
 import { correctAnswerKey, setSectionMarks } from '../../../../lib/repo/rescore'
 import { OPTION_LABELS, SECTION_CODES, type OptionLabel, type SectionCode } from '../../../../lib/types'
@@ -74,6 +75,27 @@ export async function deleteAction(formData: FormData) {
   // many attempts go with the paper.
   const force = formData.get('force') === 'yes'
   await run(id, () => deletePaper(id, { force }), '/admin/papers')
+}
+
+/**
+ * Renaming a paper. Nothing keys off the name, so this has no state rules:
+ * a paper can be renamed while it is running and after it has closed.
+ */
+export async function renamePaperAction(formData: FormData) {
+  if (!(await actionAdmin())) redirect('/login')
+  const id = String(formData.get('id'))
+  let failure: string | null = null
+  try {
+    await renamePaper(id, String(formData.get('title') ?? ''))
+  } catch (e) {
+    failure = (e as Error).message
+  }
+  for (const path of ['/admin', '/admin/papers', '/dashboard', '/archive', '/leaderboard']) {
+    revalidatePath(path)
+  }
+  revalidatePath(`/admin/papers/${id}`)
+  if (failure) redirect(`/admin/papers/${id}/manage?error=${encodeURIComponent(failure)}`)
+  redirect(`/admin/papers/${id}/manage?done=renamed`)
 }
 
 /** "HH:MM" from a time picker, as minutes from midnight, or null. */

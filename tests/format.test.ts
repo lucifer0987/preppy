@@ -671,3 +671,28 @@ describe('the default pattern', () => {
     ])
   })
 })
+
+describe('the paper\'s name', () => {
+  it('is optional, and a paper without one is known by its date', () => {
+    const r = ok(mutate((p) => { delete p.title }))
+    expect(r.codes.filter((c) => c.startsWith('TITLE'))).toEqual([])
+    expect(r.paper?.title).toBeUndefined()
+  })
+
+  it('refuses one longer than a dashboard card can hold', () => {
+    // The same 80 the console's name box enforces: a file and a typed name
+    // must not disagree about what fits.
+    expect(ok(mutate((p) => { p.title = 'y'.repeat(81) })).codes).toContain('TITLE_LONG')
+  })
+
+  it('accepts one exactly at the cap', () => {
+    expect(ok(mutate((p) => { p.title = 'y'.repeat(80) })).codes).not.toContain('TITLE_LONG')
+  })
+
+  it('agrees with the schema editors validate against', () => {
+    const ajv = new Ajv({ allErrors: true, strict: false })
+    const validate = ajv.compile(schema)
+    expect(validate(JSON.parse(mutate((p) => { p.title = 'y'.repeat(81) })))).toBe(false)
+    expect(validate(JSON.parse(mutate((p) => { p.title = 'y'.repeat(80) })))).toBe(true)
+  })
+})

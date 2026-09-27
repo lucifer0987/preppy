@@ -159,9 +159,16 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
   const hasPacing = sections.some((s) => pacingVerdict(s))
   const hasSlowest = slowest.some((s) => s.questions.length)
 
+  // Finishing in the top three is its own occasion, and until ranks arrived
+  // the moment you handed in there was no way to know it in time to celebrate
+  // it -- so this level existed and never fired. Three finishers is the floor:
+  // "1st of 2" is not a podium.
+  const onPodium = Boolean(standing?.paper && standing.paper.rank <= 3 && standing.paper.of >= 3)
+
   const celebration: CelebrationLevel =
     !counted ? 'none'
     : isPersonalBest ? 'personal-best'
+    : onPodium ? 'podium'
     : 'good'
 
   return (
@@ -169,7 +176,9 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
       {/* Keyed on the attempt, so the moment fires once, not on every revisit. */}
       <Celebration level={celebration} onceKey={`result.${attemptId}`} />
       <ResultSound
-        tune={!user.soundEnabled || celebration === 'none' ? null : celebration === 'personal-best' ? 'personal-best' : 'result'}
+        tune={!user.soundEnabled || celebration === 'none'
+          ? null
+          : celebration === 'good' ? 'result' : 'personal-best'}
         onceKey={`result.${attemptId}`}
       />
 

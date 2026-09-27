@@ -34,6 +34,16 @@ export async function uploadAction(_prev: UploadState, formData: FormData): Prom
   // place in the schedule; only what is inside it changes.
   const replaceId = String(formData.get('replaceId') ?? '') || null
 
+  // What the admin typed in the name box, if anything. The file's own title is
+  // the default -- most papers are numbered in the file and never need this --
+  // but a file called "Daily Mock 002" twice over is a real thing that
+  // happens, and renaming it afterwards meant nothing at the moment it
+  // mattered.
+  const chosenTitle = String(formData.get('title') ?? '').trim().replace(/\s+/g, ' ')
+  if (chosenTitle.length > 80) {
+    return { ...emptyUpload, fatal: 'Keep the name under 80 characters.' }
+  }
+
   const file = formData.get('paper')
   if (!(file instanceof File) || file.size === 0) {
     return { ...emptyUpload, fatal: 'Choose a file first.' }
@@ -88,12 +98,15 @@ export async function uploadAction(_prev: UploadState, formData: FormData): Prom
     return { ...emptyUpload, fileName: file.name, fatal: (e as Error).message }
   }
 
-  const { paper, issues } = readPaper(text, { takenDates, today: istDate(), availableImages: images.map((i) => i.name) })
+  const { paper: read, issues } = readPaper(text, { takenDates, today: istDate(), availableImages: images.map((i) => i.name) })
   const { publishable } = summarise(issues)
 
-  if (!publishable || !paper) {
+  if (!publishable || !read) {
     return { issues, fileName: file.name, fatal: null }
   }
+  // Applied after validation, so a typed name cannot make an invalid paper
+  // look valid, and the checker still reports on the file as written.
+  const paper = chosenTitle ? { ...read, title: chosenTitle } : read
 
   if (replaceId) {
     const lock = await paperLock(replaceId)

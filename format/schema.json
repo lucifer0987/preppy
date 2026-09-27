@@ -24,7 +24,10 @@
       "description": "The night this paper goes live, YYYY-MM-DD."
     },
     "title": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "description": "What students and the archive call this paper. Optional: leave it out and the paper is known by its date. The upload screen offers a name box that overrides whatever is here, so a file that names itself badly can be fixed without editing it, and a paper can be renamed afterwards from Manage."
     },
     "sections": {
       "type": "array",

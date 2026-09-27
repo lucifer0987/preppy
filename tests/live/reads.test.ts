@@ -97,8 +97,16 @@ describe.skipIf(!configured)('every read, against the real project', () => {
   })
 
   it('reads the board, its papers, and one paper\'s standings', async () => {
-    await expect(repo.leaderboard.getLeaderboard()).resolves.toBeInstanceOf(Array)
-    await expect(repo.leaderboard.getLeaderboard({ lastN: 7 })).resolves.toBeInstanceOf(Array)
+    const all = await repo.leaderboard.getLeaderboard()
+    expect(all.rows).toBeInstanceOf(Array)
+    // What a total is out of: the sum of the perfect scores of the papers in
+    // the window, so it can never be less than anybody's total on it.
+    expect(all.maxMarks).toBeGreaterThanOrEqual(0)
+    for (const row of all.rows) expect(row.totalPoints).toBeLessThanOrEqual(all.maxMarks)
+
+    const recent = await repo.leaderboard.getLeaderboard({ lastN: 7 })
+    expect(recent.rows).toBeInstanceOf(Array)
+    expect(recent.papers).toBeLessThanOrEqual(all.papers)
     const papers = await repo.leaderboard.boardPapers()
     expect(papers).toBeInstanceOf(Array)
     if (papers.length) {
