@@ -84,7 +84,7 @@ export function UploadForm({ replaceId, defaultTitle, tracks, trackSlug }: {
             className="field mt-2 max-w-sm outline-none transition focus:border-play-purple"
           />
         </label>
-        <p className="measure mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-sm text-ink-soft">
           This is what students and the archive call it. Most files name themselves and need
           nothing here. Type something when the file&rsquo;s own name would be confusing, such as
           two papers called the same thing on the same day.

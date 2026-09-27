@@ -49,7 +49,7 @@ export function NewTrack() {
         <Create />
       </div>
 
-      <p className="measure-wide mt-3 text-sm text-ink-soft">
+      <p className="mt-3 text-sm text-ink-soft">
         A new exam starts on the pattern this product shipped with: four sections, 55 questions,
         45 minutes. Change it on{' '}
         <Link href="/admin/pattern" className="font-bold text-accent underline">Paper pattern</Link>{' '}

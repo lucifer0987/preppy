@@ -87,7 +87,7 @@ export default async function AdminBoard({
         )}
       </div>
 
-      <p className="measure-wide mt-5 text-sm text-ink-soft">
+      <p className="mt-5 text-sm text-ink-soft">
         A score that looks wrong is usually a key: correct it on the paper and every attempt is
         scored again on the spot.{' '}
         <Link href="/admin/attempts" className="font-bold text-accent underline underline-offset-4">

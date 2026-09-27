@@ -106,7 +106,7 @@ export default async function UsersPage() {
         </TableShell>
       </div>
 
-      <p className="measure-wide mt-4 text-sm text-ink-soft">
+      <p className="mt-4 text-sm text-ink-soft">
         A username is the login and never changes. A name is what the board and the archive show,
         so click it to edit it at any time. Deactivating only stops the login: every attempt and
         every leaderboard entry stays.

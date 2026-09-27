@@ -76,7 +76,7 @@ export function WindowForm(
             <li><strong className="numeral">{labels!.hardStop}</strong> &middot; everyone is finished, answers unlock</li>
           </ul>
         )}
-        <p className="measure-wide mt-3.5 text-xs text-ink-soft">
+        <p className="mt-3.5 text-xs text-ink-soft">
           Entry must close by {formatIstTime(Math.floor(latestClose / 60), latestClose % 60)} at the
           very latest, so the last person to start still finishes before midnight. An attempt running
           past midnight would sit on the wrong date for the archive and the leaderboard.

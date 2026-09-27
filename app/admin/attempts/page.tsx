@@ -126,12 +126,14 @@ export default async function AttemptsPage({
         ))
       )}
 
-      <p className="measure-wide mt-6 text-sm text-ink-soft">
+      {/* Three facts about this screen. The two sentences that used to sit in
+          the middle explained why integrity logging is two integers, which is
+          a design decision and belongs in the reference, not under a table an
+          admin reads every day. */}
+      <p className="mt-6 text-sm text-ink-soft">
         Your own dry runs are not listed: they count for nothing and each one replaces the last.
-        The two counters tell you <em>that</em> something happened, never when or for how long.
-        That was the trade made when integrity logging was cut to two integers: the counter deters,
-        and there is no event log to keep or to purge. Voiding an attempt removes it from the
-        leaderboard but keeps the row.
+        The two counters say <em>that</em> something happened, never when or for how long.
+        Voiding an attempt takes it off the leaderboard and keeps the row.
       </p>
     </>
   )

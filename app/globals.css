@@ -481,9 +481,14 @@ h2, h3 { text-wrap: balance; }
 }
 
 /**
- * A wider measure, for a page's opening sentence. 68ch is right for a
- * paragraph you read down; a single line introducing a screen stopped less
- * than halfway across and wrapped for no reason.
+ * A wider measure, for long-form text that is still read down: a comprehension
+ * passage, a directions block.
+ *
+ * Not for the sentence or two that annotates a screen. That is what this was
+ * being used for, and in a container half as wide again it did nothing but
+ * wrap each of them early with the space sitting empty beside it -- see
+ * PageHeader, which used to cap its lede the same way. A short annotation
+ * fills what it is given; the shell is what stops a line getting silly.
  */
 @utility measure-wide {
   max-width: 92ch;

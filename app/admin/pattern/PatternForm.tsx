@@ -202,7 +202,7 @@ export function PatternForm({ trackId, current, latestEntryClose }: {
 
       {/* The caveat belongs before the button, not after it: it is something
           to know while deciding, not after committing. */}
-      <p className="measure-wide mt-5 text-xs text-ink-soft">
+      <p className="mt-5 text-xs text-ink-soft">
         This is the shape a paper on this exam is given when its file does not say. A file may
         state its own <code>questionCount</code>, <code>durationMinutes</code>,{' '}
         <code>marksCorrect</code> and <code>marksNegative</code> per section, and those always win.
