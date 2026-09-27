@@ -462,12 +462,17 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
                 Dry run
               </span>
             )}
-            <span
-              title="Times you left full screen or switched away"
-              className="numeral rounded-full bg-white/20 px-2.5 py-1 text-xs"
-            >
-              &#9888; {exits + switches}
-            </span>
+            {/* Only once there is something to count. A warning triangle
+                sitting at nought is a warning about nothing, and it was in
+                the header of every test from the first second. */}
+            {exits + switches > 0 && (
+              <span
+                title="Times you left full screen or switched away"
+                className="numeral rounded-full bg-warn/25 px-2.5 py-1 text-xs font-bold"
+              >
+                &#9888; {exits + switches}
+              </span>
+            )}
             <SectionTimer
               deadlineMs={clock.deadlineMs}
               serverNowMs={clock.serverNowMs}
@@ -677,7 +682,13 @@ function FullscreenGate({ exits, onReturn }: { exits: number; onReturn: () => vo
         Your section timer is still running. Leaving full screen is recorded and shown on your
         result; it never ends your test.
       </p>
-      <p className="font-mono text-sm text-white/50">Times left so far: {exits}</p>
+      {/* "Times left so far" read as time remaining. It is a count of exits,
+          and it only says anything once there has been one. */}
+      {exits > 0 && (
+        <p className="numeral text-sm text-white/50">
+          You have left full screen {exits} {exits === 1 ? 'time' : 'times'}.
+        </p>
+      )}
       <button
         onClick={onReturn}
         autoFocus

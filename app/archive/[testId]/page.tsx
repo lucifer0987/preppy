@@ -104,8 +104,9 @@ export default async function ArchiveDetail({
           <nav className="flex flex-wrap gap-2 xl:flex-col xl:items-start" aria-label="Filter by section">
             <h2 className="eyebrow w-full">Sections</h2>
             {[['All sections', undefined] as const, ...paper.sections.map((s) => [SECTION_NAMES[s.code as SectionCode], s.code] as const)].map(
-              ([label, value]) => (
+              ([label, value], i) => (
                 <FilterLink key={label} label={label}
+                            shape={i === 0 ? undefined : i - 1}
                             href={hrefFor(testId, { filter, section: value })}
                             active={(value ?? undefined) === sectionFilter} />
               ),
@@ -184,16 +185,27 @@ function hrefFor(testId: string, q: { filter?: string; section?: string }): stri
   return qs ? `/archive/${testId}?${qs}` : `/archive/${testId}`
 }
 
-function FilterLink({ label, href, active }: { label: string; href: string; active: boolean }) {
+function FilterLink({ label, href, active, shape }: {
+  label: string; href: string; active: boolean
+  /** A section's own answer colour, so the rail names sections the way the
+      paper does rather than as four identical pills. */
+  shape?: number
+}) {
+  const dot = shape === undefined ? null : ['var(--color-opt-red)', 'var(--color-opt-blue)',
+    'var(--color-opt-yellow)', 'var(--color-opt-green)'][shape % 4]
   return (
     <Link
       href={href}
       aria-current={active ? 'page' : undefined}
       className={[
-        'rounded-full px-4 py-2 text-sm font-bold transition',
+        'inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition',
         active ? 'bg-play-purple text-white' : 'bg-surface text-ink-soft hover:bg-surface-sunken',
       ].join(' ')}
     >
+      {dot && (
+        <span aria-hidden="true" className="h-2.5 w-2.5 shrink-0 rounded-full"
+              style={{ background: dot }} />
+      )}
       {label}
     </Link>
   )

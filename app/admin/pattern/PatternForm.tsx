@@ -6,6 +6,7 @@ import { savePatternAction } from './actions'
 import { emptyPatternForm } from './state'
 import { patternBands, patternTotals, SECTION_NAMES, type Pattern, type SectionPattern } from '../../../lib/types'
 import { Flash } from '../../../components/Page'
+import { SectionShape } from '../../../components/SectionShape'
 
 /**
  * Editing the default paper pattern.
@@ -51,9 +52,17 @@ export function PatternForm({ current, latestEntryClose }: {
             </tr>
           </thead>
           <tbody>
-            {draft.map((s) => (
+            {draft.map((s, i) => (
               <tr key={s.code} className="border-t border-line">
-                <td className="py-2.5 pr-3 font-semibold">{SECTION_NAMES[s.code]}</td>
+                {/* The same badge the briefing and the result use, so an admin
+                    reading this table is looking at the section a student
+                    recognises rather than a row of names. */}
+                <td className="py-2.5 pr-3">
+                  <span className="flex items-center gap-2.5">
+                    <SectionShape index={i} />
+                    <span className="font-semibold">{SECTION_NAMES[s.code]}</span>
+                  </span>
+                </td>
                 <Cell name={`${s.code}.questions`} value={s.questions} step={1} min={1} max={200}
                       onChange={set(s.code, 'questions')} label={`${s.code} questions`} />
                 <Cell name={`${s.code}.minutes`} value={s.minutes} step={1} min={1} max={180}
@@ -113,14 +122,16 @@ export function PatternForm({ current, latestEntryClose }: {
         </Flash>
       )}
 
-      {/* Disabled for the same reasons the server refuses, so the button never
-          promises something that will come back as an error. */}
-      <Save disabled={!numbers || !sane || tooLong || overrunsTheDay} />
-      <p className="mt-3 text-xs text-ink-soft">
+      {/* The caveat belongs before the button, not after it: it is something
+          to know while deciding, not after committing. */}
+      <p className="measure-wide mt-5 text-xs text-ink-soft">
         This is the shape a paper is given when its file does not say. A file may state its own{' '}
         <code>questionCount</code>, <code>durationMinutes</code>, <code>marksCorrect</code> and{' '}
         <code>marksNegative</code> per section, and those always win.
       </p>
+      {/* Disabled for the same reasons the server refuses, so the button never
+          promises something that will come back as an error. */}
+      <Save disabled={!numbers || !sane || tooLong || overrunsTheDay} />
     </form>
   )
 }
