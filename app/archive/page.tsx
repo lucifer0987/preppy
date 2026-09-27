@@ -68,41 +68,48 @@ export default async function ArchivePage() {
         ) : (
           <ul className="mt-6 space-y-2">
             {rows.map((r) => (
-              <li key={r.testId}>
-                <Link
-                  href={`/archive/${r.testId}`}
-                  className="group card flex flex-wrap items-center gap-x-4 gap-y-2 p-4 transition
-                             hover:border-accent/50 hover:shadow-float"
-                >
-                  <span className="min-w-0">
-                    <span className="block truncate font-bold text-ink">{r.title ?? 'Daily mock'}</span>
-                    <span className="numeral mt-0.5 block text-xs text-ink-faint">
-                      {formatIstDate(r.date)}
-                    </span>
+              <li key={r.testId}
+                  className="card flex flex-wrap items-center gap-x-4 gap-y-3 p-4">
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-bold text-ink">{r.title ?? 'Daily mock'}</span>
+                  <span className="numeral mt-0.5 block text-xs text-ink-faint">
+                    {formatIstDate(r.date)}
                   </span>
+                </span>
 
-                  <span className="ml-auto flex flex-wrap items-center gap-2.5">
-                    {r.attemptId ? (
-                      <>
-                        {r.rank !== null && r.rank <= 3 && (
-                          <span className="numeral text-sm font-bold text-gold">{ordinal(r.rank)}</span>
-                        )}
-                        <span className="numeral text-lg font-bold text-ink">{r.score?.toFixed(2)}</span>
-                        {r.rank !== null && (
-                          <StatusChip tone={r.settled ? 'done' : 'waiting'}>
-                            {ordinal(r.rank)} of {r.cohortSize}{r.settled ? '' : ' so far'}
-                          </StatusChip>
-                        )}
-                      </>
-                    ) : (
-                      <StatusChip tone="draft">Not attempted</StatusChip>
-                    )}
-                    <svg viewBox="0 0 16 16" aria-hidden="true"
-                         className="h-3.5 w-3.5 fill-ink-faint transition group-hover:fill-accent">
-                      <path d="M8.3 2.3a1 1 0 000 1.4L11.6 7H2a1 1 0 100 2h9.6l-3.3 3.3a1 1 0 101.4 1.4l5-5a1 1 0 000-1.4l-5-5a1 1 0 00-1.4 0z" />
-                    </svg>
-                  </span>
-                </Link>
+                <span className="flex flex-wrap items-center gap-2.5">
+                  {r.attemptId ? (
+                    <>
+                      <span className="numeral text-lg font-bold text-ink">{r.score?.toFixed(2)}</span>
+                      {r.rank !== null && (
+                        // The place was printed twice, once in gold and once
+                        // in the chip beside it.
+                        <StatusChip tone={r.rank <= 3 ? 'good' : r.settled ? 'done' : 'waiting'}>
+                          {ordinal(r.rank)} of {r.cohortSize}{r.settled ? '' : ' so far'}
+                        </StatusChip>
+                      )}
+                    </>
+                  ) : (
+                    <StatusChip tone="draft">Not attempted</StatusChip>
+                  )}
+                </span>
+
+                {/* One target per action. The row used to be a single link to
+                    the solutions, which meant the result -- the thing a
+                    student comes back for most -- had no way in from here at
+                    all. */}
+                <span className="flex flex-wrap items-center gap-2">
+                  {r.attemptId && (
+                    <Link href={`/test/${r.attemptId}/done`}
+                          className="btn btn-quiet px-4 py-2 text-sm">
+                      See result
+                    </Link>
+                  )}
+                  <Link href={`/archive/${r.testId}`}
+                        className="btn btn-primary px-4 py-2 text-sm">
+                    Solutions
+                  </Link>
+                </span>
               </li>
             ))}
           </ul>

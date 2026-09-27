@@ -288,21 +288,37 @@ export default async function Dashboard({
         ) : (
           <ul className="mt-3 divide-y divide-black/10">
             {archive.slice(0, 5).map((a) => (
-              <li key={a.testId}>
-                <Link href={`/archive/${a.testId}`} className="flex flex-wrap items-center gap-3 py-2.5 text-sm hover:text-accent">
-                  <span className="font-bold">{formatIstDate(a.date)}</span>
-                  <span className="ml-auto flex items-center gap-3 tabular-nums">
-                    {a.attemptId ? (
-                      <>
-                        <span className="rounded-full bg-answered px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-white">Attempted</span>
-                        <span className="font-bold">{a.score?.toFixed(2)}</span>
-                        <span className="text-ink-soft">{a.rank !== null ? `${ordinal(a.rank)} of ${a.cohortSize}` : 'ranked when it finishes'}</span>
-                      </>
-                    ) : (
-                      <span className="rounded-full bg-surface-sunken border border-line px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-ink-soft">Not attempted</span>
-                    )}
-                  </span>
-                </Link>
+              <li key={a.testId}
+                  className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5 text-sm">
+                <span className="min-w-0 flex-1 font-bold">{formatIstDate(a.date)}</span>
+                <span className="flex items-center gap-3 tabular-nums">
+                  {a.attemptId ? (
+                    <>
+                      <span className="font-bold">{a.score?.toFixed(2)}</span>
+                      <span className="text-ink-soft">
+                        {ordinal(a.rank ?? 1)} of {a.cohortSize}{a.settled ? '' : ' so far'}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="rounded-full border border-line bg-surface-sunken px-2 py-0.5
+                                     text-[10px] font-bold uppercase tracking-widest text-ink-soft">
+                      Not attempted
+                    </span>
+                  )}
+                </span>
+                {/* The same two actions the full list offers, sized for a
+                    digest. A row-wide link could only ever mean one of them. */}
+                <span className="flex items-center gap-1.5">
+                  {a.attemptId && (
+                    <Link href={`/test/${a.attemptId}/done`}
+                          className="btn btn-quiet px-3 py-1 text-xs">
+                      Result
+                    </Link>
+                  )}
+                  <Link href={`/archive/${a.testId}`} className="btn btn-quiet px-3 py-1 text-xs">
+                    Solutions
+                  </Link>
+                </span>
               </li>
             ))}
           </ul>

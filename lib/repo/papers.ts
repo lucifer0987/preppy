@@ -62,6 +62,8 @@ export interface PaperSummary {
   title: string | null
   status: 'DRAFT' | 'SCHEDULED'
   questionCount: number
+  /** Counted attempts on it, so the list knows whether there are results. */
+  attemptCount: number
   /** Its own window, since a day may hold more than one paper. */
   window: PaperWindow
 }
@@ -256,12 +258,26 @@ export async function loadPublishedPapers(): Promise<PaperRecord[]> {
 }
 
 export async function listPapers(): Promise<PaperSummary[]> {
-  const { data, error } = await db()
-    .from('tests')
-    .select(`id, title, status, sections(question_count), ${PAPER_WINDOW_COLUMNS}`)
-    .order('date', { ascending: false })
-    .order('opens_at_min', { ascending: false })
+  const client = db()
+  const [{ data, error }, sat] = await Promise.all([
+    client.from('tests')
+      .select(`id, title, status, sections(question_count), ${PAPER_WINDOW_COLUMNS}`)
+      .order('date', { ascending: false })
+      .order('opens_at_min', { ascending: false }),
+    // Counted attempts per paper, so the list can offer Results only where
+    // there are any and say how many without a query per row.
+    selectAll<Record<string, unknown>>('attempt counts', (from, to) =>
+      client.from('attempts').select('test_id')
+        .eq('is_dry_run', false).in('state', ['SUBMITTED', 'AUTO_SUBMITTED'])
+        .order('id').range(from, to)),
+  ])
   if (error) throw new Error(`Could not list the papers: ${error.message}`)
+
+  const counts = new Map<string, number>()
+  for (const a of sat) {
+    const id = a['test_id'] as string
+    counts.set(id, (counts.get(id) ?? 0) + 1)
+  }
 
   return (data ?? []).map((t) => ({
     id: t.id as string,
@@ -270,6 +286,7 @@ export async function listPapers(): Promise<PaperSummary[]> {
     status: t.status as 'DRAFT' | 'SCHEDULED',
     questionCount: ((t.sections ?? []) as { question_count: number }[])
       .reduce((a, s) => a + s.question_count, 0),
+    attemptCount: counts.get(t.id as string) ?? 0,
     window: paperWindowOf(t),
   }))
 }

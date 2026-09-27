@@ -23,7 +23,7 @@ export default async function PapersPage({
         )}
         <PageHeader compact
         title="Papers"
-        lede="Everything drafted or published. Open one to preview it, correct a key, or rehearse it as a dry run."
+        lede="Everything drafted or published. Solutions opens the paper itself &mdash; every question with its key, where you correct one, schedule it, rehearse it or manage it once it is out."
         actions={
           <Link href="/admin/papers/upload" className="btn btn-primary hover:bg-accent-hover">
             Upload a paper
@@ -55,32 +55,39 @@ export default async function PapersPage({
             const l = paperLabels(p.window)
 
             return (
-              <li key={p.id}>
-                <Link
-                  href={`/admin/papers/${p.id}`}
-                  className="group card flex flex-wrap items-center gap-x-5 gap-y-2 px-5 py-4
-                             transition hover:border-accent/50 hover:shadow-float"
-                >
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-bold text-ink">{p.title ?? 'Untitled'}</span>
-                    <span className="numeral mt-0.5 block text-xs text-ink-faint">
-                      {formatIstDate(p.date)}
-                      {p.status === 'DRAFT'
-                        ? ' · not scheduled yet'
-                        : p.window.endedAt
-                          ? ` · ${l.opens}, ended early`
-                          : ` · ${l.opens} to ${l.closes}`}
-                    </span>
+              <li key={p.id}
+                  className="card flex flex-wrap items-center gap-x-5 gap-y-3 px-5 py-4">
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-bold text-ink">{p.title ?? 'Untitled'}</span>
+                  <span className="numeral mt-0.5 block text-xs text-ink-faint">
+                    {formatIstDate(p.date)}
+                    {p.status === 'DRAFT'
+                      ? ' · not scheduled yet'
+                      : p.window.endedAt
+                        ? ` · ${l.opens}, ended early`
+                        : ` · ${l.opens} to ${l.closes}`}
+                    {' · '}{p.questionCount} questions
+                    {p.attemptCount > 0 && ` · sat by ${p.attemptCount}`}
                   </span>
-                  <span className="numeral text-sm text-ink-soft">
-                    {p.questionCount} questions
-                  </span>
-                  <StatusChip tone={tone}>{label}</StatusChip>
-                  <svg viewBox="0 0 16 16" aria-hidden="true"
-                       className="h-3.5 w-3.5 shrink-0 fill-ink-faint transition group-hover:fill-accent">
-                    <path d="M8.3 2.3a1 1 0 000 1.4L11.6 7H2a1 1 0 100 2h9.6l-3.3 3.3a1 1 0 101.4 1.4l5-5a1 1 0 000-1.4l-5-5a1 1 0 00-1.4 0z" />
-                  </svg>
-                </Link>
+                </span>
+
+                <StatusChip tone={tone}>{label}</StatusChip>
+
+                {/* The two things an admin opens a past paper for, as buttons
+                    rather than a row-sized link: one target per action beats
+                    one target that has to mean both. */}
+                <span className="flex flex-wrap items-center gap-2">
+                  {p.attemptCount > 0 && (
+                    <Link href={`/admin/attempts?test=${p.id}`}
+                          className="btn btn-quiet px-4 py-2 text-sm">
+                      See results
+                    </Link>
+                  )}
+                  <Link href={`/admin/papers/${p.id}`}
+                        className="btn btn-primary px-4 py-2 text-sm">
+                    Solutions
+                  </Link>
+                </span>
               </li>
             )
           })}
