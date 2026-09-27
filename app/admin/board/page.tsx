@@ -6,7 +6,7 @@ import {
 import { LeaderboardTable } from '../../../components/LeaderboardTable'
 import { BoardFilters } from '../../../components/BoardFilters'
 import { PaperRankList } from '../../../components/PaperRankList'
-import { Empty, Flash, PageHeader, StatusChip } from '../../../components/Page'
+import { Empty, Flash, PageHeader } from '../../../components/Page'
 import { TrackSwitcher } from '../../../components/TrackSwitcher'
 import { consoleTrack, listTracks } from '../../../lib/repo/tracks'
 
@@ -62,7 +62,6 @@ export default async function AdminBoard({
         meta={!test && board.rows.length > 0
           ? <span className="numeral">{scope} &middot; {board.rows.length} on the board</span>
           : undefined}
-        actions={<StatusChip tone="done">What students see</StatusChip>}
       />
 
       <TrackSwitcher tracks={tracks} current={track} basePath="/admin/board" />

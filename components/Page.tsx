@@ -46,12 +46,19 @@ export function PageHeader({ title, lede, actions, meta, compact = false }: {
 }) {
   return (
     <header className={`flex flex-wrap items-start justify-between gap-x-6 gap-y-3 ${compact ? '' : 'mt-3'}`}>
-      <div className="min-w-0">
+      {/* flex-1 so the text claims the row rather than being sized by its own
+          longest line, which left a lede wrapping with empty space beside it. */}
+      <div className="min-w-0 flex-1">
         <h1 className={compact
           ? 'text-xl font-black tracking-tight sm:text-2xl'
           : 'text-3xl font-black tracking-tight sm:text-4xl'}>{title}</h1>
         {meta && <div className="mt-1.5 text-sm text-ink-soft">{meta}</div>}
-        {lede && <p className="measure-wide mt-2 text-ink-soft">{lede}</p>}
+        {/* No measure here. 92ch is the right cap for a paragraph you read
+            down, and wrong for the one or two sentences that introduce a
+            screen: the longest lede in the app is 176 characters, so capping
+            them only made every one of them wrap early with the column half
+            empty beside it. The shell is what stops a line getting silly. */}
+        {lede && <p className="mt-2 text-ink-soft">{lede}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2.5">{actions}</div>}
     </header>
