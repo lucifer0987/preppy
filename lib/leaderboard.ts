@@ -71,9 +71,6 @@ export interface LeaderboardOptions {
  *                  with no paper must not break one, and neither must a paper
  *                  still open to the person whose streak it is.
  */
-/** The IST date half of a `YYYY-MM-DD#MMMM` paper key. */
-const dayOf = (paperKey: string) => paperKey.split('#')[0]!
-
 export function buildLeaderboard(
   records: AttemptRecord[],
   paperKeys: string[],
@@ -83,20 +80,33 @@ export function buildLeaderboard(
   const inScope = options.lastN ? dates.slice(-options.lastN) : dates
   const scoped = records.filter((r) => inScope.includes(r.paperKey))
 
-  // A streak is about turning up night after night, so it always runs over
-  // every paper that has run, whatever window the board is showing. Inside
-  // "Last 7" it would otherwise be capped at 7.
-  // ...and it counts days, not papers. Once a day can hold two, a student who
-  // reliably sits the evening paper would otherwise have the morning one they
-  // skipped break the chain every single day. Turning up at all counts.
-  const days = [...new Set((options.streakKeys ?? paperKeys).map(dayOf))].sort()
+  // A streak counts papers, one for one: sit the paper, the run goes up; skip
+  // one that ran, it breaks. It briefly counted days instead, so that somebody
+  // who always sat the evening paper was not punished for skipping the morning
+  // one -- but that made a two-paper day worth the same as a one-paper day,
+  // and a student who sat both watched their streak stand still. A paper is
+  // the unit the product is about, so it is the unit here.
+  //
+  // Which papers count is per student, for the same reason everything else on
+  // this page is: a paper settles for you when you hand it in. So the run is
+  // every paper that has closed, plus any still open that *you* have already
+  // sat. One still open that you have not sat is not in your run at all --
+  // otherwise the first student to finish would break everybody else's streak
+  // and it would heal an hour later.
+  //
+  // The run spans every paper ever, whatever window the board is showing;
+  // inside "Last 7" a streak would otherwise be capped at seven.
+  const settled = options.streakKeys ?? paperKeys
   const attendance = new Map<string, Set<string>>()
   for (const r of records) {
     const set = attendance.get(r.userId)
-    if (set) set.add(dayOf(r.paperKey))
-    else attendance.set(r.userId, new Set([dayOf(r.paperKey)]))
+    if (set) set.add(r.paperKey)
+    else attendance.set(r.userId, new Set([r.paperKey]))
   }
-  const streaksOf = (userId: string) => streaks(attendance.get(userId) ?? new Set(), days)
+  const streaksOf = (userId: string) => {
+    const mine = attendance.get(userId) ?? new Set<string>()
+    return streaks(mine, [...new Set([...settled, ...mine])].sort())
+  }
 
   const current = aggregate(scoped, streaksOf)
 
@@ -224,11 +234,11 @@ function aggregate(
  * skipped never breaks anyone's streak (PRD section 11). A paper still open is
  * not on the board, so it cannot break one either.
  */
-export function streaks(attended: Set<string>, dates: string[]): { current: number; longest: number } {
+export function streaks(attended: Set<string>, papers: string[]): { current: number; longest: number } {
   let longest = 0
   let run = 0
-  for (const d of dates) {
-    run = attended.has(d) ? run + 1 : 0
+  for (const p of papers) {
+    run = attended.has(p) ? run + 1 : 0
     longest = Math.max(longest, run)
   }
   return { current: run, longest }

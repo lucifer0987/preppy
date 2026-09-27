@@ -102,7 +102,7 @@ export function LeaderboardTable({
                     <Td>{row.bestScore.toFixed(2)}</Td>
                     <td className="py-3 pl-2 pr-5 text-right">
                       {row.currentStreak > 0
-                        ? <StreakBadge days={row.currentStreak} />
+                        ? <StreakBadge papers={row.currentStreak} />
                         : <span className="text-ink-faint">—</span>}
                     </td>
                   </tr>
@@ -120,8 +120,8 @@ export function LeaderboardTable({
       {!compact && (
         <p className="mt-3 text-xs text-ink-faint">
           Ranked on total, then average, then accuracy, then the best single paper. Every figure
-          here is measured over the window above; a streak counts days, over every paper that has
-          closed.
+          here is measured over the window above. A streak counts papers, not days: every paper
+          that has closed, plus one still open that you have already sat.
         </p>
       )}
     </>
@@ -190,7 +190,7 @@ function Podium({ row, delay, me }: { row: LeaderboardRow; delay: number; me: bo
         {row.totalPoints.toFixed(2)}
       </p>
       {row.currentStreak > 0 && (
-        <p className="relative mt-3 flex justify-center"><StreakBadge days={row.currentStreak} /></p>
+        <p className="relative mt-3 flex justify-center"><StreakBadge papers={row.currentStreak} /></p>
       )}
     </li>
   )

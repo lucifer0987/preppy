@@ -8,8 +8,8 @@
  * four answer fills borrowed as a label, where it was never meant to carry
  * words. Every fill here clears AA with white on it.
  */
-export function StreakBadge({ days, size = 'sm' }: { days: number; size?: 'sm' | 'lg' }) {
-  if (days <= 0) return null
+export function StreakBadge({ papers, size = 'sm' }: { papers: number; size?: 'sm' | 'lg' }) {
+  if (papers <= 0) return null
   const big = size === 'lg'
 
   // Fixed fills, not theme tokens: this badge sits on a card, on the dark hero
@@ -18,9 +18,9 @@ export function StreakBadge({ days, size = 'sm' }: { days: number; size?: 'sm' |
   // gold-700 behind white, which is legible and reads as mud; a bright gold
   // carrying dark text is the same idea done properly.
   const tone =
-    days >= 30 ? 'bg-zap-solid text-white ring-2 ring-gold-300'
-    : days >= 7 ? 'bg-zap-solid text-white'
-    : days >= 3 ? 'bg-gold-400 text-brand-950'
+    papers >= 30 ? 'bg-zap-solid text-white ring-2 ring-gold-300'
+    : papers >= 7 ? 'bg-zap-solid text-white'
+    : papers >= 3 ? 'bg-gold-400 text-brand-950'
     : 'bg-surface-sunken text-ink-soft ring-1 ring-line-strong'
 
   return (
@@ -30,10 +30,10 @@ export function StreakBadge({ days, size = 'sm' }: { days: number; size?: 'sm' |
         tone,
         big ? 'px-4 py-2 text-base' : 'px-2.5 py-1 text-[11px]',
       ].join(' ')}
-      aria-label={`${days} paper streak`}
+      aria-label={`${papers} paper streak`}
     >
-      <span aria-hidden="true">{days >= 7 ? '🔥' : '•'}</span>
-      <span className="numeral">{days}</span>
+      <span aria-hidden="true">{papers >= 7 ? '🔥' : '•'}</span>
+      <span className="numeral">{papers}</span>
       {big && <span className="font-semibold opacity-80">in a row</span>}
     </span>
   )

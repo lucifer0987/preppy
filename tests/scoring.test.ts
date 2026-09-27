@@ -245,3 +245,33 @@ describe('item flagging (FR-6.9.4)', () => {
     expect(itemVerdict({ answered: 0, correct: 0 })).toEqual({ correctPct: null, suspicious: false })
   })
 })
+
+describe('the headline figures are the sections added up', () => {
+  // The result page prints both: a band of totals and a row per section. If
+  // they could ever disagree, one of them would be lying and there would be
+  // no way to tell which.
+  it('agrees with its own sections, figure for figure', () => {
+    const responses = paper.sections.flatMap((s, si) =>
+      s.questions.map((q, qi) => ({
+        questionNumber: q.number,
+        // A spread: some right, some wrong, some opened and left, some never
+        // reached at all.
+        selectedOption: (qi + si) % 3 === 0 ? q.answer : (qi + si) % 3 === 1 ? 'A' as const : null,
+        wasVisited: qi < s.questions.length - 1,
+      })))
+    const score = scoreAttempt(paper, responses)
+
+    const sum = (pick: (s: (typeof score.sections)[number]) => number) =>
+      score.sections.reduce((a, s) => a + pick(s), 0)
+    expect(score.attempted).toBe(sum((s) => s.attempted))
+    expect(score.correct).toBe(sum((s) => s.correct))
+    expect(score.wrong).toBe(sum((s) => s.wrong))
+    expect(score.skipped).toBe(sum((s) => s.skipped))
+    expect(score.notReached).toBe(sum((s) => s.notReached))
+    expect(score.totalScore).toBeCloseTo(sum((s) => s.score), 2)
+    // And every question is in exactly one of the four buckets.
+    const total = paper.sections.reduce((n, s) => n + s.questions.length, 0)
+    expect(score.correct + score.wrong + score.skipped + score.notReached).toBe(total)
+    expect(score.attempted).toBe(score.correct + score.wrong)
+  })
+})

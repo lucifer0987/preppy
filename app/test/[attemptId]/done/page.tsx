@@ -239,7 +239,10 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
             <Tally
               label="Accuracy"
               value={accuracyPct === null ? '—' : `${accuracyPct.toFixed(0)}%`}
-              hint={attempted === 0 ? 'nothing attempted' : `${attempt.correct} of ${attempted} attempted`}
+              // "2 of 17 attempted" read as "2 attempted, out of 17", which
+              // contradicts the Right and Wrong cells beside it. The figures
+              // were always right; the sentence was not.
+              hint={attempted === 0 ? 'nothing attempted' : `${attempt.correct} right of ${attempted} attempted`}
             />
             <Tally label="Time used" value={`${minutes}`} hint="minutes" />
             <Tally label="Right" value={attempt.correct as number} />

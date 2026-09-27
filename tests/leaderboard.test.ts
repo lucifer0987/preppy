@@ -143,23 +143,24 @@ describe('streaks when a day holds more than one paper', () => {
   const EVENING = ['2026-09-01#1320', '2026-09-02#1320', '2026-09-03#1320']
   const BOTH = [...MORNING, ...EVENING].sort()
 
-  it('counts the day, not the paper, so sitting both does not double it', () => {
+  it('counts papers, so sitting both on a day is worth two', () => {
     const rows = buildLeaderboard(BOTH.map((k) => rec('a', k, 10)), BOTH)
-    expect(rows[0]!.currentStreak).toBe(3)
-    expect(rows[0]!.longestStreak).toBe(3)
+    expect(rows[0]!.currentStreak).toBe(6)
+    expect(rows[0]!.longestStreak).toBe(6)
   })
 
-  it('keeps the streak of someone who only ever sits the evening paper', () => {
-    // The bug this guards: keyed on papers, the morning paper they skipped
-    // broke the chain every single day and the streak never passed 1.
+  it('breaks on a paper that ran and was skipped, even on a day they turned up', () => {
+    // Sitting only the evening paper is a miss every morning. Counting days
+    // hid that; the unit the product is about is the paper.
     const rows = buildLeaderboard(EVENING.map((k) => rec('a', k, 10)), BOTH)
-    expect(rows[0]!.currentStreak).toBe(3)
+    expect(rows[0]!.currentStreak).toBe(1)
+    expect(rows[0]!.longestStreak).toBe(1)
   })
 
-  it('still breaks on a day when they sat neither paper', () => {
-    const attended = BOTH.filter((k) => !k.startsWith('2026-09-02'))
-    const rows = buildLeaderboard(attended.map((k) => rec('a', k, 10)), BOTH)
-    expect(rows[0]!.currentStreak).toBe(1)
+  it('runs through a day where both were sat', () => {
+    // Missed only the very first paper, so everything after it is one run.
+    const rows = buildLeaderboard(BOTH.slice(1).map((k) => rec('a', k, 10)), BOTH)
+    expect(rows[0]!.currentStreak).toBe(5)
   })
 })
 
@@ -347,15 +348,17 @@ describe('a paper still open, counted from the moment somebody finishes it', () 
     expect(rows[0]!.userId).toBe('a')
   })
 
-  it('leaves the streak of whoever has not sat it yet alone', () => {
+  it('counts it for whoever has sat it, and leaves the rest alone', () => {
     const rows = buildLeaderboard(records, all, { streakKeys: closed })
-    // Without streakKeys, `b` would read as having broken a two-day run on a
-    // paper they can still sit -- and it would heal an hour later.
+    // `a` handed it in, so it settled for them and the run is three.
+    expect(rows.find((r) => r.userId === 'a')!.currentStreak).toBe(3)
+    // `b` can still sit it, so it is not in their run at all. Counting it
+    // would break a two-paper run on a paper they have not missed yet, and
+    // heal it again an hour later.
     expect(rows.find((r) => r.userId === 'b')!.currentStreak).toBe(2)
-    expect(rows.find((r) => r.userId === 'a')!.currentStreak).toBe(2)
   })
 
-  it('counts the miss once the paper settles', () => {
+  it('counts the miss once the paper settles for everybody', () => {
     const rows = buildLeaderboard(records, all, { streakKeys: all })
     expect(rows.find((r) => r.userId === 'b')!.currentStreak).toBe(0)
     expect(rows.find((r) => r.userId === 'a')!.currentStreak).toBe(3)

@@ -238,9 +238,9 @@ export default async function Dashboard({
             <NextPaper paper={upcoming} />
             {mine && mine.currentStreak > 0 && (
               <p className="mt-4 flex flex-wrap items-center gap-2 text-sm font-semibold">
-                Your streak <StreakBadge days={mine.currentStreak} size="lg" />
+                Your streak <StreakBadge papers={mine.currentStreak} size="lg" />
                 {mine.longestStreak > mine.currentStreak && (
-                  <span className="text-white/70">Longest: {mine.longestStreak} in a row</span>
+                  <span className="text-white/70">Longest: {mine.longestStreak} papers in a row</span>
                 )}
               </p>
             )}
