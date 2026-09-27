@@ -114,6 +114,16 @@ async function loadCounted(now = new Date()): Promise<Counted> {
   return { records: records.filter((r) => paperKeys.includes(r.paperKey)), paperKeys, settledKeys }
 }
 
+/**
+ * How many papers the board counts unless asked otherwise.
+ *
+ * A board that never resets slowly becomes a record of who joined first.
+ * Recent form is the part a student can still do something about, so that is
+ * what they are shown first; all time is one press away and still never
+ * resets.
+ */
+export const DEFAULT_BOARD_PAPERS = 7
+
 /** Throws on a failed read, so a database error never renders as an empty board. */
 export async function getLeaderboard(options: { lastN?: number } = {}): Promise<LeaderboardRow[]> {
   const { records, paperKeys, settledKeys } = await loadCounted()

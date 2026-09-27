@@ -43,7 +43,19 @@ describe('ranking on cumulative total (FR-6.7.1)', () => {
 })
 
 describe('tie-breaks, in order (FR-6.7.2)', () => {
-  it('breaks an equal total on accuracy', () => {
+  it('breaks an equal total on the average first', () => {
+    // Same 20 points: one earned it over a single paper, the other needed two.
+    // Fewer papers for the same total is the better performance.
+    const rows = buildLeaderboard([
+      rec('dense', DATES[0]!, 20),
+      rec('spread', DATES[0]!, 10), rec('spread', DATES[1]!, 10),
+    ], DATES)
+    expect(rows[0]!.username).toBe('dense')
+    expect(rows[0]!.avgScore).toBe(20)
+    expect(rows[1]!.avgScore).toBe(10)
+  })
+
+  it('then on accuracy', () => {
     const rows = buildLeaderboard([
       rec('sharp', DATES[0]!, 20, { correct: 20, attempted: 20 }),
       rec('broad', DATES[0]!, 20, { correct: 20, attempted: 40 }),
@@ -53,19 +65,40 @@ describe('tie-breaks, in order (FR-6.7.2)', () => {
     expect(rows[1]!.accuracyPct).toBe(50)
   })
 
-  it('then on less time taken', () => {
+  it('then on the best single paper in the window', () => {
+    // Identical total, average and accuracy across two papers; one of them
+    // put up a better single score.
     const rows = buildLeaderboard([
+      rec('peaky', DATES[0]!, 30), rec('peaky', DATES[1]!, 10),
+      rec('even', DATES[0]!, 20), rec('even', DATES[1]!, 20),
+    ], DATES)
+    expect(rows[0]!.username).toBe('peaky')
+    expect(rows[0]!.bestScore).toBe(30)
+    expect(rows[1]!.bestScore).toBe(20)
+  })
+
+  it('measures that best inside the window, not all time', () => {
+    const rows = buildLeaderboard([
+      rec('a', DATES[0]!, 50), rec('a', DATES[1]!, 5), rec('a', DATES[2]!, 5),
+    ], DATES, { lastN: 2 })
+    // The 50 is outside the last two papers, so it is not their best.
+    expect(rows[0]!.bestScore).toBe(5)
+  })
+
+  it('orders what is left stably, without calling it a rank', () => {
+    // Equal on all four criteria: less time first, then who started earlier.
+    const quick = buildLeaderboard([
       rec('slow', DATES[0]!, 20, { timeSpentSec: 2700 }),
       rec('quick', DATES[0]!, 20, { timeSpentSec: 1800 }),
     ], DATES)
-    expect(rows[0]!.username).toBe('quick')
-  })
+    expect(quick[0]!.username).toBe('quick')
+    expect(quick[0]!.rank).toBe(1)
+    expect(quick[1]!.rank).toBe(1)
 
-  it('then on who started earlier', () => {
-    const rows = buildLeaderboard([
+    const early = buildLeaderboard([
       rec('later', DATES[1]!, 20), rec('earlier', DATES[0]!, 20),
     ], DATES)
-    expect(rows[0]!.username).toBe('earlier')
+    expect(early[0]!.username).toBe('earlier')
   })
 
   it('gives genuinely tied rows the same rank', () => {
@@ -254,6 +287,19 @@ describe('the Last-30 filter (FR-6.7.5)', () => {
   it('leaves a shorter history untouched', () => {
     const rows = buildLeaderboard(DATES.map((d) => rec('a', d, 10)), DATES, { lastN: 30 })
     expect(rows[0]!.testsTaken).toBe(3)
+  })
+
+  it('counts the last seven papers on the system, not the last seven you sat', () => {
+    // `keen` sat every paper; `sporadic` sat only the three oldest. The window
+    // is the last seven papers that ran, so `sporadic` falls out of it
+    // entirely rather than carrying three old papers into the recent view.
+    const records = [
+      ...many.slice(0, 10).map((d) => rec('keen', d, 10)),
+      ...many.slice(0, 3).map((d) => rec('sporadic', d, 40)),
+    ]
+    const rows = buildLeaderboard(records, many.slice(0, 10), { lastN: 7 })
+    expect(rows.map((r) => r.username)).toEqual(['keen'])
+    expect(rows[0]!.testsTaken).toBe(7)
   })
 })
 

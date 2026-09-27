@@ -9,7 +9,9 @@ import { formatIstDate } from '../lib/time'
  * the two screens quietly stop answering the same question.
  *
  * Counted in papers rather than days: a day may hold more than one, so the
- * label says which.
+ * label says which. The last seven is the default, so it is the first pill and
+ * the one a bare URL lands on; all time is still here, but it is a thing you
+ * ask for rather than the thing you are given.
  */
 export function BoardFilters({ basePath, window: win, test, papers }: {
   /** '/leaderboard' or '/admin/board'. Both take the same two parameters. */
@@ -21,13 +23,14 @@ export function BoardFilters({ basePath, window: win, test, papers }: {
   return (
     <div className="card mt-6 flex flex-wrap items-center gap-x-4 gap-y-3 p-3">
       <nav className="flex flex-wrap gap-1" aria-label="Window">
-        {([['All time', undefined], ['Last 7 papers', '7'], ['Last 30 papers', '30']] as const)
+        {([['Last 7 papers', '7'], ['Last 30 papers', '30'], ['All time', 'all']] as const)
           .map(([label, value]) => {
-            const current = !test && (value ?? undefined) === win
+            // An absent parameter is the default, which is the last seven.
+            const current = !test && (win ?? '7') === value
             return (
               <Link
                 key={label}
-                href={value ? `${basePath}?window=${value}` : basePath}
+                href={value === '7' ? basePath : `${basePath}?window=${value}`}
                 aria-current={current ? 'page' : undefined}
                 className={[
                   'rounded-full px-4 py-2 text-sm font-semibold transition',

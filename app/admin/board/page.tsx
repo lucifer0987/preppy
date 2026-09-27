@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { requireAdmin } from '../../../lib/guard'
-import { boardPapers, getLeaderboard, getPaperStandings } from '../../../lib/repo/leaderboard'
+import {
+  boardPapers, DEFAULT_BOARD_PAPERS, getLeaderboard, getPaperStandings,
+} from '../../../lib/repo/leaderboard'
 import { LeaderboardTable } from '../../../components/LeaderboardTable'
 import { BoardFilters } from '../../../components/BoardFilters'
 import { PaperRankList } from '../../../components/PaperRankList'
@@ -25,7 +27,10 @@ export default async function AdminBoard({
 }: { searchParams: Promise<Record<string, string>> }) {
   await requireAdmin()
   const { window: win, test } = await searchParams
-  const lastN = win === '30' ? 30 : win === '7' ? 7 : undefined
+  // The last seven papers unless asked otherwise: a board that never resets
+  // becomes a record of who joined first, and recent form is the thing a
+  // student can still do something about. All time is one press away.
+  const lastN = win === 'all' ? undefined : win === '30' ? 30 : DEFAULT_BOARD_PAPERS
 
   let failure: string | null = null
   let rows: Awaited<ReturnType<typeof getLeaderboard>> = []
@@ -48,9 +53,9 @@ export default async function AdminBoard({
       <PageHeader
         compact
         title="Leaderboard"
-        lede="Cumulative points across every paper. It never resets, and a result joins it the moment it is scored."
+        lede="Points across the last seven papers by default, and all time if you ask for it. A result joins the moment it is scored."
         meta={!test && rows.length > 0
-          ? <span className="numeral">{rows.length} on the board &middot; {scope.toLowerCase()}</span>
+          ? <span className="numeral">{scope} &middot; {rows.length} on the board</span>
           : undefined}
         actions={<StatusChip tone="done">What students see</StatusChip>}
       />

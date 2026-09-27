@@ -9,6 +9,10 @@ import { StreakBadge } from './StreakBadge'
  * the reader's own row is pinned visually wherever it falls, rank and score sit
  * in mono so the columns line up, and the secondary figures step back in weight
  * rather than in size. Movement is an arrow *and* a number, never colour alone.
+ *
+ * Total, Avg, Accuracy and Best are in that order on purpose: it is the order
+ * they break a tie in (FR-6.7.2), so reading left to right is reading the
+ * ranking rule.
  */
 export function LeaderboardTable({
   rows, meUserId, compact = false,
@@ -108,6 +112,18 @@ export function LeaderboardTable({
           </table>
         </div>
       </div>
+
+      {/* The columns are in the order they decide the rank, which is worth
+          saying once rather than leaving to be guessed from the numbers --
+          but not inside the dashboard's panel, where it is longer than
+          everything above it. */}
+      {!compact && (
+        <p className="mt-3 text-xs text-ink-faint">
+          Ranked on total, then average, then accuracy, then the best single paper. Every figure
+          here is measured over the window above; a streak counts days, over every paper that has
+          closed.
+        </p>
+      )}
     </>
   )
 }

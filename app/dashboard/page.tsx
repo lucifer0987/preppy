@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { AppShell } from '../../components/AppShell'
 import { requireUser } from '../../lib/guard'
 import { findAttempt, loadAttempt } from '../../lib/repo/attempts'
-import { getArchive, getLeaderboard } from '../../lib/repo/leaderboard'
+import { DEFAULT_BOARD_PAPERS, getArchive, getLeaderboard } from '../../lib/repo/leaderboard'
 import { ordinal } from '../../lib/leaderboard'
 import { LeaderboardTable } from '../../components/LeaderboardTable'
 import {
@@ -135,7 +135,10 @@ export default async function Dashboard({
   // Panels 2 and 3. Either failing must not take the whole dashboard down:
   // the open paper is the panel that matters once its window opens.
   const [board, archive] = await Promise.all([
-    getLeaderboard().catch((e: Error) => { console.error('[dashboard] board', e.message); return null }),
+    // The same window the full board opens on, so the panel and the page it
+    // links to never disagree about who is first.
+    getLeaderboard({ lastN: DEFAULT_BOARD_PAPERS })
+      .catch((e: Error) => { console.error('[dashboard] board', e.message); return null }),
     getArchive(user.id).catch((e: Error) => { console.error('[dashboard] archive', e.message); return null }),
   ])
   const mine = board?.find((r) => r.userId === user.id)
@@ -308,7 +311,10 @@ export default async function Dashboard({
 
       <section className="card p-5" aria-labelledby="board-panel">
         <div className="flex items-baseline justify-between gap-4 px-1">
-          <h2 id="board-panel" className="eyebrow">Leaderboard</h2>
+          <h2 id="board-panel" className="eyebrow">
+            Leaderboard <span className="font-normal normal-case tracking-normal text-ink-faint">
+              &middot; last {DEFAULT_BOARD_PAPERS} papers</span>
+          </h2>
           <Link href="/leaderboard" className="text-sm font-bold text-accent">Full board &rarr;</Link>
         </div>
         <div className="mt-3">

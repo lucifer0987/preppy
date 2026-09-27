@@ -182,10 +182,20 @@ function aggregate(
     }
   })
 
-  // FR-6.7.2: total, then accuracy, then less time taken, then who started earlier.
+  // FR-6.7.2, in order: total, average, accuracy, best.
+  //
+  // Average sits second because within a window it is the one figure that
+  // separates the same total earned over fewer papers from the same total
+  // earned over more -- and the one earned over fewer is the better
+  // performance. Accuracy and best then separate what is left.
+  //
+  // The three after that are not ranking criteria; they only make the order
+  // stable, so a page reload cannot shuffle two rows that tie on all four.
   rows.sort((a, b) =>
     b.totalPoints - a.totalPoints
+    || b.avgScore - a.avgScore
     || (b.accuracyPct ?? -1) - (a.accuracyPct ?? -1)
+    || b.bestScore - a.bestScore
     || a.cumulativeTimeSec - b.cumulativeTimeSec
     || a.firstAttemptDate.localeCompare(b.firstAttemptDate)
     || a.username.localeCompare(b.username),
@@ -195,7 +205,9 @@ function aggregate(
   let rank = 0
   let lastKey = ''
   rows.forEach((row, i) => {
-    const key = `${row.totalPoints}|${row.accuracyPct}|${row.cumulativeTimeSec}|${row.firstAttemptDate}`
+    // Exactly the four criteria that rank. Two rows that match on all of them
+    // share the place; the ordering tail below them is only for stability.
+    const key = `${row.totalPoints}|${row.avgScore}|${row.accuracyPct}|${row.bestScore}`
     if (key !== lastKey) { rank = i + 1; lastKey = key }
     row.rank = rank
   })
