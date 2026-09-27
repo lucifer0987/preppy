@@ -189,23 +189,30 @@
   /* Material's dark-theme guidance, applied rather than paraphrased: the base
      is #121212 -- a dark grey, deliberately not black, because grey carries
      elevation and shadow where black flattens them -- and a branded surface is
-     that base with the primary laid over it at a low opacity. These are
-     #121212 with brand-500 at 6, 8, 12 and 18 percent. The old stack ran from
-     #110d18 to #0b0910, which is darker than the recommendation at every step
-     and is why the app read as black rather than dark. */
-  --page: #19161f;
-  --surface: #201a2c;
-  --surface-sunken: #1b1723;
-  --surface-raised: #2a2338;
-  --surface-invert: var(--color-brand-950);
+     that base with a colour laid over it at a low opacity.
+     
+     The colour is a plum at hue 310, not the brand violet at 261. Tinting with
+     the brand gave every dark surface more blue than red, and a blue-black
+     room is a cold one to sit in for forty-five minutes at midnight. These
+     have red above blue at every step, which is what makes them read as warm
+     rather than as a screen that is simply off. */
+  --page: #1d161c;
+  --surface: #2a1a27;
+  --surface-sunken: #221720;
+  --surface-raised: #351e31;
+  /* Warmed with the rest of the dark room. The blue-violet brand-950 sat cold
+     against a plum ground, and that clash is what read as "blue and black". */
+  --surface-invert: #2c0f28;
 
-  --text: #f2eefa;
-  --text-soft: #bcb2d0;
-  --text-faint: #968ca9;
+  /* Warmed with the surfaces: cool grey text on a warm ground reads as a
+     mistake even when the contrast is right. */
+  --text: #f4eff6;
+  --text-soft: #c3b4c6;
+  --text-faint: #9c8ba0;
 
   /* Lifted with the surfaces, or the borders would have disappeared into them. */
-  --line: #342e42;
-  --line-strong: #463e57;
+  --line: #3a2b38;
+  --line-strong: #4d394a;
 
   --accent: var(--color-brand-400);
   /* On a light violet fill, white is 3.15:1 -- below AA. The deep brand
@@ -402,11 +409,11 @@ h2, h3 { text-wrap: balance; }
   /* The exam room takes the same base with only a trace of brand in it, so it
      stays the calmer of the two rooms without becoming a different product.
      Chrome and page are the same value on purpose: one surface, one border. */
-  --chrome: #141318;
+  --chrome: #171216;
   --chrome-line: rgb(255 255 255 / 0.09);
-  --page: #141318;
-  --surface: #1e1c25;
-  --surface-sunken: #191820;
+  --page: #171216;
+  --surface: #241a22;
+  --surface-sunken: #1d151b;
   --accent: var(--color-brand-400);
   --accent-hover: var(--color-brand-300);
   --accent-soft: #241a3d;

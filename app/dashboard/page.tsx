@@ -98,9 +98,10 @@ export default async function Dashboard({
   return (
     <AppShell user={user} current="dashboard">
     <main className="shell pt-6">
-      <header>
-        <p className="eyebrow">{greeting(now)}</p>
-        <h1 className="mt-1 text-4xl font-black tracking-tight">{user.displayName}</h1>
+      <header className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+        <h1 className="text-lg font-bold tracking-tight">
+          <span className="text-ink-soft">{greeting(now)},</span> {user.displayName}
+        </h1>
       </header>
 
       {password === 'changed' && (
@@ -109,10 +110,9 @@ export default async function Dashboard({
         </Flash>
       )}
 
-      <section className="relative mt-6 overflow-hidden rounded-card bg-surface-invert p-6 text-white
-                          shadow-high sm:p-8">
+      <section className="relative mt-4 overflow-hidden rounded-card bg-surface-invert p-5 text-white shadow-high sm:p-6">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-          <div className="absolute -right-20 -top-24 h-72 w-72 rounded-full bg-brand-600/40 blur-3xl" />
+          <div className="absolute -right-20 -top-24 h-72 w-72 rounded-full bg-zap-600/30 blur-3xl" />
           <div className="absolute inset-0 opacity-[0.06]"
                style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '26px 26px' }} />
         </div>
@@ -185,7 +185,7 @@ export default async function Dashboard({
           </>
         ) : (
           <>
-            {!tonight && <p className="mt-2 text-lg font-bold text-white/80">No test tonight.</p>}
+            {!tonight && <p className="mt-1.5 font-display text-2xl font-black">No paper tonight.</p>}
             <NextPaper paper={upcoming} nowIso={nowIso} />
             {mine && mine.currentStreak > 0 && (
               <p className="mt-4 flex flex-wrap items-center gap-2 text-sm font-semibold">
@@ -222,8 +222,8 @@ export default async function Dashboard({
         </div>
       </section>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-2 lg:items-start">
-      <section className="card p-6" aria-labelledby="archive-panel">
+      <div className="mt-4 grid gap-4 lg:grid-cols-2 lg:items-start">
+      <section className="card p-5" aria-labelledby="archive-panel">
         <div className="flex items-baseline justify-between gap-4">
           <h2 id="archive-panel" className="eyebrow">Past papers</h2>
           <Link href="/archive" className="text-sm font-bold text-accent">All papers &rarr;</Link>
@@ -256,7 +256,7 @@ export default async function Dashboard({
         )}
       </section>
 
-      <section className="card p-6" aria-labelledby="board-panel">
+      <section className="card p-5" aria-labelledby="board-panel">
         <div className="flex items-baseline justify-between gap-4 px-1">
           <h2 id="board-panel" className="eyebrow">Leaderboard</h2>
           <Link href="/leaderboard" className="text-sm font-bold text-accent">Full board &rarr;</Link>

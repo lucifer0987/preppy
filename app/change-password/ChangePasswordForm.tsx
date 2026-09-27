@@ -9,13 +9,13 @@ export function ChangePasswordForm() {
   const [state, action] = useActionState(changePasswordAction, emptyChangePassword)
 
   return (
-    <form action={action} className="mt-8 space-y-4">
+    <form action={action} className="mt-6 space-y-3.5">
       <Field label="Current password" name="current" autoComplete="current-password" autoFocus />
       <Field label="New password" name="next" autoComplete="new-password" />
       <Field label="New password again" name="confirm" autoComplete="new-password" />
 
       {state.error && (
-        <p role="alert" className="rounded-xl bg-notanswered/10 px-4 py-3 text-sm font-semibold text-bad-ink">
+        <p role="alert" className="rounded-control border border-bad/35 bg-bad/10 px-4 py-2.5 text-sm font-semibold text-bad-ink">
           {state.error}
         </p>
       )}
@@ -33,7 +33,7 @@ function Field({
       <span className="eyebrow">{label}</span>
       <input
         type="password" name={name} autoComplete={autoComplete} autoFocus={autoFocus} required
-        className="field mt-1.5 text-lg"
+        className="field mt-1.5"
       />
     </label>
   )
@@ -44,7 +44,7 @@ function Submit() {
   return (
     <button
       type="submit" disabled={pending}
-      className="btn btn-primary w-full px-6 py-4 text-lg"
+      className="btn btn-zap mt-1 w-full py-3.5"
     >
       {pending ? 'Changing...' : 'Change password'}
     </button>

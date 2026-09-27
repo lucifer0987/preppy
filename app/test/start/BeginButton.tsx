@@ -41,7 +41,7 @@ export function BeginButton() {
         type="submit"
         onClick={onClick}
         disabled={busy}
-        className="btn btn-zap w-full px-8 py-5 text-xl"
+        className="btn btn-zap w-full py-4 text-lg"
       >
         {busy ? 'Starting…' : 'Begin'}
       </button>

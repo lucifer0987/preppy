@@ -1125,23 +1125,29 @@ Material&rsquo;s dark-theme guidance is specific about why that is wrong: the
 recommended surface is <code>#121212</code>, a dark grey and deliberately not
 black, because grey can carry elevation and shadow where black flattens both.</p>
 
-<p>The surfaces are now that base with the brand laid over it at a low opacity
-&mdash; which is Material&rsquo;s own recipe for a branded dark theme &mdash;
-stepped by how raised the thing is:</p>
+<p>The surfaces are that base with a colour laid over it at a low opacity
+&mdash; Material&rsquo;s own recipe for a branded dark theme &mdash; stepped by
+how raised the thing is. The colour is a <em>plum at hue 310</em>, not the
+brand violet at 261: tinting with the brand gave every dark surface more blue
+than red, and a blue-black room is a cold one to sit in at midnight. Every step
+now has red above blue, which is what makes it read as warm rather than as a
+screen that is simply switched off.</p>
 
 <div class="tw"><table>
 <thead><tr><th>Token</th><th>Value</th><th>Made of</th></tr></thead>
 <tbody>
-<tr><td><code>--page</code></td><td><code>#19161f</code></td><td>#121212 + brand at 6%</td></tr>
-<tr><td><code>--surface-sunken</code></td><td><code>#1b1723</code></td><td>+ 8%</td></tr>
-<tr><td><code>--surface</code></td><td><code>#201a2c</code></td><td>+ 12%</td></tr>
-<tr><td><code>--surface-raised</code></td><td><code>#2a2338</code></td><td>+ 18%</td></tr>
+<tr><td><code>--page</code></td><td><code>#1d161c</code></td><td>#121212 + plum at 7%</td></tr>
+<tr><td><code>--surface-sunken</code></td><td><code>#221720</code></td><td>+ 10%</td></tr>
+<tr><td><code>--surface</code></td><td><code>#2a1a27</code></td><td>+ 15%</td></tr>
+<tr><td><code>--surface-raised</code></td><td><code>#351e31</code></td><td>+ 22%</td></tr>
 </tbody>
 </table></div>
 
-<p>The exam room takes the same base with only a trace of brand in it
-(<code>#141318</code>), so it stays the calmer of the two rooms without turning
-into a different product. Lifting the surfaces meant lifting the borders with
+<p>The exam room takes the same base with only a trace of the plum in it
+(<code>#171216</code>), so it stays the calmer of the two rooms without turning
+into a different product. <code>--surface-invert</code>, the panel behind a
+hero, warmed with them: the blue-violet <code>brand-950</code> sat cold against
+a plum ground, and that clash is precisely what read as blue-on-black. Lifting the surfaces meant lifting the borders with
 them, or they would have vanished; every text and accent token was re-measured
 against all four and none of them fell below AA.</p>
 

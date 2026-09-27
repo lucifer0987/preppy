@@ -39,7 +39,7 @@ export default async function ChangePasswordPage() {
         </p>
       )}
 
-      <h1 className={`text-4xl font-black tracking-tight ${forced ? 'mt-6' : 'mt-10'}`}>
+      <h1 className={`text-3xl font-black tracking-tight ${forced ? 'mt-5' : 'mt-7'}`}>
         {forced ? 'Choose your own password' : 'Change your password'}
       </h1>
       <p className="mt-2 text-ink-soft">
@@ -50,7 +50,7 @@ export default async function ChangePasswordPage() {
 
       <ChangePasswordForm />
 
-      <div className="mt-10 space-y-4 border-t border-line pt-5">
+      <div className="mt-7 space-y-3 border-t border-line pt-4">
         <p className="text-sm text-ink-soft">
           There is no email on file, so nobody can send you a reset. If you forget this one, your
           admin has to set a new one for you.

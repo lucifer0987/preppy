@@ -126,7 +126,7 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
         <p className="mt-6 rounded-control bg-surface px-5 py-4 text-center font-semibold">{refusal}</p>
       ) : (
         <>
-          <form action={beginAction} className="mt-6">
+          <form action={beginAction} className="mx-auto mt-6 max-w-sm">
             <input type="hidden" name="testId" value={String(test.id)} />
             <BeginButton />
           </form>
