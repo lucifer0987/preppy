@@ -19,10 +19,17 @@ export function LeaderboardTable({
   compact?: boolean
 }) {
   if (!rows.length) {
-    return (
+    // Inside the dashboard panel this is one line among other panels, so a
+    // dashed box here put a box inside a box while the panel beside it said
+    // the same kind of thing in a plain sentence.
+    return compact ? (
+      <p className="text-sm text-ink-soft">
+        The board fills in when the first paper finishes. Sit one and you are on it.
+      </p>
+    ) : (
       <p className="rounded-card border border-dashed border-line-strong bg-surface-sunken p-8
                     text-center text-ink-soft">
-        The board is empty until the first paper finishes. Sit one and you are on it.
+        The board fills in when the first paper finishes. Sit one and you are on it.
       </p>
     )
   }
