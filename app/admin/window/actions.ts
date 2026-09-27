@@ -17,16 +17,23 @@ export async function saveWindowAction(
   const admin = await actionAdmin()
   if (!admin) return { error: 'Not authorised.', saved: false }
 
-  const num = (name: string) => Number(String(formData.get(name) ?? '').trim())
+  // The form posts two HH:MM strings, which is what the picker produces; the
+  // settings row still stores four integers.
+  const at = (name: string) => {
+    const [h, m] = String(formData.get(name) ?? '').split(':').map(Number)
+    return { h: h ?? NaN, m: m ?? NaN }
+  }
+  const open = at('openAt')
+  const close = at('entryCloseAt')
   const next = {
-    openHour: num('openHour'),
-    openMinute: num('openMinute'),
-    entryCloseHour: num('entryCloseHour'),
-    entryCloseMinute: num('entryCloseMinute'),
+    openHour: open.h,
+    openMinute: open.m,
+    entryCloseHour: close.h,
+    entryCloseMinute: close.m,
   }
 
   if (Object.values(next).some((n) => !Number.isFinite(n))) {
-    return { error: 'Every box needs a number.', saved: false }
+    return { error: 'Both times are needed.', saved: false }
   }
 
   try {

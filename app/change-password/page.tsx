@@ -20,14 +20,18 @@ export const dynamic = 'force-dynamic'
 export default async function ChangePasswordPage() {
   const user = await requireAnySignedIn()
   const forced = user.mustChangePassword
+  // An admin who came here from the console rail belongs back in the console,
+  // not in the student view.
+  const home = user.role === 'admin' ? { href: '/admin', label: 'Back to the console' } : { href: '/dashboard', label: 'Back to today' }
 
   return (
-    <main className="shell flex min-h-dvh items-center justify-center py-10">
-      <div className="w-full max-w-md">
-      <div className="flex items-center justify-between">
-        <Wordmark size="sm" />
+    <main className="shell relative flex min-h-dvh items-center justify-center py-10">
+      {/* Same corner as every other screen without a header. */}
+      <div className="absolute right-4 top-4 sm:right-6 sm:top-6">
         <ThemeToggle />
       </div>
+      <div className="w-full max-w-md">
+      <Wordmark size="sm" />
 
       {forced && (
         <p className="mt-8 flex items-start gap-2.5 rounded-control border border-accent/40
@@ -52,13 +56,14 @@ export default async function ChangePasswordPage() {
 
       <div className="mt-7 space-y-3 border-t border-line pt-4">
         <p className="text-sm text-ink-soft">
-          There is no email on file, so nobody can send you a reset. If you forget this one, your
-          admin has to set a new one for you.
+          {user.role === 'admin'
+            ? 'There is no email on file, so nobody can send you a reset. If you forget this one, another admin has to set a new one for you from People.'
+            : 'There is no email on file, so nobody can send you a reset. If you forget this one, your admin has to set a new one for you.'}
         </p>
         <div className="flex items-center gap-4 text-sm font-semibold">
           {!forced && (
-            <Link href="/dashboard" className="text-accent underline underline-offset-4">
-              Back to today
+            <Link href={home.href} className="text-accent underline underline-offset-4">
+              {home.label}
             </Link>
           )}
           <form action={logoutAction}>

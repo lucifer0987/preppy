@@ -19,7 +19,7 @@ export function AppShell({ user, current, children }: {
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-dvh bg-page">
+    <div className="flex min-h-dvh flex-col bg-page">
       <header className="sticky top-0 z-30 border-b border-line bg-surface/85 backdrop-blur
                          supports-[backdrop-filter]:bg-surface/70"
               style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
@@ -58,7 +58,10 @@ export function AppShell({ user, current, children }: {
         </nav>
       </header>
 
-      {children}
+      {/* Flexed so the footer sits on the bottom of the window rather than
+          halfway up it on a page with little on it -- a new cohort's first
+          week is all short pages. */}
+      <div className="flex-1">{children}</div>
 
       <footer className="shell pb-8 pt-10">
         <p className="border-t border-line pt-5 text-xs text-ink-faint">

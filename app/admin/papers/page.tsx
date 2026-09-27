@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { listPapers } from '../../../lib/repo/papers'
 import { formatIstDate, istDate, paperLabels, windowState } from '../../../lib/time'
 import { requireAdmin } from '../../../lib/guard'
-import { Flash, PageHeader } from '../../../components/Page'
+import { Empty, Flash, PageHeader, StatusChip } from '../../../components/Page'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,11 +31,14 @@ export default async function PapersPage({
         }
       />
       {papers.length === 0 ? (
-        <p className="mt-8 rounded-card border border-dashed border-line-strong p-8 text-center text-ink-soft">
-          No papers yet. Upload one to get started.
-        </p>
+        <div className="mt-6">
+          <Empty>
+            No papers yet. Upload one and it lands here as a draft, ready to read through
+            before you give it a night.
+          </Empty>
+        </div>
       ) : (
-        <ul className="mt-6 space-y-2">
+        <ul className="mt-6 space-y-2.5">
           {papers.map((p) => {
             const state = windowState(p.window)
             const label =
@@ -44,24 +47,34 @@ export default async function PapersPage({
               : state === 'CLOSED' ? 'Finished'
               : 'Live now'
             const tone =
-              p.status === 'DRAFT' ? 'bg-ink-soft'
-              : label === 'Live now' ? 'bg-notanswered'
-              : label === 'Finished' ? 'bg-ink-soft/60'
-              : 'bg-answered'
+              label === 'Draft' ? 'draft' as const
+              : label === 'Live now' ? 'live' as const
+              : label === 'Finished' ? 'done' as const
+              : 'waiting' as const
+            const l = paperLabels(p.window)
 
             return (
               <li key={p.id}>
                 <Link
                   href={`/admin/papers/${p.id}`}
-                  className="flex flex-wrap items-center gap-4 rounded-control bg-surface px-5 py-4 transition hover:bg-surface-sunken"
+                  className="group card flex flex-wrap items-center gap-x-5 gap-y-2 px-5 py-4
+                             transition hover:border-accent/50 hover:shadow-float"
                 >
-                  <span className="font-bold tabular-nums">{formatIstDate(p.date)}</span>
-                  <span className="text-xs tabular-nums text-ink-soft">{paperLabels(p.window).opens}</span>
-                  <span className="text-ink-soft">{p.title ?? 'Untitled'}</span>
-                  <span className="ml-auto text-sm tabular-nums text-ink-soft">{p.questionCount} questions</span>
-                  <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-white ${tone}`}>
-                    {label}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-bold text-ink">{p.title ?? 'Untitled'}</span>
+                    <span className="numeral mt-0.5 block text-xs text-ink-faint">
+                      {formatIstDate(p.date)}
+                      {p.status === 'DRAFT' ? ' · no night yet' : ` · ${l.opens} to ${l.closes}`}
+                    </span>
                   </span>
+                  <span className="numeral text-sm text-ink-soft">
+                    {p.questionCount} questions
+                  </span>
+                  <StatusChip tone={tone}>{label}</StatusChip>
+                  <svg viewBox="0 0 16 16" aria-hidden="true"
+                       className="h-3.5 w-3.5 shrink-0 fill-ink-faint transition group-hover:fill-accent">
+                    <path d="M8.3 2.3a1 1 0 000 1.4L11.6 7H2a1 1 0 100 2h9.6l-3.3 3.3a1 1 0 101.4 1.4l5-5a1 1 0 000-1.4l-5-5a1 1 0 00-1.4 0z" />
+                  </svg>
                 </Link>
               </li>
             )

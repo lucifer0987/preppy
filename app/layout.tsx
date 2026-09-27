@@ -78,7 +78,11 @@ document.documentElement.setAttribute('data-theme','light')}`
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${nunito.variable} ${plex.variable} ${plexMono.variable}`}>
+    // The script above stamps data-theme before React hydrates, so the server
+    // HTML and the live element disagree by exactly that attribute. Saying so
+    // here is the fix; without it every page carried a hydration warning.
+    <html lang="en" suppressHydrationWarning
+          className={`${nunito.variable} ${plex.variable} ${plexMono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>

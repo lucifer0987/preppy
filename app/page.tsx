@@ -34,8 +34,15 @@ export default async function Home() {
   // to the real one. A signed-out visitor is better served by the usual times
   // than by an error page, so a failure here is logged and stepped over -- the
   // dashboard, where a student needs the truth, still fails loudly.
-  const { next } = isConfigured() ? await upcomingPapers(now).catch(nextUnavailable) : { next: null }
-  const labels = next ? paperLabels(next.window) : windowLabels(testWindow, await defaultAttemptMinutes())
+  const { live, next } = isConfigured()
+    ? await upcomingPapers(now).catch(nextUnavailable)
+    : { live: null, next: null }
+  // A paper that is open right now is the answer to "what happens tonight",
+  // so it wins over the one after it. Without this a visitor arriving during
+  // the window was told nothing was scheduled.
+  const labels = live ? paperLabels(live.window)
+    : next ? paperLabels(next.window)
+    : windowLabels(testWindow, await defaultAttemptMinutes())
   // The shape a paper takes, from the configured default pattern rather than a
   // constant, so this page tells the truth after the pattern is changed.
   const pattern = await getPattern()
@@ -99,7 +106,7 @@ export default async function Home() {
                 one answer to "what am I in for tonight". Every figure comes
                 from the configured pattern; only the section names are fixed. */}
             <section className="card overflow-hidden" aria-labelledby="next-paper">
-              <NextPaper next={next} now={now} labels={labels} totals={totals} />
+              <NextPaper live={live} next={next} now={now} labels={labels} totals={totals} />
 
               <div className="border-t border-line bg-surface-sunken px-5 py-4 sm:px-6">
                 <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
@@ -116,7 +123,7 @@ export default async function Home() {
                         <span className="truncate font-semibold">{SECTION_NAMES[s.code]}</span>
                       </span>
                       <span className="numeral shrink-0 text-xs text-ink-faint">
-                        {s.questions} Q &middot; {s.minutes} min
+                        {s.questions} questions &middot; {s.minutes} min
                       </span>
                     </li>
                   ))}
@@ -145,12 +152,34 @@ export default async function Home() {
  * runs only against a real scheduled paper, and every other case -- none
  * scheduled, the lookup failed, Supabase not configured yet -- says so.
  */
-function NextPaper({ next, now, labels, totals }: {
+function NextPaper({ live, next, now, labels, totals }: {
+  live: { window: PaperWindow } | null
   next: { window: PaperWindow } | null
   now: Date
   labels: { opens: string; closes: string }
   totals: { minutes: number }
 }) {
+  if (live) {
+    return (
+      <div className="p-5 sm:p-6">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 id="next-paper" className="eyebrow">Tonight&rsquo;s paper</h2>
+          <span className="numeral shrink-0 text-xs text-ink-faint">
+            {formatIstDate(live.window.date)}
+          </span>
+        </div>
+        <p className="mt-2.5 font-display text-2xl font-black text-good-ink">Open now</p>
+        <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">
+          Log in and start it. You get the full {totals.minutes} minutes however late you
+          begin, as long as you begin before last entry.
+        </p>
+        <p className="numeral mt-3.5 border-t border-line pt-3 text-xs text-ink-faint">
+          Last entry {labels.closes}.
+        </p>
+      </div>
+    )
+  }
+
   if (!next) {
     return (
       <div className="p-5 sm:p-6">
@@ -209,7 +238,7 @@ function Shape({ index }: { index: number }) {
  * stays next to the message, and so the two migration cases read the same way
  * as the settings ones.
  */
-function nextUnavailable(e: Error): { next: null } {
+function nextUnavailable(e: Error): { live: null; next: null } {
   const missing = /schema cache|does not exist/i.test(e.message)
   console.error(
     missing
@@ -218,5 +247,5 @@ function nextUnavailable(e: Error): { next: null } {
         '       Apply the pending migration:  npm run migrate'
       : `[home] Could not read the next paper: ${e.message}`,
   )
-  return { next: null }
+  return { live: null, next: null }
 }

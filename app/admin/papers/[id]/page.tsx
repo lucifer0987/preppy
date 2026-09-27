@@ -17,6 +17,7 @@ import { DeleteButton } from './DeleteButton'
 import { getItemStats } from '../../../../lib/repo/rescore'
 import { BackLink, PageHeader, StatusChip } from '../../../../components/Page'
 import { TimeField } from '../../../../components/TimeField'
+import { DateField } from '../../../../components/DateField'
 import { OPTION_LABELS, type OptionLabel, type PaperQuestion } from '../../../../lib/types'
 import { Flash } from '../../../../components/Page'
 
@@ -230,11 +231,9 @@ export default async function PaperPreview(
                is the one thing it does better than anything hand-built -- but it now
                sits in the app's own field, and accent-color points its selection at
                the brand instead of the system blue. */}
-          <label className="mt-4 block">
-            <span className="eyebrow">Night</span>
-            <input type="date" name="date" defaultValue={defaultDate} min={istDate()} required
-                   className="field numeral mt-1.5 w-auto min-w-48 cursor-pointer" />
-          </label>
+          <div className="mt-4">
+            <DateField name="date" label="Night" defaultValue={defaultDate} min={istDate()} />
+          </div>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <TimeField name="opensAt" label="Unlocks at"
@@ -277,9 +276,7 @@ function ItemFooter({
           : `${stat.correctPct}% correct of ${stat.attempts} who answered`}
       </span>
       {stat.suspicious && (
-        <span className="rounded-full bg-notanswered px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-white">
-          Check this key
-        </span>
+        <StatusChip tone="bad">Check this key</StatusChip>
       )}
       <span className="ml-auto flex flex-wrap items-center gap-4">
         <QuestionEditor

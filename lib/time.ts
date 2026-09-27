@@ -277,4 +277,16 @@ export function formatIstDate(date: string): string {
   return `${d} ${months[(m ?? 1) - 1]} ${y}`
 }
 
+/**
+ * "27 September 2026 at 6:52 AM" -- an instant, read in IST.
+ *
+ * Every date on screen is a civil IST date, so a raw toLocaleString would
+ * read the viewer's own timezone and print seconds nobody asked for.
+ */
+export function formatIstMoment(at: Date | string): string {
+  const d = typeof at === 'string' ? new Date(at) : at
+  const p = istParts(d)
+  return `${formatIstDate(istDate(d))} at ${formatIstTime(p.hour, p.minute)}`
+}
+
 const pad = (n: number) => String(n).padStart(2, '0')

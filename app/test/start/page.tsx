@@ -126,7 +126,8 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
           </p>
         </section>
 
-        <section className="card flex flex-col p-6">
+        <div className="flex flex-col gap-4">
+          <section className="card flex flex-1 flex-col p-6">
           <h2 className="eyebrow">Marking</h2>
           <dl className="mt-3 space-y-2.5 text-sm">
             <div className="flex items-baseline justify-between gap-3">
@@ -155,24 +156,28 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
             <span className="font-bold">{totalMarks}</span>
             <span className="text-ink-faint"> marks for a perfect paper</span>
           </p>
-        </section>
-      </div>
+          </section>
 
-      {refusal ? (
-        <p className="mt-6 rounded-control bg-surface px-5 py-4 text-center font-semibold">{refusal}</p>
-      ) : (
-        <>
-          <form action={beginAction} className="mx-auto mt-6 max-w-sm">
-            <input type="hidden" name="testId" value={String(test.id)} />
-            <BeginButton />
-          </form>
-          {!isDryRun && (
-            <p className="mt-3 text-center text-sm text-ink-soft">
-              Entry closes at {paperLabels(paperWindow).closes}.
-            </p>
+          {/* Begin sits under the marking rather than centred below both
+              columns: it keeps the right-hand column the same height as the
+              rules beside it, and puts the button where the eye already is. */}
+          {refusal ? (
+            <p className="card px-5 py-4 text-center font-semibold">{refusal}</p>
+          ) : (
+            <div className="card p-6">
+              <form action={beginAction}>
+                <input type="hidden" name="testId" value={String(test.id)} />
+                <BeginButton />
+              </form>
+              <p className="mt-3 text-center text-sm text-ink-soft">
+                {isDryRun
+                  ? 'Nothing here is counted.'
+                  : `Entry closes at ${paperLabels(paperWindow).closes}.`}
+              </p>
+            </div>
           )}
-        </>
-      )}
+        </div>
+      </div>
     </main>
   )
 }

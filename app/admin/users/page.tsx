@@ -2,10 +2,10 @@ import Link from 'next/link'
 import { requireAdmin } from '../../../lib/guard'
 import { listUsers } from '../../../lib/repo/users'
 import { formatIstDate, istDate } from '../../../lib/time'
-import { CreateUserForm, ResetPasswordForm } from './UserForms'
+import { CreateUserForm, RenameForm, ResetPasswordForm } from './UserForms'
 import { BulkImport } from './BulkImport'
 import { toggleActiveAction } from './actions'
-import { PageHeader, TableShell, Th } from '../../../components/Page'
+import { PageHeader, StatusChip, TableShell, Th } from '../../../components/Page'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,13 +15,17 @@ export default async function UsersPage() {
 
   return (
     <>
-      <PageHeader compact title="People" lede="Six accounts, no self-service. You create them, you reset them, and a deactivated one keeps its history." />
+      <PageHeader
+        compact
+        title="People"
+        lede="Nobody signs themselves up. You create the account, you rename it, you set a new password when one is forgotten, and a deactivated account keeps everything it ever scored."
+      />
 
       <CreateUserForm />
       <BulkImport />
 
       <div className="mt-8">
-        <TableShell minWidth="46rem">
+        <TableShell minWidth="52rem">
           <thead>
             <tr className="border-b border-line">
               <Th>Username</Th>
@@ -35,9 +39,11 @@ export default async function UsersPage() {
           </thead>
           <tbody>
             {users.map((u) => (
-              <tr key={u.id} className="border-b border-line align-top last:border-0">
+              <tr key={u.id} className="border-b border-line align-middle last:border-0 transition hover:bg-surface-sunken/60">
                 <td className="numeral px-3 py-3 font-semibold">{u.username}</td>
-                <td className="px-3 py-3">{u.displayName}</td>
+                <td className="px-3 py-3">
+                  <RenameForm userId={u.id} displayName={u.displayName} />
+                </td>
                 <td className="px-3 py-3">
                   {u.role === 'admin' ? (
                     <span className="pill-brand px-2 py-0.5 text-[10px] uppercase tracking-widest">
@@ -59,23 +65,23 @@ export default async function UsersPage() {
                   {u.lastLoginAt ? formatIstDate(istDate(new Date(u.lastLoginAt))) : 'never'}
                 </td>
                 <td className="px-3 py-3">
-                  {u.isActive
-                    ? <span className="text-good-ink">active</span>
-                    : <span className="text-bad-ink">inactive</span>}
-                  {u.mustChangePassword && (
-                    <span className="block text-[10px] uppercase tracking-widest text-ink-soft">
-                      must change password
-                    </span>
-                  )}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <StatusChip tone={u.isActive ? 'good' : 'bad'}>
+                      {u.isActive ? 'Active' : 'Inactive'}
+                    </StatusChip>
+                    {u.mustChangePassword && (
+                      <StatusChip tone="waiting">Temp password</StatusChip>
+                    )}
+                  </div>
                 </td>
                 <td className="px-3 py-3">
-                  <div className="flex flex-col items-end gap-1">
+                  <div className="flex flex-wrap items-center justify-end gap-2">
                     <ResetPasswordForm userId={u.id} username={u.username} />
                     {u.id !== me.id && (
                       <form action={toggleActiveAction}>
                         <input type="hidden" name="userId" value={u.id} />
                         <input type="hidden" name="isActive" value={String(!u.isActive)} />
-                        <button className="text-xs font-bold text-ink-soft underline">
+                        <button className="btn btn-quiet px-3 py-1.5 text-xs">
                           {u.isActive ? 'Deactivate' : 'Reactivate'}
                         </button>
                       </form>
@@ -88,8 +94,10 @@ export default async function UsersPage() {
         </TableShell>
       </div>
 
-      <p className="mt-4 text-sm text-ink-soft">
-        Deactivating keeps every attempt and every leaderboard entry. It only stops them logging in.
+      <p className="measure-wide mt-4 text-sm text-ink-soft">
+        A username is the login and never changes. A name is what the board and the archive show, so
+        it can be edited any time &mdash; click it. Deactivating only stops the login: every attempt
+        and every leaderboard entry stays.
       </p>
     </>
   )

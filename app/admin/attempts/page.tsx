@@ -5,7 +5,7 @@ import { formatIstDate } from '../../../lib/time'
 import { deleteDryRunAction, voidAttemptAction } from './actions'
 import { ConfirmButton } from './ConfirmButton'
 import { db } from '../../../lib/supabase/admin'
-import { PageHeader, Flash, TableShell, Th } from '../../../components/Page'
+import { Empty, PageHeader, Flash, StatusChip, TableShell, Th } from '../../../components/Page'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,9 +38,12 @@ export default async function AttemptsPage({
       )}
 
       {groups.length === 0 ? (
-        <p className="mt-8 rounded-card border border-dashed border-line-strong p-8 text-center text-ink-soft">
-          Nobody has sat a paper yet.
-        </p>
+        <div className="mt-6">
+          <Empty>
+            Nobody has sat a paper yet. Every finished attempt lands here the moment it is
+            scored, with the two integrity counters beside it.
+          </Empty>
+        </div>
       ) : (
         groups.map((group) => (
           <section key={group.testId} className="mt-8">
@@ -56,7 +59,7 @@ export default async function AttemptsPage({
                 the border. TableShell keeps the frame still and scrolls only
                 the table. */}
             <div className="mt-3">
-              <TableShell minWidth="56rem">
+              <TableShell minWidth="62rem">
                 <thead>
                   <tr className="border-b border-line">
                     <Th>Student</Th>
@@ -65,8 +68,8 @@ export default async function AttemptsPage({
                     <Th align="right">Tried</Th>
                     <Th align="right">Not reached</Th>
                     <Th align="right">Time</Th>
-                    <Th align="right">FS</Th>
-                    <Th align="right">Tab</Th>
+                    <Th align="right">Left fullscreen</Th>
+                    <Th align="right">Switched away</Th>
                     <Th>How it ended</Th>
                     <Th />
                   </tr>
@@ -77,12 +80,11 @@ export default async function AttemptsPage({
                     return (
                       <tr key={a.id} className={`border-b border-line last:border-0 ${a.state === 'VOIDED' ? 'opacity-50' : ''}`}>
                         <td className="px-3 py-2.5">
-                          <Link href={`/admin/attempts?user=${a.userId}`} className="font-semibold hover:underline">{a.displayName}</Link>
-                          {a.isDryRun && (
-                            <span className="ml-2 rounded-full bg-surface-sunken border border-line px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-ink-soft">
-                              dry run
-                            </span>
-                          )}
+                          <span className="flex flex-wrap items-center gap-2">
+                            <Link href={`/admin/attempts?user=${a.userId}`}
+                                  className="font-semibold hover:underline">{a.displayName}</Link>
+                            {a.isDryRun && <StatusChip tone="draft">Dry run</StatusChip>}
+                          </span>
                         </td>
                         <td className="px-3 py-2.5 text-right font-bold">
                           {a.totalScore === null ? '—' : a.totalScore.toFixed(2)}
@@ -120,7 +122,7 @@ export default async function AttemptsPage({
         ))
       )}
 
-      <p className="mt-6 max-w-2xl text-sm text-ink-soft">
+      <p className="measure-wide mt-6 text-sm text-ink-soft">
         The two counters tell you <em>that</em> something happened, never when or for how long.
         That was the trade made when integrity logging was cut to two integers: the counter deters,
         and there is no event log to keep or to purge. Voiding an attempt removes it from the

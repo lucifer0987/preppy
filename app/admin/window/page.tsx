@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { requireAdmin } from '../../../lib/guard'
 import { defaultAttemptMinutes, getWindow, getWindowMeta } from '../../../lib/repo/settings'
-import { windowLabels } from '../../../lib/time'
+import { formatIstMoment, windowLabels } from '../../../lib/time'
 import { WindowForm } from './WindowForm'
 import { PageHeader } from '../../../components/Page'
 
@@ -33,8 +33,8 @@ export default async function WindowPage() {
         ))}
       </dl>
       {meta.updatedAt && (
-        <p className="mt-2 text-xs text-ink-faint">
-          Last changed {new Date(meta.updatedAt).toLocaleString('en-IN')}
+        <p className="mt-3 text-xs text-ink-faint">
+          Last changed {formatIstMoment(meta.updatedAt)}
           {meta.updatedBy ? ` by ${meta.updatedBy}` : ''}
         </p>
       )}

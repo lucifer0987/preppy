@@ -480,6 +480,11 @@ h2, h3 { text-wrap: balance; }
 
 /* Small uppercase label above a group. Used two dozen times. */
 @utility eyebrow {
+  /* Block, because this is nearly always a label sitting above the thing it
+     names. Inline, a short one ("Unlocks at") simply shared the line with the
+     control while a long one wrapped above it, so two fields side by side did
+     not line up. */
+  display: block;
   font-family: var(--font-display);
   font-size: 0.6875rem;
   font-weight: 700;
@@ -565,6 +570,21 @@ h2, h3 { text-wrap: balance; }
 
   /* Sits on a violet panel in both themes, so it does not take a theme token. */
   &:hover:not(:disabled) { background: var(--color-brand-50); }
+}
+/**
+ * The confirming half of a destructive pair.
+ *
+ * Both places that had one were painting it with --notanswered, the red that
+ * means "you left this blank" in the exam palette; borrowing it here made the
+ * same red mean two unrelated things. This one is the status red.
+ */
+@utility btn-danger {
+  --lip: var(--color-bad-800);
+  --lip-h: 4px;
+  background: var(--color-bad-500);
+  color: #ffffff;
+
+  &:hover:not(:disabled) { background: var(--color-bad-800); }
 }
 @utility btn-quiet {
   --lip: var(--line-strong);
@@ -668,6 +688,112 @@ h2, h3 { text-wrap: balance; }
 :root.theme-switching *::before,
 :root.theme-switching *::after {
   transition: none !important;
+}
+
+/* ------------------------------------------------------ the day picker */
+/**
+ * react-day-picker renders the grid and owns the keyboard behaviour; every
+ * colour and edge below is this app's. No library stylesheet is imported, so
+ * there is no second palette to keep in step with this one.
+ */
+.rdp-root {
+  --rdp-day-height: 2.4rem;
+  --rdp-day-width: 2.4rem;
+  /* The nav is positioned against this. Without it the two arrows resolved
+     against the page and landed in its top-right corner. */
+  position: relative;
+  font-family: var(--font-sans);
+}
+.rdp-month_caption {
+  display: flex;
+  align-items: center;
+  height: 2.4rem;
+  /* Room on the right for the two arrows that float over this row. */
+  padding-inline: 0.5rem 5rem;
+}
+.rdp-caption_label {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.9375rem;
+  color: var(--text);
+}
+.rdp-nav {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 2.4rem;
+  align-items: center;
+  display: flex;
+  gap: 0.25rem;
+}
+.rdp-button_previous,
+.rdp-button_next {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-control);
+  color: var(--text-soft);
+  transition: background-color .15s, color .15s;
+}
+.rdp-button_previous:hover:not(:disabled),
+.rdp-button_next:hover:not(:disabled) {
+  background: var(--surface-sunken);
+  color: var(--text);
+}
+.rdp-button_previous:disabled,
+.rdp-button_next:disabled { opacity: .35; }
+.rdp-chevron { fill: currentColor; }
+
+.rdp-weekday {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+  padding-block: 0.4rem;
+}
+.rdp-day_button {
+  width: var(--rdp-day-width);
+  height: var(--rdp-day-height);
+  border-radius: var(--radius-control);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text);
+  transition: background-color .12s, color .12s;
+}
+.rdp-day_button:hover:not(:disabled) { background: var(--surface-sunken); }
+.rdp-outside .rdp-day_button { color: var(--text-faint); opacity: .55; }
+.rdp-disabled .rdp-day_button { opacity: .3; cursor: not-allowed; }
+.rdp-today:not(.rdp-selected) .rdp-day_button {
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+  color: var(--accent-text);
+  font-weight: 800;
+}
+.rdp-selected .rdp-day_button {
+  background: var(--accent);
+  color: var(--text-on-brand);
+  font-weight: 800;
+}
+.rdp-selected .rdp-day_button:hover { background: var(--accent-hover); }
+
+/**
+ * A select drawn by this app rather than by the platform: the native arrow
+ * sits hard against the edge and cannot be moved, so it is removed and a
+ * chevron is painted where there is room for it.
+ */
+@utility select-field {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    right 1.05rem center,
+    right 0.75rem center;
+  background-size: 0.3rem 0.3rem, 0.3rem 0.3rem;
+  background-repeat: no-repeat;
+  padding-right: 2.1rem;
 }
 
 @keyframes rise {

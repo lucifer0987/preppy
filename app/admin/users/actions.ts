@@ -2,8 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { actionAdmin } from '../../../lib/guard'
-import { createUser, resetPassword, setActive } from '../../../lib/repo/users'
-import { emptyBulk, type BulkState, type UserActionState } from './state'
+import { createUser, resetPassword, setActive, setDisplayName } from '../../../lib/repo/users'
+import { emptyBulk, type BulkState, type RenameState, type UserActionState } from './state'
 import { MAX_BULK_ROWS, parseUserCsv } from '../../../lib/csv'
 
 /**
@@ -39,6 +39,28 @@ export async function resetPasswordAction(
     return { error: null, credential }
   } catch (e) {
     return { error: (e as Error).message, credential: null }
+  }
+}
+
+/**
+ * Rename anyone, including another admin and yourself. The username is the
+ * login and stays put; this is only the name people read.
+ */
+export async function renameUserAction(
+  _prev: RenameState, formData: FormData,
+): Promise<RenameState> {
+  if (!(await actionAdmin())) return { error: NOT_AUTHORISED, savedName: null }
+  try {
+    const savedName = await setDisplayName(
+      String(formData.get('userId') ?? ''),
+      String(formData.get('displayName') ?? ''),
+    )
+    // The name is printed on the board and in every archive row, not just here.
+    revalidatePath('/admin/users')
+    revalidatePath('/leaderboard')
+    return { error: null, savedName }
+  } catch (e) {
+    return { error: (e as Error).message, savedName: null }
   }
 }
 

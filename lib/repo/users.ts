@@ -90,6 +90,24 @@ export async function createUser(
   return { username, password }
 }
 
+/**
+ * Rename an account. The username is the login and never changes; the display
+ * name is what the leaderboard, the archive and every roll-call shows, so this
+ * is the one people ask for after a typo or a married name.
+ */
+export async function setDisplayName(userId: string, displayNameInput: string): Promise<string> {
+  const displayName = displayNameInput.trim().replace(/\s+/g, ' ')
+  if (!displayName) throw new Error('A name cannot be blank.')
+  if (displayName.length > 60) throw new Error('Keep the name under 60 characters.')
+
+  const client = db()
+  const { data, error } = await client.from('profiles')
+    .update({ display_name: displayName }).eq('id', userId).select('display_name').maybeSingle()
+  if (error) throw new Error(`Could not save the name: ${error.message}`)
+  if (!data) throw new Error('That account no longer exists.')
+  return data.display_name as string
+}
+
 export async function resetPassword(userId: string): Promise<{ username: string; password: string }> {
   const client = db()
   const { data: profile } = await client.from('profiles').select('username').eq('id', userId).maybeSingle()

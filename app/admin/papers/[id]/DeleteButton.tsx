@@ -13,7 +13,7 @@ export function DeleteButton({ id, label }: { id: string; label: string }) {
   if (!confirming) {
     return (
       <button type="button" onClick={() => setConfirming(true)}
-              className="text-sm font-bold text-bad-ink underline">
+              className="btn btn-quiet px-4 py-2 text-sm">
         Delete this paper
       </button>
     )
@@ -24,10 +24,10 @@ export function DeleteButton({ id, label }: { id: string; label: string }) {
       <input type="hidden" name="id" value={id} />
       <span className="text-sm font-semibold">Delete {label} and its dry runs for good?</span>
       <button type="button" onClick={() => setConfirming(false)}
-              className="field text-sm">
+              className="btn btn-quiet px-4 py-2 text-sm">
         Keep it
       </button>
-      <button type="submit" className="rounded-xl bg-notanswered px-3 py-1.5 text-sm font-black text-white">
+      <button type="submit" className="btn btn-danger px-4 py-2 text-sm">
         Delete
       </button>
     </form>

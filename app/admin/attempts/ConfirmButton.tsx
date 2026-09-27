@@ -17,7 +17,8 @@ export function ConfirmButton({
   const [asking, setAsking] = useState(false)
   if (!asking) {
     return (
-      <button type="button" onClick={() => setAsking(true)} className="text-xs font-bold text-bad-ink underline">
+      <button type="button" onClick={() => setAsking(true)}
+              className="btn btn-quiet px-3 py-1.5 text-xs">
         {label}
       </button>
     )
@@ -26,10 +27,10 @@ export function ConfirmButton({
     <form action={action} className="flex flex-wrap items-center justify-end gap-2">
       {Object.entries(fields).map(([k, v]) => <input key={k} type="hidden" name={k} value={v} />)}
       <span className="text-xs font-semibold">{confirm}</span>
-      <button type="button" onClick={() => setAsking(false)} className="btn btn-quiet px-2 py-1 text-xs">
+      <button type="button" onClick={() => setAsking(false)} className="btn btn-quiet px-3 py-1.5 text-xs">
         Keep
       </button>
-      <button type="submit" className="rounded-lg bg-notanswered px-2 py-1 text-xs font-black text-white">{label}</button>
+      <button type="submit" className="btn btn-danger px-3 py-1.5 text-xs">{label}</button>
     </form>
   )
 }

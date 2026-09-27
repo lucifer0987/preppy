@@ -155,7 +155,8 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
           and the section table gets the full width because it has nine
           columns and actually wants them. */}
       <div className="mt-4 grid gap-4 lg:grid-cols-[1.4fr_1fr] xl:grid-cols-[1.55fr_1fr]">
-        <section className="relative overflow-hidden rounded-card bg-play-purple p-6 text-center text-white shadow-high sm:p-8">
+        <section className="relative flex flex-col justify-center overflow-hidden rounded-card
+                            bg-play-purple p-6 text-center text-white shadow-high sm:p-8">
           <div aria-hidden="true"
                className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-brand-500/30 blur-3xl" />
           <div className="relative">
@@ -244,6 +245,25 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
               <strong>{attempt.tab_switches}</strong> {attempt.tab_switches === 1 ? 'time' : 'times'}.
             </p>
           </section>
+
+          {/* Beside the score rather than in a row of its own: this column was
+              two short cards against a tall scoreboard, and pacing is the one
+              thing on the page a student reads straight after the number. */}
+          {hasPacing && (
+            <section className="card p-5 sm:col-span-2 lg:col-span-1">
+              <h2 className="eyebrow">Pacing</h2>
+              <ul className="mt-3 space-y-2 text-sm">
+                {sections.map((s) => {
+                  const verdict = pacingVerdict(s)
+                  return verdict ? (
+                    <li key={s.code}>
+                      <span className="font-semibold">{SECTION_NAMES[s.code as SectionCode]}:</span> {verdict}
+                    </li>
+                  ) : null
+                })}
+              </ul>
+            </section>
+          )}
         </div>
       </div>
 
@@ -278,7 +298,11 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
                     <dd className="font-bold text-good-ink">{s.correct}</dd></span>
                   <span className="flex gap-1"><dt className="text-ink-faint">Wrong</dt>
                     <dd className="font-bold text-bad-ink">{s.wrong}</dd></span>
-                  <span className="flex gap-1"><dt className="text-ink-faint">Blank</dt>
+                  {/* One word for both, because the card has room for three
+                      figures and the hero above already splits skipped from
+                      never reached. "Blank" beside a hero reading "not reached
+                      55" looked like two different numbers for one thing. */}
+                  <span className="flex gap-1"><dt className="text-ink-faint">Unanswered</dt>
                     <dd className="font-bold">{s.skipped + s.notReached}</dd></span>
                 </dl>
 
@@ -308,27 +332,8 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
         </ul>
       </section>
 
-      {/* Two columns only when both are there. Pacing has nothing to say on a
-          paper sat quickly, and a lone card at half width reads as a column
-          that failed to load. */}
-      {(hasPacing || hasSlowest) && (
-        <div className={`mt-4 grid gap-4 ${hasPacing && hasSlowest ? 'lg:grid-cols-2' : ''}`}>
-          {hasPacing && (
-            <section className="card p-5">
-              <h2 className="eyebrow">Pacing</h2>
-              <ul className="mt-3 space-y-2 text-sm">
-                {sections.map((s) => {
-                  const verdict = pacingVerdict(s)
-                  return verdict ? (
-                    <li key={s.code}>
-                      <span className="font-semibold">{SECTION_NAMES[s.code as SectionCode]}:</span> {verdict}
-                    </li>
-                  ) : null
-                })}
-              </ul>
-            </section>
-          )}
-
+      {hasSlowest && (
+        <div className="mt-4">
           {hasSlowest && (
             <section className="card p-5">
               <h2 className="eyebrow">Where the time went</h2>

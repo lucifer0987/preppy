@@ -52,7 +52,13 @@ export default async function LoginPage({
   const marking = pattern ? uniformMarking(pattern) : null
 
   return (
-    <main className="grid min-h-dvh lg:grid-cols-[1.1fr_1fr]">
+    <main className="relative grid min-h-dvh lg:grid-cols-[1.1fr_1fr]">
+      {/* Top-right of the page, which is where the switch sits on every screen
+          that has no header to put it in. It used to float above the form,
+          which put it in a different place on each of those screens. */}
+      <div className="absolute right-4 top-4 z-10 sm:right-6 sm:top-6">
+        <ThemeToggle />
+      </div>
       {/* The brand half. Hidden on phones, where it would push the form below
           the fold for no gain. */}
       <aside className="relative hidden overflow-hidden bg-surface-invert px-12 py-12 text-white lg:flex lg:flex-col">
@@ -91,11 +97,8 @@ export default async function LoginPage({
       {/* The form half. */}
       <div className="flex flex-col justify-center px-6 py-10 sm:px-10 lg:px-14">
         <div className="mx-auto w-full max-w-md">
-          <div className="flex items-center justify-between">
-            <div className="lg:hidden">
-              <Wordmark />
-            </div>
-            <div className="ml-auto"><ThemeToggle /></div>
+          <div className="lg:hidden">
+            <Wordmark />
           </div>
 
           <h1 className="mt-7 text-4xl font-black tracking-tight lg:mt-0">Welcome back</h1>

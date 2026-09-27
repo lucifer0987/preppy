@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { requireAdmin } from '../../../lib/guard'
 import { getPattern, getPatternMeta, getWindow } from '../../../lib/repo/settings'
-import { patternTotals, SECTION_NAMES } from '../../../lib/types'
+import { patternTotals } from '../../../lib/types'
+import { formatIstMoment } from '../../../lib/time'
 import { PatternForm } from './PatternForm'
 import { PageHeader } from '../../../components/Page'
 
@@ -31,20 +32,9 @@ export default async function PatternPage() {
           </div>
         ))}
       </dl>
-      <ul className="numeral mt-3 grid gap-1.5 text-sm sm:grid-cols-2">
-        {current.map((s) => (
-          <li key={s.code} className="flex items-baseline justify-between gap-3 rounded-control
-                                      border border-line bg-surface px-3 py-2">
-            <span className="truncate font-display font-semibold">{SECTION_NAMES[s.code]}</span>
-            <span className="shrink-0 text-xs text-ink-faint">
-              {s.questions} questions &middot; {s.minutes} min &middot; +{s.marksCorrect}/&minus;{s.marksNegative}
-            </span>
-          </li>
-        ))}
-      </ul>
       {meta.updatedAt && (
-        <p className="mt-2 text-xs text-ink-faint">
-          Last changed {new Date(meta.updatedAt).toLocaleString('en-IN')}
+        <p className="mt-3 text-xs text-ink-faint">
+          Last changed {formatIstMoment(meta.updatedAt)}
           {meta.updatedBy ? ` by ${meta.updatedBy}` : ''}
         </p>
       )}

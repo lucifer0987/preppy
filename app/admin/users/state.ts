@@ -22,3 +22,11 @@ export interface BulkState {
 }
 
 export const emptyBulk: BulkState = { error: null, problems: [], warnings: [], created: [], failed: [] }
+
+/** A rename reports back the name that was actually stored, trimmed. */
+export interface RenameState {
+  error: string | null
+  savedName: string | null
+}
+
+export const emptyRename: RenameState = { error: null, savedName: null }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 
 /**
  * A time of day, chosen rather than typed into.
@@ -29,13 +29,18 @@ function to24(h: number, pm: boolean): number {
   return pm ? h + 12 : h
 }
 
-export function TimeField({ name, defaultValue, label, hint, max }: {
+export function TimeField({ name, defaultValue, label, hint, max, onChange }: {
   name: string
   defaultValue: string
   label: string
   hint?: string
   /** Latest allowed time as HH:MM, matching the old input's max. */
   max?: string
+  /**
+   * Told the new HH:MM whenever it changes, for a form that previews what the
+   * times will mean before they are saved. Must be stable across renders.
+   */
+  onChange?: (value: string) => void
 }) {
   const start = parse(defaultValue)
   const [h, setH] = useState(start.h)
@@ -50,7 +55,9 @@ export function TimeField({ name, defaultValue, label, hint, max }: {
   const value = `${String(h24).padStart(2, '0')}:${String(m).padStart(2, '0')}`
   const tooLate = max !== undefined && value > max
 
-  const select = 'field w-auto min-w-0 cursor-pointer py-2 pr-7 font-display font-bold'
+  useEffect(() => { onChange?.(value) }, [value, onChange])
+
+  const select = 'field select-field w-auto min-w-0 cursor-pointer py-2 font-display font-bold'
 
   return (
     <div>

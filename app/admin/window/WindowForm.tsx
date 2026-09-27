@@ -1,76 +1,91 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useCallback, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { saveWindowAction } from './actions'
 import { emptyWindowForm } from './state'
 import { formatIstTime, windowLabels, windowProblem, type WindowSettings } from '../../../lib/time'
 import { Flash } from '../../../components/Page'
+import { TimeField } from '../../../components/TimeField'
 
 /**
  * Editing the nightly window.
  *
- * The preview below the boxes recomputes as you type, and uses the same
- * `windowProblem` the server and the database use, so a window that will be
- * refused says so before you submit it.
+ * The two times are picked with the same control the schedule form uses, so a
+ * time is read and set the same way everywhere in the console. It used to be
+ * two bare number boxes on a 24-hour clock -- "22 : 0" -- which is the one
+ * format nobody on this app ever reads anywhere else.
+ *
+ * The preview below recomputes as you pick, and uses the same `windowProblem`
+ * the server and the database use, so a window that will be refused says so
+ * before you submit it.
  */
+const hhmm = (h: number, m: number) => `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+const parts = (v: string) => {
+  const [h, m] = v.split(':').map(Number)
+  return { h: h ?? 0, m: m ?? 0 }
+}
+
 export function WindowForm(
   { current, attemptMinutes }: { current: WindowSettings; attemptMinutes: number },
 ) {
   const [state, action] = useActionState(saveWindowAction, emptyWindowForm)
-  const [draft, setDraft] = useState<WindowSettings>(current)
+  const [openAt, setOpenAt] = useState(hhmm(current.openHour, current.openMinute))
+  const [closeAt, setCloseAt] = useState(hhmm(current.entryCloseHour, current.entryCloseMinute))
+
+  // Hoisted: TimeField only calls back when the value changes, and a fresh
+  // function each render would make that an every-render effect.
+  const onOpen = useCallback((v: string) => setOpenAt(v), [])
+  const onClose = useCallback((v: string) => setCloseAt(v), [])
+
+  const open = parts(openAt)
+  const close = parts(closeAt)
+  const draft: WindowSettings = {
+    openHour: open.h, openMinute: open.m,
+    entryCloseHour: close.h, entryCloseMinute: close.m,
+  }
 
   const problem = windowProblem(draft, attemptMinutes)
   const labels = problem ? null : windowLabels(draft, attemptMinutes)
   const latestClose = 24 * 60 - attemptMinutes
 
-  const set = (k: keyof WindowSettings) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setDraft({ ...draft, [k]: Number(e.target.value) })
-
   return (
-    <form action={action} className="mt-4 card p-5">
-      <div className="grid gap-5 sm:grid-cols-2">
+    <form action={action} className="card mt-4 p-5 sm:p-6">
+      <div className="grid gap-6 sm:grid-cols-2">
         <TimeField
-          label="Papers unlock at" hourName="openHour" minuteName="openMinute"
-          hour={draft.openHour} minute={draft.openMinute}
-          onHour={set('openHour')} onMinute={set('openMinute')}
+          name="openAt" label="Papers unlock at" defaultValue={openAt}
+          onChange={onOpen}
           hint="When tonight's paper becomes available."
         />
         <TimeField
-          label="Last moment to start" hourName="entryCloseHour" minuteName="entryCloseMinute"
-          hour={draft.entryCloseHour} minute={draft.entryCloseMinute}
-          onHour={set('entryCloseHour')} onMinute={set('entryCloseMinute')}
+          name="entryCloseAt" label="Last moment to start" defaultValue={closeAt}
+          onChange={onClose}
+          max={hhmm(Math.floor(latestClose / 60), latestClose % 60)}
           hint={`Anyone starting before this still gets the full ${attemptMinutes} minutes.`}
         />
       </div>
 
-      <div className="mt-5 rounded-control bg-surface-sunken p-4">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-ink-soft">What students will see</p>
+      <div className="mt-6 rounded-control bg-surface-sunken p-4 sm:p-5">
+        <p className="eyebrow">What students will see</p>
         {problem ? (
-          <p className="mt-2 text-sm font-semibold text-bad-ink">{problem}</p>
+          <p className="mt-2.5 text-sm font-semibold text-bad-ink">{problem}</p>
         ) : (
-          <ul className="mt-2 space-y-1 text-sm">
-            <li><strong>{labels!.opens}</strong> &mdash; paper unlocks</li>
-            <li><strong>{labels!.closes}</strong> &mdash; last entry, no new starts after this</li>
-            <li><strong>{labels!.hardStop}</strong> &mdash; everyone finished; answers unlock</li>
+          <ul className="mt-2.5 space-y-1.5 text-sm">
+            <li><strong className="numeral">{labels!.opens}</strong> &mdash; paper unlocks</li>
+            <li><strong className="numeral">{labels!.closes}</strong> &mdash; last entry, nobody new starts after this</li>
+            <li><strong className="numeral">{labels!.hardStop}</strong> &mdash; everyone finished; answers unlock</li>
           </ul>
         )}
-        <p className="mt-3 text-xs text-ink-soft">
+        <p className="measure-wide mt-3.5 text-xs text-ink-soft">
           Entry must close by {formatIstTime(Math.floor(latestClose / 60), latestClose % 60)} at the
           very latest, so the last person to start still finishes before midnight. An attempt running
           past midnight would sit on the wrong date for the archive and the leaderboard.
         </p>
       </div>
 
-      {state.error && (
-        <Flash tone="bad" className="mt-4">
-          {state.error}
-        </Flash>
-      )}
+      {state.error && <Flash tone="bad" className="mt-4">{state.error}</Flash>}
       {state.saved && !state.error && (
-        <Flash tone="good" className="mt-4">
-          Saved. Every page shows the new times from now on.
-        </Flash>
+        <Flash tone="good" className="mt-4">Saved. Every page shows the new times from now on.</Flash>
       )}
 
       <Submit disabled={problem !== null} />
@@ -78,50 +93,10 @@ export function WindowForm(
   )
 }
 
-function TimeField({
-  label, hourName, minuteName, hour, minute, onHour, onMinute, hint,
-}: {
-  label: string; hourName: string; minuteName: string
-  hour: number; minute: number
-  onHour: (e: React.ChangeEvent<HTMLInputElement>) => void
-  onMinute: (e: React.ChangeEvent<HTMLInputElement>) => void
-  hint: string
-}) {
-  return (
-    <div>
-      <p className="eyebrow">{label}</p>
-      <div className="mt-1.5 flex items-center gap-2">
-        <Box name={hourName} value={hour} max={23} onChange={onHour} aria-label={`${label}, hour`} />
-        <span className="text-xl font-bold text-ink-soft">:</span>
-        <Box name={minuteName} value={minute} max={59} onChange={onMinute} aria-label={`${label}, minute`} />
-        <span className="ml-1 text-sm text-ink-soft">{formatIstTime(hour, minute)}</span>
-      </div>
-      <p className="mt-1.5 text-xs text-ink-soft">{hint}</p>
-    </div>
-  )
-}
-
-function Box(props: {
-  name: string; value: number; max: number
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-} & Record<string, unknown>) {
-  const { name, value, max, onChange, ...rest } = props
-  return (
-    <input
-      {...rest}
-      type="number" name={name} value={value} min={0} max={max} required onChange={onChange}
-      className="field w-20 text-center text-lg font-bold tabular-nums"
-    />
-  )
-}
-
 function Submit({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus()
   return (
-    <button
-      type="submit" disabled={pending || disabled}
-      className="btn btn-primary mt-5"
-    >
+    <button type="submit" disabled={pending || disabled} className="btn btn-primary mt-6">
       {pending ? 'Saving...' : 'Save these times'}
     </button>
   )

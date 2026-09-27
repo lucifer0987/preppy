@@ -81,7 +81,7 @@ export function BulkImport() {
       )}
 
       {state.failed.length > 0 && (
-        <div className="mt-3 rounded-control bg-notanswered/10 p-4">
+        <div className="mt-3 rounded-control border border-bad/30 bg-bad/10 p-4">
           <p className="text-xs font-bold uppercase tracking-widest text-bad-ink">
             {state.failed.length} could not be created
           </p>
