@@ -323,13 +323,23 @@ export default async function Dashboard({
                     </span>
                   )}
                 </span>
-                {/* The same two actions the full list offers, sized for a
-                    digest. A row-wide link could only ever mean one of them. */}
+                {/* The same three actions the full list offers, sized for a
+                    digest. A row-wide link could only ever mean one of them,
+                    and the digest offering fewer than the list was a reason to
+                    leave the digest -- which is not what a digest is for. */}
                 <span className="flex items-center gap-1.5">
                   {a.attemptId && (
                     <Link href={`/test/${a.attemptId}/done`}
                           className="btn btn-quiet px-3 py-1 text-xs">
                       See result
+                    </Link>
+                  )}
+                  {/* Students only: an admin's attempts are dry runs already,
+                      so practice is a thing they cannot meaningfully do. */}
+                  {user.role === 'student' && (
+                    <Link href={`/test/start?test=${a.testId}&practice=1`}
+                          className="btn btn-quiet px-3 py-1 text-xs">
+                      Practise
                     </Link>
                   )}
                   <Link href={`/archive/${a.testId}`} className="btn btn-quiet px-3 py-1 text-xs">

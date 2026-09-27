@@ -109,11 +109,14 @@ export default async function ArchivePage() {
                   )}
                   {/* Practice sits before Solutions, because reading the
                       answers first is the thing it exists to be an
-                      alternative to. */}
-                  <Link href={`/test/start?test=${r.testId}&practice=1`}
-                        className="btn btn-quiet px-4 py-2 text-sm">
-                    Practise
-                  </Link>
+                      alternative to. Students only, as on the paper itself:
+                      an admin's attempts are dry runs already. */}
+                  {user.role === 'student' && (
+                    <Link href={`/test/start?test=${r.testId}&practice=1`}
+                          className="btn btn-quiet px-4 py-2 text-sm">
+                      Practise
+                    </Link>
+                  )}
                   <Link href={`/archive/${r.testId}`}
                         className="btn btn-primary px-4 py-2 text-sm">
                     Solutions
