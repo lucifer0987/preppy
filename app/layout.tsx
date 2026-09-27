@@ -64,8 +64,12 @@ export const viewport: Viewport = {
   // The browser chrome follows the theme; one fixed colour leaves a light bar
   // above a dark page.
   themeColor: [
+    // These are --surface-invert in light and --page in dark, written out
+    // because a meta tag cannot read a custom property. Dark was still
+    // #110d18, two dark themes out of date, so the browser chrome sat a
+    // visibly different colour from the page under it.
     { media: '(prefers-color-scheme: light)', color: '#46178f' },
-    { media: '(prefers-color-scheme: dark)', color: '#110d18' },
+    { media: '(prefers-color-scheme: dark)', color: '#0f0e11' },
   ],
 }
 

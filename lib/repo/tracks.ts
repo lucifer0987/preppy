@@ -2,6 +2,7 @@ import 'server-only'
 import { cache } from 'react'
 import { db } from '../supabase/admin'
 import { isConfigured } from '../env'
+import { selectAll } from './select-all'
 import {
   ALL_SECTION_CODES, DEFAULT_PATTERN, SECTION_NAMES, patternTotals,
   type Pattern, type SectionCode,
@@ -374,28 +375,33 @@ export async function setTrackActive(id: string, active: boolean): Promise<void>
   if (error) throw new Error(`Could not change the track: ${error.message}`)
 }
 
-/** How many students follow each track, for the console's list. */
-export async function trackStudentCounts(): Promise<Map<string, number>> {
-  const { data, error } = await db()
-    .from('profiles').select('track_id').eq('role', 'student').eq('is_active', true)
-  if (error) throw new Error(`Could not count students: ${error.message}`)
+const tally = (rows: Record<string, unknown>[]): Map<string, number> => {
   const counts = new Map<string, number>()
-  for (const r of data ?? []) {
-    const id = r.track_id as string | null
+  for (const r of rows) {
+    const id = r['track_id'] as string | null
     if (id) counts.set(id, (counts.get(id) ?? 0) + 1)
   }
   return counts
 }
 
-/** How many papers each track has scheduled, for the console's list. */
+/** How many students follow each track, for the console's list. */
+export async function trackStudentCounts(): Promise<Map<string, number>> {
+  return tally(await selectAll<Record<string, unknown>>('students per exam', (from, to) =>
+    db().from('profiles').select('id, track_id')
+      .eq('role', 'student').eq('is_active', true)
+      .order('id').range(from, to)))
+}
+
+/**
+ * How many papers each track has scheduled, for the console's list.
+ *
+ * Paged, because this counts every paper ever scheduled. PostgREST caps a
+ * response at 1,000 rows and a capped one looks exactly like a complete one,
+ * so the count would simply have stopped growing partway through the third
+ * year and nothing would have said so.
+ */
 export async function trackPaperCounts(): Promise<Map<string, number>> {
-  const { data, error } = await db()
-    .from('tests').select('track_id').eq('status', 'SCHEDULED')
-  if (error) throw new Error(`Could not count papers: ${error.message}`)
-  const counts = new Map<string, number>()
-  for (const r of data ?? []) {
-    const id = r.track_id as string | null
-    if (id) counts.set(id, (counts.get(id) ?? 0) + 1)
-  }
-  return counts
+  return tally(await selectAll<Record<string, unknown>>('papers per exam', (from, to) =>
+    db().from('tests').select('id, track_id').eq('status', 'SCHEDULED')
+      .order('id').range(from, to)))
 }

@@ -26,7 +26,11 @@
  * which components/ServiceWorker.tsx sends.
  */
 
-const VERSION = 'v1'
+// Bump this whenever the offline page or the rules below change. The shell
+// cache holds /offline's HTML, which references build-hashed CSS; leave a
+// stale copy in place across a redeploy and it renders unstyled, because the
+// stylesheet it points at no longer exists.
+const VERSION = 'v2'
 const SHELL = `preppy-shell-${VERSION}`
 const RUNTIME = `preppy-runtime-${VERSION}`
 const OFFLINE = '/offline'

@@ -275,13 +275,19 @@ export async function loadPublishedPapers(trackId?: string): Promise<PaperRecord
 
 export async function listPapers(trackId?: string): Promise<PaperSummary[]> {
   const client = db()
-  let papers = client.from('tests')
-    .select(`id, title, status, track_id, sections(question_count), ${PAPER_WINDOW_COLUMNS}`)
-    .order('date', { ascending: false })
-    .order('opens_at_min', { ascending: false })
-  if (trackId) papers = papers.eq('track_id', trackId)
-  const [{ data, error }, sat] = await Promise.all([
-    papers,
+  const [data, sat] = await Promise.all([
+    // Paged. This is every paper ever, and PostgREST caps a response at 1,000
+    // rows -- which looks exactly like a complete one, so the console would
+    // simply have stopped showing the oldest papers, silently, somewhere in
+    // the third year of a paper a day.
+    selectAll<Record<string, unknown>>('papers', (from, to) => {
+      const q = client.from('tests')
+        .select(`id, title, status, track_id, sections(question_count), ${PAPER_WINDOW_COLUMNS}`)
+      return (trackId ? q.eq('track_id', trackId) : q)
+        .order('date', { ascending: false })
+        .order('opens_at_min', { ascending: false })
+        .range(from, to)
+    }),
     // Counted attempts per paper, so the list can offer Results only where
     // there are any and say how many without a query per row.
     selectAll<Record<string, unknown>>('attempt counts', (from, to) =>
@@ -289,7 +295,6 @@ export async function listPapers(trackId?: string): Promise<PaperSummary[]> {
         .eq('is_dry_run', false).in('state', ['SUBMITTED', 'AUTO_SUBMITTED'])
         .order('id').range(from, to)),
   ])
-  if (error) throw new Error(`Could not list the papers: ${error.message}`)
 
   const counts = new Map<string, number>()
   for (const a of sat) {
@@ -297,15 +302,15 @@ export async function listPapers(trackId?: string): Promise<PaperSummary[]> {
     counts.set(id, (counts.get(id) ?? 0) + 1)
   }
 
-  return (data ?? []).map((t) => ({
-    id: t.id as string,
-    date: t.date as string,
-    title: (t.title as string | null) ?? null,
-    status: t.status as 'DRAFT' | 'SCHEDULED',
-    questionCount: ((t.sections ?? []) as { question_count: number }[])
+  return data.map((t) => ({
+    id: t['id'] as string,
+    date: t['date'] as string,
+    title: (t['title'] as string | null) ?? null,
+    status: t['status'] as 'DRAFT' | 'SCHEDULED',
+    questionCount: ((t['sections'] ?? []) as { question_count: number }[])
       .reduce((a, s) => a + s.question_count, 0),
-    attemptCount: counts.get(t.id as string) ?? 0,
-    trackId: t.track_id as string,
+    attemptCount: counts.get(t['id'] as string) ?? 0,
+    trackId: t['track_id'] as string,
     window: paperWindowOf(t),
   }))
 }
