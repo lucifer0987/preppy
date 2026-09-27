@@ -43,6 +43,10 @@ export const metadata: Metadata = {
   title: { default: 'Preppy', template: '%s · Preppy' },
   description: 'Daily mock tests, marked and timed the way the real exam marks and times.',
   applicationName: 'Preppy',
+  // A closed cohort with no sign-up: there is nothing here a search result
+  // should lead to. app/robots.ts says the same thing to crawlers that ask
+  // for it rather than reading the page.
+  robots: { index: false, follow: false, nocache: true },
   // Installable, so a paper opens from the home screen rather than from a tab
   // among thirty others (PRD 6.12).
   manifest: '/manifest.webmanifest',

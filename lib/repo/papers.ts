@@ -440,8 +440,15 @@ async function lockOrThrow(id: string): Promise<PaperLock> {
 /**
  * FR-6.9.1: a paper only ever becomes scheduled by an explicit admin action,
  * taken after the preview. "Assign a date": the admin may schedule it for a
- * different night than the file named, as long as that night has not opened
- * and holds no other paper.
+ * different night than the file named, as long as that window has not opened
+ * and does not overlap a paper already on that night.
+ *
+ * Overlap, not occupancy. A night may hold two papers that run one after the
+ * other -- the schema's unique index keys on the opening time for exactly that
+ * reason -- and what must never happen is two of them live at once, because a
+ * student can only sit one. The upload checker is stricter: it refuses a file
+ * dated to a night that already has a paper, so the second one is a deliberate
+ * act here rather than a date nobody noticed in a file.
  */
 export async function schedulePaper(
   id: string, adminId: string, date?: string, times?: { opensAtMin: number; entryClosesAtMin: number },

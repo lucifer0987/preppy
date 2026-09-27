@@ -2,6 +2,7 @@ import { IMAGE_NAME_PATTERN } from './images'
 import {
   FORMAT_NAME,
   FORMAT_VERSION,
+  TEMPLATE_DATE,
   DEFAULT_PATTERN,
   OPTION_LABELS,
   ALL_SECTION_CODES,
@@ -149,6 +150,12 @@ export function readPaper(rawText: string, opts: ReadOptions = {}): ReadResult {
     err('date', 'DATE_MALFORMED', `"date" must be a string in YYYY-MM-DD form, got ${JSON.stringify(date)}.`)
   } else if (!isCalendarDate(date)) {
     err('date', 'DATE_INVALID', `"date" ${date} is not a real calendar date.`)
+  } else if (date === TEMPLATE_DATE) {
+    // Grouped with the other placeholders rather than given a code of its own:
+    // to whoever is uploading, this is the same mistake as leaving the title
+    // as "Daily Mock NNN", and it reads better as one item on one list.
+    err('date', 'PLACEHOLDER_TEXT',
+      '"date" is still the template\'s placeholder. Set it to the day this paper is for.', date)
   } else if (opts.takenDates?.includes(date)) {
     err('date', 'DATE_TAKEN', `A paper is already published for ${date}. Pick another date.`)
   } else if (opts.today && date < opts.today) {

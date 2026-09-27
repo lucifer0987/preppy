@@ -216,10 +216,10 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <div><dt>Routes</dt><dd>22</dd></div>
     <div><dt>Tables</dt><dd>11</dd></div>
     <div><dt>SQL functions</dt><dd>11</dd></div>
-    <div><dt>Migrations</dt><dd>2</dd></div>
-    <div><dt>Modules</dt><dd>30<small>lib/</small></dd></div>
-    <div><dt>Tests</dt><dd>451</dd></div>
-    <div><dt>Runtime deps</dt><dd>8</dd></div>
+    <div><dt>Migrations</dt><dd>7</dd></div>
+    <div><dt>Modules</dt><dd>31<small>lib/</small></dd></div>
+    <div><dt>Tests</dt><dd>462</dd></div>
+    <div><dt>Runtime deps</dt><dd>9</dd></div>
   </dl>
 </header>
 
@@ -530,7 +530,7 @@ whose scores are already public to everyone on it.</p>
   <rect x="20" y="160" width="470" height="76" rx="8" fill="none" stroke="#0E767F" stroke-width="2.5"/>
   <text x="38" y="184" font-size="13.5" font-weight="700" fill="currentColor">Pure domain logic</text>
   <text x="38" y="203" font-size="10.5" fill="currentColor" opacity=".7">time &middot; attempt &middot; scoring &middot; leaderboard &middot; paper &middot; csv &middot; images</text>
-  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 393 of the 451 tests live here</text>
+  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 404 of the 462 tests live here</text>
 
   <rect x="20" y="252" width="470" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
   <text x="38" y="276" font-size="13.5" font-weight="600" fill="currentColor">Repository</text>
@@ -912,7 +912,7 @@ whose scores are already public to everyone on it.</p>
 <tr><th>Field</th><th class="n">Required</th><th>Notes</th></tr>
 <tr><td><code>format</code></td><td class="n">yes</td><td>Always <code>"preppy-paper"</code></td></tr>
 <tr><td><code>version</code></td><td class="n">yes</td><td>Always <code>1</code></td></tr>
-<tr><td><code>date</code></td><td class="n">yes</td><td><code>YYYY-MM-DD</code>, the day it runs. The times within that day are chosen when it is scheduled, not here. Must be a real day: <code>2026-02-31</code> is refused</td></tr>
+<tr><td><code>date</code></td><td class="n">yes</td><td><code>YYYY-MM-DD</code>, the day it runs. The times within that day are chosen when it is scheduled, not here. Must be a real day: <code>2026-02-31</code> is refused. A blank template ships <code>9999-12-31</code>, which is refused as placeholder text for the same reason <code>Daily Mock NNN</code> is &mdash; a date has to parse as a date, so it cannot say "fill me in", and a plausible one left unedited files the paper under a day that means nothing while looking perfectly fine on screen</td></tr>
 <tr><td><code>title</code></td><td class="n">no</td><td>Up to 80 characters. Left out, the paper is known by its date. The upload screen has a name box that overrides whatever is here, and <strong>Manage</strong> renames a paper afterwards &mdash; nothing keys off the name, so it is free to change at any point</td></tr>
 <tr><td><code>sections</code></td><td class="n">yes</td><td>Exactly the sections its exam has, in that order. Four on the shipped pattern; a track decides its own (PRD 6.10.2)</td></tr>
 </table></div>
@@ -1053,7 +1053,28 @@ whose scores are already public to everyone on it.</p>
 <tr><td>Session hygiene</td><td>Starting a paper signs the account out everywhere else</td></tr>
 <tr><td>First login</td><td>An admin-set password must be replaced before anything else is reachable</td></tr>
 <tr><td>Write endpoints</td><td>Server actions, which are POST-only and carry Next's origin check</td></tr>
+<tr><td>Framing</td><td>Every response refuses to be embedded, so the exam room cannot be put inside somebody else's page</td></tr>
+<tr><td>Search engines</td><td><code>robots.txt</code> disallows everything and every page is <code>noindex</code>. Nobody arrives here by searching</td></tr>
 </table></div>
+
+<h3>The response headers, and the one that is missing</h3>
+<p>Six headers go onto every response, set once in <code>next.config.ts</code> and applied at <code>/:path*</code> so there is no route that can be forgotten. <code>tests/headers.test.ts</code> reads them out of the config rather than restating them.</p>
+
+<div class="tw"><table>
+<tr><th>Header</th><th>Value</th><th>Why</th></tr>
+<tr><td><code>Content-Security-Policy</code></td><td><code>frame-ancestors 'none'</code></td><td>The exam room in an iframe is a clickjacking surface on the one screen where a misplaced click costs marks</td></tr>
+<tr><td><code>X-Frame-Options</code></td><td><code>DENY</code></td><td>The same rule for browsers that predate the CSP directive. Saying both costs nothing</td></tr>
+<tr><td><code>X-Content-Type-Options</code></td><td><code>nosniff</code></td><td>Paper images come out of <code>/api/images</code>. None of them should ever be sniffed into something executable</td></tr>
+<tr><td><code>Referrer-Policy</code></td><td><code>strict-origin-when-cross-origin</code></td><td>A paper URL carries a test id. It has no business appearing in another site's logs</td></tr>
+<tr><td><code>Permissions-Policy</code></td><td>camera, microphone, geolocation, payment and USB off; <code>fullscreen=(self)</code></td><td>Full screen is the one capability this app actually asks for (FR-6.5.1). Everything else is denied rather than merely unused</td></tr>
+<tr><td><code>Strict-Transport-Security</code></td><td><code>max-age=63072000; includeSubDomains; preload</code></td><td>Vercel sends this too. Saying it here means a different host still gets it</td></tr>
+</table></div>
+
+<div class="note care">
+  <h4>There is no <code>script-src</code>, and that is a decision rather than an omission</h4>
+  <p>A script policy worth having needs a nonce on every inline script, and this app has inline scripts it does not own: Next's hydration payload, and the small theme script that has to run before first paint or the page flashes the wrong colour. Threading a per-request nonce through those means either <code>unsafe-inline</code>, which is a policy that permits exactly what it claims to forbid, or a build that breaks in ways nobody notices until a page renders blank.</p>
+  <p>So the frame rules ship and the script rules do not. A half-written <code>script-src</code> reads as protection on an audit and provides none, which is worse than the honest absence &mdash; the next person to look can see there is nothing here and decide properly, instead of trusting a line that never held.</p>
+</div>
 
 <h3>What is deliberately not collected</h3>
 <p>No email address, no phone number, no address. A username maps to a synthetic internal address that never receives mail, which is why there is no password-reset email and the admin is the recovery path.</p>
@@ -1080,6 +1101,12 @@ whose scores are already public to everyone on it.</p>
 <div class="note care">
   <h4>A cache belongs to the browser, not to the account</h4>
   <p>Two students on one laptop would otherwise find the first one's past papers still readable after the second signs in. Signing out sends the worker a <code>wipe</code> message, which drops the runtime cache entirely; the shell survives, because it holds the offline page and some fonts and says nothing about anybody. That is why <code>logoutAction</code> redirects to <code>/?left=1</code> rather than to <code>/</code>.</p>
+</div>
+
+<div class="note care">
+  <h4>The worker is registered in production builds only</h4>
+  <p><code>/_next/static/*</code> is served cache-first, and that is safe for exactly one reason: those filenames are content-hashed, so a hit is always the right file. A dev server does not hash them &mdash; Turbopack reuses one name and changes what sits behind it &mdash; so the same rule pins the first stylesheet the dev server ever sent, and the page quietly stops responding to edits. The failure looks like CSS that will not change no matter what you type.</p>
+  <p>So <code>components/ServiceWorker.tsx</code> registers nothing outside a production build, and in development it <em>unregisters</em> whatever is there and drops the caches with it &mdash; declining to add a worker does not remove one an earlier build already installed. To exercise offline reading, run a real build: <code>npm run build &amp;&amp; npm run start</code>. That is also the only place it behaves the way a student's browser will.</p>
 </div>
 
 <p><code>tests/offline.test.ts</code> reads the shipped <code>public/sw.js</code> and pulls its rules back out of it, rather than restating them. A test holding a copy of the policy would pass while the real file drifted, and the property it is protecting &mdash; the exam room is never cached &mdash; is not one to find out about later.</p>
@@ -1109,7 +1136,7 @@ whose scores are already public to everyone on it.</p>
 
 <div class="tw"><table>
 <tr><th>Layer</th><th>Status</th></tr>
-<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 393 tests, no database needed</td></tr>
+<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 404 tests, no database needed</td></tr>
 <tr><td>The schema, its functions, triggers and indexes</td><td><strong>Tested against real Postgres.</strong> <code>tests/schema.test.ts</code> applies every migration to an in-process Postgres and exercises each function and guard. <code>tests/migrate.test.ts</code> proves the chain is ordered and that a second run changes nothing</td></tr>
 <tr><td>The queries &mdash; what <code>lib/repo/</code> actually asks PostgREST for</td><td><strong>Tested against the real project, on request.</strong> <code>npm run test:live</code> runs every read the app makes against the Supabase project in <code>.env.local</code>. Read-only, so it is safe to point at production, and skipped when there are no credentials. It exists because a select that forgets a column is invisible to both TypeScript and pglite &mdash; and had already shipped twice</td></tr>
 <tr><td>The queries in <code>lib/repo/</code></td><td><strong>Typechecked only.</strong> The PostgREST calls have never run against a live server</td></tr>
@@ -1512,7 +1539,7 @@ words.</p>
     <text x="179" y="209" text-anchor="middle" font-weight="600">typecheck</text>
     <line x1="226" y1="205" x2="238" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="238" y="186" width="94" height="38" rx="6" fill="none" stroke="#94202B" stroke-width="2"/>
-    <text x="285" y="209" text-anchor="middle" font-weight="600">451 tests</text>
+    <text x="285" y="209" text-anchor="middle" font-weight="600">462 tests</text>
     <line x1="332" y1="205" x2="344" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="344" y="186" width="84" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
     <text x="386" y="209" text-anchor="middle" font-weight="600">build</text>
@@ -1537,7 +1564,7 @@ words.</p>
 <tr><td><code>npm run start:local</code></td><td><span class="pill local">rare</span></td><td>Serves that build on port 3000</td></tr>
 <tr><td><code>npm run build:prod</code></td><td><span class="pill prod">before shipping</span></td><td>Typecheck, all tests, then build without source maps</td></tr>
 <tr><td><code>npm run start:prod</code></td><td><span class="pill prod">on the host</span></td><td>Serves the production build</td></tr>
-<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>451 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>462 tests. No database needed, about a second</td></tr>
 <tr><td><code>npm run test:live</code></td><td><span class="pill both">after touching a query</span></td><td>Runs every read <code>lib/repo/</code> makes against the real project in <code>.env.local</code>. Read-only. Skipped when there are no credentials</td></tr>
 <tr><td><code>npm run typecheck</code></td><td><span class="pill both">anytime</span></td><td>Checks types without building</td></tr>
 <tr><td><code>npm run seed</code></td><td><span class="pill both">setup</span></td><td>Creates the accounts, prints passwords once</td></tr>
@@ -1666,7 +1693,7 @@ words.</p>
 <b>npm install</b></pre>
 </div>
 <p>Downloads everything into a <code>node_modules</code> folder. Safe to re-run at any time.</p>
-<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>451 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
+<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>462 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
 </li>
 
 <li>
@@ -2146,7 +2173,7 @@ landed and what has not, at any time.</p>
 <tr><td><code>SUPABASE_SECRET_KEY</code><br><small>or <code>..._SERVICE_ROLE_KEY</code></small></td><td>preppy-prod &rarr; a secret key<br><small>or its legacy service_role key</small></td></tr>
 <tr><td><code>CRON_SECRET</code></td><td>The string from step 2</td></tr>
 </table></div>
-<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 451 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
+<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 462 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
 <p><strong>Check it worked:</strong> the deployment goes green and the URL shows the countdown page.</p>
 </li>
 
@@ -2270,7 +2297,7 @@ landed and what has not, at any time.</p>
 <ol>
 <li><strong>Which database am I talking to?</strong> Check the URL in <code>.env.local</code> against the project name in Supabase.</li>
 <li><strong>Did the schema actually apply?</strong> Table Editor, ten tables, RLS badges.</li>
-<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 451 pass, the logic is fine and the problem is configuration or a query.</li>
+<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 462 pass, the logic is fine and the problem is configuration or a query.</li>
 </ol>
 
 <p class="end">

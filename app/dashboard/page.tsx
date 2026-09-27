@@ -287,8 +287,12 @@ export default async function Dashboard({
         </div>
       </section>
 
+      {/* min-w-0 on the children below, not here: a grid item defaults to
+          min-width auto, so it cannot shrink under its own content. Without it
+          the past-papers card was sized by its widest row -- title, score and
+          three buttons -- and pushed the whole page 310px wider than a phone. */}
       <div className="mt-4 grid gap-4 lg:grid-cols-2 lg:items-start">
-      <section className="card p-5" aria-labelledby="archive-panel">
+      <section className="card min-w-0 p-5" aria-labelledby="archive-panel">
         <div className="flex items-baseline justify-between gap-4">
           <h2 id="archive-panel" className="eyebrow">Past papers</h2>
           <Link href="/archive" className="text-sm font-bold text-accent">All papers &rarr;</Link>
@@ -302,7 +306,11 @@ export default async function Dashboard({
             {archive.slice(0, 5).map((a) => (
               <li key={a.testId}
                   className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5 text-sm">
-                <span className="min-w-0 flex-1">
+                {/* basis-full on a phone so the name gets a line of its own and
+                    the rest wraps under it. Left to shrink instead, the title
+                    truncated to one letter while the date wrapped three ways
+                    beside it. */}
+                <span className="min-w-0 basis-full sm:basis-auto sm:flex-1">
                   <span className="block truncate font-bold">{a.title ?? 'Daily mock'}</span>
                   <span className="numeral mt-0.5 block text-xs text-ink-faint">
                     {formatIstDate(a.date)}
@@ -352,7 +360,7 @@ export default async function Dashboard({
         )}
       </section>
 
-      <section className="card p-5" aria-labelledby="board-panel">
+      <section className="card min-w-0 p-5" aria-labelledby="board-panel">
         <div className="flex items-baseline justify-between gap-4 px-1">
           <h2 id="board-panel" className="eyebrow">
             Leaderboard <span className="font-normal normal-case tracking-normal text-ink-faint">

@@ -1,4 +1,4 @@
-import { OPTION_LABELS, patternBands, type Pattern } from './types'
+import { OPTION_LABELS, TEMPLATE_DATE, patternBands, type Pattern } from './types'
 
 /**
  * A fill-in skeleton for a paper: the right sections, counts, numbering and
@@ -28,7 +28,7 @@ export function buildTemplate(pattern: Pattern): Record<string, unknown> {
   return {
     format: 'preppy-paper',
     version: 1,
-    date: '2026-01-01',
+    date: TEMPLATE_DATE,
     title: 'Daily Mock NNN',
     sections: pattern.map((shape) => {
       const code = shape.code

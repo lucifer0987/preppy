@@ -40,7 +40,11 @@ const CACHEABLE_PAGE = /^\/archive(\/|$)/
 /** Images belonging to a paper. The route refuses a paper that has not opened,
  *  so a 200 here is by construction one this reader was allowed. */
 const CACHEABLE_ASSET = /^\/api\/images\//
-/** Content-hashed, so a hit is always the right file. */
+/** Content-hashed, so a hit is always the right file. This is the rule that
+ *  makes the worker production-only: a dev server reuses one filename and
+ *  changes what is behind it, so cache-first here would pin the first
+ *  stylesheet it ever sent. components/ServiceWorker.tsx is where that is
+ *  enforced. */
 const IMMUTABLE = /^\/_next\/static\//
 
 self.addEventListener('install', (event) => {

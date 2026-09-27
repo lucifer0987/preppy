@@ -92,3 +92,30 @@ describe('the worker keeps its own promises', () => {
     expect(sw).toMatch(/url\.origin !== self\.location\.origin/)
   })
 })
+
+describe('the worker is registered in production only', () => {
+  const component = readFileSync('components/ServiceWorker.tsx', 'utf8')
+
+  /**
+   * Cache-first on /_next/static/* is safe because those filenames are
+   * content-hashed. A dev server does not hash them: it reuses one name and
+   * changes what sits behind it, so the same rule pins the first stylesheet it
+   * ever sent and the page stops responding to edits. That failure is silent
+   * and costs an afternoon, which is why it is worth a test.
+   */
+  it('declines to register outside a production build', () => {
+    expect(component).toMatch(/process\.env\.NODE_ENV !== 'production'/)
+    const guard = component.indexOf("NODE_ENV !== 'production'")
+    const registers = component.indexOf("register('/sw.js')")
+    expect(guard).toBeGreaterThan(-1)
+    expect(registers).toBeGreaterThan(guard)
+  })
+
+  it('takes down a worker an earlier build left behind, and its caches', () => {
+    // Declining to register does not remove one that is already installed; it
+    // keeps answering fetches from whatever it kept.
+    expect(component).toMatch(/getRegistrations\(\)/)
+    expect(component).toMatch(/\.unregister\(\)/)
+    expect(component).toMatch(/caches\.delete\(k\)/)
+  })
+})

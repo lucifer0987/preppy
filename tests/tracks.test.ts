@@ -93,6 +93,7 @@ describe('a paper is checked against its own exam', () => {
     // upload would before checking that the shape itself passes.
     const real = JSON.parse(JSON.stringify(paper)) as Record<string, unknown>
     real['title'] = 'Agriculture 001'
+    real['date'] = '2027-05-20'
     for (const s of real['sections'] as Record<string, unknown>[]) {
       for (const q of s['questions'] as Record<string, unknown>[]) {
         q['text'] = `A real question numbered ${q['number']}, long enough to pass.`

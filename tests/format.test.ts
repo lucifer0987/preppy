@@ -4,7 +4,7 @@ import Ajv from 'ajv/dist/2020.js'
 import { FIELDS, readPaper, readQuestion, summarise } from '../lib/paper'
 import { buildTemplate } from '../lib/template'
 import {
-  DEFAULT_PATTERN, patternBands, patternTotals, uniformMarking, type Pattern,
+  DEFAULT_PATTERN, TEMPLATE_DATE, patternBands, patternTotals, uniformMarking, type Pattern,
 } from '../lib/types'
 
 const sampleJson = readFileSync('format/sample.json', 'utf8')
@@ -38,6 +38,18 @@ describe('the shipped format kit', () => {
     expect(r.errors.filter((e) => /questions\[\d+\]$/.test(e.path ?? ''))).toHaveLength(55)
     expect(r.errors.map((e) => e.path)).toContain('title')
     expect(r.errors.map((e) => e.path)).toContain('sections[0].directions[0]')
+    // The date counts as placeholder text too, so a forgotten one cannot ship.
+    expect(r.errors.map((e) => e.path)).toContain('date')
+  })
+
+  it('refuses the template date, which no real paper could mean', () => {
+    const r = ok(mutate((p) => { p.date = TEMPLATE_DATE }))
+    const dateErrors = r.errors.filter((e) => e.path === 'date')
+    expect(dateErrors).toHaveLength(1)
+    expect(dateErrors[0]!.code).toBe('PLACEHOLDER_TEXT')
+    // A real date on the same paper is accepted, so the refusal is the date
+    // itself and not something the rest of the file did.
+    expect(ok(mutate((p) => { p.date = '2027-03-04' })).codes).not.toContain('PLACEHOLDER_TEXT')
   })
 
   it('does not mistake real text beginning "Replace" for a placeholder', () => {

@@ -124,6 +124,19 @@ const round2 = (n: number) => Math.round(n * 100) / 100
 export const FORMAT_NAME = 'preppy-paper'
 export const FORMAT_VERSION = 1
 
+/**
+ * The date a blank template ships with.
+ *
+ * Deliberately absurd. Every other placeholder in the template announces
+ * itself in words -- "Daily Mock NNN", "Replace with option A" -- but a date
+ * has to parse as a date, so it cannot say "fill me in". A real day would be
+ * worse than useless: an admin who edits the questions and forgets the date
+ * publishes a paper filed under a day that means nothing, and nothing on
+ * screen looks wrong. A date no one could ever mean lets the upload refuse it
+ * by name, the same way it refuses the unedited title.
+ */
+export const TEMPLATE_DATE = '9999-12-31'
+
 export const OPTION_LABELS = ['A', 'B', 'C', 'D', 'E'] as const
 export type OptionLabel = (typeof OPTION_LABELS)[number]
 export type Difficulty = 'Easy' | 'Medium' | 'Hard'
