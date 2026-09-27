@@ -45,7 +45,7 @@ export function KeyEditor({
               type="radio" name="answer" value={l} checked={choice === l}
               onChange={() => setChoice(l)} className="peer sr-only"
             />
-            <span className="block rounded-control border border-line-strong bg-surface px-4 py-2 font-bold transition peer-checked:border-play-purple peer-checked:bg-play-purple peer-checked:text-white">
+            <span className="block rounded-control border border-line-strong bg-surface px-4 py-2 font-bold transition peer-checked:border-surface-invert peer-checked:bg-surface-invert peer-checked:text-white">
               {l}
             </span>
           </label>

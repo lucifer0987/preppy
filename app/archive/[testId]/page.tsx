@@ -222,7 +222,7 @@ function FilterLink({ label, href, active, shape }: {
       aria-current={active ? 'page' : undefined}
       className={[
         'inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition',
-        active ? 'bg-play-purple text-white' : 'bg-surface text-ink-soft hover:bg-surface-sunken',
+        active ? 'bg-surface-invert text-white' : 'bg-surface text-ink-soft hover:bg-surface-sunken',
       ].join(' ')}
     >
       {dot && (

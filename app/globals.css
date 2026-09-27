@@ -195,55 +195,54 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  /* A quiet ground, with the violet saved for the things that are violet.
+  /* Material 3's tones of Preppy's own purple.
+     
+     Built three times before this one, and each failure taught the same thing
+     from a different direction, so the reasoning is worth keeping.
+     
+     Attempt one desaturated the brand out entirely and cards lifted 1.08 off
+     the page: nothing had an edge, and the app read as switched off. Attempt
+     two fixed the lift by turning saturation up to 45-70%, and the app went
+     blue -- a large area of hue-260 violet at low lightness does not read as
+     violet. Attempt three took saturation to 18% by eye. Still blue.
+     
+     The mistake in all three was picking numbers by feel. Material 3 does not
+     do that: it derives a whole scheme from one source colour, and it puts
+     surfaces on the NEUTRAL palette, which is the source hue at CHROMA 4.
+     Everything below is Google's own material-color-utilities run against
+     #46178f -- Kahoot's purple, the one --color-brand-800 came from -- so
+     these are not Material's baseline palette but Preppy's own, computed.
+     
+       saturation of the big surfaces     attempt 2    attempt 3    now
+                                          45-70%       19-22%       4-10%
+     
+     The tones are spread wider than M3's defaults on purpose. M3 leans on
+     elevation shadow to separate surfaces; this app separates with the step
+     itself, so the steps grow while the chroma stays where M3 puts it. A card
+     lifts 1.27 off the page, a border 1.45, the strong border 2.72 -- all
+     better than the blue version managed.
+     
+     Kahoot supplies the last piece, and it is the one that keeps this from
+     being any Material app: their purple is saturated and they use it as a
+     panel on a quiet ground. --surface-invert is M3's primary-container,
+     which is exactly that role, and it is what the podium, the score band,
+     the dashboard hero and the login panel are made of. */
+  --page: #0f0e11;
+  --surface-sunken: #1b191c;
+  --surface: #272529;
+  --surface-raised: #363438;
+  /* M3 primary-container: the brand, as a panel. White on it is 9.31, and it
+     stands 2.07 off the page. */
+  --surface-invert: #562c9f;
 
-     This is the third attempt and the first one built from a measurement
-     rather than an instinct, so the reasoning is worth keeping.
+  /* M3 on-surface, on-surface-variant, and outline. */
+  --text: #ece6eb;
+  --text-soft: #cbc4cf;
+  --text-faint: #aaa4ae;
 
-     Attempt one desaturated the brand out of the surfaces entirely, following
-     Material's advice to start at #121212 and tint. Cards lifted 1.08 off the
-     page and borders 1.24 off the cards; nothing had an edge and the app read
-     as switched off. Attempt two fixed the lift by turning the saturation up
-     to 45-70% -- and a large area of hue-260 violet at 13-22% lightness does
-     not read as violet, it reads as blue. The whole app went blue.
-
-     The mistake was treating lift and saturation as one dial. They are two.
-     Lift comes from lightness; saturation only decides how much colour the
-     ground has. So this keeps attempt two's lightness steps and takes the
-     saturation back down to where every product that does this well puts it:
-
-       Testbook's dark surfaces   #1b1b1b, #2b2b2b     0% saturation
-       Testbook's tinted panel    #282a36             15%
-       Unacademy                  #3c4852             15%
-       Preppy's own light theme   slate-100, slate-200  24-30%
-       Preppy's dark, attempt two                      45-70%   <- the bug
-
-     18% here, with the hue nudged from the brand's 260 to 268 so what little
-     colour is left reads purple rather than blue. A card still lifts 1.18 off
-     the page, a border 1.46 off the card, and the stronger border 2.17, so
-     nothing goes back to being edgeless.
-
-     Kahoot is the other half of the answer: their purple is saturated
-     (#46178f, which is where --color-brand-800 came from) and they use it as
-     a panel on a quiet ground, never as the ground itself. --surface-invert
-     and --chrome below are that panel. */
-  --page: #17121c;
-  --surface-sunken: #1e1825;
-  --surface: #282130;
-  --surface-raised: #352c3f;
-  /* Kahoot's own purple, used the way they use it: a lit panel standing on a
-     quiet ground. 1.56 off the page, and white on it is 11.8. */
-  --surface-invert: var(--color-brand-800);
-
-  --text: #f5f2fa;
-  --text-soft: #c3bad4;
-  /* 4.74 on the raised surface, which is the deepest ground it ever sits on;
-     at #9a90ad it was 4.40 there, just under AA. */
-  --text-faint: #a096b3;
-
-  /* Lifted with the surfaces, or the borders disappear into them. */
-  --line: #443a50;
-  --line-strong: #60526f;
+  /* M3 outline-variant and outline: the neutral-variant palette, chroma 8. */
+  --line: #423e47;
+  --line-strong: #6b6670;
 
   --accent: var(--color-brand-400);
   /* On a light violet fill, white is 3.15:1 -- below AA. The deep brand
@@ -251,14 +250,15 @@
      action on every form, so it cannot be the one thing that fails. */
   --text-on-brand: var(--color-brand-950);
   --accent-hover: var(--color-brand-300);
-  /* A wash behind accent text, not a slab of colour. brand-300 on it is
-     7.10, and it lifts 1.33 off the surface so it reads as a tint. */
-  --accent-soft: #322442;
+  /* A wash behind accent text, not a slab of colour: the source hue at
+     chroma 16, tone 20. brand-300 on it is 6.52 and it lifts 1.55 off the
+     surface, so it reads as a tint rather than a panel. */
+  --accent-soft: #342d40;
   --accent-text: var(--color-brand-300);
   --zap: var(--color-zap-400);
   --zap-solid: var(--color-zap-600);
   --zap-ink: var(--color-zap-300);
-  --zap-soft: #412030;
+  --zap-soft: #42212f;
 
   --good: var(--color-good-400);
   --warn: var(--color-warn-400);
@@ -320,6 +320,11 @@
 */
 @theme inline {
   --color-paper: var(--page);
+  /* Raw scale: the same violet in both themes. For a mark, a focus ring or a
+     border that sits on a fixed ground -- never for a surface. A surface takes
+     --surface-invert, which is this in light and Material's primary-container
+     in dark; using this one instead is how the result page ended up a
+     different violet from the dashboard it was reached from. */
   --color-play-purple: var(--color-brand-800);
   --color-play-purple-deep: var(--color-brand-950);
   --color-play-violet: var(--color-brand-600);
@@ -436,16 +441,16 @@ h2, h3 { text-wrap: balance; }
 :root[data-theme="dark"] [data-room="exam"] {
   /* Deeper and quieter than the app's dark, and in the same family, so walking
      from the dashboard into the paper does not look like leaving the product.
-     Saturation drops again -- 13-16% against the app's 18% -- because this is
-     the room that is trying not to be noticed. Chrome and page are the same
+     It sits a few tones below the app on the same neutral palette, because
+     this is the room that is trying not to be noticed. Chrome and page are the same
      value on purpose, so the header and the question sit on one surface. */
-  --chrome: #120f15;
+  --chrome: #0c0a0e;
   --chrome-line: rgb(255 255 255 / 0.09);
-  --page: #120f15;
-  --surface: #211d26;
-  --surface-sunken: #19151e;
-  --line: #383040;
-  --line-strong: #51475c;
+  --page: #0c0a0e;
+  --surface: #1f1d20;
+  --surface-sunken: #161518;
+  --line: #3b3840;
+  --line-strong: #615d66;
   --accent: var(--color-brand-400);
   --accent-hover: var(--color-brand-300);
   --accent-soft: #38247a;

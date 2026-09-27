@@ -1206,76 +1206,72 @@ current setting in a dark panel; both are the same figures strip now. Inner
 pages take <code>PageHeader compact</code> and drop their back link, because
 the rail already says where you are.</p>
 
-<h3>The dark theme is quiet, and the violet is a panel</h3>
-<p>This was built three times. The first two are worth keeping on the record,
-because each was a reasonable idea that failed for a reason worth knowing.</p>
-
-<p><strong>Attempt one</strong> followed Material's advice for a branded dark
-theme: start at <code>#121212</code> and tint. That desaturated the brand out
-of every surface and left a room of brown-greys &mdash; a card lifted
-<strong>1.08</strong> off the page, a border <strong>1.24</strong> off the
-card. Nothing had an edge, and the whole app read as switched off.</p>
-
-<p><strong>Attempt two</strong> fixed the lift by turning the saturation up:
-45&ndash;70%, the brand's own hue, across every surface. The lift came back and
-the app went blue. A large area of hue-260 violet at 13&ndash;22% lightness
-does not read as violet; it reads as blue, and a reader's first word for it was
-&ldquo;bluish&rdquo;.</p>
-
-<p>The mistake both times was treating lift and saturation as one dial.
-<strong>They are two.</strong> Lift is a function of lightness alone;
-saturation only decides how much colour the ground carries. Attempt three keeps
-attempt two's lightness steps and takes the saturation back to where every
-product that does this well puts it:</p>
+<h3>The dark theme is Material 3’s tones of our own purple</h3>
+<p>Built four times. Each failure taught the same lesson from a different
+angle, so all four are worth keeping.</p>
 
 <div class="tw"><table>
-<thead><tr><th>Product</th><th>Its large dark surfaces</th><th>Saturation</th></tr></thead>
+<thead><tr><th></th><th>What was tried</th><th>Saturation of the big surfaces</th><th>Why it failed</th></tr></thead>
 <tbody>
-<tr><td>Testbook</td><td><code>#1b1b1b</code>, <code>#2b2b2b</code></td><td>0%</td></tr>
-<tr><td>Testbook's one tinted panel</td><td><code>#282a36</code></td><td>15%</td></tr>
-<tr><td>Unacademy</td><td><code>#3c4852</code></td><td>15%</td></tr>
-<tr><td>Preppy, <em>light</em></td><td><code>slate-100</code>, <code>slate-200</code></td><td>24&ndash;30%</td></tr>
-<tr><td>Preppy, dark, attempt two</td><td>&mdash;</td><td><strong>45&ndash;70%</strong></td></tr>
-<tr><td>Preppy, dark, now</td><td><code>#17121c</code>, <code>#282130</code></td><td>18%</td></tr>
+<tr><td>1</td><td>Material 2's advice: start at <code>#121212</code>, tint</td><td>very low</td><td>Cards lifted <strong>1.08</strong> off the page. Nothing had an edge; the app read as switched off</td></tr>
+<tr><td>2</td><td>Fix the lift by raising saturation</td><td><strong>45&ndash;70%</strong></td><td>A large area of hue-260 violet at low lightness does not read as violet. The app went blue</td></tr>
+<tr><td>3</td><td>Lower it by eye, to match the light theme</td><td>19&ndash;22%</td><td>Still blue. Guessing at a number is the thing that kept failing</td></tr>
+<tr><td>4</td><td>Material 3, computed</td><td><strong>4&ndash;10%</strong></td><td>&mdash;</td></tr>
 </tbody>
 </table></div>
 
-<p>Those figures were read off the rendered pages, not off a brand guideline:
-a headless browser loaded each site and reported the background colour of every
-element by painted area. The hue is nudged from the brand's 260 to
-<strong>268</strong>, so the little colour left reads purple rather than blue.</p>
+<p>The mistake in the first three was picking numbers by feel. Material 3 does
+not: it derives a whole scheme from one source colour, and it puts surfaces on
+the <strong>neutral</strong> palette, which is the source hue at
+<strong>chroma 4</strong> &mdash; with outlines on neutral-variant at chroma 8.
+So the values below are not copied from Material's baseline purple. They are
+Google's own <code>material-color-utilities</code> run against
+<code>#46178f</code>, the Kahoot purple <code>--color-brand-800</code> came
+from, which makes them Preppy's M3 palette rather than anybody else's.</p>
 
 <div class="tw"><table>
-<thead><tr><th>Token</th><th>Value</th><th>Lift</th></tr></thead>
+<thead><tr><th>Token</th><th>M3 role</th><th>Value</th><th>Lift</th></tr></thead>
 <tbody>
-<tr><td><code>--page</code></td><td><code>#17121c</code></td><td>the ground</td></tr>
-<tr><td><code>--surface-sunken</code></td><td><code>#1e1825</code></td><td>recessed inside a card</td></tr>
-<tr><td><code>--surface</code></td><td><code>#282130</code></td><td>1.18 off the page</td></tr>
-<tr><td><code>--surface-raised</code></td><td><code>#352c3f</code></td><td>a card on a card</td></tr>
-<tr><td><code>--line</code></td><td><code>#443a50</code></td><td>1.46 off a surface</td></tr>
-<tr><td><code>--line-strong</code></td><td><code>#60526f</code></td><td>2.17, so an input has a visible outline</td></tr>
+<tr><td><code>--page</code></td><td>neutral tone 4</td><td><code>#0f0e11</code></td><td>the ground</td></tr>
+<tr><td><code>--surface-sunken</code></td><td>tone 9</td><td><code>#1b191c</code></td><td>recessed inside a card</td></tr>
+<tr><td><code>--surface</code></td><td>tone 15</td><td><code>#272529</code></td><td>1.27 off the page</td></tr>
+<tr><td><code>--surface-raised</code></td><td>tone 22</td><td><code>#363438</code></td><td>1.23 off a surface</td></tr>
+<tr><td><code>--line</code></td><td>outline-variant</td><td><code>#423e47</code></td><td>1.45</td></tr>
+<tr><td><code>--line-strong</code></td><td>outline</td><td><code>#6b6670</code></td><td>2.72</td></tr>
+<tr><td><code>--text</code></td><td>on-surface</td><td><code>#ece6eb</code></td><td>&mdash;</td></tr>
+<tr><td><code>--text-soft</code></td><td>on-surface-variant</td><td><code>#cbc4cf</code></td><td>&mdash;</td></tr>
+<tr><td><code>--surface-invert</code></td><td>primary-container</td><td><code>#562c9f</code></td><td>2.07 off the page</td></tr>
 </tbody>
 </table></div>
 
-<p>Kahoot supplies the other half of the answer, and it is the half that keeps
-the product from looking generic. Their purple is <em>saturated</em> &mdash;
-<code>#46178f</code>, which is where <code>--color-brand-800</code> came from
-&mdash; and they use it as <strong>a panel on a quiet ground</strong>, never as
-the ground itself. So <code>--surface-invert</code> is that exact colour, and
-it is what the podium, the score band, the dashboard hero and the login panel
-are made of. The violet is still everywhere you look; it is simply no longer
-underneath everything you read.</p>
+<p>The tones are spread wider than M3's own defaults, deliberately. M3 leans on
+elevation shadow to separate surfaces; this app separates with the step itself,
+so the steps grow while the chroma stays where M3 puts it. Every one of those
+lifts beats what the blue version managed.</p>
 
-<p>The exam room drops again, to 13&ndash;16%, because it is the room trying
-not to be noticed.</p>
+<p>Kahoot supplies the last piece, and it is what keeps this from looking like
+any other Material app: their purple is <em>saturated</em>, and they use it as
+a panel on a quiet ground rather than as the ground. M3 has a role for exactly
+that &mdash; <code>primary-container</code> &mdash; and it is what the podium,
+the score band, the dashboard hero and the login panel are made of.</p>
 
 <div class="note care">
   <h4>Lift and saturation are different dials</h4>
   <p>If a dark surface looks flat, raise its <em>lightness</em>, not its
   saturation. Raising saturation appears to work &mdash; the surfaces do
   separate &mdash; and the cost arrives later, as a whole interface that has
-  quietly turned blue. Measure the lift as a contrast ratio between the two
-  surfaces and leave the saturation alone.</p>
+  quietly turned blue. This was learned twice.</p>
+</div>
+
+<div class="note never">
+  <h4><code>--color-play-purple</code> is not a surface</h4>
+  <p>It is a raw-scale alias for <code>brand-800</code>, so it is the same
+  violet in both themes. That is right for a mark, a focus ring or a border
+  sitting on a fixed ground, and wrong for a panel: the moment dark stopped
+  using <code>brand-800</code> for <code>--surface-invert</code>, every surface
+  still painted with this one became a different violet from the surface beside
+  it. The result page's score band was a different purple from the dashboard it
+  was reached from. A themed surface takes <code>--surface-invert</code>.</p>
 </div>
 
 <h3>A fill colour is not a text colour</h3>

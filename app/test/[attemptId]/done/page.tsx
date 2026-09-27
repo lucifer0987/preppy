@@ -215,7 +215,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
           section: the shape a result screen wants, because it is the order the
           questions come in -- what did I get, where does that put me, and
           which section did it come from. */}
-      <section className="relative mt-4 overflow-hidden rounded-card bg-play-purple p-6 text-white
+      <section className="relative mt-4 overflow-hidden rounded-card bg-surface-invert p-6 text-white
                           shadow-high sm:p-8">
         <div aria-hidden="true"
              className="pointer-events-none absolute -right-20 -top-28 h-72 w-72 rounded-full bg-brand-500/30 blur-3xl" />
@@ -501,7 +501,7 @@ function Tally({ label, value, hint }: {
   hint?: string
 }) {
   return (
-    <div className="bg-play-purple px-3.5 py-3">
+    <div className="bg-surface-invert px-3.5 py-3">
       <dt className="text-[0.625rem] font-bold uppercase tracking-[0.12em] text-white/60">{label}</dt>
       <dd className="numeral mt-0.5 text-xl font-bold leading-tight">{value}</dd>
       {hint && <dd className="numeral mt-0.5 text-[0.6875rem] text-white/50">{hint}</dd>}
