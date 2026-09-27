@@ -340,7 +340,7 @@ html{scroll-behavior:smooth}
 <!-- 3 -->
 <section id="s3"><div class="col">
 <h2><i>03</i>Pattern &amp; scoring</h2>
-<div class="fr"><p><b class="id">FR-3.1</b>Four sections, in a fixed order, each with an independent timer. The questions, minutes and marking per section are configurable &mdash; from the admin console for what a paper is given by default, or in the paper's own file. Shipped default: 55 questions across the four in 45 minutes.</p></div>
+<div class="fr"><p><b class="id">FR-3.1</b>Sections, in a fixed order, each with an independent timer. <em>Which</em> sections, and how many, is the track's pattern (FR-6.10.2); the questions, minutes and marking per section are configurable there or in the paper's own file. Shipped default: four sections, 55 questions, 45 minutes.</p></div>
 <div class="tw"><table>
 <tr><th style="width:36px">#</th><th>Section</th><th>Code</th><th class="n">Q</th><th class="n">Time</th><th class="n">Sec/q</th></tr>
 <tr><td>1</td><td><i class="sec-dot" style="background:var(--k-blue)"></i>Quantitative Aptitude</td><td><code>QUANT</code></td><td class="n">15</td><td class="n">12:00</td><td class="n">48</td></tr>
@@ -585,6 +585,7 @@ html{scroll-behavior:smooth}
 <div class="fr"><p><b class="id">FR-6.7.5</b><strong>A new member starts from zero.</strong> A sixth student joining in month two begins at 0 cumulative points and climbs from there. Accepted deliberately; the <strong>Last 30</strong> filter is the view that stays meaningful for them.</p></div>
 <p>Filters: <strong>Last 7 papers</strong> (default) &middot; <strong>Last 30 papers</strong> &middot; All time &middot; a single paper's rank list. Counted in papers rather than days, since a day may hold more than one. The dashboard's inline panel uses the same default, so the two never disagree about who is first. Top 3 render as an animated podium: three lit panels, each a step lower than the one before it, first in the middle, with the place worn as a filled medal &mdash; gold, silver, bronze. The medals are fixed in both themes; one that changed colour with the theme would stop being a medal. Solid metal <em>fills</em> were tried and abandoned: three flat rectangles where there had been one card with light in it.</p>
 <div class="fr"><p><b class="id">FR-6.7.9</b><strong>The Total column says what it is out of.</strong> Its header reads <em>&ldquo;Total of 165&rdquo;</em>: the sum of the perfect scores of the papers in the window on show. A cumulative number with no ceiling beside it is a number nobody can place &mdash; 20 is excellent over one paper and poor over seven.</p></div>
+<div class="fr"><p><b class="id">FR-6.7.10</b><strong>A percentile, once the board is bigger than 30.</strong> The share of the board scoring strictly below you, which is the definition the exam itself uses &mdash; so the top of the board is never 100, and a tie shares a percentile as it shares a rank. Below the threshold the column is <em>absent</em>, not empty: with five students the only percentiles available are 0, 20, 40, 60 and 80, each moving twenty points when one person has an off day, which is a coarser measure than <em>&ldquo;2nd of 5&rdquo;</em> wearing a decimal point.</p></div>
 <div class="fr"><p><b class="id">FR-6.7.6</b><strong>The admin sees the same board, in the console.</strong> Same figures, same filters, no row of their own &mdash; their attempts are dry runs and are counted nowhere. Reaching it used to mean leaving the console for the student view, which is an odd trip to make to answer <em>&ldquo;who is actually turning up&rdquo;</em>; the per-paper rank list is the view an admin wants most, since it is the night-by-night one the cumulative board hides.</p></div>
 
 <h3>6.8 &nbsp;Streaks <span class="pill p1">P1</span></h3>
@@ -638,6 +639,44 @@ html{scroll-behavior:smooth}
   <h4>Why this is not just &ldquo;unschedule&rdquo;</h4>
   <p>Unscheduling was already there and does none of this. It is refused the moment a paper opens, which is precisely when you need it, and it hides the paper rather than stopping the clock &mdash; a student mid-attempt would carry on. The five controls above exist because <em>hiding</em> and <em>ending</em> are different things, and only one of them was ever built.</p>
 </div>
+
+<h3>6.10 &nbsp;Exam tracks <span class="pill p1">P3</span></h3>
+<p>Three things this document parked in phase 3 are one mechanism, and building them separately would have produced three half-answers. <em>Computer Awareness and General Awareness as toggleable sections</em> wants sections that are not always there. <em>Disciplines beyond CSE</em> wants the Professional Knowledge section to be about something else. <em>A second exam track with its own pattern</em> wants a different paper shape entirely. One thing answers all three: a <strong>track</strong>.</p>
+
+<div class="fr"><p><b class="id">FR-6.10.1</b>A <strong>track</strong> is an exam somebody is preparing for. It owns an ordered pattern of sections and a set of papers. A student follows exactly one, and sees only its papers, its archive and its board.</p></div>
+<div class="fr"><p><b class="id">FR-6.10.2</b><strong>A track decides which sections it has, in what order.</strong> Any of the six codes, any number of them. The four-section pattern stops being the product's and becomes one track's.</p></div>
+<div class="fr"><p><b class="id">FR-6.10.3</b><strong>A track names its own sections.</strong> Professional Knowledge is (CSE) on one track and (Agriculture) on another, and neither needs a section code of its own. A name is a label: correcting it corrects it everywhere the section has ever appeared.</p></div>
+<div class="fr"><p><b class="id">FR-6.10.4</b><strong>A paper is checked against the pattern of the exam it is for.</strong> A file whose sections are not that exam's, in that order, is refused &mdash; and told which sections that exam does have, rather than &ldquo;unknown section&rdquo;.</p></div>
+<div class="fr"><p><b class="id">FR-6.10.5</b><strong>Boards do not mix.</strong> One leaderboard per track. A table ranking people against papers they were never offered is not a ranking.</p></div>
+<div class="fr"><p><b class="id">FR-6.10.6</b><strong>Two tracks may run a paper at the same moment on the same day.</strong> A student follows one of them, so there is no choice being forced and nothing to prevent. Within one track, overlapping windows are still refused.</p></div>
+<div class="fr"><p><b class="id">FR-6.10.7</b><strong>A track can be closed, not deleted.</strong> Its papers, attempts and board stay; no new paper can be scheduled on it. The last open track cannot be closed. This is the shape deactivating an account already has: the login stops, the history stays.</p></div>
+<div class="fr"><p><b class="id">FR-6.10.8</b><strong>With one track, nothing on screen mentions one.</strong> No switcher, no column, no picker. A choice between one thing is not a choice, and an install preparing for one exam must never be asked to think about this.</p></div>
+
+<div class="note care">
+  <h4>The constant that had to go</h4>
+  <p><code>SECTION_CODES</code> was the four codes of one exam, in sequence, and the whole application read the shape of a paper off it &mdash; the validator's ordering, the pattern form, the blank template, the question bands. It is <code>ALL_SECTION_CODES</code> now and answers one question only: is this a real code. Everything that wants the <em>order</em> asks a pattern. That rename is most of what this feature was.</p>
+</div>
+
+<h3>6.11 &nbsp;Practice <span class="pill p1">P3</span></h3>
+<p>A paper in the archive could be read and not re-sat, which is the wrong way round for the thing it is for. Reading the solution tells you the answer; sitting it again under the clock tells you whether you would have found it.</p>
+
+<div class="fr"><p><b class="id">FR-6.11.1</b><strong>A student may re-sit any paper already open to them, as practice.</strong> The engine, the timers and the marking are the real ones.</p></div>
+<div class="fr"><p><b class="id">FR-6.11.2</b><strong>Practice is counted nowhere.</strong> No rank, no board, no movement in the counted score. It is the dry run the admin already had, asked for on purpose.</p></div>
+<div class="fr"><p><b class="id">FR-6.11.3</b><strong>Practice is offered on a paper already open to you and on no other</strong> &mdash; you have finished it, or it has closed. The same gate the archive opens on, so the two cannot drift. Practising a paper you can still sit for real would be sitting it twice, the second time knowing the questions, and it is the counted attempt that would be worth less for it.</p></div>
+<div class="fr"><p><b class="id">FR-6.11.4</b><strong>One practice result per paper.</strong> Practising again replaces the one before it rather than piling up.</p></div>
+
+<h3>6.12 &nbsp;Installable, and readable offline <span class="pill p1">P3</span></h3>
+
+<div class="fr"><p><b class="id">FR-6.12.1</b>Preppy is <strong>installable</strong>: a manifest, icons and a standalone display, so a paper opens from a home screen rather than from a tab among thirty.</p></div>
+<div class="fr"><p><b class="id">FR-6.12.2</b><strong>Past papers already opened are readable without a connection</strong>, with their images.</p></div>
+<div class="fr"><p><b class="id">FR-6.12.3</b><strong>A paper being sat is never served from a cache, at any stage.</strong> Its clock belongs to the server, and a timer read from a cache is the wrong timer.</p></div>
+<div class="fr"><p><b class="id">FR-6.12.4</b><strong>Nothing else is kept.</strong> Not the dashboard, not the board, not the console, not an account page. Each of them moves through the day, and an answer that is out of date by the time it is read is worse than no answer.</p></div>
+<div class="fr"><p><b class="id">FR-6.12.5</b><strong>Signing out forgets what was kept.</strong> A cache belongs to the browser rather than to the account, and students share laptops.</p></div>
+
+<div class="note why">
+  <h4>Why caching the archive gives nothing away</h4>
+  <p>This looked at first like a trade against section 9: the answer key never reaches the browser, and offline reading means writing papers to a device. It is not a trade. The archive only ever renders a paper the reader has <em>finished</em>, or one that has <em>closed</em> &mdash; and for those the key is already in the HTML the server sent them. Keeping a copy leaks nothing they cannot already read. A paper that has not opened is never rendered to them at all, so it cannot enter the cache: only a 200 is stored, and a locked paper does not return one.</p>
+</div>
 </div></section>
 
 <!-- 7 -->
@@ -646,7 +685,7 @@ html{scroll-behavior:smooth}
 <p>One paper is one JSON file. The format is rigid and the parser strict — it fails loudly rather than guessing. The full spec is section 7 of the <a href="architecture.html#s7">engineering reference</a>; <code>format/schema.json</code> mirrors the rules for editor validation.</p>
 <ul>
 <li><strong>JSON only, parsed as written.</strong> Curly quotes, trailing commas and comments are errors, not silently repaired. Papers are written in a code editor, not a word processor.</li>
-<li>Question numbers run 1–55 straight through the paper, and each section holds exactly its own band.</li>
+<li>Question numbers run straight through the paper from 1, and each section holds exactly its own band. How many there are is the track's pattern, not a constant.</li>
 <li>Everything except <code>number</code>, <code>text</code>, <code>options</code> and <code>answer</code> is optional on a question.</li>
 </ul>
 <pre><code>{
@@ -894,8 +933,19 @@ html{scroll-behavior:smooth}
 <tr><td><strong>Two builds</strong><br><code>build:local</code> and <code>build:prod</code></td><td>Production gates on typecheck and the full suite and ships no source maps; local keeps them so a stack trace is worth reading</td></tr>
 </table></div>
 
-<h3>Phase 3, if it happens</h3>
-<p>Computer Awareness and General Awareness as toggleable sections &middot; disciplines beyond CSE &middot; a second exam track with its own pattern &middot; practice mode over the archive, leaderboard-excluded &middot; a PWA and offline archive reading &middot; percentiles if the cohort ever exceeds 30.</p>
+<h3>Phase 3, which happened</h3>
+<p>This was a parking list headed &ldquo;if it happens&rdquo;, and every line of it has now shipped. Three of the six turned out to be the same feature.</p>
+
+<div class="tw"><table>
+<tr><th>Parked as</th><th>Delivered as</th></tr>
+<tr><td>Computer Awareness and General Awareness as toggleable sections<br>Disciplines beyond CSE<br>A second exam track with its own pattern</td><td><strong>Exam tracks</strong> (6.10). One mechanism, because three switches bolted onto a fixed four-section pattern would have been three half-answers. A track owns an ordered pattern of any sections, names them itself, and owns its papers and its board. The four-section pattern stops being the product&rsquo;s and becomes one track&rsquo;s</td></tr>
+<tr><td>Practice mode over the archive, leaderboard-excluded</td><td><strong>Practice</strong> (6.11). The dry run the admin already had, asked for on purpose, gated on the same rule the archive opens on</td></tr>
+<tr><td>A PWA and offline archive reading</td><td><strong>Installable, readable offline</strong> (6.12). Past papers and their images, and nothing else &mdash; least of all a paper being sat</td></tr>
+<tr><td>Percentiles if the cohort ever exceeds 30</td><td><strong>A percentile above 30 on the board</strong> (FR-6.7.10), and beside the rank on a result. Below the threshold the column is absent rather than meaningless</td></tr>
+</table></div>
+
+<h3>Phase 4, if it happens</h3>
+<p>Nothing is planned. What would earn a place: a second cohort large enough to want per-section percentiles &middot; question-level analytics across papers, once there is a year of them &middot; a way to hand a track to a second admin.</p>
 
 <div class="good">
   <h4>What is still unproven</h4>
@@ -924,7 +974,7 @@ html{scroll-behavior:smooth}
 </table></div>
 <p class="end">
 <b>Requirement index</b><br>
-FR-3.1–3.4 pattern, marking, not-reached · FR-4.1–4.3 the clock · FR-5.1 no sign-up · FR-5.2 admin attempts are dry runs · FR-5.3 students see only the leaderboard · FR-6.1.1–5 auth · FR-6.2.1 no public preview · FR-6.3.1–4 dashboard · FR-6.4.1–11 test engine · FR-6.5.1–8 integrity · FR-6.7.1–9 leaderboard · FR-6.8.1–2 streaks · FR-6.9.1–12 admin, dry run, rescore, export, naming, and managing a paper already out · FR-7.1–2 paper format · FR-8.1 no celebration mid-section · FR-9.1 was_visited · FR-9.2 the DB is the question bank · FR-10.1–4 architecture · FR-13.1 key confidentiality
+FR-3.1–3.4 pattern, marking, not-reached · FR-4.1–4.3 the clock · FR-5.1 no sign-up · FR-5.2 admin attempts are dry runs · FR-5.3 students see only the leaderboard · FR-6.1.1–5 auth · FR-6.2.1 no public preview · FR-6.3.1–4 dashboard · FR-6.4.1–11 test engine · FR-6.5.1–8 integrity · FR-6.7.1–10 leaderboard and percentiles · FR-6.8.1–2 streaks · FR-6.9.1–12 admin, dry run, rescore, export, naming, and managing a paper already out · FR-6.10.1–8 exam tracks · FR-6.11.1–4 practice · FR-6.12.1–5 installable and offline · FR-7.1–2 paper format · FR-8.1 no celebration mid-section · FR-9.1 was_visited · FR-9.2 the DB is the question bank · FR-10.1–4 architecture · FR-13.1 key confidentiality
 </p>
 </div></section>
 

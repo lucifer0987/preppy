@@ -6,6 +6,7 @@ import { currentUser } from '../lib/auth'
 import { isConfigured } from '../lib/env'
 import { patternTotals, sectionName, uniformMarking } from '../lib/types'
 import { Wordmark } from '../components/Wordmark'
+import { ServiceWorker } from '../components/ServiceWorker'
 import { entryClosesAt, formatIstDate, opensAt, paperLabels, windowLabels } from '../lib/time'
 import type { PaperWindow } from '../lib/time'
 import { getWindow } from '../lib/repo/settings'
@@ -24,8 +25,13 @@ import { upcomingPapers } from '../lib/repo/papers'
  */
 export const dynamic = 'force-dynamic'
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: { searchParams: Promise<Record<string, string>> }) {
   if (isConfigured() && (await currentUser())?.isActive) redirect('/dashboard')
+  // Set by logoutAction. Nothing is shown for it; it is the cue to wipe what
+  // the service worker kept for whoever just left.
+  const justLeft = (await searchParams).left === '1'
 
   const now = new Date()
   const testWindow = await getWindow()
@@ -62,6 +68,8 @@ export default async function Home() {
         <div className="absolute inset-0 text-ink opacity-[0.07]"
              style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)', backgroundSize: '26px 26px' }} />
       </div>
+
+      <ServiceWorker signedOut={justLeft} />
 
       <div className="relative shell flex min-h-dvh flex-col py-5">
         <div className="flex items-center justify-between gap-4">

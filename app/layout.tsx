@@ -1,13 +1,14 @@
 import type { Metadata, Viewport } from 'next'
 import { IBM_Plex_Mono, IBM_Plex_Sans, Nunito } from 'next/font/google'
 import './globals.css'
+import { ServiceWorker } from '../components/ServiceWorker'
 
 /**
  * Three faces, each with a job.
  *
  * Nunito carries the display weight -- headlines, buttons, scores, the labels
  * that shout. It is a rounded sans, and the rounding is the point: this is a
- * nightly game with a leaderboard, and a neutral grotesque said "form" where
+ * daily game with a leaderboard, and a neutral grotesque said "form" where
  * the product wanted "play". The rounder end of that choice (Fredoka, Baloo)
  * reads as a children's app, and the people using this are final-year CSE
  * students and working engineers, so Nunito is as warm as it goes before it
@@ -40,8 +41,19 @@ const plexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: { default: 'Preppy', template: '%s · Preppy' },
-  description: 'Daily mock tests for IBPS Specialist Officer (IT).',
+  description: 'Daily mock tests, marked and timed the way the real exam marks and times.',
   applicationName: 'Preppy',
+  // Installable, so a paper opens from the home screen rather than from a tab
+  // among thirty others (PRD 6.12).
+  manifest: '/manifest.webmanifest',
+  appleWebApp: { capable: true, title: 'Preppy', statusBarStyle: 'black-translucent' },
+  icons: {
+    icon: [
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: '/icon-192.png',
+  },
   formatDetection: { telephone: false, date: false, address: false, email: false },
 }
 
@@ -86,7 +98,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
-      <body className="min-h-dvh antialiased">{children}</body>
+      <body className="min-h-dvh antialiased">
+        {children}
+        <ServiceWorker />
+      </body>
     </html>
   )
 }

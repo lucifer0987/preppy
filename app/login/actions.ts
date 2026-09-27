@@ -37,5 +37,9 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
 
 export async function logoutAction() {
   await signOut()
-  redirect('/')
+  // `?left=1` is read by the landing page, which tells the service worker to
+  // forget the past papers it kept. A cache belongs to the browser rather
+  // than to the account, and two students share a laptop often enough for
+  // that to matter (PRD 6.12).
+  redirect('/?left=1')
 }

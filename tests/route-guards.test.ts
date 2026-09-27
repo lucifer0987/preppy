@@ -18,8 +18,15 @@ function pages(dir: string): string[] {
 }
 
 const all = pages('app')
-/** Deliberately reachable signed out: the splash and the login form. */
-const PUBLIC = new Set(['app/page.tsx', 'app/login/page.tsx'])
+/**
+ * Deliberately reachable signed out: the splash, the login form, and the
+ * page the service worker shows when the network is gone.
+ *
+ * /offline has to render with no server, no session and no data -- that is
+ * what it is for -- which is also why it can say nothing about anybody. A
+ * guard on it would be a guard that could never run.
+ */
+const PUBLIC = new Set(['app/page.tsx', 'app/login/page.tsx', 'app/offline/page.tsx'])
 
 describe('every page says who may open it', () => {
   it('found the pages to check', () => {
