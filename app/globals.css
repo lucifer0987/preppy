@@ -44,6 +44,19 @@
   --color-gold-600: #b07405;
   --color-gold-700: #8a5a06;
 
+  /* ---- zap: the energy colour. Violet's neighbour on the wheel, so it reads
+     as heat rather than as a second brand. This is what carries a streak, a
+     rank, a personal best -- the moments the product exists for. Never used
+     for status: good/warn/bad own that, and a colour cannot mean two things. */
+  --color-zap-100: #ffe6f1;
+  --color-zap-200: #ffc9e0;
+  --color-zap-300: #ff8fbf;
+  --color-zap-400: #ff5c9f;
+  --color-zap-500: #f5217f;
+  --color-zap-600: #d1005f;
+  --color-zap-700: #ab004e;
+  --color-zap-800: #87003d;
+
   /* ---- neutrals, pulled slightly toward the violet so greys never read dead */
   --color-slate-0:   #ffffff;
   --color-slate-50:  #faf9fc;
@@ -73,15 +86,23 @@
   /* ---- the four answer options: colour AND shape, never colour alone */
   --color-opt-red:    #e21b3c;
   --color-opt-blue:   #1368ce;
-  --color-opt-yellow: #d89e00;
+  --color-opt-yellow: #ffc00a;
+  /* The dark counterpart, for the rare place an option hue has to be words. */
+  --color-opt-yellow-ink: #8a6200;
   --color-opt-green:  #26890c;
 
-  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-nunito), ui-rounded, ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-plex), ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
 
-  --radius-card: 1.25rem;
-  --radius-control: 0.75rem;
+  --radius-card: 1.5rem;
+  --radius-control: 0.875rem;
+  --radius-pill: 9999px;
+
+  /* A press that overshoots slightly reads as springy rather than mechanical.
+     Everything that uses it is also guarded by prefers-reduced-motion. */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 
   --shadow-low: 0 1px 2px rgb(27 22 38 / 0.06), 0 1px 3px rgb(27 22 38 / 0.04);
   --shadow-mid: 0 2px 4px rgb(27 22 38 / 0.05), 0 8px 20px -6px rgb(27 22 38 / 0.12);
@@ -113,6 +134,21 @@
   --accent-hover: var(--color-brand-800);
   --accent-soft: var(--color-brand-50);
   --accent-text: var(--color-brand-700);
+
+  /* The energy colour: streaks, ranks, a personal best -- the moments the
+     product exists for. --zap is the fill; --zap-ink is the same hue taken
+     far enough to be words, because #f5217f on white is 3.88:1. Never used
+     for status, which good/warn/bad own: a colour cannot mean two things. */
+  /* Chrome is retuned by the exam room, but it is declared here first so the
+     token always resolves -- the same rule the theme blocks follow. */
+  --chrome: var(--color-brand-800);
+  --chrome-text: #ffffff;
+  --chrome-line: rgb(255 255 255 / 0.15);
+
+  --zap: var(--color-zap-500);
+  --zap-solid: var(--color-zap-600);
+  --zap-ink: var(--color-zap-700);
+  --zap-soft: var(--color-zap-100);
 
   --good: var(--color-good-500);
   --warn: var(--color-warn-500);
@@ -168,6 +204,10 @@
     --accent-hover: var(--color-brand-300);
     --accent-soft: #241a3d;
     --accent-text: var(--color-brand-300);
+    --zap: var(--color-zap-400);
+    --zap-solid: var(--color-zap-600);
+    --zap-ink: var(--color-zap-300);
+    --zap-soft: #3a0f26;
 
     --good: var(--color-good-400);
     --warn: var(--color-warn-400);
@@ -209,6 +249,10 @@
   --accent-hover: var(--color-brand-300);
   --accent-soft: #241a3d;
   --accent-text: var(--color-brand-300);
+  --zap: var(--color-zap-400);
+  --zap-solid: var(--color-zap-600);
+  --zap-ink: var(--color-zap-300);
+  --zap-soft: #3a0f26;
 
   --good: var(--color-good-400);
   --warn: var(--color-warn-400);
@@ -241,6 +285,14 @@
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-soft: var(--accent-soft);
+  --color-on-brand: var(--text-on-brand);
+  --color-zap: var(--zap);
+  --color-zap-solid: var(--zap-solid);
+  --color-zap-ink: var(--zap-ink);
+  --color-zap-soft: var(--zap-soft);
+  --color-chrome: var(--chrome);
+  --color-chrome-text: var(--chrome-text);
+  --color-chrome-line: var(--chrome-line);
   --color-good: var(--good);
   --color-warn: var(--warn);
   --color-bad: var(--bad);
@@ -315,6 +367,55 @@ h2, h3 { text-wrap: balance; }
 :root:not([data-theme="light"]) ::selection { background: var(--color-brand-700); color: #fff; }
 
 /* ------------------------------------------------------- primitives */
+/* --------------------------------------------------------- the exam room */
+/**
+ * Everything else in this app is a game show. This is the forty-five minutes
+ * the game show exists for, and it gets the opposite treatment: the violet
+ * chrome goes to ink, the decoration goes entirely, and the only colour left
+ * in the room is the clock.
+ *
+ * It retunes the same semantic tokens rather than introducing a second
+ * palette, so every component inside keeps working untouched -- and it still
+ * follows the theme, because a student who chose light did so for a reason.
+ * Papers run at night, so the dark end of this is the one most will see.
+ */
+[data-room="exam"] {
+  /* Chrome: near-black in both themes. A header the colour of the page makes
+     the room feel like one surface, which is the whole idea. */
+  --chrome: var(--color-slate-900);
+  --chrome-text: #ffffff;
+  --chrome-line: rgb(255 255 255 / 0.10);
+
+  /* A calmer ground than the app's violet-tinted grey. */
+  --page: var(--color-slate-100);
+  --surface: var(--color-slate-0);
+  --surface-sunken: var(--color-slate-50);
+
+  /* The accent stops shouting: still the brand, but the deep end of it, so a
+     selected option reads as "chosen" rather than as a prize. */
+  --accent: var(--color-brand-800);
+  --accent-hover: var(--color-brand-900);
+  --accent-soft: var(--color-brand-50);
+}
+
+/* Flat, in a room that is trying not to be noticed. The lifted card is right
+   on a dashboard and wrong on a question you are meant to disappear into. */
+[data-room="exam"] .card {
+  box-shadow: none;
+}
+
+:root[data-theme="dark"] [data-room="exam"],
+:root:not([data-theme="light"]) [data-room="exam"] {
+  --chrome: #0b0910;
+  --chrome-line: rgb(255 255 255 / 0.08);
+  --page: #0b0910;
+  --surface: #151020;
+  --surface-sunken: #100c1a;
+  --accent: var(--color-brand-400);
+  --accent-hover: var(--color-brand-300);
+  --accent-soft: #241a3d;
+}
+
 /* ------------------------------------------------------------- layout */
 /**
  * The page's horizontal frame. Every screen used to pick its own width --
@@ -379,11 +480,22 @@ h2, h3 { text-wrap: balance; }
   line-height: 1.2;
   text-align: center;
   cursor: pointer;
-  transition: background-color .15s, border-color .15s, color .15s, transform .12s, box-shadow .15s;
+  transition: background-color .15s, border-color .15s, color .15s,
+              transform .12s var(--ease-spring), box-shadow .12s;
 
   /* A press should be felt. 1px is enough to read as a button and small
      enough not to shift the words around it. */
-  &:active { transform: translateY(1px); }
+  /* The lip. A hard offset in the control's own darker shade, so the button
+     sits on the page like a physical key and the press actually travels: the
+     face drops the full height of the lip and the lip goes with it. One pixel
+     of travel reads as a hover; four reads as a press, which is the whole
+     difference between a form and a game. Each variant sets --lip. */
+  box-shadow: 0 var(--lip-h, 0px) 0 0 var(--lip, transparent);
+
+  &:active:not(:disabled) {
+    transform: translateY(var(--lip-h, 0px));
+    box-shadow: 0 0 0 0 var(--lip, transparent);
+  }
 
   /* Every one of these replaced a hand-rolled button that disabled itself
      while its form was submitting, so the state has to survive the move. */
@@ -395,15 +507,29 @@ h2, h3 { text-wrap: balance; }
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
-    &:active { transform: none; }
+    /* The lip stays -- it is depth, not motion -- but nothing travels. */
+    &:active:not(:disabled) { transform: none; }
   }
 }
 @utility btn-primary {
+  --lip: var(--color-brand-950);
+  --lip-h: 4px;
   background: var(--accent);
   color: var(--text-on-brand);
-  box-shadow: var(--shadow-brand);
 
   &:hover:not(:disabled) { background: var(--accent-hover); }
+}
+
+/* The one that means "this is the thing you came here to do": begin tonight's
+   paper, log in. Loud on purpose, and rare on purpose -- at most one per
+   screen, or it stops meaning anything. */
+@utility btn-zap {
+  --lip: var(--color-zap-800);
+  --lip-h: 4px;
+  background: var(--zap-solid);
+  color: #ffffff;
+
+  &:hover:not(:disabled) { background: var(--color-zap-500); }
 }
 /*
   A button sitting on a brand panel. Fixed white on fixed violet in both themes,
@@ -411,6 +537,8 @@ h2, h3 { text-wrap: balance; }
   turns dark in dark mode and the violet label disappears into it.
 */
 @utility btn-invert {
+  --lip: var(--color-brand-200);
+  --lip-h: 4px;
   background: #ffffff;
   color: var(--color-brand-800);
 
@@ -418,6 +546,8 @@ h2, h3 { text-wrap: balance; }
   &:hover:not(:disabled) { background: var(--color-brand-50); }
 }
 @utility btn-quiet {
+  --lip: var(--line-strong);
+  --lip-h: 3px;
   background: var(--surface);
   color: var(--text);
   border: 1px solid var(--line-strong);

@@ -31,8 +31,8 @@ export function DeviceGate({ children }: { children: React.ReactNode }) {
     <>
       <div inert={wide === false}>{children}</div>
       {wide === false && (
-        <main className="fixed inset-0 z-[60] flex flex-col items-center justify-center gap-4 bg-play-purple px-8 text-center text-white">
-          <p className="text-3xl font-black">Open this on a laptop</p>
+        <main data-room="exam" className="fixed inset-0 z-[60] flex flex-col items-center justify-center gap-4 bg-chrome px-8 text-center text-chrome-text">
+          <p className="font-display text-3xl font-black">This one needs a bigger screen</p>
           <p className="max-w-sm text-white/75">
             A paper needs a screen at least {MIN_WIDTH} pixels wide, for the question palette and the
             timer. The real exam is desktop-only too.

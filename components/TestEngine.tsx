@@ -420,7 +420,7 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
   const atEnd = index === section.questions.length - 1
 
   return (
-    <div ref={rootRef} className="exam-screen min-h-dvh bg-page">
+    <div ref={rootRef} data-room="exam" className="exam-screen min-h-dvh bg-page">
       {/* FR-6.5.7: printing the paper is suppressed; see globals.css. */}
       <p className="exam-print-note">Printing is not available during a test.</p>
       {fullscreen === false && (
@@ -437,7 +437,7 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
           section counter is redundant with the palette below on a phone, and
           the question counter shrinks rather than wraps. The inner shell is what
           lines the header up with the content underneath it. */}
-      <header className="sticky top-0 z-30 bg-play-purple text-white">
+      <header className="sticky top-0 z-30 border-b border-chrome-line bg-chrome text-chrome-text">
         <div className="shell flex items-center gap-x-3 gap-y-1 py-2.5">
           {/* The section name is this screen's title, and it was a span, so a
               45-minute exam had no heading structure at all. TestEngine remounts
@@ -473,15 +473,18 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
         </div>
       </header>
 
+      {/* Fixed ink on a fixed fill: text-ink goes near-white in dark mode, which
+          put this at 1.44:1 -- on the one message that tells a student their
+          answers are not reaching the server. */}
       {offline && (
-        <p className="bg-play-yellow px-4 py-2 text-center text-sm font-semibold text-ink">
+        <p className="bg-play-yellow px-4 py-2 text-center text-sm font-semibold text-brand-950">
           You are offline or the server did not answer. Your answers are kept on this device and will
           be sent when the connection returns. Your timer is still running.
         </p>
       )}
 
       <div className="shell grid gap-6 py-6 lg:grid-cols-[minmax(0,1fr)_17rem]">
-        <main className="min-w-0 select-none card p-6">
+        <main className="min-w-0 select-none card p-6 sm:p-8 lg:p-10">
           {/* Shown on every question in the group, not just the first (FR-6.4.10). */}
           {question.directions && (
             <DirectionsBlock
@@ -530,7 +533,7 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
           </p>
         </main>
 
-        <aside className="card p-5 lg:sticky lg:top-24 lg:self-start">
+        <aside className="card p-5 lg:sticky lg:top-20 lg:self-start">
           <QuestionPalette
             states={states}
             current={question.number}
@@ -564,7 +567,7 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
  */
 function FullscreenGate({ exits, onReturn }: { exits: number; onReturn: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-5 bg-play-purple-deep px-6 text-center text-white">
+    <div data-room="exam" className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-5 bg-chrome px-6 text-center text-chrome-text">
       <p className="text-3xl font-black">Return to full screen to continue</p>
       <p className="max-w-md text-white/70">
         Your section timer is still running. Leaving full screen is recorded and shown on your
@@ -660,7 +663,7 @@ function Btn({
   // mark and go are tokens rather than the fixed palette fills: these are text
   // and border colours, and the fills are too dark to read on a dark page.
   const style =
-    tone === 'primary' ? 'bg-play-purple text-white hover:bg-play-purple-deep border-play-purple'
+    tone === 'primary' ? 'border-accent bg-accent text-on-brand hover:bg-accent-hover'
     : tone === 'mark' ? 'border-mark text-mark hover:bg-mark/10'
     : tone === 'next' ? 'border-go text-go hover:bg-go/10'
     : 'border-line-strong text-ink-soft hover:border-accent'

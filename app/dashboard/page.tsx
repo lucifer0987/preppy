@@ -109,7 +109,7 @@ export default async function Dashboard({
               />
             </div>
             <Link href={`/test/${attempt.id}`}
-                  className="btn btn-invert mt-4 inline-block px-7 py-3.5">
+                  className="btn btn-zap mt-4 px-7 py-3.5">
               Resume test
             </Link>
           </>
@@ -166,7 +166,7 @@ export default async function Dashboard({
               <Countdown targetIso={entryClosesAt(openPaper!.window).toISOString()} nowIso={nowIso} label="Entry closes in" />
             </div>
             <Link href={`/test/start?test=${tonight.id}`}
-                  className="btn btn-invert mt-4 inline-block px-7 py-3.5">
+                  className="btn btn-zap mt-4 px-7 py-3.5">
               Start test
             </Link>
           </>

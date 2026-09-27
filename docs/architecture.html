@@ -1115,6 +1115,7 @@ each status colour comes as a pair:</p>
 <tbody>
 <tr><td><code>--good</code> / <code>--warn</code> / <code>--bad</code></td><td>Fills, borders, tinted washes (<code>bg-bad/10</code>, <code>border-warn/35</code>)</td><td>Text</td></tr>
 <tr><td><code>--good-ink</code> / <code>--warn-ink</code> / <code>--bad-ink</code></td><td>Text, on a page or a card or one of those washes</td><td>Fills. On a dark theme it <em>is</em> the light shade</td></tr>
+<tr><td><code>--zap</code> / <code>--zap-ink</code></td><td>Same split, for the energy colour</td><td>Anything meaning good or bad. Zap means <em>notable</em></td></tr>
 </tbody>
 </table></div>
 
@@ -1138,7 +1139,7 @@ text-only and already carry their deep light-mode value, so they need no pair.</
 <div class="tw"><table>
 <thead><tr><th>Face</th><th>For</th><th>Why that one</th></tr></thead>
 <tbody>
-<tr><td><strong>Archivo</strong></td><td>Headings, buttons, labels</td><td>A grotesque with real weight at 800 and 900. This is the display voice the PRD asked for</td></tr>
+<tr><td><strong>Nunito</strong></td><td>Headings, buttons, scores, labels</td><td>A rounded sans, and the rounding is the point: this is a nightly game with a leaderboard, and the grotesque that came before said &ldquo;form&rdquo; where the product wanted &ldquo;play&rdquo;. The rounder options (Fredoka, Baloo) read as a children&rsquo;s app, and these are final-year CSE students and working engineers</td></tr>
 <tr><td><strong>IBM Plex Sans</strong></td><td>Body, and every question</td><td>Humanist, opens up at small sizes. A student reads forty lines of comprehension under a clock, and a display face is built to be looked at rather than read through</td></tr>
 <tr><td><strong>IBM Plex Mono</strong></td><td>Timers, scores, ranks</td><td>Figures that must not move. A proportional 1 beside a proportional 8 makes a counting-down clock jitter, which is exactly when nobody should be distracted</td></tr>
 </tbody>
@@ -1183,6 +1184,45 @@ corner of an eye without pulling attention off the question.</p>
   module at all, so this holds by construction rather than by remembering. If a
   celebration is ever wanted mid-test, that import is the thing to argue about
   first.</p>
+</div>
+
+<h3>Two rooms</h3>
+<p>The product is a nightly game show wrapped around forty-five serious minutes,
+and the interface says so twice, in opposite directions.</p>
+
+<div class="tw"><table>
+<thead><tr><th></th><th>Everywhere else</th><th>The exam</th></tr></thead>
+<tbody>
+<tr><td>Chrome</td><td>Brand violet, lit from behind</td><td><code>--chrome</code>: near-black in both themes</td></tr>
+<tr><td>Surfaces</td><td>Lifted cards, real shadow</td><td>Flat. <code>[data-room="exam"] .card</code> drops the shadow</td></tr>
+<tr><td>Accent</td><td><code>--accent</code> violet, plus <code>--zap</code> for the loud moments</td><td>The deep end of the brand. No <code>--zap</code> at all</td></tr>
+<tr><td>Colour</td><td>Four option hues, gold, pink</td><td>The clock, and nothing else</td></tr>
+</tbody>
+</table></div>
+
+<p>The exam room is <code>[data-room="exam"]</code>, and it retunes the same
+semantic tokens rather than introducing a second palette &mdash; so every
+component inside keeps working untouched. It still follows the theme, because a
+student who chose light did so for a reason, and papers run at night so most
+will see the dark end of it.</p>
+
+<h3>The energy colour</h3>
+<p><code>--zap</code> is a hot pink sitting next to the brand violet on the
+wheel, so it reads as heat rather than as a second brand. It carries streaks,
+ranks, a personal best, and the one button a screen exists for
+(<code>btn-zap</code>) &mdash; the moments the product exists for. It is never a
+status: <code>--good</code>, <code>--warn</code> and <code>--bad</code> own that,
+and a colour cannot mean two things. Like the status hues it comes as a pair,
+<code>--zap</code> for fills and <code>--zap-ink</code> for words.</p>
+
+<div class="note care">
+  <h4>Buttons have a lip</h4>
+  <p>Every <code>btn</code> carries a hard offset in its own darker shade
+  (<code>--lip</code>, 4px), and on press the face travels the full height of it
+  and the lip goes with it. One pixel of travel reads as a hover; four reads as
+  a press, which is most of the difference between a form and a game. The lip
+  survives <code>prefers-reduced-motion</code> &mdash; it is depth, not motion
+  &mdash; but the travel does not.</p>
 </div>
 
 <h3>The theme switch, and its three states</h3>
