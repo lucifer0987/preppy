@@ -353,6 +353,22 @@ figcaption b{color:var(--ink-2); font-weight:600}
 
 <p>The console's track lives in the URL rather than in a cookie, and that is deliberate: a console page is something an admin bookmarks and pastes to somebody, and hidden state would make two people with the same link look at different papers.</p>
 
+<p>The student leaderboard takes a track from the URL too, and it is the one
+place a student is shown something outside their own exam. The line it does
+not cross is worth stating, because it is a hair's breadth from the
+cross-exam leak the audit closed: <strong>a board is names and scores.</strong>
+Another exam's board gives away no question, no key and no solution, and the
+routes that carry those &mdash; the archive, the images, sitting a paper,
+practising one &mdash; are unchanged and still refuse. What is still
+impossible is <em>mixing</em>: no table ever holds two exams' students at
+once.</p>
+
+<p>The per-paper rank list follows from the same rule without needing one of
+its own. It is checked against <code>boardPapers(viewed, user)</code>, and on
+an exam that is not yours you have finished nothing &mdash; so that list is
+that exam's <em>closed</em> papers and no others, which is exactly the set
+whose scores are already public to everyone on it.</p>
+
 <div class="note care">
   <h4>A read that forgets the track is a read that mixes exams</h4>
   <p><code>getLeaderboard</code>, <code>getArchive</code>, <code>boardPapers</code>, <code>listPapers</code> and <code>upcomingPapers</code> all take one, and the first three <em>require</em> it rather than defaulting. A default would have been the quiet kind of bug: everything would work, and one student in ten would be ranked against papers they were never offered. Where a default is genuinely right &mdash; the splash page, which has no viewer to ask &mdash; it is <code>defaultTrack()</code> written out, not an omission.</p>
