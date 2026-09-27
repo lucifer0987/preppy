@@ -52,7 +52,7 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
   const refusal = isDryRun ? null : entryRefusal(test.status as string, paperWindow)
 
   return (
-    <main className="shell py-10">
+    <main className="shell py-8">
       <div className="flex items-center justify-between gap-3">
         <BackLink href={isDryRun ? `/admin/papers/${testId}` : '/dashboard'}>Back</BackLink>
         <ThemeToggle />

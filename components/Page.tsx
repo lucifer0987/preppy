@@ -39,7 +39,7 @@ export function PageHeader({ title, lede, actions, meta }: {
   meta?: React.ReactNode
 }) {
   return (
-    <header className="mt-4 flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
+    <header className="mt-3 flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
       <div className="min-w-0">
         <h1 className="text-3xl font-black tracking-tight sm:text-4xl">{title}</h1>
         {meta && <div className="mt-1.5 text-sm text-ink-soft">{meta}</div>}
@@ -55,10 +55,13 @@ export function Stat({ label, value, hint, tone = 'default' }: {
   label: string
   value: React.ReactNode
   hint?: React.ReactNode
-  tone?: 'default' | 'good' | 'bad' | 'accent'
+  tone?: 'default' | 'good' | 'bad' | 'accent' | 'zap'
 }) {
+  // The -ink variants throughout: a fill colour is too light to read as a
+  // figure on a card in light mode.
   const colour = {
-    default: 'text-ink', good: 'text-good-ink', bad: 'text-bad-ink', accent: 'text-accent',
+    default: 'text-ink', good: 'text-good-ink', bad: 'text-bad-ink',
+    accent: 'text-accent', zap: 'text-zap-ink',
   }[tone]
   return (
     <div className="card p-4">
@@ -71,7 +74,7 @@ export function Stat({ label, value, hint, tone = 'default' }: {
 
 /** A row of figures that wraps rather than squeezing. */
 export function StatRow({ children }: { children: React.ReactNode }) {
-  return <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{children}</div>
+  return <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{children}</div>
 }
 
 /**
@@ -108,7 +111,7 @@ export function Th({ children, align = 'left', className = '' }: {
 export function Empty({ children }: { children: React.ReactNode }) {
   return (
     <p className="rounded-card border border-dashed border-line-strong bg-surface-sunken
-                  p-8 text-center text-ink-soft">
+                  p-7 text-center text-ink-soft">
       {children}
     </p>
   )

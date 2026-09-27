@@ -118,7 +118,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
     : 'good'
 
   return (
-    <main className="shell py-10">
+    <main className="shell py-8">
       {/* Keyed on the attempt, so the moment fires once, not on every revisit. */}
       <Celebration level={celebration} onceKey={`result.${attemptId}`} />
       <ResultSound
@@ -177,7 +177,10 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
               </p>
             )}
             {isPersonalBest && (
-              <p className="chip btn-invert mt-3 inline-block px-4 py-1.5 text-sm">
+              <p className="chip mt-3 gap-1.5 bg-zap-solid px-4 py-1.5 text-sm text-white shadow-high">
+                <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3.5 w-3.5 fill-current">
+                  <path d="M8 0.8l2.1 4.3 4.7.7-3.4 3.3.8 4.7L8 11.6l-4.2 2.2.8-4.7L1.2 5.8l4.7-.7z" />
+                </svg>
                 Personal best
               </p>
             )}

@@ -60,7 +60,7 @@ export function AppShell({ user, current, children }: {
 
       {children}
 
-      <footer className="shell pb-10 pt-16">
+      <footer className="shell pb-8 pt-10">
         <p className="border-t border-line pt-5 text-xs text-ink-faint">
           Preppy &middot; daily mock tests for IBPS Specialist Officer (IT)
         </p>

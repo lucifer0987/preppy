@@ -13,7 +13,7 @@ export function StreakBadge({ days, size = 'sm' }: { days: number; size?: 'sm' |
   const big = size === 'lg'
 
   const tone =
-    days >= 30 ? 'bg-zap-solid text-white ring-2 ring-gold ring-offset-0'
+    days >= 30 ? 'bg-zap-solid text-white ring-2 ring-gold'
     : days >= 7 ? 'bg-zap-solid text-white'
     : days >= 3 ? 'bg-gold-700 text-white'
     : 'bg-surface-sunken text-ink-soft ring-1 ring-line-strong'

@@ -68,7 +68,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <AdminNav variant="row" />
       </header>
 
-      <main className="shell py-8 sm:py-10">{children}</main>
+      <main className="shell py-6 sm:py-8">{children}</main>
     </div>
   )
 }

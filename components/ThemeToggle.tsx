@@ -2,71 +2,64 @@
 
 import { useEffect, useState } from 'react'
 
-type Theme = 'system' | 'light' | 'dark'
+type Theme = 'light' | 'dark'
 
 const KEY = 'preppy-theme'
-const ORDER: Theme[] = ['system', 'light', 'dark']
 
 /**
- * Cycles system, light, dark.
+ * Light or dark. Two states, no third.
  *
- * "system" writes no `data-theme` attribute, which is what leaves
- * prefers-color-scheme in charge -- the stylesheet is built around the
- * un-stamped state being the OS default, so removing the attribute is the whole
- * implementation of "follow my computer".
+ * There used to be a "match my computer" position, which meant the control had
+ * three states and the stylesheet had to handle an un-stamped document. Both
+ * are gone: an inline script in the root layout always stamps data-theme
+ * before the first paint, so the CSS has exactly two cases and this button has
+ * exactly two positions.
  *
- * The saved choice is applied by an inline script in the root layout, before the
- * first paint. This component only renders the control and writes the choice; if
- * its JavaScript never arrives the page still has the right theme, it just has no
- * switch. Which is why the button renders nothing until it is mounted: server and
- * client cannot agree on the current theme before then, and a wrong icon for one
- * frame is worse than a gap.
+ * The operating system still picks the first impression -- the script reads it
+ * when nothing is stored -- but it stops mattering the moment anyone touches
+ * this, which is the behaviour people actually expect from a theme switch.
+ *
+ * Renders a placeholder until mounted: the server cannot know what is in this
+ * browser's storage, and one frame of the wrong icon is worse than one frame
+ * of nothing.
  */
 export function ThemeToggle({ tone = 'default' }: { tone?: 'default' | 'invert' }) {
   const [theme, setTheme] = useState<Theme | null>(null)
 
   useEffect(() => {
-    let saved: Theme = 'system'
-    try {
-      const raw = localStorage.getItem(KEY)
-      if (raw === 'light' || raw === 'dark') saved = raw
-    } catch { /* private window, or site data blocked */ }
-    setTheme(saved)
+    // The script has already stamped the element, so that is the truth --
+    // reading it back avoids disagreeing with what is actually on screen.
+    const stamped = document.documentElement.getAttribute('data-theme')
+    setTheme(stamped === 'dark' ? 'dark' : 'light')
   }, [])
 
-  function choose(next: Theme) {
+  function toggle() {
+    const next: Theme = theme === 'dark' ? 'light' : 'dark'
     setTheme(next)
-    const root = document.documentElement
-    if (next === 'system') root.removeAttribute('data-theme')
-    else root.setAttribute('data-theme', next)
-    try {
-      if (next === 'system') localStorage.removeItem(KEY)
-      else localStorage.setItem(KEY, next)
-    } catch { /* the theme still applies for this visit */ }
+    document.documentElement.setAttribute('data-theme', next)
+    try { localStorage.setItem(KEY, next) } catch { /* still applies for this visit */ }
   }
 
-  // Before mount there is no way to know which of the three is current.
   if (theme === null) {
-    return <span className="block h-9 w-9" aria-hidden="true" />
+    return <span className="block h-9 w-9 shrink-0" aria-hidden="true" />
   }
 
-  const next = ORDER[(ORDER.indexOf(theme) + 1) % ORDER.length]!
-  const label = { system: 'Match my computer', light: 'Light', dark: 'Dark' }[theme]
+  const next = theme === 'dark' ? 'light' : 'dark'
 
   return (
     <button
       type="button"
-      onClick={() => choose(next)}
-      title={`Theme: ${label}. Switch to ${{ system: 'match my computer', light: 'light', dark: 'dark' }[next]}`}
-      aria-label={`Theme: ${label}. Switch to ${next === 'system' ? 'match my computer' : next}`}
+      onClick={toggle}
+      title={`Switch to ${next} mode`}
+      aria-label={`Switch to ${next} mode`}
       className={[
-        'grid h-9 w-9 shrink-0 place-items-center rounded-full transition',
+        'grid h-9 w-9 shrink-0 place-items-center rounded-pill transition',
         tone === 'invert'
-          ? 'text-white/70 hover:bg-white/10 hover:text-white'
+          ? 'text-white/70 hover:bg-white/15 hover:text-white'
           : 'text-ink-faint hover:bg-surface-sunken hover:text-ink',
       ].join(' ')}
     >
-      {theme === 'system' ? <Auto /> : theme === 'light' ? <Sun /> : <Moon />}
+      {theme === 'dark' ? <Moon /> : <Sun />}
     </button>
   )
 }
@@ -85,16 +78,6 @@ function Moon() {
   return (
     <svg viewBox="0 0 20 20" aria-hidden="true" className="h-[18px] w-[18px] fill-current">
       <path d="M12.5 2a8 8 0 105.5 10.5A6.5 6.5 0 0112.5 2z" />
-    </svg>
-  )
-}
-
-/** Half sun, half moon: following whatever the machine says. */
-function Auto() {
-  return (
-    <svg viewBox="0 0 20 20" aria-hidden="true" className="h-[18px] w-[18px]">
-      <circle cx="10" cy="10" r="5.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
-      <path d="M10 4.5a5.5 5.5 0 000 11z" fill="currentColor" />
     </svg>
   )
 }

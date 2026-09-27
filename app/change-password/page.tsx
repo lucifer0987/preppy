@@ -22,7 +22,7 @@ export default async function ChangePasswordPage() {
   const forced = user.mustChangePassword
 
   return (
-    <main className="shell flex min-h-dvh items-center justify-center py-12">
+    <main className="shell flex min-h-dvh items-center justify-center py-10">
       <div className="w-full max-w-md">
       <div className="flex items-center justify-between">
         <Wordmark size="sm" />

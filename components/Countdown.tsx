@@ -24,8 +24,18 @@ import { useRouter } from 'next/navigation'
  * down again rather than sitting at 00:00:00.
  */
 export function Countdown({
-  targetIso, nowIso, label = 'Next paper unlocks in',
-}: { targetIso: string; nowIso?: string; label?: string }) {
+  targetIso, nowIso, label = 'Next paper unlocks in', tone = 'on-dark',
+}: {
+  targetIso: string
+  nowIso?: string
+  label?: string
+  /**
+   * Which ground the cells sit on. The dashboard hero is a dark panel in both
+   * themes, so a white wash is right there; the landing card follows the theme,
+   * where a white wash would vanish in light mode.
+   */
+  tone?: 'on-dark' | 'on-surface'
+}) {
   const router = useRouter()
   const target = new Date(targetIso).getTime()
   const serverNow = nowIso ? new Date(nowIso).getTime() : null
@@ -70,17 +80,22 @@ export function Countdown({
       // the browser's then differ, and the first tick corrects it.
       suppressHydrationWarning
     >
-      <Cell value={hours} label="hrs" />
-      <Cell value={minutes} label="min" />
-      <Cell value={seconds} label="sec" />
+      <Cell value={hours} label="hrs" tone={tone} />
+      <Cell value={minutes} label="min" tone={tone} />
+      <Cell value={seconds} label="sec" tone={tone} />
     </div>
   )
 }
 
-function Cell({ value, label }: { value: number; label: string }) {
+function Cell({ value, label, tone }: {
+  value: number; label: string; tone: 'on-dark' | 'on-surface'
+}) {
   return (
-    <div className="flex min-w-[4.5rem] flex-col items-center rounded-control bg-white/15 px-4 py-3">
-      <span className="text-3xl font-black leading-none tabular-nums" suppressHydrationWarning>
+    <div className={[
+      'flex min-w-[4.25rem] flex-col items-center rounded-control px-3.5 py-2.5',
+      tone === 'on-dark' ? 'bg-white/15' : 'border border-line bg-surface-sunken',
+    ].join(' ')}>
+      <span className="numeral text-3xl font-black leading-none" suppressHydrationWarning>
         {String(value).padStart(2, '0')}
       </span>
       <span className="mt-1 text-[10px] font-bold uppercase tracking-widest opacity-70">{label}</span>

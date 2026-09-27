@@ -1161,7 +1161,7 @@ the logo and the accessibility rule are one decision rather than two.</p>
 <div class="tw"><table>
 <thead><tr><th>File</th><th>What it is</th></tr></thead>
 <tbody>
-<tr><td><code>app/globals.css</code></td><td>The whole system: scales, semantic tokens, all three theme states, and the primitives &mdash; <code>card</code>, <code>eyebrow</code>, <code>numeral</code>, <code>chip</code>, <code>field</code>, <code>pill-brand</code>, and <code>btn</code> with <code>btn-primary</code> / <code>btn-invert</code> / <code>btn-quiet</code>. <code>btn</code> owns the press, disabled and reduced-motion states, so a button never re-implements them</td></tr>
+<tr><td><code>app/globals.css</code></td><td>The whole system: scales, semantic tokens, both theme palettes, the room overrides, and the primitives &mdash; <code>card</code>, <code>eyebrow</code>, <code>numeral</code>, <code>chip</code>, <code>field</code>, <code>pill-brand</code>, and <code>btn</code> with <code>btn-primary</code> / <code>btn-zap</code> / <code>btn-invert</code> / <code>btn-quiet</code>. <code>btn</code> owns the press, disabled and reduced-motion states, so a button never re-implements them</td></tr>
 <tr><td><code>components/Page.tsx</code></td><td>The furniture every inner page was drawing by hand: <code>PageHeader</code>, <code>BackLink</code>, <code>Stat</code>, <code>TableShell</code>, <code>Th</code>, <code>Empty</code>, <code>StatusChip</code>, and <code>Flash</code> for the line a page shows after something happened</td></tr>
 <tr><td><code>components/ThemeToggle.tsx</code></td><td>The three-state theme switch. On every screen, including the landing page and the exam</td></tr>
 <tr><td><code>components/AdminNav.tsx</code></td><td>The admin console's tabs. There were none: getting from Attempts to People meant going back to the console home and picking a tile, every time</td></tr>
@@ -1225,35 +1225,50 @@ and a colour cannot mean two things. Like the status hues it comes as a pair,
   &mdash; but the travel does not.</p>
 </div>
 
-<h3>The theme switch, and its three states</h3>
-<p><code>components/ThemeToggle.tsx</code> cycles three states, not two, and the
-third one is the important one:</p>
+<h3>The theme switch, and its two states</h3>
+<p>Light or dark. There is no third &ldquo;system&rdquo; position, and the
+stylesheet has no un-stamped case to handle: an inline script in
+<code>app/layout.tsx</code> always writes <code>data-theme</code> on
+<code>&lt;html&gt;</code> before the first paint.</p>
 
 <div class="tw"><table>
-<thead><tr><th>State</th><th>What is on the root element</th><th>What decides the colours</th></tr></thead>
+<thead><tr><th>State</th><th>On the root element</th><th>Where it comes from</th></tr></thead>
 <tbody>
-<tr><td><strong>Match my computer</strong> (the default)</td><td>Nothing. No <code>data-theme</code> at all</td><td><code>prefers-color-scheme</code>, so the phone's or laptop's own setting</td></tr>
-<tr><td><strong>Light</strong></td><td><code>data-theme="light"</code></td><td>The bare <code>:root</code> palette, even on a machine set to dark</td></tr>
-<tr><td><strong>Dark</strong></td><td><code>data-theme="dark"</code></td><td>The dark palette, even on a machine set to light</td></tr>
+<tr><td><strong>Light</strong></td><td><code>data-theme="light"</code></td><td>The bare <code>:root</code> palette</td></tr>
+<tr><td><strong>Dark</strong></td><td><code>data-theme="dark"</code></td><td><code>:root[data-theme="dark"]</code>, which redefines the same tokens</td></tr>
 </tbody>
 </table></div>
 
-<p>The choice is kept in <code>localStorage</code> under <code>preppy-theme</code>,
-and "match my computer" is stored by <em>removing</em> the key rather than writing
-the word &mdash; the un-stamped element is what hands control back to the
-operating system.</p>
+<p>The operating system still picks the <em>first</em> impression: with nothing
+in <code>localStorage</code>, the script reads <code>prefers-color-scheme</code>
+once to choose a starting value. It stops mattering the moment anyone touches
+the switch, which is what people actually expect a theme control to do. The
+stored key is <code>preppy-theme</code>, and it only ever holds one of the two
+words.</p>
 
 <div class="note care">
   <h4>Why there is a script in the &lt;head&gt;</h4>
-  <p><code>app/layout.tsx</code> injects four lines that read that key and set the
-  attribute <em>before</em> the first paint. Without it, a student who chose dark
-  gets one white frame on every navigation, because the server has no way to know
-  what is in their browser's storage. That script is the only inline JavaScript in
-  the app, and this is what it buys.</p>
-  <p>The button itself renders an empty square until it has mounted, for the same
-  reason in reverse: before mount it cannot know which of the three states is
-  current, and one frame of the wrong icon is worse than one frame of nothing.</p>
+  <p>Four lines, and they are the only inline JavaScript in the app. Without
+  them a student who chose dark gets one white frame on every navigation,
+  because the server has no way to know what is in their browser's storage.
+  The <code>try/catch</code> falls back to light, which is also what a browser
+  with JavaScript disabled gets from the bare <code>:root</code> palette.</p>
+  <p>The button itself renders an empty square until it has mounted, for the
+  same reason in reverse: before mount it cannot know which state is current,
+  and one frame of the wrong icon is worse than one frame of nothing. It reads
+  the stamped attribute rather than storage, so it can never disagree with what
+  is actually on screen.</p>
 </div>
+
+<div class="note why">
+  <h4>This used to have three states</h4>
+  <p>&ldquo;Match my computer&rdquo; was the default, and it worked by writing
+  <em>no</em> attribute, so the CSS carried a third case
+  (<code>:root:not([data-theme="light"])</code> inside a
+  <code>prefers-color-scheme</code> query) that duplicated every dark token.
+  Two palettes are now two blocks, and the duplicate is gone.</p>
+</div>
+
 </div></section>
 
 <div class="part">

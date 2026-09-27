@@ -16,8 +16,11 @@
      own, so they are paired with distinct shapes (components/OptionShape.tsx).
      Shape survives colour-blindness, a bad monitor, and a bright room.
 
-  Nothing may define a colour only inside a media query: every token is declared
-  on bare :root first and redefined afterwards, or a page renders one theme's
+  There are exactly two themes, light and dark, and no "system" state: an
+  inline script in the root layout stamps data-theme on <html> before the
+  first paint, always. Bare :root is the light palette (and the no-JS
+  fallback); :root[data-theme="dark"] redefines the same tokens. Nothing may
+  define a colour only inside the dark block, or a page renders one theme's
   text on the other theme's background.
 */
 
@@ -177,52 +180,7 @@
   --shadow-float: var(--shadow-mid);
 }
 
-/* The un-stamped default: most people never touch a theme switch, so the OS
-   preference has to work on its own. Guarded so an explicit light choice wins. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
 
-    --page: var(--color-slate-950);
-    --surface: var(--color-slate-900);
-    --surface-sunken: #171222;
-    --surface-raised: var(--color-slate-800);
-    --surface-invert: var(--color-brand-950);
-
-    --text: #f2eefa;
-    --text-soft: #b7aecb;
-    --text-faint: #8d84a3;
-
-    --line: #2f2841;
-    --line-strong: #3f3654;
-
-    --accent: var(--color-brand-400);
-    /* On a light violet fill, white is 3.15:1 -- below AA. The deep brand
-       violet on the same fill is 5.47:1. The primary button is the main
-       action on every form, so it cannot be the one thing that fails. */
-    --text-on-brand: var(--color-brand-950);
-    --accent-hover: var(--color-brand-300);
-    --accent-soft: #241a3d;
-    --accent-text: var(--color-brand-300);
-    --zap: var(--color-zap-400);
-    --zap-solid: var(--color-zap-600);
-    --zap-ink: var(--color-zap-300);
-    --zap-soft: #3a0f26;
-
-    --good: var(--color-good-400);
-    --warn: var(--color-warn-400);
-    --bad: var(--color-bad-400);
-    --good-ink: var(--color-good-400);
-    --warn-ink: var(--color-warn-400);
-    --bad-ink: var(--color-bad-400);
-    --gold: var(--color-gold-300);
-    --mark: #b98cf0;
-    --go: #4ec22e;
-
-    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4);
-    --shadow-float: 0 8px 24px -8px rgb(0 0 0 / 0.6);
-  }
-}
 
 /* And again for an explicit choice, so the toggle wins in both directions. */
 :root[data-theme="dark"] {
@@ -363,10 +321,38 @@ h2, h3 { text-wrap: balance; }
 }
 
 ::selection { background: var(--color-brand-200); color: var(--color-brand-950); }
-:root[data-theme="dark"] ::selection,
-:root:not([data-theme="light"]) ::selection { background: var(--color-brand-700); color: #fff; }
+:root[data-theme="dark"] ::selection { background: var(--color-brand-700); color: #fff; }
 
 /* ------------------------------------------------------- primitives */
+/* --------------------------------------------------------- the front door */
+/**
+ * The landing page was built entirely from fixed values -- brand-950, white at
+ * various alphas -- because it was "violet in both themes anyway". That was
+ * true and it was still wrong: it put a theme switch on a page the switch
+ * could not change. It now has a real light identity and a real dark one.
+ *
+ * Solid colours rather than white-at-an-alpha, because an alpha wash only
+ * works over a ground you already know, and this ground now moves.
+ */
+[data-room="home"] {
+  --page: #f6f2fe;
+  --surface: #ffffff;
+  --surface-sunken: #efe9fc;
+  --line: #e4dbf8;
+  --line-strong: #d0c3f0;
+}
+
+:root[data-theme="dark"] [data-room="home"] {
+  --page: var(--color-brand-950);
+  --surface: #2e1a58;
+  --surface-sunken: #271449;
+  --line: #43296f;
+  --line-strong: #553a86;
+  --text: #ffffff;
+  --text-soft: #cbb9ef;
+  --text-faint: #ab95da;
+}
+
 /* --------------------------------------------------------- the exam room */
 /**
  * Everything else in this app is a game show. This is the forty-five minutes
@@ -404,8 +390,7 @@ h2, h3 { text-wrap: balance; }
   box-shadow: none;
 }
 
-:root[data-theme="dark"] [data-room="exam"],
-:root:not([data-theme="light"]) [data-room="exam"] {
+:root[data-theme="dark"] [data-room="exam"] {
   --chrome: #0b0910;
   --chrome-line: rgb(255 255 255 / 0.08);
   --page: #0b0910;

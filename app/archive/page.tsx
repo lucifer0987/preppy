@@ -47,7 +47,7 @@ export default async function ArchivePage() {
             <Stat label="Papers closed" value={rows.length} />
             <Stat label="You sat" value={sat.length}
                   hint={rows.length > sat.length ? `${rows.length - sat.length} missed` : 'every one'} />
-            <Stat label="Best score" value={best === null ? '—' : best.toFixed(2)} tone="accent" />
+            <Stat label="Best score" value={best === null ? '—' : best.toFixed(2)} tone="zap" />
             <Stat label="Top three finishes" value={podiums} tone={podiums > 0 ? 'good' : 'default'} />
           </StatRow>
         )}

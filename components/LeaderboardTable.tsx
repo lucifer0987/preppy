@@ -145,11 +145,19 @@ function Podium({ row, delay, me }: { row: LeaderboardRow; delay: number; me: bo
       ].join(' ')}
     >
       {first && (
-        <div aria-hidden="true"
-             className="pointer-events-none absolute -right-10 -top-14 h-40 w-40 rounded-full bg-gold-400/25 blur-2xl" />
+        <>
+          {/* Two lights rather than one: gold for the rank, zap for the fact
+              that somebody is winning. The card is the loudest thing on the
+              page and it was reading as merely dark. */}
+          <div aria-hidden="true"
+               className="pointer-events-none absolute -right-12 -top-16 h-44 w-44 rounded-full bg-gold-400/30 blur-2xl" />
+          <div aria-hidden="true"
+               className="pointer-events-none absolute -bottom-16 -left-12 h-36 w-36 rounded-full bg-zap-500/25 blur-2xl" />
+        </>
       )}
       <p className={`relative font-display text-xs font-black uppercase tracking-[0.18em]
                      ${first ? 'text-gold-300' : 'text-ink-faint'}`}>
+        {first && <span aria-hidden="true" className="mr-1.5">&#9733;</span>}
         {place}
       </p>
       <p className={`relative mt-2 truncate text-lg font-bold ${first ? 'text-white' : 'text-ink'}`}>

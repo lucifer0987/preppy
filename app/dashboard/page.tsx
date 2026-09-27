@@ -74,7 +74,7 @@ export default async function Dashboard({
 
   return (
     <AppShell user={user} current="dashboard">
-    <main className="shell pt-8">
+    <main className="shell pt-6">
       <header>
         <p className="eyebrow">{greeting(now)}</p>
         <h1 className="mt-1 text-4xl font-black tracking-tight">{user.displayName}</h1>
@@ -86,7 +86,7 @@ export default async function Dashboard({
         </Flash>
       )}
 
-      <section className="relative mt-8 overflow-hidden rounded-card bg-surface-invert p-6 text-white
+      <section className="relative mt-6 overflow-hidden rounded-card bg-surface-invert p-6 text-white
                           shadow-high sm:p-8">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
           <div className="absolute -right-20 -top-24 h-72 w-72 rounded-full bg-brand-600/40 blur-3xl" />

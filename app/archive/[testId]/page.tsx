@@ -36,7 +36,7 @@ export default async function ArchiveDetail({
 
   if (!paperClosed(record.window)) {
     return (
-      <main className="shell py-16">
+      <main className="shell py-12">
         <div className="card mx-auto max-w-xl p-8 text-center">
           <span className="grid h-12 w-12 place-items-center rounded-full bg-accent-soft mx-auto">
             <svg viewBox="0 0 20 20" aria-hidden="true" className="h-5 w-5 fill-accent">

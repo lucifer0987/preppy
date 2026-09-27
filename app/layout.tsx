@@ -64,12 +64,17 @@ export const viewport: Viewport = {
  * paints the wrong theme first, and a white flash on the way into a dark page at
  * five to ten is worse than no toggle at all.
  *
- * "system" writes no attribute, which is what leaves prefers-color-scheme in
- * charge -- the CSS is built around that being the un-stamped default. Wrapped in
- * try/catch because localStorage throws outright in a locked-down browser.
+ * There are two themes and no "system" state, so this always stamps a concrete
+ * value. With nothing stored it reads the operating system once, to pick a
+ * first impression rather than to hand over control -- from then on the switch
+ * is the only thing that decides. Wrapped in try/catch because localStorage
+ * throws outright in a locked-down browser; that path stamps light, which is
+ * also what a browser with no JavaScript gets from the bare :root palette.
  */
 const THEME_SCRIPT = `try{var t=localStorage.getItem('preppy-theme');
-if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}`
+if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+document.documentElement.setAttribute('data-theme',t)}catch(e){
+document.documentElement.setAttribute('data-theme','light')}`
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
