@@ -29,14 +29,14 @@ export default async function LeaderboardPage({
   // A failed read must say so. Rendering it as an empty board would tell
   // everyone the history had been wiped.
   let failure: string | null = null
-  let rows: Awaited<ReturnType<typeof getLeaderboard>> = []
+  let board: Awaited<ReturnType<typeof getLeaderboard>> = { rows: [], maxMarks: 0, papers: 0 }
   let standings: Awaited<ReturnType<typeof getPaperStandings>> = null
   let papers: Awaited<ReturnType<typeof boardPapers>> = []
   try {
-    ;[papers, rows, standings] = await Promise.all([
+    ;[papers, board, standings] = await Promise.all([
       // Scoped to the papers this student may look at.
       boardPapers(user.id),
-      test ? Promise.resolve([]) : getLeaderboard(lastN ? { lastN } : {}),
+      test ? Promise.resolve({ rows: [], maxMarks: 0, papers: 0 }) : getLeaderboard(lastN ? { lastN } : {}),
       test ? getPaperStandings(test, user.id) : Promise.resolve(null),
     ])
   } catch (e) {
@@ -50,9 +50,9 @@ export default async function LeaderboardPage({
       <PageHeader
         title="Leaderboard"
         lede="Points across the last seven papers by default, and all time if you ask for it. It takes each result in the moment it is scored."
-        meta={!test && rows.length > 0
+        meta={!test && board.rows.length > 0
           ? <span className="numeral">
-              {lastN ? `Last ${lastN} papers` : 'All time'} &middot; {rows.length} on the board
+              {lastN ? `Last ${lastN} papers` : 'All time'} &middot; {board.rows.length} on the board
             </span>
           : undefined}
       />
@@ -68,7 +68,7 @@ export default async function LeaderboardPage({
         ) : test ? (
           <PaperRankList standings={standings} meUserId={user.id} />
         ) : (
-          <LeaderboardTable rows={rows} meUserId={user.id} />
+          <LeaderboardTable rows={board.rows} maxMarks={board.maxMarks} meUserId={user.id} />
         )}
       </div>
 

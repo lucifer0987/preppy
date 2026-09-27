@@ -33,13 +33,13 @@ export default async function AdminBoard({
   const lastN = win === 'all' ? undefined : win === '30' ? 30 : DEFAULT_BOARD_PAPERS
 
   let failure: string | null = null
-  let rows: Awaited<ReturnType<typeof getLeaderboard>> = []
+  let board: Awaited<ReturnType<typeof getLeaderboard>> = { rows: [], maxMarks: 0, papers: 0 }
   let standings: Awaited<ReturnType<typeof getPaperStandings>> = null
   let papers: Awaited<ReturnType<typeof boardPapers>> = []
   try {
-    ;[papers, rows, standings] = await Promise.all([
+    ;[papers, board, standings] = await Promise.all([
       boardPapers(),
-      test ? Promise.resolve([]) : getLeaderboard(lastN ? { lastN } : {}),
+      test ? Promise.resolve({ rows: [], maxMarks: 0, papers: 0 }) : getLeaderboard(lastN ? { lastN } : {}),
       test ? getPaperStandings(test) : Promise.resolve(null),
     ])
   } catch (e) {
@@ -54,8 +54,8 @@ export default async function AdminBoard({
         compact
         title="Leaderboard"
         lede="Points across the last seven papers by default, and all time if you ask for it. A result joins the moment it is scored."
-        meta={!test && rows.length > 0
-          ? <span className="numeral">{scope} &middot; {rows.length} on the board</span>
+        meta={!test && board.rows.length > 0
+          ? <span className="numeral">{scope} &middot; {board.rows.length} on the board</span>
           : undefined}
         actions={<StatusChip tone="done">What students see</StatusChip>}
       />
@@ -70,13 +70,13 @@ export default async function AdminBoard({
           </Flash>
         ) : test ? (
           <PaperRankList standings={standings} meUserId="" />
-        ) : rows.length === 0 ? (
+        ) : board.rows.length === 0 ? (
           <Empty>
             Nothing on the board yet. A paper joins it when it finishes, so the first entries
             appear once the first paper has run.
           </Empty>
         ) : (
-          <LeaderboardTable rows={rows} meUserId="" />
+          <LeaderboardTable rows={board.rows} maxMarks={board.maxMarks} meUserId="" />
         )}
       </div>
 

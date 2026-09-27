@@ -15,10 +15,16 @@ import { StreakBadge } from './StreakBadge'
  * ranking rule.
  */
 export function LeaderboardTable({
-  rows, meUserId, compact = false,
+  rows, meUserId, maxMarks, compact = false,
 }: {
   rows: LeaderboardRow[]
   meUserId: string
+  /**
+   * What a perfect run of the papers in this window is worth, so the Total
+   * header can say what a total is out of. Omitted where the window is not on
+   * screen to compare it against.
+   */
+  maxMarks?: number
   /** The dashboard's inline panel (PRD 6.3): the table only, no podium. */
   compact?: boolean
 }) {
@@ -58,7 +64,9 @@ export function LeaderboardTable({
                 <Th className="w-12 pl-5">#</Th>
                 <Th className="w-10"><span className="sr-only">Movement</span></Th>
                 <Th>Student</Th>
-                <Th align="right">Total</Th>
+                <Th align="right">
+                  Total{maxMarks ? <> of <span className="numeral">{maxMarks}</span></> : null}
+                </Th>
                 <Th align="right">Papers</Th>
                 <Th align="right">Avg</Th>
                 <Th align="right">Accuracy</Th>
@@ -149,44 +157,65 @@ function Td({ children, strong = false }: { children: React.ReactNode; strong?: 
 }
 
 /** First, second and third, with first raised a step on wide screens. */
+/**
+ * First, second and third, as a podium rather than three cards in a row.
+ *
+ * The shape carries the meaning: first is the tallest and stands in the
+ * middle, second steps down on the left, third down again on the right, and
+ * every bottom edge lines up so the steps read as a podium and not as a
+ * layout accident. Each place wears its own medal -- gold, silver, bronze --
+ * fixed in both themes, because a medal that changed colour with the theme
+ * would stop being a medal.
+ */
 function Podium({ row, delay, me }: { row: LeaderboardRow; delay: number; me: boolean }) {
-  const first = row.rank === 1
-  const order = row.rank === 1 ? 'sm:order-2' : row.rank === 2 ? 'sm:order-1' : 'sm:order-3'
-  const place = row.rank === 1 ? '1st' : row.rank === 2 ? '2nd' : '3rd'
+  const place = row.rank === 1 ? 1 : row.rank === 2 ? 2 : 3
+  const look = {
+    // The step is a min-height, not padding: a podium whose heights came out
+    // of how much was in each card put third above first the moment one of
+    // them had a streak badge and the other did not.
+    1: {
+      order: 'sm:order-2',
+      step: 'sm:min-h-[15rem]',
+      fill: 'bg-medal-1 text-medal-1-ink shadow-high',
+      label: '1st',
+    },
+    2: {
+      order: 'sm:order-1',
+      step: 'sm:min-h-[13rem]',
+      fill: 'bg-medal-2 text-medal-2-ink shadow-float',
+      label: '2nd',
+    },
+    3: {
+      order: 'sm:order-3',
+      step: 'sm:min-h-[11.25rem]',
+      fill: 'bg-medal-3 text-medal-3-ink shadow-float',
+      label: '3rd',
+    },
+  }[place]
 
   return (
     <li
       style={{ animationDelay: `${delay}ms` }}
       className={[
-        'relative overflow-hidden rounded-card p-5 text-center',
+        'relative flex flex-col justify-center overflow-hidden rounded-card p-5 text-center',
         'motion-safe:animate-[rise_420ms_cubic-bezier(.2,.8,.2,1)_both]',
-        order,
-        first
-          ? 'bg-surface-invert text-white shadow-high sm:pb-8 sm:pt-7'
-          : 'card',
-        me && !first ? 'ring-2 ring-accent' : '',
+        look.order, look.step, look.fill,
+        // The reader's own row is outlined rather than recoloured: the fill is
+        // already saying something else.
+        me ? 'ring-2 ring-accent ring-offset-2 ring-offset-page' : '',
       ].join(' ')}
     >
-      {first && (
-        <>
-          {/* Two lights rather than one: gold for the rank, zap for the fact
-              that somebody is winning. The card is the loudest thing on the
-              page and it was reading as merely dark. */}
-          <div aria-hidden="true"
-               className="pointer-events-none absolute -right-12 -top-16 h-44 w-44 rounded-full bg-gold-400/30 blur-2xl" />
-          <div aria-hidden="true"
-               className="pointer-events-none absolute -bottom-16 -left-12 h-36 w-36 rounded-full bg-zap-500/25 blur-2xl" />
-        </>
+      {place === 1 && (
+        // One light, from above, so the gold has somewhere to catch.
+        <div aria-hidden="true"
+             className="pointer-events-none absolute -right-10 -top-14 h-40 w-40 rounded-full bg-white/40 blur-2xl" />
       )}
-      <p className={`relative font-display text-xs font-black uppercase tracking-[0.18em]
-                     ${first ? 'text-gold-300' : 'text-ink-faint'}`}>
-        {first && <span aria-hidden="true" className="mr-1.5">&#9733;</span>}
-        {place}
+      <p className="relative font-display text-xs font-black uppercase tracking-[0.18em] opacity-85">
+        {place === 1 && <span aria-hidden="true" className="mr-1.5">&#9733;</span>}
+        {look.label}
       </p>
-      <p className={`relative mt-2 truncate text-lg font-bold ${first ? 'text-white' : 'text-ink'}`}>
-        {row.displayName}
-      </p>
-      <p className={`numeral relative mt-1 text-3xl font-black ${first ? 'text-white' : 'text-accent'}`}>
+      <p className="relative mt-2 truncate text-lg font-bold">{row.displayName}</p>
+      <p className={`numeral relative mt-1 font-black ${place === 1 ? 'text-4xl' : 'text-3xl'}`}>
         {row.totalPoints.toFixed(2)}
       </p>
       {row.currentStreak > 0 && (

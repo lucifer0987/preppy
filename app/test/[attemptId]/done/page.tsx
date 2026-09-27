@@ -131,13 +131,25 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
   const best = previous.reduce((a, r) => Math.max(a, Number(r.total_score ?? 0)), -Infinity)
   const isPersonalBest = counted && previous.length > 0 && score > best
 
-  // Reduced to figures before it reaches the page: the best on the night and
+  // Reduced to figures before it reaches the page: the best on the paper and
   // what the room averaged, never who scored what.
-  const cohort = standings && standings.rows.length > 0
+  //
+  // This student's own attempt is folded in rather than trusted to be in the
+  // list. It is the one row on this page that cannot be wrong -- it is the
+  // attempt being rendered -- and a summary of the room that leaves out the
+  // person reading it can contradict the score printed above it. A band that
+  // said "you 4.00, best on this paper -1.75" is the bug this prevents,
+  // whatever made the list come back short.
+  const cohortScores = standings
+    ? standings.rows.some((r) => r.userId === user.id)
+      ? standings.rows.map((r) => r.score)
+      : [...standings.rows.map((r) => r.score), score]
+    : null
+  const cohort = cohortScores && cohortScores.length > 0
     ? {
-        of: standings.rows.length,
-        best: Math.max(...standings.rows.map((r) => r.score)),
-        average: standings.rows.reduce((n, r) => n + r.score, 0) / standings.rows.length,
+        of: cohortScores.length,
+        best: Math.max(...cohortScores),
+        average: cohortScores.reduce((n, v) => n + v, 0) / cohortScores.length,
       }
     : null
 

@@ -13,6 +13,8 @@ interface Counted {
   records: AttemptRecord[]
   /** Every paper on the board, ascending. */
   paperKeys: string[]
+  /** What a perfect paper is worth, per paper key. */
+  maxByPaper: Map<string, number>
   /**
    * The subset that has closed, for streaks. A paper still open is on the
    * board the moment somebody finishes it, but it must not break the streak
@@ -61,15 +63,24 @@ async function loadCounted(now = new Date()): Promise<Counted> {
   // Today is a cheap upper bound; which papers have actually closed depends on
   // each one's own times, so the real filter happens here rather than in SQL.
   const candidates = await selectAll<Record<string, unknown>>('papers', (from, to) =>
-    client.from('tests').select('id, date, opens_at_min, entry_closes_at_min, attempt_sec, ended_at')
+    client.from('tests')
+      // sections come along so the board can say what a total is out of: the
+      // header reads "Total of 385", and 385 is the sum of the perfect scores
+      // of the papers in the window.
+      .select('id, date, opens_at_min, entry_closes_at_min, attempt_sec, ended_at, sections(question_count, marks_correct)')
       .eq('status', 'SCHEDULED').lte('date', istDate(now))
       .order('date').range(from, to))
 
   const tests = candidates
-    .map((t) => ({ id: t['id'] as string, window: windowOf(t) }))
+    .map((t) => ({
+      id: t['id'] as string,
+      window: windowOf(t),
+      maxMarks: ((t['sections'] ?? []) as { question_count: number; marks_correct: number }[])
+        .reduce((n, sec) => n + sec.question_count * Number(sec.marks_correct), 0),
+    }))
     .sort((a, b) => paperKeyOf(a.window).localeCompare(paperKeyOf(b.window)))
 
-  if (!tests.length) return { records: [], paperKeys: [], settledKeys: [] }
+  if (!tests.length) return { records: [], paperKeys: [], settledKeys: [], maxByPaper: new Map() }
 
   await finaliseOverdueAttempts(now).catch((e: Error) => console.error('[leaderboard] finalise', e.message))
 
@@ -111,7 +122,11 @@ async function loadCounted(now = new Date()): Promise<Counted> {
     .map((t) => paperKeyOf(t.window))
     .filter((k) => sat.has(k) || settled.has(k))
 
-  return { records: records.filter((r) => paperKeys.includes(r.paperKey)), paperKeys, settledKeys }
+  const maxByPaper = new Map(tests.map((t) => [paperKeyOf(t.window), t.maxMarks]))
+  return {
+    records: records.filter((r) => paperKeys.includes(r.paperKey)),
+    paperKeys, settledKeys, maxByPaper,
+  }
 }
 
 /**
@@ -124,11 +139,29 @@ async function loadCounted(now = new Date()): Promise<Counted> {
  */
 export const DEFAULT_BOARD_PAPERS = 7
 
+export interface Board {
+  rows: LeaderboardRow[]
+  /**
+   * What a perfect run of the papers in this window would have scored, so the
+   * header can say "Total of 385" rather than leaving the reader to guess what
+   * a total is out of. Papers, not students: it is the same number for
+   * everybody on the board.
+   */
+  maxMarks: number
+  /** How many papers the window covers. */
+  papers: number
+}
+
 /** Throws on a failed read, so a database error never renders as an empty board. */
-export async function getLeaderboard(options: { lastN?: number } = {}): Promise<LeaderboardRow[]> {
-  const { records, paperKeys, settledKeys } = await loadCounted()
-  if (!paperKeys.length) return []
-  return buildLeaderboard(records, paperKeys, { ...options, streakKeys: settledKeys })
+export async function getLeaderboard(options: { lastN?: number } = {}): Promise<Board> {
+  const { records, paperKeys, settledKeys, maxByPaper } = await loadCounted()
+  if (!paperKeys.length) return { rows: [], maxMarks: 0, papers: 0 }
+  const inScope = options.lastN ? paperKeys.slice(-options.lastN) : paperKeys
+  return {
+    rows: buildLeaderboard(records, paperKeys, { ...options, streakKeys: settledKeys }),
+    maxMarks: Math.round(inScope.reduce((n, k) => n + (maxByPaper.get(k) ?? 0), 0) * 100) / 100,
+    papers: inScope.length,
+  }
 }
 
 export interface ResultStanding {

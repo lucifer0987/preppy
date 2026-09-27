@@ -141,7 +141,7 @@ export default async function Dashboard({
       .catch((e: Error) => { console.error('[dashboard] board', e.message); return null }),
     getArchive(user.id).catch((e: Error) => { console.error('[dashboard] archive', e.message); return null }),
   ])
-  const mine = board?.find((r) => r.userId === user.id)
+  const mine = board?.rows.find((r) => r.userId === user.id)
 
   return (
     <AppShell user={user} current="dashboard">
@@ -320,7 +320,7 @@ export default async function Dashboard({
         <div className="mt-3">
           {board === null
             ? <p className="card p-6 text-sm text-ink-soft">The board would not load. Your scores are safe; try again in a moment.</p>
-            : <LeaderboardTable rows={board} meUserId={user.id} compact />}
+            : <LeaderboardTable rows={board.rows} maxMarks={board.maxMarks} meUserId={user.id} compact />}
         </div>
       </section>
       </div>

@@ -628,6 +628,24 @@ h2, h3 { text-wrap: balance; }
   &:disabled { opacity: .55; cursor: default; }
 }
 
+/**
+ * The three places on the podium.
+ *
+ * Fixed in both themes, like the four answer colours: gold, silver and bronze
+ * are the one piece of visual language nobody has to be taught, and a medal
+ * that changed colour with the theme would stop being a medal. Each ink is
+ * picked to clear AA on its own fill, so the name and the score are readable
+ * rather than decorative.
+ */
+@theme {
+  --color-medal-1:     #f0b429;  /* gold-400   */
+  --color-medal-1-ink: #3a2206;
+  --color-medal-2:     #c6cbd6;  /* a cool silver */
+  --color-medal-2-ink: #2b2f3a;
+  --color-medal-3:     #c07a33;  /* bronze     */
+  --color-medal-3-ink: #2a1705;
+}
+
 /* A small fixed-brand badge: white on violet, the same in both themes. */
 @utility pill-brand {
   display: inline-flex;
