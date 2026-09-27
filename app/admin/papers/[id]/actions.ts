@@ -116,10 +116,15 @@ export async function endNowAction(formData: FormData) {
   if (!(await actionAdmin())) redirect('/login')
   const id = String(formData.get('id'))
   let closed = 0
+  let stuck = 0
   let failure: string | null = null
   try {
     const report = await endPaperNow(id)
     closed = report.finalised
+    // An attempt the sweep could not score is the one thing here that leaves
+    // the paper and its attempts disagreeing, so it is reported rather than
+    // rounded down to "done".
+    stuck = report.failed
   } catch (e) {
     failure = (e as Error).message
   }
@@ -128,7 +133,7 @@ export async function endNowAction(formData: FormData) {
   revalidatePath('/leaderboard')
   revalidatePath('/dashboard')
   if (failure) redirect(`/admin/papers/${id}/manage?error=${encodeURIComponent(failure)}`)
-  redirect(`/admin/papers/${id}/manage?done=ended&closed=${closed}`)
+  redirect(`/admin/papers/${id}/manage?done=ended&closed=${closed}&stuck=${stuck}`)
 }
 
 /**

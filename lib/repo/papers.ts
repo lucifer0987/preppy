@@ -342,7 +342,9 @@ export async function paperLock(id: string): Promise<PaperLock | null> {
 
   const reason =
     realAttempts > 0
-      ? `${realAttempts} student${realAttempts === 1 ? ' has' : 's have'} sat this paper, so it cannot be removed or unscheduled. Correct it question by question instead.`
+      ? `${realAttempts} student${realAttempts === 1 ? ' has' : 's have'} sat this paper, so it cannot be `
+        + 'unscheduled and its questions cannot be swapped underneath them. Correct it question by '
+        + 'question, or delete it and their attempts together from Manage.'
       : status === 'SCHEDULED' && opened
         ? 'This paper has already gone live, so it cannot be removed or unscheduled.'
         : null
@@ -630,6 +632,22 @@ export async function deletePaper(id: string, opts: { force?: boolean } = {}): P
   if (lock.realAttempts > 0 && !opts.force) {
     throw new Error(lock.reason ?? 'This paper has been sat, so it cannot be deleted.')
   }
+
+  if (lock.realAttempts > 0) {
+    // A trigger refuses an ordinary delete while a counted attempt points at
+    // the paper, and should: it is the last thing between a misclick and a
+    // night of everybody's work. Taking the attempts first, in one
+    // transaction, is what "delete it and everything on it" means -- and
+    // saying so in a function beats weakening the guard for every route.
+    const { error } = await db().rpc('delete_paper_with_attempts', { p_test: id })
+    if (error) {
+      if (/NO_SUCH_PAPER/.test(error.message)) throw new Error('That paper no longer exists.')
+      throw new Error(`Could not delete the paper: ${error.message}`)
+    }
+    await deletePaperImages(id)
+    return
+  }
+
   const { data, error } = await db().from('tests').delete().eq('id', id).select('id')
   if (error) throw new Error(`Could not delete the paper: ${error.message}`)
   if (!data?.length) throw new Error('That paper no longer exists.')

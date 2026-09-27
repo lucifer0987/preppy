@@ -379,15 +379,15 @@ html{scroll-behavior:smooth}
 <p>One repeating 24-hour cycle. <strong>Almost every state is computed from the clock on read.</strong> Exactly one job does durable work.</p>
 <div class="clock">
   <div class="ct"><time>—</time><div><h5>Admin prepares</h5><p>Upload, validate, dry-run and schedule a paper for any future date.</p></div></div>
-  <div class="ct key"><time>22:00</time><div><h5>Test unlocks</h5><p>Status reads <code>LIVE</code>. Dashboard flips from countdown to the entry card.</p></div></div>
-  <div class="ct key"><time>23:15</time><div><h5>Entry closes</h5><p>No attempt may start at or after 23:15. Last possible start is 23:14:59.</p></div></div>
+  <div class="ct key"><time>its unlock time</time><div><h5>The paper opens</h5><p>22:00 in this example, and set per paper. The dashboard flips from a countdown to the entry card.</p></div></div>
+  <div class="ct key"><time>its last entry</time><div><h5>Entry closes</h5><p>23:15 here. No attempt may start at or after it; the last possible start is one second before. An admin may move this while the paper runs (FR-6.9.8), and may end the paper outright before it (FR-6.9.7).</p></div></div>
   <div class="ct key"><time>24:00</time><div><h5>Hard stop</h5><p>Midnight. The 23:14:59 entrant's 45 minutes expire, and answers unlock.</p></div></div>
   <div class="ct"><time>00:00</time><div><h5>Archive unlocks</h5><p>Questions, keys and solutions become visible to everyone. Computed on read.</p></div></div>
-  <div class="ct key"><time>00:01</time><div><h5>Leaderboard refresh</h5><p>The night's paper joins the leaderboard, ranks and streaks. Computed on read; anything still open is scored first.</p></div></div>
+  <div class="ct key"><time>the paper's own close</time><div><h5>Leaderboard refresh</h5><p>The paper joins the leaderboard, ranks and streaks &mdash; at its own hard stop, not at midnight, so a paper that ran at breakfast is on the board by mid-morning. Computed on read; anything still open is scored first.</p></div></div>
   <div class="ct key"><time>13:00 &amp; 01:00</time><div><h5>Finalise</h5><p>Force-submit and score any attempt still open. <em>The only scheduled job, run twice a day.</em></p></div></div>
 </div>
 <div class="fr"><p><b class="id">FR-4.1</b><strong>Entry closes at 23:15 while the window runs to midnight.</strong> The 45-minute tail exists so a student starting at the last possible moment still gets their full 45 minutes.</p></div>
-<div class="fr"><p><b class="id">FR-4.2</b><strong>Score appears the instant a student submits; rank waits for 00:01.</strong> The result page shows the score and its full breakdown at once. Everything that compares one student with another — the leaderboard, "2nd of 5", the leaderboard delta, archive ranks, streaks — takes in the night's paper at 00:01, once every attempt on it has had to end. That is what keeps FR-5.3 true: nobody can read off a rank who has or has not sat tonight's paper.</p></div>
+<div class="fr"><p><b class="id">FR-4.2</b><strong>Score appears the instant a student submits; rank waits for the paper to close.</strong> The result page shows the score and its full breakdown at once. Everything that compares one student with another — the leaderboard, "2nd of 5", the leaderboard delta, the best-and-average comparison, archive ranks, streaks — takes the paper in at its own hard stop, once every attempt on it has had to end. That is what keeps FR-5.3 true: nobody can read off a rank who has or has not sat tonight's paper.</p></div>
 <div class="fr"><p><b class="id">FR-4.3</b>Correct answers and solutions are withheld from <strong>every</strong> user — including those who already submitted — until 00:00.</p></div>
 <h3>Lifecycle</h3>
 <p><strong>Test:</strong> <code>DRAFT</code> → <code>SCHEDULED</code> → <code>LIVE</code> → <code>CLOSED</code>. <code>LIVE</code> and <code>CLOSED</code> are <strong>derived from the clock</strong>, not written by a job.</p>
@@ -447,19 +447,20 @@ html{scroll-behavior:smooth}
 <div class="fr"><p><b class="id">FR-6.1.4</b>Starting a test invalidates that user's other sessions.</p></div>
 
 <h3>6.2 &nbsp;Home screen — logged out</h3>
-<p>Product name, tonight's pattern summary, a <strong>live countdown to the next 22:00 unlock</strong>, and a single <strong>Log in</strong> action. No sign-up link.</p>
+<p>Product name, tonight's pattern summary, and a single <strong>Log in</strong> action. No sign-up link. Where the paper stands decides the rest: a <strong>live countdown</strong> to the next paper's unlock when one is scheduled, <strong>&ldquo;open now&rdquo;</strong> with its last entry while one is running, and the plain truth when there is neither &mdash; a fabricated countdown to a moment nothing happens at is worse than no countdown.</p>
 <div class="fr"><p><b class="id">FR-6.2.1</b>No public leaderboard preview. With five members, an "anonymised top 5" is the entire cohort.</p></div>
 
 <h3>6.3 &nbsp;Dashboard</h3>
 <h4>Panel 1 — Tonight's test</h4>
 <div class="tw"><table>
 <tr><th>Condition</th><th>Display</th></tr>
-<tr><td>Live, not attempted, before 23:15</td><td>Entry card: date, pattern, marking, time left to enter, <strong>Start Test</strong></td></tr>
-<tr><td>Live, in progress</td><td><strong>Resume Test</strong> with live remaining time</td></tr>
-<tr><td>Live, at/after 23:15, not attempted</td><td>"Entry closed at 11:15 PM" + countdown to tomorrow</td></tr>
-<tr><td>Live, already submitted</td><td>Score, "Your rank appears at 12:01 AM", "Answers unlock at midnight"</td></tr>
-<tr><td>Not live</td><td>Countdown to 22:00, current streak</td></tr>
-<tr><td>No test scheduled</td><td>"No test tonight" + countdown to the next scheduled paper</td></tr>
+<tr><td>Open, not attempted, entry still open</td><td>Entry card: date, pattern, marking, a countdown to last entry, <strong>Start test</strong></td></tr>
+<tr><td>Open, in progress</td><td><strong>Resume test</strong> with the live remaining time of the current section</td></tr>
+<tr><td>Open, entry closed, not attempted</td><td>"Entry closed at <em>its</em> last-entry time", and the next paper</td></tr>
+<tr><td>Already submitted, paper still running</td><td>Score, a countdown to the paper's own close, and <strong>See your result</strong>. <em>Never</em> Start test &mdash; entry staying open is a fact about the paper, not about this student</td></tr>
+<tr><td>Already submitted, paper closed</td><td>Score, rank, <strong>See your result</strong> and <strong>Review answers</strong></td></tr>
+<tr><td>Nothing open</td><td>The next paper: its date and unlock time, a countdown when that is inside a day and a half, and the current streak</td></tr>
+<tr><td>Nothing scheduled</td><td>"No paper tonight", said plainly. A night without one never breaks a streak</td></tr>
 </table></div>
 <div class="fr"><p><b class="id">FR-6.3.1</b><strong>Start Test</strong> opens a briefing: pattern, marking, section order, the one-way section rule, the full-screen policy, and "your timer starts the moment you press Begin". The server stamps <code>started_at</code> on that action.</p></div>
 <h4>Panel 2 — Test archive</h4>
@@ -469,7 +470,7 @@ html{scroll-behavior:smooth}
 <div class="fr"><p><b class="id">FR-6.3.4</b>A missed test can be <strong>reviewed but never attempted</strong>.</p></div>
 <p>Filters: by section · <strong>"questions I got wrong"</strong> · <strong>"questions I never reached"</strong>.</p>
 <h4>Panel 3 — Leaderboard</h4>
-<p>Five students, shown inline in full. The current user's row is highlighted.</p>
+<p>The whole cohort, inline, however many that is. The current user's row is highlighted.</p>
 
 <h3>6.4 &nbsp;Test engine</h3>
 <div class="mock" role="img" aria-label="Mock of the Kahoot-themed test interface: a question with five shape-coded colour option cards and a question palette showing the five status colours.">
@@ -546,16 +547,17 @@ html{scroll-behavior:smooth}
 </div>
 
 <h3>6.6 &nbsp;Results</h3>
-<p>Everything on this page is about the student and nobody else.</p>
+<p>Until the paper closes, everything on this page is about the student and nobody else. After it closes the board shows the cohort their scores anyway, and a result you cannot place against anything is half a result &mdash; so the comparison waits for exactly the moment the ranks do.</p>
 <ul>
 <li><strong>Headline:</strong> total out of 55, animated count-up, full Kahoot celebration.</li>
-<li><strong>Rank:</strong> <em>"2nd of 5,"</em> from 00:01 (FR-4.2). No percentile — at n=5 a percentile is noise.</li>
-<li><strong>Sectional table:</strong> score, attempted, correct, wrong, <strong>skipped</strong>, <strong>not reached</strong>, accuracy, time used.</li>
+<li><strong>Rank:</strong> <em>"2nd of 5,"</em> from the paper's own close (FR-4.2). No percentile — at n=5 a percentile is noise.</li>
+<li><strong>Sectional table:</strong> marks, attempted, right, wrong, unanswered, accuracy and time used, a row per section. A table rather than four cards, because eight figures a section is what a section is and columns let them be compared downwards as well as across.</li>
 <li><strong>Pacing verdict</strong> from the skipped/not-reached split: <em>"You never reached 4 questions in Quant. That's a speed problem, not a knowledge problem."</em></li>
 <li><strong>Slowest three questions</strong> per section.</li>
 <li><strong>Integrity:</strong> the two counters.</li>
-<li><strong>Leaderboard delta:</strong> cumulative rank before → after, from 00:01.</li>
-<li><strong>Review answers</strong> — enabled from 00:00.</li>
+<li><strong>Where this sits</strong> — from the paper's close: your score, the best on the night, and what the room averaged, as three bars on one axis. Two figures, never a name.</li>
+<li><strong>Leaderboard delta:</strong> cumulative rank before → after, from the paper's close.</li>
+<li><strong>Review answers</strong> — enabled at the same moment.</li>
 </ul>
 
 <h3>6.7 &nbsp;Leaderboard</h3>
@@ -570,7 +572,8 @@ html{scroll-behavior:smooth}
 <div class="fr"><p><b class="id">FR-6.7.3</b><strong>Computed on read.</strong> Five students across a few hundred tests is a trivial aggregate. A snapshot table would be more machinery than the query it replaces — and it would need its own invalidation story after a rescore.</p></div>
 <div class="fr"><p><b class="id">FR-6.7.4</b>Voided and dry-run attempts excluded. Negative cumulative totals are possible and displayed honestly.</p></div>
 <div class="fr"><p><b class="id">FR-6.7.5</b><strong>A new member starts from zero.</strong> A sixth student joining in month two begins at 0 cumulative points and climbs from there. Accepted deliberately; the <strong>Last 30</strong> filter is the view that stays meaningful for them.</p></div>
-<p>Filters: All-time (default) · <strong>Last 30</strong> · a single test's rank list. Top 3 render as an animated Kahoot podium.</p>
+<p>Filters: All-time (default) &middot; <strong>Last 7 papers</strong> &middot; <strong>Last 30 papers</strong> &middot; a single paper's rank list. Counted in papers rather than days, since a day may hold more than one. Top 3 render as an animated Kahoot podium.</p>
+<div class="fr"><p><b class="id">FR-6.7.6</b><strong>The admin sees the same board, in the console.</strong> Same figures, same filters, no row of their own &mdash; their attempts are dry runs and are counted nowhere. Reaching it used to mean leaving the console for the student view, which is an odd trip to make to answer <em>&ldquo;who is actually turning up&rdquo;</em>; the per-paper rank list is the view an admin wants most, since it is the night-by-night one the cumulative board hides.</p></div>
 
 <h3>6.8 &nbsp;Streaks <span class="pill p1">P1</span></h3>
 <p>Current streak, longest streak, personal-best celebration, podium. <strong>No badge system</strong> — streaks and the podium carry the motivational load.</p>
@@ -592,13 +595,34 @@ html{scroll-behavior:smooth}
 <tr><td>Wrong question count · missing or unparseable key · key not among the options · fewer than 2 or more than 5 options · duplicate question numbers · referenced image not uploaded · <code>directions</code> range covering non-existent questions · unrecognised section code · date already holds a published test</td><td>No solution · no tag · no difficulty · option text over 300 characters · fewer than 5 options</td></tr>
 </table></div>
 <h4>Dry run</h4>
-<div class="fr"><p><b class="id">FR-6.9.2</b>The admin can take <strong>any</strong> test — <code>DRAFT</code>, <code>SCHEDULED</code>, <code>LIVE</code> or <code>CLOSED</code> — as a dry run, using the real test engine: real sectional timers, real full-screen, real scoring. The attempt is stored with <code>is_dry_run = true</code>, visible only to the admin, excluded from the leaderboard, ranks and every aggregate. Dry runs can be repeated and deleted freely.</p></div>
+<div class="fr"><p><b class="id">FR-6.9.2</b>The admin can take <strong>any</strong> test — <code>DRAFT</code>, <code>SCHEDULED</code>, <code>LIVE</code> or <code>CLOSED</code> — as a dry run, using the real test engine: real sectional timers, real full-screen, real scoring. The attempt is stored with <code>is_dry_run = true</code>, excluded from the leaderboard, ranks and every aggregate.</p></div>
+<div class="fr"><p><b class="id">FR-6.9.2a</b><strong>A dry run is a rehearsal, not a record.</strong> Starting one removes the admin's previous dry run on that paper, and the Attempts screen never lists them at all. The row exists while the rehearsal runs, because the engine needs somewhere to put the answers &mdash; but an admin who walks a paper three times should leave one row behind, not three, and the console should never imply more people sat a paper than did.</p></div>
 <p>This is how a paper gets proofread at full speed, and it is why FR-5.2 can be so blunt: the admin has a first-class way to take tests that is <strong>structurally incapable of competing</strong>.</p>
 <h4>Users, tests &amp; export</h4>
-<p>Create a single user; bulk-create from CSV; auto-generate passwords; reset; activate/deactivate; view any student's attempt history. Browse every test with all questions, keys and solutions, and edit any of them after publication.</p>
+<p>Create a single user; bulk-create from CSV; auto-generate passwords; rename anyone &mdash; students and admins alike &mdash; by pressing the name; reset a password; activate/deactivate; view any student's attempt history. Browse every test with all questions, keys and solutions, and edit any of them after publication.</p>
+<div class="fr"><p><b class="id">FR-6.9.6</b><strong>A reset asks twice.</strong> Setting a new password ends every session the account has open, including a student halfway through tonight's paper, so it is two presses rather than one. The username is the login and never changes; the display name is what the board and the archive show, so it is editable at any time.</p></div>
 <div class="fr"><p><b class="id">FR-6.9.3</b><strong>Rescore.</strong> Editing a key on a closed test offers Rescore, which recomputes every affected attempt. Because the leaderboard is computed on read, <strong>nothing else needs recomputing</strong> — the board is correct on the next page load. Affected students see a "this test was rescored" notice.</p></div>
 <div class="fr"><p><b class="id">FR-6.9.4</b><strong>One item statistic.</strong> The admin sees <strong>% correct</strong> per question and nothing else per item. Any item below 10% correct is flagged for key review. This is the minimum needed to catch a bad key, which is the only reason item statistics exist here.</p></div>
 <div class="fr"><p><b class="id">FR-6.9.5</b>A single <strong>Export question bank (JSON)</strong> action producing every test ever published, with sections, questions, options, keys and solutions.</p></div>
+
+<h4>Managing a paper that is already out</h4>
+<p>Everything above is about getting a paper right <em>before</em> it runs. This is the half the first draft of this document did not have, and its absence was felt the first time something went wrong at ten past ten: a scheduled paper was furniture. Its window was fixed at the moment it was scheduled, it ended when arithmetic said it ended, and a mistake in it could only be corrected one key at a time. <strong>Manage</strong> is the screen for the other case.</p>
+<p>The rule running through all five controls: each is scoped to what is still <em>safe</em>, and each says what it does to the people sitting the paper, in figures. A paper with twelve minutes left and two students in it is not a row in a table and the screen should not pretend it is.</p>
+
+<div class="fr"><p><b class="id">FR-6.9.7</b><strong>End it now, for everyone.</strong> Whatever the window says. Nobody new can start, every attempt still running is submitted and scored exactly where it stands, and answers, the archive and the leaderboard open from that instant. Two presses, the second naming how many students are in the room. It cannot be undone &mdash; a student cut off at question thirty has been cut off &mdash; which is why it asks.</p></div>
+
+<div class="fr"><p><b class="id">FR-6.9.8</b><strong>Move the window while it runs.</strong> The flexible half: somebody has not sat it yet and you want to hold the door open a little longer. Moving the last moment to start moves the finish with it, so whoever starts at the new time still gets the whole paper &mdash; the FR-4.1 guarantee is not negotiable, it is arithmetic. Once the paper has opened its opening time is fixed, because moving that would rewrite when attempts already running were allowed to begin.</p></div>
+
+<div class="fr"><p><b class="id">FR-6.9.9</b><strong>Change what the questions are worth.</strong> Marking per section, for one paper, after which every finished attempt on it is scored again. Same reasoning as FR-6.9.3: the board is computed on read, so making the stored scores agree with the marking is the whole operation.</p></div>
+
+<div class="fr"><p><b class="id">FR-6.9.10</b><strong>Replace the questions.</strong> When the file itself was wrong rather than one key in it, upload a corrected version over the paper. It keeps its id, its night and its place in the schedule, so every link still works and nobody schedules it again; whoever has not sat it yet simply gets the new version. <strong>Refused once anybody has sat it</strong> &mdash; their answers point at the questions this would delete, and a score against questions that no longer exist is a number with nothing behind it.</p></div>
+
+<div class="fr"><p><b class="id">FR-6.9.11</b><strong>Delete it.</strong> A paper nobody has sat goes whether or not it has opened. Being unable to remove a live one was the real gap: it left a broken paper on screen until midnight. One that <em>has</em> been sat needs an explicit confirmation that states how many attempts go with it, because they go with it &mdash; answers, scores, leaderboard entries and all.</p></div>
+
+<div class="note care">
+  <h4>Why this is not just &ldquo;unschedule&rdquo;</h4>
+  <p>Unscheduling was already there and does none of this. It is refused the moment a paper opens, which is precisely when you need it, and it hides the paper rather than stopping the clock &mdash; a student mid-attempt would carry on. The five controls above exist because <em>hiding</em> and <em>ending</em> are different things, and only one of them was ever built.</p>
+</div>
 </div></section>
 
 <!-- 7 -->
@@ -749,10 +773,11 @@ html{scroll-behavior:smooth}
 <tr><td>Browser crash / power loss</td><td>Same as refresh; responses persisted to the last write</td></tr>
 <tr><td>Network loss</td><td>Non-blocking banner; responses queue locally and flush on reconnect; timer keeps running</td></tr>
 <tr><td>Two devices, same account</td><td>Starting a test invalidates other sessions</td></tr>
-<tr><td>Attempt still open at midnight</td><td>Force-submitted and scored; marked <code>AUTO_SUBMITTED</code></td></tr>
+<tr><td>Attempt still open at the paper's hard stop</td><td>Force-submitted and scored; marked <code>AUTO_SUBMITTED</code>. Also what happens, at once, when an admin ends the paper early</td></tr>
 <tr><td>Browser died, row stuck open</td><td>Cleaned up by the next finalise run and scored from persisted responses</td></tr>
 <tr><td>Client clock altered</td><td>No effect — the server owns the clock</td></tr>
-<tr><td>Student tries to start at 23:15:00</td><td>Rejected server-side</td></tr>
+<tr><td>Student tries to start at the last-entry second</td><td>Rejected server-side</td></tr>
+<tr><td>Student tries to start a paper an admin has just ended</td><td>Rejected, and told so in those words rather than blamed on the clock</td></tr>
 <tr><td>Zero attempts on a test</td><td>Closes normally; leaderboard unchanged; archive still opens</td></tr>
 <tr><td>Admin publishes no paper</td><td>Dashboard shows "Not scheduled"; <strong>streaks are not broken by an admin no-show</strong></td></tr>
 <tr><td>Admin takes the test</td><td>Always a dry run — never counted, never ranked</td></tr>
@@ -818,13 +843,14 @@ html{scroll-behavior:smooth}
 <section id="s15"><div class="col">
 <h2><i>15</i>What shipped</h2>
 
-<p>Phases 1 and 2 are complete. This is what exists, rather than what was planned.</p>
+<p>Phases 1 and 2 are complete, and so is the tail of work that followed them &mdash; the things that are invisible until a real paper runs on a real night. This is what exists, rather than what was planned.</p>
 
 <div class="tw"><table>
 <tr><th>Phase</th><th>Delivered</th></tr>
 <tr><td><strong>0</strong><br>Foundation</td><td>Supabase project and the schema &middot; RLS deny-all on every table &middot; Supabase Auth with the synthetic-email mapping &middot; seed script &middot; Next.js, Tailwind, Kahoot tokens &middot; admin shell and role gating &middot; Asia/Kolkata time handling</td></tr>
 <tr><td><strong>1</strong><br>The product</td><td>Paper validator and preview &middot; dry run &middot; publish and schedule &middot; the one nightly job &middot; clock-derived test status &middot; the test engine with sectional timers, palette, one-way navigation and Next Section &middot; <code>was_visited</code> tracking &middot; full screen with two counters &middot; server-authoritative timer with resume &middot; scoring &middot; results with absolute rank &middot; read-time leaderboard with tie-breaks &middot; archive with full review &middot; the three-panel dashboard &middot; rescore &middot; question-bank export &middot; device gate</td></tr>
 <tr><td><strong>2</strong><br>Polish and the gaps</td><td>Kahoot motion layer, confetti and podium &middot; streaks &middot; Last-30 filter &middot; the two archive filters &middot; pacing verdict &middot; per-item percent correct &middot; bulk user CSV &middot; sound toggle &mdash; plus two requirements the spec stated and the build had not yet honoured: <strong>must-change-password on first login</strong> and <strong>one attempt open in one place</strong></td></tr>
+<tr><td><strong>2+</strong><br>Living with it</td><td>The half that only became visible once papers actually ran. <strong>More than one paper a day</strong>, each with its own window, and nothing keyed off the calendar day any more &middot; <strong>a configurable pattern</strong>, so section counts, durations and marking stopped being constants &middot; <strong>managing a paper that is already out</strong> &mdash; end it, retime it, remark it, replace it, delete it (FR-6.9.7&ndash;11) &middot; renaming accounts &middot; the board in the console, with the student's filters &middot; the best-and-average comparison on the result &middot; dry runs that stop accumulating &middot; the whole interface rebuilt against real screenshots, in two themes, to AA contrast &middot; and every read covered by a suite that talks to the real project</td></tr>
 </table></div>
 
 <h3>Things the build added that this document did not ask for</h3>
@@ -833,13 +859,17 @@ html{scroll-behavior:smooth}
 <div class="tw"><table>
 <tr><th>Mechanism</th><th>Why it exists</th></tr>
 <tr><td><strong>Optimistic locking on the answer key</strong><br><code>key_version</code> on <code>tests</code> and <code>attempts</code></td><td>An answer key corrected while somebody is mid-paper would otherwise let their submission bank against the old key. A submission carrying a stale version is detected and rescored instead</td></tr>
-<tr><td><strong>Rate limits counted in the database</strong><br>a ninth table plus three functions</td><td>Counting in server memory does not work on a serverless host: every instance keeps its own tally, so the limit is however many instances are running</td></tr>
+<tr><td><strong>Rate limits counted in the database</strong><br>a table of their own plus three functions</td><td>Counting in server memory does not work on a serverless host: every instance keeps its own tally, so the limit is however many instances are running</td></tr>
 <tr><td><strong>Explicit session revocation</strong><br><code>revoke_user_sessions</code></td><td>FR-6.1.4 asked for one attempt in one place. Reaching into the auth schema to end the other sessions needs elevated rights, so it is a function rather than a query</td></tr>
 <tr><td><strong>Paged reads</strong><br><code>selectAll</code></td><td>PostgREST caps a response at 1,000 rows, and a capped response looks exactly like a complete one. The leaderboard would have started losing attempts silently as the history grew</td></tr>
-<tr><td><strong>Private image storage</strong><br>plus an app route that checks permission</td><td>A diagram for a DI set is part of the question. Served straight from Storage it would leak the paper before 10 PM</td></tr>
+<tr><td><strong>Private image storage</strong><br>plus an app route that checks permission</td><td>A diagram for a DI set is part of the question. Served straight from Storage it would leak the paper before it opened</td></tr>
 <tr><td><strong>The schema tested as SQL</strong><br><code>tests/schema.test.ts</code> on in-process Postgres</td><td>The functions that must be atomic are the ones a type system cannot check. They are now exercised as SQL rather than trusted</td></tr>
 <tr><td><strong>A window per paper</strong><br>on <code>tests</code>, with the global setting demoted to a default</td><td>The times were a constant, then a global setting, and both made a second paper in a day impossible. Each paper now carries its own window, chosen when it is scheduled. The hard stop stays derived as entry close plus one paper, so the full-attempt guarantee holds whatever is chosen, and a database constraint refuses a window running past midnight</td></tr>
 <tr><td><strong>More than one paper a day</strong><br>and one attempt at a time</td><td>A date no longer identifies a paper. Scheduling refuses windows that overlap, and a database index allows a student only one counted attempt in progress across every paper, since two at once would split 45 minutes across two clocks</td></tr>
+<tr><td><strong>A paper can be managed after it has gone out</strong></td><td><code>tests.ended_at</code>, plus three functions</td><td>A scheduled paper used to be furniture: fixed window, arithmetic ending, corrections one key at a time. That is fine until something goes wrong at ten past ten. An admin can now end it for everybody, move its window, change its marking, replace its questions, or delete it &mdash; each scoped to what is still safe (FR-6.9.7&ndash;11)</td></tr>
+<tr><td><strong>An early end that overrules the clock</strong></td><td><code>ended_at</code> beats every derived time, and can only bring the stop forward</td><td>The one exception to &ldquo;everything is computed on read&rdquo;, and a deliberate one. Taking the earlier of the stamp and the derived stop means a stale row can shorten a paper but never push one past the day its constraint keeps it inside</td></tr>
+<tr><td><strong>A dry run that does not accumulate</strong></td><td>Each start removes the last; the console never lists them</td><td>They were counted nowhere but shown everywhere, so the Attempts screen implied more people had sat a paper than had</td></tr>
+<tr><td><strong>The reads tested against the real project</strong></td><td><code>npm run test:live</code>, read-only, opt-in</td><td>A select that forgets a column is invisible to TypeScript and to an in-process Postgres. It had already shipped twice &mdash; once leaving Export question bank a 500 that nothing noticed, because nothing had ever called it</td></tr>
 <tr><td><strong>Nothing keys off the calendar day</strong></td><td>Answers unlocking, joining the leaderboard and entering the archive all waited for midnight or 00:01. They now wait for the paper's own hard stop, so a paper that ran at breakfast is reviewable by mid-morning</td></tr>
 <tr><td><strong>Numbered migrations</strong><br><code>supabase/migrations/</code></td><td>One re-runnable schema file worked while every change was additive. A numbered chain with a runner records what has been applied, so dev and production cannot silently diverge Collapsed to two files &mdash; the baseline and everything since &mdash; once it was clear the intermediate steps had never been applied to any database. The next change is a third file.</td></tr>
 <tr><td><strong>A design system</strong></td><td><code>app/globals.css</code></td><td>Seven flat hues and three greys became raw scales plus a semantic layer (<code>--surface</code>, <code>--text</code>, <code>--accent</code>) that the components address instead of colours. Dark mode follows from that rather than being bolted on, which matters for a product whose papers run at night. Gold joins violet, because rank, streaks and the podium had no colour of their own. Three faces replace one: Nunito displays, IBM Plex Sans is what the questions are actually read in, Plex Mono holds figures that must not shift. Kahoot’s option shapes stay, and are now the wordmark too</td></tr>
@@ -850,8 +880,8 @@ html{scroll-behavior:smooth}
 <p>Computer Awareness and General Awareness as toggleable sections &middot; disciplines beyond CSE &middot; a second exam track with its own pattern &middot; practice mode over the archive, leaderboard-excluded &middot; a PWA and offline archive reading &middot; percentiles if the cohort ever exceeds 30.</p>
 
 <div class="good">
-  <h4>The one thing still unproven</h4>
-  <p>The schema and its functions are exercised against real Postgres, and 374 tests cover the pure logic. What has never run is the layer that talks to Supabase over the network: the queries in <code>lib/repo/</code>, signing in, and reading an image out of Storage. The engineering reference has a ten-minute walkthrough that exercises nearly all of it.</p>
+  <h4>What is still unproven</h4>
+  <p>The schema and its functions are exercised against real Postgres, 382 tests cover the pure logic, and <code>npm run test:live</code> now runs every <em>read</em> the app makes against the real project &mdash; a suite that exists because a select which forgets a column is invisible to both TypeScript and an in-process Postgres, and had already shipped twice. What no automated test reaches is the half that writes: signing in, starting and submitting an attempt, and reading an image out of Storage. The engineering reference has a ten-minute walkthrough that covers those.</p>
 </div>
 </div></section>
 
@@ -876,7 +906,7 @@ html{scroll-behavior:smooth}
 </table></div>
 <p class="end">
 <b>Requirement index</b><br>
-FR-3.1–3.4 pattern, marking, not-reached · FR-4.1–4.3 the clock · FR-5.1 no sign-up · FR-5.2 admin attempts are dry runs · FR-5.3 students see only the leaderboard · FR-6.1.1–4 auth · FR-6.2.1 no public preview · FR-6.3.1–4 dashboard · FR-6.4.1–11 test engine · FR-6.5.1–8 integrity · FR-6.7.1–5 leaderboard · FR-6.9.1–5 admin, dry run, rescore, export · FR-7.1–2 paper format · FR-8.1 no celebration mid-section · FR-9.1 was_visited · FR-9.2 the DB is the question bank · FR-10.1–4 architecture · FR-13.1 key confidentiality
+FR-3.1–3.4 pattern, marking, not-reached · FR-4.1–4.3 the clock · FR-5.1 no sign-up · FR-5.2 admin attempts are dry runs · FR-5.3 students see only the leaderboard · FR-6.1.1–4 auth · FR-6.2.1 no public preview · FR-6.3.1–4 dashboard · FR-6.4.1–11 test engine · FR-6.5.1–8 integrity · FR-6.7.1–6 leaderboard · FR-6.9.1–11 admin, dry run, rescore, export, and managing a paper already out · FR-7.1–2 paper format · FR-8.1 no celebration mid-section · FR-9.1 was_visited · FR-9.2 the DB is the question bank · FR-10.1–4 architecture · FR-13.1 key confidentiality
 </p>
 </div></section>
 

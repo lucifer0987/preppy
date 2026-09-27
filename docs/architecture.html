@@ -218,7 +218,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <div><dt>SQL functions</dt><dd>11</dd></div>
     <div><dt>Migrations</dt><dd>2</dd></div>
     <div><dt>Modules</dt><dd>30<small>lib/</small></dd></div>
-    <div><dt>Tests</dt><dd>374</dd></div>
+    <div><dt>Tests</dt><dd>382</dd></div>
     <div><dt>Runtime deps</dt><dd>8</dd></div>
   </dl>
 </header>
@@ -438,12 +438,21 @@ figcaption b{color:var(--ink-2); font-weight:600}
 
 <p>The tail between last entry and the hard stop is one whole paper, and it is not slack. A student starting one minute before entry closes still gets every minute the paper allows; the hard stop is defined as exactly that. Nobody ever sits a shortened paper.</p>
 
+<h3>The one time the clock is overruled</h3>
+<p>There is a single exception to &ldquo;everything is derived&rdquo;, and it is deliberate: <code>tests.ended_at</code>. An admin can end a paper for everybody, on the spot, whatever its window says &mdash; because the alternative, when something has gone wrong at ten past ten, is watching a broken paper run until midnight.</p>
+<p>The stamp beats every other time on the paper. From that instant <code>windowState</code> reports <code>CLOSED</code>, nobody new can start, the hard stop moves to the stamp so an attempt still running has run out of time, and answers, the archive and the leaderboard all open. Two properties keep it honest:</p>
+<ul>
+<li><strong>It can only ever bring the stop forward.</strong> <code>hardStopAt</code> takes the earlier of the stamp and the derived stop, so a stale row or a skewed clock can shorten a paper but never extend one past the day its constraint keeps it inside.</li>
+<li><strong>Ending is a write, not just a flag.</strong> Setting the stamp is the first half; the second is the ordinary overdue sweep, run for that paper alone, which submits and scores every attempt still open. The sweep does not decide to cut anybody short &mdash; by the time it runs, the paper already has.</li>
+</ul>
+<p>Because it is stored rather than derived, every read of a paper has to carry it. <code>PAPER_WINDOW_COLUMNS</code> exists for that, and <code>paperWindowOf</code> throws on a row that lacks the column rather than defaulting it: absent reads exactly like &ldquo;never ended&rdquo;, which would silently turn an ended paper back into a running one for whichever screen forgot.</p>
+
 <h3>Changing the times</h3>
 <p>There are two levels, and they do different jobs.</p>
 <div class="tw"><table>
 <thead><tr><th>Level</th><th>Where</th><th>What it affects</th></tr></thead>
 <tbody>
-<tr><td><strong>This paper's window</strong></td><td>The schedule form on the paper's own admin page</td><td>Only that paper. Set when you schedule it.</td></tr>
+<tr><td><strong>This paper's window</strong></td><td>The schedule form on the paper's own admin page, and <strong>Manage</strong> afterwards</td><td>Only that paper. Set when you schedule it, and movable while it runs.</td></tr>
 <tr><td><strong>The default offered</strong></td><td>Admin console &rarr; <strong>Nightly window</strong>, stored in <code>app_settings</code></td><td>What the schedule form is pre-filled with next time. Never moves a paper already scheduled.</td></tr>
 </tbody>
 </table></div>
@@ -475,7 +484,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
   <rect x="20" y="160" width="470" height="76" rx="8" fill="none" stroke="#0E767F" stroke-width="2.5"/>
   <text x="38" y="184" font-size="13.5" font-weight="700" fill="currentColor">Pure domain logic</text>
   <text x="38" y="203" font-size="10.5" fill="currentColor" opacity=".7">time &middot; attempt &middot; scoring &middot; leaderboard &middot; paper &middot; csv &middot; images</text>
-  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 374 tests live here</text>
+  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 382 tests live here</text>
 
   <rect x="20" y="252" width="470" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
   <text x="38" y="276" font-size="13.5" font-weight="600" fill="currentColor">Repository</text>
@@ -613,6 +622,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td><code>was_visited</code></td><td>responses</td><td>The difference between <em>never reached</em> and <em>skipped</em>. A row is written when a question is opened, not when it is answered</td></tr>
 <tr><td><code>key_version</code></td><td>tests, attempts</td><td>Optimistic locking. If an answer key changes while someone is mid-paper, their submission is detected as stale and rescored rather than silently banked against the old key</td></tr>
 <tr><td><code>attempt_sec</code></td><td><code>tests</code></td><td>How long this paper runs, the sum of its sections, kept in step by trigger. It is what the hard stop is derived from, so a 90-minute paper stops 90 minutes after entry closes and not 45</td></tr>
+<tr><td><code>ended_at</code></td><td><code>tests</code></td><td>Null on almost every paper. Set when an admin ends one early, and then it beats every derived time on it &mdash; see <a href="#s3">the daily clock</a>. A read that forgets this column reports an ended paper as still running, so <code>paperWindowOf</code> refuses a row without it</td></tr>
 <tr><td><code>fullscreen_exits</code><br><code>tab_switches</code></td><td>attempts</td><td>All the integrity recording there is. Two integers, no event log &mdash; which is also why this codebase has no log-retention policy anywhere</td></tr>
 </table></div>
 
@@ -625,6 +635,9 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td><code>finish_attempt</code></td><td>Locks the row, refuses to double-score, and rejects a submission carrying a stale <code>key_version</code></td></tr>
 <tr><td><code>save_paper</code></td><td>Writes a test, its sections, its directions blocks and every question atomically. A half-written paper would go live with questions missing</td></tr>
 <tr><td><code>apply_rescore</code></td><td>Rewrites every affected attempt in one statement and stamps the paper</td></tr>
+<tr><td><code>apply_paper_rescore</code></td><td>The same write without a key change, for when the marking moved rather than an answer. Same staleness check, same reason</td></tr>
+<tr><td><code>replace_paper_content</code></td><td>Swaps every question in a paper that already exists, keeping its id, its night and its place in the schedule. Half a swap would be a paper with two versions of itself in it</td></tr>
+<tr><td><code>delete_paper_with_attempts</code></td><td>The one route past <code>tests_no_delete_with_attempts</code>: it takes the attempts first, in the same transaction, which is what &ldquo;delete it and everything on it&rdquo; means. Saying so in a function beats weakening the guard for every other route</td></tr>
 <tr><td><code>rate_limit_hit</code></td><td>Counting must be shared. A serverless host runs many instances and each would keep its own count</td></tr>
 <tr><td><code>revoke_user_sessions</code></td><td>Reaches into <code>auth.sessions</code>, which needs elevated rights</td></tr>
 </table></div>
@@ -751,7 +764,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 
     <rect x="616" y="52" width="128" height="50" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
     <text x="680" y="74" text-anchor="middle" font-weight="600" font-size="11.5">Schedule</text>
-    <text x="680" y="90" text-anchor="middle" font-size="9.5" opacity=".65">goes live 10 PM</text>
+    <text x="680" y="90" text-anchor="middle" font-size="9.5" opacity=".65">live in its window</text>
   </g>
 
   <line x1="138" y1="77" x2="164" y2="77" stroke="currentColor" stroke-width="1.5" marker-end="url(#a6)"/>
@@ -1022,15 +1035,16 @@ figcaption b{color:var(--ink-2); font-weight:600}
 
 <div class="tw"><table>
 <tr><th>Layer</th><th>Status</th></tr>
-<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 374 tests, no database needed</td></tr>
+<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 382 tests, no database needed</td></tr>
 <tr><td>The schema, its functions, triggers and indexes</td><td><strong>Tested against real Postgres.</strong> <code>tests/schema.test.ts</code> applies every migration to an in-process Postgres and exercises each function and guard. <code>tests/migrate.test.ts</code> proves the chain is ordered and that a second run changes nothing</td></tr>
+<tr><td>The queries &mdash; what <code>lib/repo/</code> actually asks PostgREST for</td><td><strong>Tested against the real project, on request.</strong> <code>npm run test:live</code> runs every read the app makes against the Supabase project in <code>.env.local</code>. Read-only, so it is safe to point at production, and skipped when there are no credentials. It exists because a select that forgets a column is invisible to both TypeScript and pglite &mdash; and had already shipped twice</td></tr>
 <tr><td>The queries in <code>lib/repo/</code></td><td><strong>Typechecked only.</strong> The PostgREST calls have never run against a live server</td></tr>
 <tr><td>Supabase Auth and Storage</td><td><strong>Typechecked only</strong></td></tr>
 </table></div>
 
 <div class="note care">
   <h4>So the gap is narrower than it looks, but it is real</h4>
-  <p>The dangerous part &mdash; the SQL that must be atomic &mdash; is exercised as SQL. What has never run is the layer that talks to Supabase over the network: the <code>.from().select()</code> calls, signing in, and reading an image out of Storage. Section 18 is a walkthrough that exercises nearly all of it in ten minutes. Do it before a paper night that counts.</p>
+  <p>The dangerous part &mdash; the SQL that must be atomic &mdash; is exercised as SQL, and <code>npm run test:live</code> now runs every <em>read</em> against the real project. What is still not covered is the half that writes: signing in, starting and submitting an attempt, and reading an image out of Storage, none of which can be exercised read-only. Section 18 is a walkthrough that covers those in ten minutes. Do it before a paper night that counts.</p>
   <p>That gap is not theoretical. Three bugs of the same shape have already been found by reading rather than by running: a query that selected fewer columns than the code then read off the row. Each produced a window of <code>undefined</code>, which every check answers &ldquo;no&rdquo; to and every date arithmetic turns into <code>Invalid Date</code> &mdash; a briefing page that hid <strong>Begin</strong> from every student, and a live test screen whose hard stop and section deadlines were all <code>NaN</code>. Nothing typechecked wrong, because the row was cast to the shape the code wanted.</p>
   <p>The defence now is <code>paperWindowOf</code>: every window is built through it, and it throws if a column is missing rather than returning a window nobody can use. The rule it enforces is worth stating plainly &mdash; <strong>never cast a database row to a shape wider than the columns you selected</strong>.</p>
 </div>
@@ -1386,7 +1400,7 @@ words.</p>
     <text x="179" y="209" text-anchor="middle" font-weight="600">typecheck</text>
     <line x1="226" y1="205" x2="238" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="238" y="186" width="94" height="38" rx="6" fill="none" stroke="#94202B" stroke-width="2"/>
-    <text x="285" y="209" text-anchor="middle" font-weight="600">374 tests</text>
+    <text x="285" y="209" text-anchor="middle" font-weight="600">382 tests</text>
     <line x1="332" y1="205" x2="344" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="344" y="186" width="84" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
     <text x="386" y="209" text-anchor="middle" font-weight="600">build</text>
@@ -1411,7 +1425,8 @@ words.</p>
 <tr><td><code>npm run start:local</code></td><td><span class="pill local">rare</span></td><td>Serves that build on port 3000</td></tr>
 <tr><td><code>npm run build:prod</code></td><td><span class="pill prod">before shipping</span></td><td>Typecheck, all tests, then build without source maps</td></tr>
 <tr><td><code>npm run start:prod</code></td><td><span class="pill prod">on the host</span></td><td>Serves the production build</td></tr>
-<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>374 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>382 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm run test:live</code></td><td><span class="pill both">after touching a query</span></td><td>Runs every read <code>lib/repo/</code> makes against the real project in <code>.env.local</code>. Read-only. Skipped when there are no credentials</td></tr>
 <tr><td><code>npm run typecheck</code></td><td><span class="pill both">anytime</span></td><td>Checks types without building</td></tr>
 <tr><td><code>npm run seed</code></td><td><span class="pill both">setup</span></td><td>Creates the accounts, prints passwords once</td></tr>
 <tr><td><code>npm run secret</code></td><td><span class="pill both">setup</span></td><td>Prints a random string for CRON_SECRET</td></tr>
@@ -1434,7 +1449,7 @@ words.</p>
 <div class="note care">
   <h4>Where you are today</h4>
   <p>There is one Supabase project, <code>preppy-dev</code>, and no deployment. Everything below describes what to do <em>when</em> you put this in front of students &mdash; it is not something you have to act on now, and nothing in the app needs it.</p>
-  <p>One thing does follow from it, though. With a single database, migrations only ever have to be applied in one place, which is why collapsing them into two files was safe. Once <code>preppy-prod</code> exists, the same files have to be run against both, and then the rule about never editing an applied file starts to carry real weight &mdash; production would have run it and your laptop would not, or the other way round.</p>
+  <p>One thing does follow from it, though. With a single database, migrations only ever have to be applied in one place, which is why collapsing the early ones into a single baseline was safe. Once <code>preppy-prod</code> exists, the same files have to be run against both, and then the rule about never editing an applied file starts to carry real weight &mdash; production would have run it and your laptop would not, or the other way round.</p>
 </div>
 
 
@@ -1539,7 +1554,7 @@ words.</p>
 <b>npm install</b></pre>
 </div>
 <p>Downloads everything into a <code>node_modules</code> folder. Safe to re-run at any time.</p>
-<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>374 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
+<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>382 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
 </li>
 
 <li>
@@ -1646,7 +1661,7 @@ filled in where it says <code>[YOUR-PASSWORD]</code>.</p>
 
 <li>
 <h4>Create the tables</h4>
-<p>An empty Supabase project has no tables in it. The two files in
+<p>An empty Supabase project has no tables in it. The files in
 <code>supabase/migrations/</code> put them there, and a small program called the
 <em>runner</em> applies them for you. There are two ways to do it, and they end
 up in exactly the same place.</p>
@@ -1657,11 +1672,13 @@ up in exactly the same place.</p>
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>npm run migrate</b>
 
-<i>  Applying 2 migrations...
+<i>  Applying 4 migrations...
     applied  0001_baseline.sql
     applied  0002_since_baseline.sql
+    applied  0003_managing_a_live_paper.sql
+    applied  0004_deleting_a_paper_that_was_sat.sql
 
-  Done. 2 migrations applied in total.</i></pre>
+  Done. 4 migrations applied in total.</i></pre>
 </div>
 
 <p><strong>Or</strong>, if you would rather not keep a database password on your
@@ -1676,17 +1693,17 @@ the SQL instead. Paste it into Supabase under <strong>SQL Editor</strong> &rarr;
 that out. Either way, <code>npm run migrate -- --status</code> tells you what has
 landed and what has not, at any time.</p>
 
-<p>Between them the two files create:</p>
+<p>Between them the files create:</p>
 <div class="tw"><table>
 <tr><th>What</th><th>How many</th><th>For</th></tr>
 <tr><td>Tables</td><td>11</td><td>People, papers, attempts, answers, the two settings tables, rate limits</td></tr>
 <tr><td>Types</td><td>5</td><td>Roles, paper status, attempt state, section codes</td></tr>
-<tr><td>Functions</td><td>11</td><td>The operations that must be all-or-nothing</td></tr>
+<tr><td>Functions</td><td>13</td><td>The operations that must be all-or-nothing</td></tr>
 <tr><td>Triggers</td><td>3</td><td>Refusing to delete a paper students have sat; keeping each paper's length in step with its sections</td></tr>
-<tr><td>Indexes</td><td>28</td><td>Speed, plus the keys that enforce uniqueness &mdash; one counted attempt per person, one scheduled paper per opening</td></tr>
+<tr><td>Indexes</td><td>29</td><td>Speed, plus the keys that enforce uniqueness &mdash; one counted attempt per person, one scheduled paper per opening</td></tr>
 <tr><td>Access rules</td><td>11</td><td>Row Level Security on every table</td></tr>
 </table></div>
-<p><strong>Check it worked:</strong> open <strong>Table Editor</strong>. You should see ten tables, each with an <strong>RLS enabled</strong> badge. That badge is intentional &mdash; it means nothing can read those tables except your own server.</p>
+<p><strong>Check it worked:</strong> open <strong>Table Editor</strong>. You should see eleven tables, each with an <strong>RLS enabled</strong> badge. That badge is intentional &mdash; it means nothing can read those tables except your own server.</p>
 <div class="note do">
   <h4>Safe to run twice</h4>
   <p>The whole file is written to be re-runnable: it creates nothing that already exists and replaces functions in place. If you are ever unsure whether it applied, run it again. There is a test that proves this &mdash; <em>"applies twice without error"</em>.</p>
@@ -1735,7 +1752,7 @@ landed and what has not, at any time.</p>
   - Local:  http://localhost:3000
   Ready in 404ms</i></pre>
 </div>
-<p>Open <a href="http://localhost:3000">localhost:3000</a>. You should see the countdown to 10 PM. Log in as <code>admin</code>, change the password when asked, and you are in.</p>
+<p>Open <a href="http://localhost:3000">localhost:3000</a>. With nothing scheduled yet it says so and gives the times a paper would usually run at; once one is scheduled the same card becomes a countdown to it. Log in as <code>admin</code>, change the password when asked, and you are in.</p>
 <p>Leave this running while you work. <kbd>Ctrl</kbd>+<kbd>C</kbd> stops it.</p>
 </li>
 
@@ -1751,7 +1768,7 @@ landed and what has not, at any time.</p>
 <ol>
 <li><strong>Upload a paper.</strong> Admin &rarr; Upload &rarr; choose <code>format/sample.json</code>. It is a complete 55-question paper.</li>
 <li><strong>Set its date to today</strong> and schedule it.</li>
-<li><strong>Dry run it.</strong> A dry run ignores the 10 PM window, so you can take it at any hour. It never counts.</li>
+<li><strong>Dry run it.</strong> A dry run ignores the paper's window, so you can take it at any hour. It never counts, and the next one replaces it.</li>
 </ol>
 <p>That gives you a filled result page and something in the archive within a few minutes.</p>
 </div></section>
@@ -1810,17 +1827,19 @@ landed and what has not, at any time.</p>
   <p>You will not usually write them. You will run one command after pulling new code, and read what it says.</p>
 </div>
 
-<p>There are two files, in <code>supabase/migrations/</code>. Nothing else defines the schema.</p>
+<p>There are four files, in <code>supabase/migrations/</code>. Nothing else defines the schema.</p>
 
 <div class="tw"><table>
 <thead><tr><th>File</th><th>What it holds</th></tr></thead>
 <tbody>
 <tr><td><code>0001_baseline.sql</code></td><td>The schema as it was first applied: the tables, the SQL functions, the triggers, and the access rules. This is the file your database already has</td></tr>
 <tr><td><code>0002_since_baseline.sql</code></td><td>Everything added since, in one file: the default window, a window per paper, the default section pattern, and how long each paper runs</td></tr>
+<tr><td><code>0003_managing_a_live_paper.sql</code></td><td>What an admin can do to a paper after it has gone out: <code>tests.ended_at</code> for an early end, and the two functions behind replacing its questions and scoring it again</td></tr>
+<tr><td><code>0004_deleting_a_paper_that_was_sat.sql</code></td><td>The deliberate route past the delete guard, for throwing a broken paper away along with the attempts on it</td></tr>
 </tbody>
 </table></div>
 
-<p>Two files, not six. The steps that once sat between them were collapsed into one, because they had never been applied to any database &mdash; there was no history to preserve. That was a one-off tidy-up rather than the normal way of working, and the paragraph below says what happens next time.</p>
+<p>The first two were once six. The steps between them were collapsed into one, because they had never been applied to any database &mdash; there was no history to preserve. That was a one-off tidy-up rather than the normal way of working, and the paragraph below says what happens next time.</p>
 
 <p>The baseline is not special to the runner; it is simply file number one. Each database keeps a <code>schema_migrations</code> table listing the versions it has had. The runner compares that list against the files on disk and applies whatever is missing, in order. <strong>Each file runs inside a transaction with its own tracking entry</strong>, so a file either lands completely and is recorded, or does not land at all. A failure leaves the database on the last complete version, never half-way through one.</p>
 
@@ -1911,13 +1930,35 @@ landed and what has not, at any time.</p>
 </li>
 </ol>
 
+<h3>When it has gone out and something is wrong</h3>
+<p>Everything above is about getting a paper right before it runs. <strong>Manage</strong>, on a scheduled paper, is for when it is already out. Each control is scoped to what is actually still safe, and each says what it does to the people sitting it &mdash; in figures, because a paper with twelve minutes left and two students in it is not a row in a table.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Control</th><th>What it does</th><th>Available</th></tr></thead>
+<tbody>
+<tr><td><strong>Move the window</strong></td><td>Changes the last moment to start, and with it the finish, so whoever starts at the new time still gets the whole paper. The flexible half: somebody has not sat it yet and you want to hold the door open</td><td>While scheduled and not finished. Once it has opened, the opening time is fixed &mdash; moving it would rewrite when attempts already running were allowed to begin</td></tr>
+<tr><td><strong>End it now, for everyone</strong></td><td>Stamps <code>ended_at</code>, so nobody can start; then closes and scores every attempt still running, exactly as the nightly job closes an overdue one. Answers, the archive and the leaderboard open at once</td><td>While it is open or finishing. Two presses, the second naming how many students are in it</td></tr>
+<tr><td><strong>Change what the questions are worth</strong></td><td>Marking per section, for this paper only, after which every finished attempt is scored again through <code>apply_paper_rescore</code>. The board never disagrees with the marking it came from</td><td>Always. The marks are written first and the rescore second, because stale scores are recoverable by running it again and scores written against unsaved marks are not</td></tr>
+<tr><td><strong>Replace the questions</strong></td><td>Upload a corrected file over the paper. It keeps its id, its night and its place in the schedule; only what is inside it changes, so every link still works and nothing is scheduled again. The file must carry the same date</td><td>Only while nobody has sat it. Their answers point at the questions this deletes, and a score against questions that no longer exist is a number with nothing behind it</td></tr>
+<tr><td><strong>Delete it</strong></td><td>A paper nobody has sat goes whether or not it has opened &mdash; being unable to remove a live one is what left a broken paper on screen until midnight. One that has been sat needs an explicit confirmation, and the screen says how many attempts go with it</td><td>Always, with the second form behind <code>delete_paper_with_attempts</code></td></tr>
+</tbody>
+</table></div>
+
+<div class="note care">
+  <h4>Ending a paper cannot be undone</h4>
+  <p>The stamp can be cleared, but the attempts it submitted cannot be un-submitted &mdash; a student cut off at question thirty has been cut off. That is why it asks twice and names the number. If the paper was wrong rather than merely unwanted, the honest order is: end it, then delete it, then upload the corrected one.</p>
+</div>
+
+<p>A single wrong answer key never needs any of this. Correcting it on the paper itself rescores every attempt on the spot, closed paper or not, and the students whose result actually moved &mdash; only those &mdash; see a notice saying so.</p>
+
 <h3>The rest of the console</h3>
 <div class="tw"><table>
 <tr><th>Screen</th><th>For</th></tr>
 <tr><td>Admin home</td><td>Leads with today's papers &mdash; each with its window and whether it is a draft, waiting, open, closed to entry or finished &mdash; or says there is none. Also has <strong>Finalise open attempts now</strong>, the manual run of the nightly job</td></tr>
-<tr><td>Papers</td><td>Everything drafted or published. Open one to preview, correct an answer key, or dry-run it</td></tr>
-<tr><td>Attempts</td><td>Every attempt with score, duration and the two integrity counters. Void one here if you must</td></tr>
-<tr><td>People</td><td>Create accounts singly or by pasting a CSV. Reset passwords. Deactivate without losing history</td></tr>
+<tr><td>Papers</td><td>Everything drafted or published. Open one to preview, correct an answer key, dry-run it, or manage it once it is out</td></tr>
+<tr><td>Attempts</td><td>Every attempt with score, duration and the two integrity counters. Void one here if you must. Your own dry runs are not listed: they count for nothing and each replaces the last</td></tr>
+<tr><td>Board</td><td>The leaderboard the students see, with the same two filters &mdash; a window in papers, or one paper's own rank list. An admin has no row on it</td></tr>
+<tr><td>People</td><td>Create accounts singly or by pasting a CSV. Rename anyone, students and admins alike, by pressing the name. Reset passwords, in two presses because a reset ends every session the account has open. Deactivate without losing history</td></tr>
 <tr><td>Nightly window</td><td>When papers unlock and the last moment anyone may start one. Shows what students will see before you save</td></tr>
 <tr><td>Paper pattern</td><td>Questions, minutes and marking per section &mdash; what a paper is given when its file does not say. Shows the totals, and which question numbers each section would hold, before you save</td></tr>
 <tr><td>Download a blank template</td><td>On the Paper pattern screen. A skeleton built from the pattern as it stands, so it follows any change made there</td></tr>
@@ -1984,7 +2025,7 @@ landed and what has not, at any time.</p>
 <tr><td><code>SUPABASE_SECRET_KEY</code><br><small>or <code>..._SERVICE_ROLE_KEY</code></small></td><td>preppy-prod &rarr; a secret key<br><small>or its legacy service_role key</small></td></tr>
 <tr><td><code>CRON_SECRET</code></td><td>The string from step 2</td></tr>
 </table></div>
-<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 374 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
+<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 382 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
 <p><strong>Check it worked:</strong> the deployment goes green and the URL shows the countdown page.</p>
 </li>
 
@@ -2025,7 +2066,7 @@ landed and what has not, at any time.</p>
 
 <div class="note never">
   <h4>Never deploy during a paper window</h4>
-  <p>A deploy replaces the running server. Between 10 PM and midnight somebody is probably mid-paper &mdash; their answers are saved, but the interruption is real. Ship before 9 PM or after midnight.</p>
+  <p>A deploy replaces the running server. Inside a paper's window somebody is probably mid-attempt &mdash; their answers are saved, but the interruption is real. Ship outside every window scheduled for that day; the admin home lists them.</p>
 </div>
 
 <h3>If you changed the schema</h3>
@@ -2039,7 +2080,7 @@ landed and what has not, at any time.</p>
 
 <div class="note care">
   <h4>Why this specifically</h4>
-  <p>The schema and its functions are tested against real Postgres. What has never run is the layer that talks to Supabase over the network &mdash; the queries in <code>lib/repo/</code>, signing in, and reading an image out of Storage. This walkthrough is how you find out whether any of that is wrong, at a moment when being wrong costs nothing.</p>
+  <p>The schema and its functions are tested against real Postgres, and <code>npm run test:live</code> covers every read. What that cannot reach is the writing half &mdash; signing in, starting and submitting an attempt, reading an image out of Storage. This walkthrough is how you find out whether any of that is wrong, at a moment when being wrong costs nothing. Run <code>npm run test:live</code> first; it takes five seconds and rules out a whole class of problem before you start clicking.</p>
 </div>
 
 <ol class="steps">
@@ -2108,7 +2149,7 @@ landed and what has not, at any time.</p>
 <ol>
 <li><strong>Which database am I talking to?</strong> Check the URL in <code>.env.local</code> against the project name in Supabase.</li>
 <li><strong>Did the schema actually apply?</strong> Table Editor, ten tables, RLS badges.</li>
-<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 374 pass, the logic is fine and the problem is configuration or a query.</li>
+<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 382 pass, the logic is fine and the problem is configuration or a query.</li>
 </ol>
 
 <p class="end">

@@ -78,6 +78,13 @@ export default async function ManagePaper({ params, searchParams }: {
             ? 'Nobody was still sitting it.'
             : `${q['closed']} attempt${q['closed'] === '1' ? ' was' : 's were'} submitted and scored where they stood.`}{' '}
           Answers are open and the leaderboard has taken it in.
+          {q['stuck'] && q['stuck'] !== '0' && (
+            <span className="mt-1 block font-normal">
+              {q['stuck']} could not be scored just now. The paper is closed either way, and the
+              nightly job will pick {q['stuck'] === '1' ? 'it' : 'them'} up &mdash; or press
+              &ldquo;Finalise open attempts now&rdquo; on the console home.
+            </span>
+          )}
         </Flash>
       )}
       {q['done'] === 'marks' && (
