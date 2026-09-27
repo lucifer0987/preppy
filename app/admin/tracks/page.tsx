@@ -29,6 +29,9 @@ export default async function TracksPage() {
     listTracks(), trackStudentCounts(), trackPaperCounts(),
   ])
   const patterns = await Promise.all(tracks.map((t) => getPattern(t.id)))
+  // Closing the last open exam is refused by setTrackActive, and a button
+  // whose only outcome is an error is a button that should not be there.
+  const openCount = tracks.filter((t) => t.isActive).length
 
   return (
     <>
@@ -94,12 +97,18 @@ export default async function TracksPage() {
                           Board
                         </Link>
                         {t.isActive ? (
-                          <ConfirmButton
-                            action={setTrackActiveAction}
-                            fields={{ id: t.id, active: '0' }}
-                            label="Close"
-                            confirm="No new papers, everything already on it stays?"
-                          />
+                          openCount > 1 ? (
+                            <ConfirmButton
+                              action={setTrackActiveAction}
+                              fields={{ id: t.id, active: '0' }}
+                              label="Close"
+                              confirm="No new papers, everything already on it stays?"
+                            />
+                          ) : (
+                            <span className="text-xs text-ink-faint">
+                              the only open exam
+                            </span>
+                          )
                         ) : (
                           <form action={setTrackActiveAction}>
                             <input type="hidden" name="id" value={t.id} />
