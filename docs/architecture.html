@@ -218,7 +218,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <div><dt>SQL functions</dt><dd>11</dd></div>
     <div><dt>Migrations</dt><dd>2</dd></div>
     <div><dt>Modules</dt><dd>30<small>lib/</small></dd></div>
-    <div><dt>Tests</dt><dd>382</dd></div>
+    <div><dt>Tests</dt><dd>394</dd></div>
     <div><dt>Runtime deps</dt><dd>8</dd></div>
   </dl>
 </header>
@@ -298,7 +298,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td>Supabase Postgres</td><td>Every piece of durable state</td><td>Relational fits the data; transactions make scoring safe</td></tr>
 <tr><td>Supabase Auth</td><td>Password hashing, sessions, refresh</td><td>So no custom crypto is written anywhere in this codebase</td></tr>
 <tr><td>Supabase Storage</td><td>Diagrams for DI sets and puzzles</td><td>Private bucket; served through an app route that checks permission</td></tr>
-<tr><td>Vercel</td><td>Hosting and the one nightly cron</td><td>Zero-config for Next; the free tier covers six people</td></tr>
+<tr><td>Vercel</td><td>Hosting and the one cron</td><td>Zero-config for Next; the free tier covers six people</td></tr>
 </table></div>
 
 <div class="note why">
@@ -406,7 +406,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 </figure>
 
 <h3>Every paper carries its own window</h3>
-<p>Opening and last-entry are set when a paper is scheduled, and stored on the paper. The admin console's <strong>Nightly window</strong> screen holds the times a <em>new</em> paper is offered; changing it never moves anything already scheduled.</p>
+<p>Opening and last-entry are set when a paper is scheduled, and stored on the paper. The admin console's <strong>Default times</strong> screen holds the times a <em>new</em> paper is offered; changing it never moves anything already scheduled.</p>
 
 <p>That is what allows <strong>more than one paper in a day</strong> &mdash; a morning set and an evening one, say. Two conditions apply:</p>
 <ul>
@@ -418,7 +418,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 
 <div class="note care">
   <h4>Entry cannot close later than 11:15 PM</h4>
-  <p>Because 11:15 plus a 45-minute paper is exactly midnight &mdash; and a longer paper has to close entry earlier still. Any later and the attempt finishes on the next calendar day, where it would sit on the wrong date for the archive, the leaderboard and the nightly job &mdash; all of which key off the paper's own date. The form refuses it, and so does a database constraint, so the rule cannot be worked around by writing to the table directly.</p>
+  <p>Because 11:15 plus a 45-minute paper is exactly midnight &mdash; and a longer paper has to close entry earlier still. Any later and the attempt finishes on the next calendar day, where it would sit on the wrong date for the archive, the leaderboard and the sweep &mdash; all of which key off the paper's own date. The form refuses it, and so does a database constraint, so the rule cannot be worked around by writing to the table directly.</p>
 </div>
 
 <p>Everything else is free. A morning slot of 6:00 to 7:30 works exactly as well as an evening one, and every surface that prints a time reads it from the paper: the home page countdown, the dashboard, the briefing, the admin console.</p>
@@ -437,6 +437,8 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <p>A job that must fire the moment a paper opens for the product to work is a job that will one day not fire. Instead, <code>lib/time.ts</code> answers <em>&ldquo;is this paper open right now?&rdquo;</em> from the current time every time a page loads. India has never observed daylight saving, so IST is a fixed UTC+05:30 and all of it is plain arithmetic with one offset.</p>
 
 <p>The tail between last entry and the hard stop is one whole paper, and it is not slack. A student starting one minute before entry closes still gets every minute the paper allows; the hard stop is defined as exactly that. Nobody ever sits a shortened paper.</p>
+
+<p>One job does run, and it is called <strong>the sweep</strong> throughout this document: twice a day it closes and scores every attempt still open past its hard stop. Nothing waits on it. Opening a finished paper scores it too, and the admin console has a button for the same run, so a sweep that is late or missed costs nothing. It used to be called the nightly job, from when papers only ran at night.</p>
 
 <h3>What the clock no longer decides</h3>
 <p>One reversal is worth stating before the rest of this section, because it undoes an assumption the earlier drafts leaned on. <strong>A paper settles per student, not per clock.</strong> The result, the answers, the rank, the comparison and the board all arrive when an attempt is scored &mdash; not at the paper's hard stop.</p>
@@ -462,7 +464,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <thead><tr><th>Level</th><th>Where</th><th>What it affects</th></tr></thead>
 <tbody>
 <tr><td><strong>This paper's window</strong></td><td>The schedule form on the paper's own admin page, and <strong>Manage</strong> afterwards</td><td>Only that paper. Set when you schedule it, and movable while it runs.</td></tr>
-<tr><td><strong>The default offered</strong></td><td>Admin console &rarr; <strong>Nightly window</strong>, stored in <code>app_settings</code></td><td>What the schedule form is pre-filled with next time. Never moves a paper already scheduled.</td></tr>
+<tr><td><strong>The default offered</strong></td><td>Admin console &rarr; <strong>Default times</strong>, stored in <code>app_settings</code></td><td>What the schedule form is pre-filled with next time. Never moves a paper already scheduled.</td></tr>
 </tbody>
 </table></div>
 <p>Neither is a code change any more. <code>lib/time.ts</code> still owns the arithmetic &mdash; <code>opensAt</code>, <code>entryClosesAt</code>, <code>hardStopAt</code>, <code>windowState</code> &mdash; but the numbers reach it from the database. <code>DEFAULT_WINDOW</code> in that file is only the fallback used before anyone has saved a setting.</p>
@@ -493,7 +495,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
   <rect x="20" y="160" width="470" height="76" rx="8" fill="none" stroke="#0E767F" stroke-width="2.5"/>
   <text x="38" y="184" font-size="13.5" font-weight="700" fill="currentColor">Pure domain logic</text>
   <text x="38" y="203" font-size="10.5" fill="currentColor" opacity=".7">time &middot; attempt &middot; scoring &middot; leaderboard &middot; paper &middot; csv &middot; images</text>
-  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 382 tests live here</text>
+  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 394 tests live here</text>
 
   <rect x="20" y="252" width="470" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
   <text x="38" y="276" font-size="13.5" font-weight="600" fill="currentColor">Repository</text>
@@ -530,7 +532,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td>What the live test screen does</td><td><code>components/TestEngine.tsx</code></td></tr>
 <tr><td>Anything that reads or writes the database</td><td><code>lib/repo/</code></td></tr>
 <tr><td>Tables, constraints, SQL functions</td><td><code>supabase/migrations/</code></td></tr>
-<tr><td>The times a new paper is offered</td><td>The admin console, under <strong>Nightly window</strong></td></tr>
+<tr><td>The times a new paper is offered</td><td>The admin console, under <strong>Default times</strong></td></tr>
 <tr><td>When one particular paper opens</td><td>Its own schedule form, on the paper's page</td></tr>
 </table></div>
 </div></section>
@@ -873,7 +875,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><th>Field</th><th class="n">Required</th><th>Notes</th></tr>
 <tr><td><code>format</code></td><td class="n">yes</td><td>Always <code>"preppy-paper"</code></td></tr>
 <tr><td><code>version</code></td><td class="n">yes</td><td>Always <code>1</code></td></tr>
-<tr><td><code>date</code></td><td class="n">yes</td><td><code>YYYY-MM-DD</code>, the night it goes live. Must be a real day: <code>2026-02-31</code> is refused</td></tr>
+<tr><td><code>date</code></td><td class="n">yes</td><td><code>YYYY-MM-DD</code>, the day it runs. The times within that day are chosen when it is scheduled, not here. Must be a real day: <code>2026-02-31</code> is refused</td></tr>
 <tr><td><code>title</code></td><td class="n">no</td><td>Up to 80 characters. Left out, the paper is known by its date. The upload screen has a name box that overrides whatever is here, and <strong>Manage</strong> renames a paper afterwards &mdash; nothing keys off the name, so it is free to change at any point</td></tr>
 <tr><td><code>sections</code></td><td class="n">yes</td><td>Exactly four</td></tr>
 </table></div>
@@ -882,11 +884,12 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <div class="tw"><table>
 <tr><th>Field</th><th class="n">Required</th><th>Notes</th></tr>
 <tr><td><code>code</code></td><td class="n">yes</td><td><code>QUANT</code> <code>REASONING</code> <code>ENGLISH</code> <code>PK</code></td></tr>
-<tr><td><code>durationMinutes</code></td><td class="n">no</td><td>Defaults to the pattern. All four together may not exceed 45</td></tr>
+<tr><td><code>questionCount</code></td><td class="n">no</td><td>Defaults to the pattern. Given, it must equal the length of <code>questions</code>, so a lost question is still caught</td></tr>
+<tr><td><code>durationMinutes</code></td><td class="n">no</td><td>Defaults to the pattern. The four together decide how long the paper runs, and may not exceed eight hours &mdash; the window a single day can hold</td></tr>
 <tr><td><code>marksCorrect</code></td><td class="n">no</td><td>Default <code>1</code></td></tr>
 <tr><td><code>marksNegative</code></td><td class="n">no</td><td>Default <code>0.25</code></td></tr>
 <tr><td><code>directions</code></td><td class="n">no</td><td>Shared passages, tables, puzzles</td></tr>
-<tr><td><code>questions</code></td><td class="n">yes</td><td>Exactly the pattern count</td></tr>
+<tr><td><code>questions</code></td><td class="n">yes</td><td>Exactly <code>questionCount</code>, or the pattern's count when that is left out</td></tr>
 </table></div>
 
 <h4>Question</h4>
@@ -896,7 +899,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td><code>text</code></td><td class="n">yes</td><td>At least 10 characters, not counting surrounding spaces</td></tr>
 <tr><td><code>options</code></td><td class="n">yes</td><td>Object keyed <code>A</code>&ndash;<code>E</code>, contiguous from <code>A</code>, 2 to 5 entries</td></tr>
 <tr><td><code>answer</code></td><td class="n">yes</td><td>One of the keys present in <code>options</code></td></tr>
-<tr><td><code>solution</code></td><td class="n">no</td><td>Shown in the archive after midnight</td></tr>
+<tr><td><code>solution</code></td><td class="n">no</td><td>Shown in the archive the moment the reader hands the paper in, and to everybody once it closes</td></tr>
 <tr><td><code>tag</code></td><td class="n">no</td><td>Topic, used to track weak areas</td></tr>
 <tr><td><code>difficulty</code></td><td class="n">no</td><td><code>Easy</code> <code>Medium</code> <code>Hard</code>. Leave it out rather than writing <code>""</code></td></tr>
 <tr><td><code>images</code></td><td class="n">no</td><td>File names uploaded with the paper</td></tr>
@@ -953,7 +956,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 </div>
 
 <h3>What is only a warning</h3>
-<p>No <code>solution</code> &middot; no <code>tag</code> &middot; no <code>difficulty</code> &middot; fewer than five options &middot; a very long option &middot; a date that has already passed, since you pick a new night when you schedule it. These publish fine.</p>
+<p>No <code>solution</code> &middot; no <code>tag</code> &middot; no <code>difficulty</code> &middot; fewer than five options &middot; a very long option &middot; a date that has already passed, since you pick the day and the window again when you schedule it. These publish fine.</p>
 
 <h3>Habits that avoid trouble</h3>
 <ul>
@@ -1032,7 +1035,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td>Their network drops</td><td>A banner appears, answers queue locally and flush on reconnect, the timer keeps running</td></tr>
 <tr><td>They close the laptop and never come back</td><td>The attempt is scored by the next finalise run &mdash; 1 PM or 1 AM &mdash; or the next time anyone opens it, whichever is first</td></tr>
 <tr><td>They walk away from the morning paper, then come back for the evening one</td><td>Starting the second paper scores the abandoned first one on the spot and proceeds. Only one counted attempt may be open at a time, and waiting for a scheduled run to clear it would have locked them out in between</td></tr>
-<tr><td>The nightly job does not fire</td><td>Nothing is lost. It is idempotent and re-runnable from a button in the admin console</td></tr>
+<tr><td>The sweep does not fire</td><td>Nothing is lost. It is idempotent and re-runnable from a button in the admin console</td></tr>
 <tr><td>You publish no paper</td><td>The dashboard says so, and <strong>nobody's streak breaks</strong></td></tr>
 <tr><td>You publish a wrong answer key</td><td>Correct it and rescore. Students are told why their score moved</td></tr>
 <tr><td>Supabase is down when a paper opens</td><td>The site cannot serve. There is no fallback, and at this size that is the accepted trade</td></tr>
@@ -1045,7 +1048,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 
 <div class="tw"><table>
 <tr><th>Layer</th><th>Status</th></tr>
-<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 382 tests, no database needed</td></tr>
+<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 394 tests, no database needed</td></tr>
 <tr><td>The schema, its functions, triggers and indexes</td><td><strong>Tested against real Postgres.</strong> <code>tests/schema.test.ts</code> applies every migration to an in-process Postgres and exercises each function and guard. <code>tests/migrate.test.ts</code> proves the chain is ordered and that a second run changes nothing</td></tr>
 <tr><td>The queries &mdash; what <code>lib/repo/</code> actually asks PostgREST for</td><td><strong>Tested against the real project, on request.</strong> <code>npm run test:live</code> runs every read the app makes against the Supabase project in <code>.env.local</code>. Read-only, so it is safe to point at production, and skipped when there are no credentials. It exists because a select that forgets a column is invisible to both TypeScript and pglite &mdash; and had already shipped twice</td></tr>
 <tr><td>The queries in <code>lib/repo/</code></td><td><strong>Typechecked only.</strong> The PostgREST calls have never run against a live server</td></tr>
@@ -1142,38 +1145,60 @@ current setting in a dark panel; both are the same figures strip now. Inner
 pages take <code>PageHeader compact</code> and drop their back link, because
 the rail already says where you are.</p>
 
-<h3>The dark palette comes from Material, not from taste</h3>
-<p>The dark theme used to run from <code>#110d18</code> down to
-<code>#0b0910</code> in the exam room, and it read as black rather than dark.
-Material&rsquo;s dark-theme guidance is specific about why that is wrong: the
-recommended surface is <code>#121212</code>, a dark grey and deliberately not
-black, because grey can carry elevation and shadow where black flattens both.</p>
+<h3>The dark theme is lit, not dimmed</h3>
+<p>This was built twice, and the first attempt is worth keeping on the record
+because the reasoning was sound and the result was wrong.</p>
 
-<p>The surfaces are that base with a colour laid over it at a low opacity
-&mdash; Material&rsquo;s own recipe for a branded dark theme &mdash; stepped by
-how raised the thing is. The colour is a <em>plum at hue 310</em>, not the
-brand violet at 261: tinting with the brand gave every dark surface more blue
-than red, and a blue-black room is a cold one to sit in at midnight. Every step
-now has red above blue, which is what makes it read as warm rather than as a
-screen that is simply switched off.</p>
+<p>Material&rsquo;s dark-theme guidance is specific: the recommended surface is
+<code>#121212</code>, a dark grey and deliberately not black, because grey can
+carry elevation and shadow where black flattens both, and a branded dark
+surface is that base with a colour laid over it at a low opacity. That advice
+is right for a neutral product. Applied here it desaturated the brand out of
+every surface and left a room of brown-greys: a card lifted <strong>1.08</strong>
+off the page and a border <strong>1.24</strong> off the card. Nothing had an
+edge. The whole app read as switched off, which is not the same thing as dark.</p>
+
+<p>The landing page never had that problem, because it was the one screen that
+had kept the brand violet in its own ground rather than tinting it away. Its
+palette is now the app&rsquo;s, pushed a little further apart than a landing
+page needs.</p>
 
 <div class="tw"><table>
-<thead><tr><th>Token</th><th>Value</th><th>Made of</th></tr></thead>
+<thead><tr><th>Token</th><th>Value</th><th>Contrast</th></tr></thead>
 <tbody>
-<tr><td><code>--page</code></td><td><code>#1d161c</code></td><td>#121212 + plum at 7%</td></tr>
-<tr><td><code>--surface-sunken</code></td><td><code>#221720</code></td><td>+ 10%</td></tr>
-<tr><td><code>--surface</code></td><td><code>#2a1a27</code></td><td>+ 15%</td></tr>
-<tr><td><code>--surface-raised</code></td><td><code>#351e31</code></td><td>+ 22%</td></tr>
+<tr><td><code>--page</code></td><td><code>#1c0a38</code></td><td>the ground</td></tr>
+<tr><td><code>--surface-sunken</code></td><td><code>#25123f</code></td><td>recessed inside a card</td></tr>
+<tr><td><code>--surface</code></td><td><code>#2e1a58</code></td><td>1.22 off the page</td></tr>
+<tr><td><code>--surface-raised</code></td><td><code>#3a2168</code></td><td>a card on a card</td></tr>
+<tr><td><code>--surface-invert</code></td><td><code>#42207a</code></td><td>brighter than the surfaces, not darker</td></tr>
+<tr><td><code>--line</code></td><td><code>#4a2f7d</code></td><td>1.42 off a surface</td></tr>
+<tr><td><code>--line-strong</code></td><td><code>#65479f</code></td><td>2.10, so an input has a visible outline</td></tr>
 </tbody>
 </table></div>
 
-<p>The exam room takes the same base with only a trace of the plum in it
-(<code>#171216</code>), so it stays the calmer of the two rooms without turning
-into a different product. <code>--surface-invert</code>, the panel behind a
-hero, warmed with them: the blue-violet <code>brand-950</code> sat cold against
-a plum ground, and that clash is precisely what read as blue-on-black. Lifting the surfaces meant lifting the borders with
-them, or they would have vanished; every text and accent token was re-measured
-against all four and none of them fell below AA.</p>
+<p><code>--surface-invert</code> is the panel behind a hero and behind the
+podium, and it goes <em>up</em> from the surfaces rather than down: on a violet
+page a darker panel reads as a hole. The exam room follows the app into the
+same family while staying deeper and less saturated
+(<code>#120b20</code> page, <code>#251749</code> surface), so walking from the
+dashboard into a paper does not look like leaving the product.</p>
+
+<p>Lifting the surfaces meant lifting the borders with them, and re-measuring
+every text and accent token against all of them. One failed:
+<code>bad-400</code> reads 4.30 on the lit surface, just under AA, and it is
+the colour every error message uses, so <code>--bad-ink</code> took a new
+<code>bad-300</code>.</p>
+
+<div class="note care">
+  <h4>A room may not paint half a theme</h4>
+  <p>The landing page&rsquo;s own block used to set its light ground
+  unguarded, with a matching dark block underneath to correct it. When the dark
+  block went away &mdash; its palette having become the app&rsquo;s &mdash; the
+  light ground stayed on in dark mode, under dark-mode text. The light values
+  are scoped <code>:root:not([data-theme="dark"])</code> now, which is what
+  lets them fall through. A room overriding a token in one theme must either
+  override it in both or scope itself to the one it means.</p>
+</div>
 
 <h3>A fill colour is not a text colour</h3>
 <p>This is the one rule in the system that is not obvious, and breaking it is
@@ -1213,7 +1238,7 @@ text-only and already carry their deep light-mode value, so they need no pair.</
 <div class="tw"><table>
 <thead><tr><th>Face</th><th>For</th><th>Why that one</th></tr></thead>
 <tbody>
-<tr><td><strong>Nunito</strong></td><td>Headings, buttons, scores, labels</td><td>A rounded sans, and the rounding is the point: this is a nightly game with a leaderboard, and the grotesque that came before said &ldquo;form&rdquo; where the product wanted &ldquo;play&rdquo;. The rounder options (Fredoka, Baloo) read as a children&rsquo;s app, and these are final-year CSE students and working engineers</td></tr>
+<tr><td><strong>Nunito</strong></td><td>Headings, buttons, scores, labels</td><td>A rounded sans, and the rounding is the point: this is a daily game with a leaderboard, and the grotesque that came before said &ldquo;form&rdquo; where the product wanted &ldquo;play&rdquo;. The rounder options (Fredoka, Baloo) read as a children&rsquo;s app, and these are final-year CSE students and working engineers</td></tr>
 <tr><td><strong>IBM Plex Sans</strong></td><td>Body, and every question</td><td>Humanist, opens up at small sizes. A student reads forty lines of comprehension under a clock, and a display face is built to be looked at rather than read through</td></tr>
 <tr><td><strong>IBM Plex Mono</strong></td><td>Timers, scores, ranks</td><td>Figures that must not move. A proportional 1 beside a proportional 8 makes a counting-down clock jitter, which is exactly when nobody should be distracted</td></tr>
 </tbody>
@@ -1237,7 +1262,9 @@ the logo and the accessibility rule are one decision rather than two.</p>
 <tbody>
 <tr><td><code>app/globals.css</code></td><td>The whole system: scales, semantic tokens, both theme palettes, the room overrides, and the primitives &mdash; <code>card</code>, <code>eyebrow</code>, <code>numeral</code>, <code>chip</code>, <code>field</code>, <code>pill-brand</code>, and <code>btn</code> with <code>btn-primary</code> / <code>btn-zap</code> / <code>btn-invert</code> / <code>btn-quiet</code>. <code>btn</code> owns the press, disabled and reduced-motion states, so a button never re-implements them</td></tr>
 <tr><td><code>components/Page.tsx</code></td><td>The furniture every inner page was drawing by hand: <code>PageHeader</code>, <code>BackLink</code>, <code>Stat</code>, <code>TableShell</code>, <code>Th</code>, <code>Empty</code>, <code>StatusChip</code>, and <code>Flash</code> for the line a page shows after something happened</td></tr>
-<tr><td><code>components/ThemeToggle.tsx</code></td><td>The three-state theme switch. On every screen, including the landing page and the exam</td></tr>
+<tr><td><code>components/ThemeToggle.tsx</code></td><td>The theme switch, light or dark. On every screen, including the landing page and the exam</td></tr>
+<tr><td><code>app/not-found.tsx</code></td><td>A branded 404. Next&rsquo;s own is unstyled black-on-black, which in a themed app reads as a broken site rather than a wrong address. It cannot know whether the visitor is signed in, so it offers both doors and guesses at neither</td></tr>
+<tr><td><code>app/error.tsx</code></td><td>The last resort, for a render that threw where nothing caught it. It leads with the one thing a student needs to know &mdash; answers are written as they are chosen, so nothing is lost &mdash; and prints the digest so the admin can find it in the log</td></tr>
 <tr><td><code>components/AdminNav.tsx</code></td><td>The admin console's rail. A sidebar rather than tabs, because six destinations is past the point where a row scales, and it leaves the whole width of the page to the work</td></tr>
 <tr><td><code>components/AppShell.tsx</code></td><td>The frame every signed-in student page sits in. Each of them drew its own header before, so the way back differed page to page</td></tr>
 <tr><td><code>components/Wordmark.tsx</code></td><td>The mark, drawn as SVG so it scales and takes the theme with it</td></tr>
@@ -1261,7 +1288,7 @@ corner of an eye without pulling attention off the question.</p>
 </div>
 
 <h3>Two rooms</h3>
-<p>The product is a nightly game show wrapped around forty-five serious minutes,
+<p>The product is a daily game show wrapped around forty-five serious minutes,
 and the interface says so twice, in opposite directions.</p>
 
 <div class="tw"><table>
@@ -1277,8 +1304,9 @@ and the interface says so twice, in opposite directions.</p>
 <p>The exam room is <code>[data-room="exam"]</code>, and it retunes the same
 semantic tokens rather than introducing a second palette &mdash; so every
 component inside keeps working untouched. It still follows the theme, because a
-student who chose light did so for a reason, and papers run at night so most
-will see the dark end of it.</p>
+student who chose light did so for a reason. There is a third room,
+<code>[data-room="home"]</code>, and it now only exists in light: its dark
+palette turned out to be the one that worked and became the app&rsquo;s.</p>
 
 <h3>The energy colour</h3>
 <p><code>--zap</code> is a hot pink sitting next to the brand violet on the
@@ -1410,7 +1438,7 @@ words.</p>
     <text x="179" y="209" text-anchor="middle" font-weight="600">typecheck</text>
     <line x1="226" y1="205" x2="238" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="238" y="186" width="94" height="38" rx="6" fill="none" stroke="#94202B" stroke-width="2"/>
-    <text x="285" y="209" text-anchor="middle" font-weight="600">382 tests</text>
+    <text x="285" y="209" text-anchor="middle" font-weight="600">394 tests</text>
     <line x1="332" y1="205" x2="344" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="344" y="186" width="84" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
     <text x="386" y="209" text-anchor="middle" font-weight="600">build</text>
@@ -1435,7 +1463,7 @@ words.</p>
 <tr><td><code>npm run start:local</code></td><td><span class="pill local">rare</span></td><td>Serves that build on port 3000</td></tr>
 <tr><td><code>npm run build:prod</code></td><td><span class="pill prod">before shipping</span></td><td>Typecheck, all tests, then build without source maps</td></tr>
 <tr><td><code>npm run start:prod</code></td><td><span class="pill prod">on the host</span></td><td>Serves the production build</td></tr>
-<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>382 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>394 tests. No database needed, about a second</td></tr>
 <tr><td><code>npm run test:live</code></td><td><span class="pill both">after touching a query</span></td><td>Runs every read <code>lib/repo/</code> makes against the real project in <code>.env.local</code>. Read-only. Skipped when there are no credentials</td></tr>
 <tr><td><code>npm run typecheck</code></td><td><span class="pill both">anytime</span></td><td>Checks types without building</td></tr>
 <tr><td><code>npm run seed</code></td><td><span class="pill both">setup</span></td><td>Creates the accounts, prints passwords once</td></tr>
@@ -1564,7 +1592,7 @@ words.</p>
 <b>npm install</b></pre>
 </div>
 <p>Downloads everything into a <code>node_modules</code> folder. Safe to re-run at any time.</p>
-<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>382 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
+<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>394 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
 </li>
 
 <li>
@@ -1663,7 +1691,7 @@ filled in where it says <code>[YOUR-PASSWORD]</code>.</p>
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>npx tsx --env-file=.env.local scripts/preflight.ts local</b>
 <i>  preflight (local): environment looks right.
-    note: CRON_SECRET is not set. The nightly job cannot run, which is
+    note: CRON_SECRET is not set. The sweep cannot run, which is
     fine locally.</i></pre>
 </div>
 <p>If a key is wrong or missing it names which one and where to find it.</p>
@@ -1948,7 +1976,7 @@ landed and what has not, at any time.</p>
 <thead><tr><th>Control</th><th>What it does</th><th>Available</th></tr></thead>
 <tbody>
 <tr><td><strong>Move the window</strong></td><td>Changes the last moment to start, and with it the finish, so whoever starts at the new time still gets the whole paper. The flexible half: somebody has not sat it yet and you want to hold the door open</td><td>While scheduled and not finished. Once it has opened, the opening time is fixed &mdash; moving it would rewrite when attempts already running were allowed to begin</td></tr>
-<tr><td><strong>End it now, for everyone</strong></td><td>Stamps <code>ended_at</code>, so nobody can start; then closes and scores every attempt still running, exactly as the nightly job closes an overdue one. Answers, the archive and the leaderboard open at once</td><td>While it is open or finishing. Two presses, the second naming how many students are in it</td></tr>
+<tr><td><strong>End it now, for everyone</strong></td><td>Stamps <code>ended_at</code>, so nobody can start; then closes and scores every attempt still running, exactly as the sweep closes an overdue one. Answers, the archive and the leaderboard open at once</td><td>While it is open or finishing. Two presses, the second naming how many students are in it</td></tr>
 <tr><td><strong>Rename it</strong></td><td>What students and the archive call it. Nothing keys off the name, so unlike the questions or the window it can change at any point &mdash; including after the paper has closed</td><td>Always</td></tr>
 <tr><td><strong>Change what the questions are worth</strong></td><td>Marking per section, for this paper only, after which every finished attempt is scored again through <code>apply_paper_rescore</code>. The board never disagrees with the marking it came from</td><td>Always. The marks are written first and the rescore second, because stale scores are recoverable by running it again and scores written against unsaved marks are not</td></tr>
 <tr><td><strong>Replace the questions</strong></td><td>Upload a corrected file over the paper. It keeps its id, its night and its place in the schedule; only what is inside it changes, so every link still works and nothing is scheduled again. The file must carry the same date</td><td>Only while nobody has sat it. Their answers point at the questions this deletes, and a score against questions that no longer exist is a number with nothing behind it</td></tr>
@@ -1966,12 +1994,12 @@ landed and what has not, at any time.</p>
 <h3>The rest of the console</h3>
 <div class="tw"><table>
 <tr><th>Screen</th><th>For</th></tr>
-<tr><td>Admin home</td><td>Leads with today's papers &mdash; each with its window and whether it is a draft, waiting, open, closed to entry or finished &mdash; or says there is none. Also has <strong>Finalise open attempts now</strong>, the manual run of the nightly job</td></tr>
+<tr><td>Admin home</td><td>Leads with today's papers &mdash; each with its window and whether it is a draft, waiting, open, closed to entry or finished &mdash; or says there is none. Also has <strong>Finalise open attempts now</strong>, the manual run of the sweep</td></tr>
 <tr><td>Papers</td><td>Everything drafted or published, each row carrying the two things you open a paper for: <strong>See results</strong> (that paper's attempts) and <strong>Solutions</strong> (the paper itself, where you correct a key, schedule it, dry-run it or manage it). The row is not itself a link &mdash; one target that has to mean both is one target too few</td></tr>
 <tr><td>Attempts</td><td>Every attempt with score, duration and the two integrity counters. Void one here if you must. Your own dry runs are not listed: they count for nothing and each replaces the last</td></tr>
 <tr><td>Board</td><td>The leaderboard the students see, with the same two filters &mdash; a window in papers, or one paper's own rank list. An admin has no row on it</td></tr>
 <tr><td>People</td><td>Create accounts singly or by pasting a CSV. Rename anyone, students and admins alike, by pressing the name &mdash; though everybody can do that for themselves on <code>/account</code>. Reset passwords, in two presses because a reset ends every session the account has open. Deactivate without losing history</td></tr>
-<tr><td>Nightly window</td><td>When papers unlock and the last moment anyone may start one. Shows what students will see before you save</td></tr>
+<tr><td>Default times</td><td>When papers unlock and the last moment anyone may start one. Shows what students will see before you save</td></tr>
 <tr><td>Paper pattern</td><td>Questions, minutes and marking per section &mdash; what a paper is given when its file does not say. Shows the totals, and which question numbers each section would hold, before you save</td></tr>
 <tr><td>Download a blank template</td><td>On the Paper pattern screen. A skeleton built from the pattern as it stands, so it follows any change made there</td></tr>
 <tr><td>Export question bank</td><td>Every paper ever published, as one JSON file</td></tr>
@@ -2009,7 +2037,7 @@ landed and what has not, at any time.</p>
 <pre><b>npm run secret</b>
 <i>8f3c9d1e7a4b20c65d8e1f93a70b4c25de6f8a91b3c47d02</i></pre>
 </div>
-<p>Copy it somewhere for the next step. This is what stops anyone but Vercel Cron triggering the nightly job.</p>
+<p>Copy it somewhere for the next step. This is what stops anyone but Vercel Cron triggering the sweep.</p>
 </li>
 
 <li>
@@ -2037,12 +2065,12 @@ landed and what has not, at any time.</p>
 <tr><td><code>SUPABASE_SECRET_KEY</code><br><small>or <code>..._SERVICE_ROLE_KEY</code></small></td><td>preppy-prod &rarr; a secret key<br><small>or its legacy service_role key</small></td></tr>
 <tr><td><code>CRON_SECRET</code></td><td>The string from step 2</td></tr>
 </table></div>
-<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 382 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
+<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 394 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
 <p><strong>Check it worked:</strong> the deployment goes green and the URL shows the countdown page.</p>
 </li>
 
 <li>
-<h4>Confirm the nightly job registered</h4>
+<h4>Confirm the sweep registered</h4>
 <p>Vercel &rarr; <strong>Settings</strong> &rarr; <strong>Cron Jobs</strong>. Two entries, both for <code>/api/cron/finalise</code>: <code>30 7 * * *</code> and <code>30 19 * * *</code>.</p>
 <p>That is 07:30 and 19:30 UTC, which is 13:00 and 01:00 IST. Vercel Cron runs on UTC, so the schedule is written in UTC. The 1 AM run has the whole of the previous day complete behind it; the 1 PM run is so a morning paper is not left off the leaderboard until the small hours.</p>
 <div class="note care">
@@ -2137,10 +2165,10 @@ landed and what has not, at any time.</p>
 <tr><td><strong>Login says the password is wrong, and it is not</strong></td><td>Almost always email confirmation still on. Section 14, step 5. Then <code>npm run seed -- --reset</code></td></tr>
 <tr><td><strong>The build refuses with "Cannot build for production"</strong></td><td>Working as intended. It names the missing variable and where to find it</td></tr>
 <tr><td><strong>Seeding fails with a database error</strong></td><td>The tables are not there. Run <code>npm run migrate</code>, or <code>npm run migrate -- --status</code> to see what is missing</td></tr>
-<tr><td><strong>The nightly job did not run</strong></td><td>Press <strong>Finalise open attempts now</strong> on the admin home; it is idempotent. Then check <code>CRON_SECRET</code> is set in Vercel</td></tr>
+<tr><td><strong>The sweep did not run</strong></td><td>Press <strong>Finalise open attempts now</strong> on the admin home; it is idempotent. Then check <code>CRON_SECRET</code> is set in Vercel</td></tr>
 <tr><td><strong>A paper will not delete</strong></td><td>Somebody has a counted attempt on it. A database trigger is refusing, because deleting would leave scores pointing at questions that no longer exist. Void the attempts first if you really mean it</td></tr>
 <tr><td><strong>Upload rejects the file</strong></td><td>The report names the exact path and line. <code>npm run check -- your-paper.json</code> gives the same report in the terminal</td></tr>
-<tr><td><strong>A student is stuck on a finished paper</strong></td><td>Opening it scores it automatically. If genuinely stuck, run the nightly job manually</td></tr>
+<tr><td><strong>A student is stuck on a finished paper</strong></td><td>Opening it scores it automatically. If genuinely stuck, run the sweep manually</td></tr>
 <tr><td><strong>The leaderboard is missing a paper</strong></td><td>It takes a paper in when that paper closes, which is its last-entry time plus its own running time. Before then it is deliberately absent</td></tr>
 <tr><td><strong>Everything is slow</strong></td><td>Check the Supabase region. A project on another continent adds a few hundred milliseconds to every round trip, and a page makes several</td></tr>
 <tr><td><strong>You changed .env.local and nothing happened</strong></td><td>Restart <code>npm run dev</code></td></tr>
@@ -2161,7 +2189,7 @@ landed and what has not, at any time.</p>
 <ol>
 <li><strong>Which database am I talking to?</strong> Check the URL in <code>.env.local</code> against the project name in Supabase.</li>
 <li><strong>Did the schema actually apply?</strong> Table Editor, ten tables, RLS badges.</li>
-<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 382 pass, the logic is fine and the problem is configuration or a query.</li>
+<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 394 pass, the logic is fine and the problem is configuration or a query.</li>
 </ol>
 
 <p class="end">

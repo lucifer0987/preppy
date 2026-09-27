@@ -214,7 +214,7 @@ file has to exist before anything can be written into it.</p>
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>node -v</b>            <i># needs v20 or newer</i>
 <b>npm install</b>
-<b>npm test</b>           <i># 382 passing means the code is sound</i></pre>
+<b>npm test</b>           <i># 394 passing means the code is sound</i></pre>
 </div>
 
 <h3>2 &middot; The Supabase project</h3>
@@ -353,7 +353,7 @@ badge.</p>
 <pre><b>npm run check -- my-paper.json</b>          <i># validate before opening the app</i>
 <b>npm run check -- my-paper.json --images ./img</b></pre>
 </div>
-<p>Then in the app: <strong>Admin &rarr; Upload a paper</strong> &rarr; read the preview &rarr; <strong>Schedule</strong>. The upload screen has an optional <strong>name box</strong>: blank uses the name in the file, and anything typed wins. A paper can also be renamed later from <strong>Manage</strong>. You choose its date and times on the schedule form; <strong>Admin &rarr; Nightly window</strong> only sets what is offered by default, and <strong>Admin &rarr; Paper pattern</strong> what a section holds when the file does not say. More than one paper can run in a day if their windows do not overlap. Copy <code>format/sample.json</code> as your starting point. The format is specified in <a href="architecture.html#s7">architecture.html section 7</a>.</p>
+<p>Then in the app: <strong>Admin &rarr; Upload a paper</strong> &rarr; read the preview &rarr; <strong>Schedule</strong>. The upload screen has an optional <strong>name box</strong>: blank uses the name in the file, and anything typed wins. A paper can also be renamed later from <strong>Manage</strong>. You choose its date and times on the schedule form; <strong>Admin &rarr; Default times</strong> only sets what is offered by default, and <strong>Admin &rarr; Paper pattern</strong> what a section holds when the file does not say. More than one paper can run in a day if their windows do not overlap. Copy <code>format/sample.json</code> as your starting point. The format is specified in <a href="architecture.html#s7">architecture.html section 7</a>.</p>
 
 <h3>If it goes wrong while it is running</h3>
 <p><strong>Manage</strong>, on a scheduled paper, is the screen for it. Nothing here needs the terminal.</p>
@@ -364,7 +364,7 @@ badge.</p>
 <tr><td>The marking is wrong</td><td><strong>What the questions are worth</strong>. Saves, then scores every finished attempt again</td></tr>
 <tr><td>Somebody needs longer to start</td><td><strong>The window</strong>. Moving the last moment to start moves the finish with it, so they still get the whole paper</td></tr>
 <tr><td>The paper is broken and must stop now</td><td><strong>End it now</strong>. Everyone still in it is submitted and scored where they stand, and answers open at once. It cannot be undone</td></tr>
-<tr><td>The file was wrong, and nobody has sat it</td><td><strong>Upload a corrected file</strong>. Same paper, same night, new questions</td></tr>
+<tr><td>The file was wrong, and nobody has sat it</td><td><strong>Upload a corrected file</strong>. Same paper, same window, new questions</td></tr>
 <tr><td>The file was wrong, and somebody has</td><td>End it, then <strong>Delete this paper</strong> &mdash; which takes their attempts with it, and says how many &mdash; then upload the corrected one as a new paper</td></tr>
 </tbody>
 </table></div>
@@ -374,7 +374,7 @@ badge.</p>
 <h2><i>4</i>Shipping a change</h2>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
-<pre><b>npm run build:prod</b>      <i># preflight + typecheck + 382 tests + build</i>
+<pre><b>npm run build:prod</b>      <i># preflight + typecheck + 394 tests + build</i>
 <b>git add -A &amp;&amp; git commit -m "what changed"</b>
 <b>git push</b>                 <i># Vercel deploys by itself</i></pre>
 </div>
@@ -431,7 +431,7 @@ means "pass the rest through".</p>
 <thead><tr><th>Command</th><th>What it does</th></tr></thead>
 <tbody>
 <tr><td><code>npm run dev</code></td><td>Development server on port 3000, reloads as you edit. Restart it after editing <code>.env.local</code></td></tr>
-<tr><td><code>npm test</code></td><td>382 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm test</code></td><td>394 tests. No database needed, about a second</td></tr>
 <tr><td><code>npm run test:live</code></td><td>Every read the app makes, run against the real Supabase project in <code>.env.local</code>. Read-only, so it is safe to point anywhere. Worth running after changing a query &mdash; it catches a select that forgot a column, which nothing else does</td></tr>
 <tr><td><code>npm run typecheck</code></td><td>Types only, no build. Faster than a build when you just want to know it compiles</td></tr>
 </tbody>
@@ -464,7 +464,7 @@ means "pass the rest through".</p>
 <tbody>
 <tr><td><code>npm run build:local</code></td><td>Preflight, then a build that keeps source maps so a stack trace names real files. For reproducing something locally</td></tr>
 <tr><td><code>npm run start:local</code></td><td>Serves that build on port 3000</td></tr>
-<tr><td><code>npm run build:prod</code></td><td>Preflight, typecheck, all 382 tests, then a build with no source maps. Any failure stops it</td></tr>
+<tr><td><code>npm run build:prod</code></td><td>Preflight, typecheck, all 394 tests, then a build with no source maps. Any failure stops it</td></tr>
 <tr><td><code>npm run start:prod</code></td><td>Serves the production build</td></tr>
 <tr><td><code>npm run build</code></td><td>The same as <code>build:prod</code>. This is what Vercel runs</td></tr>
 <tr><td><code>npm run start</code></td><td>The same as <code>start:prod</code></td></tr>
@@ -503,16 +503,16 @@ means "pass the rest through".</p>
 <tr><td>Login rejects a password you know is right</td><td>Email confirmation is still on. Then <code>npm run seed -- --reset</code></td></tr>
 <tr><td>"Cannot build for production"</td><td>Working as intended &mdash; it names the missing variable</td></tr>
 <tr><td>Seeding errors</td><td>Tables missing. Run <code>npm run migrate</code></td></tr>
-<tr><td>Nightly job did not run</td><td>Admin home &rarr; <strong>Finalise open attempts now</strong></td></tr>
+<tr><td>The sweep did not run</td><td>Admin home &rarr; <strong>Finalise open attempts now</strong></td></tr>
 <tr><td>A paper will not delete</td><td>Somebody has a counted attempt on it. A trigger is refusing</td></tr>
-<tr><td>Leaderboard missing a paper</td><td>It takes a paper in when that paper closes, 45 minutes after its last-entry time</td></tr>
+<tr><td>Leaderboard missing a paper</td><td>A paper joins the board when the first student finishes it, or at its close if nobody did. A paper nobody has sat and that has not closed is on nobody&rsquo;s board yet</td></tr>
 <tr><td>Changed <code>.env.local</code>, nothing happened</td><td>Restart <code>npm run dev</code></td></tr>
 </table></div>
 
 <p>Three questions answer most problems:</p>
 <ol>
 <li><strong>Which database am I talking to?</strong> Compare the URL in <code>.env.local</code> with the project name in Supabase.</li>
-<li><strong>Did the schema apply?</strong> Table Editor: eleven tables, RLS badges.</li>
+<li><strong>Did the schema apply?</strong> Table Editor: eleven tables plus <code>schema_migrations</code>, each with an RLS badge.</li>
 <li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those pass, it is configuration, not logic.</li>
 </ol>
 
