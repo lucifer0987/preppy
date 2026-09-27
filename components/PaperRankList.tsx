@@ -17,8 +17,8 @@ export function PaperRankList({ standings, meUserId }: {
   if (!standings) {
     return (
       <Empty>
-        That paper is not on the board yet. A paper joins it when its own window closes and
-        every attempt on it has had to end.
+        That paper is not open to you yet. Its rank list appears as soon as you hand it in
+        &mdash; and to everybody once entry closes, whether they sat it or not.
       </Empty>
     )
   }

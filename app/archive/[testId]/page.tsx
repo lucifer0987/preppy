@@ -9,6 +9,7 @@ import { QuestionCard } from '../../../components/QuestionCard'
 import { DirectionsBlock } from '../../../components/DirectionsBlock'
 import { SECTION_NAMES, type OptionLabel, type SectionCode } from '../../../lib/types'
 import { formatIstDate, paperClosed } from '../../../lib/time'
+import { findAttempt } from '../../../lib/repo/attempts'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,7 +35,14 @@ export default async function ArchiveDetail({
   if (!record || record.status !== 'SCHEDULED') notFound()
   const { paper } = record
 
-  if (!paperClosed(record.window)) {
+  // A paper opens to you the moment you finish it; to everybody once it has
+  // closed. The one thing this page must never do is hand the answers to
+  // somebody who can still sit it -- so the gate is the viewer's own attempt,
+  // not the clock. An admin sees every paper anyway, from the console.
+  const settled = paperClosed(record.window)
+  const own = await findAttempt(testId, user.id, false)
+  const finished = Boolean(own && own.state !== 'IN_PROGRESS' && own.state !== 'VOIDED')
+  if (!settled && !finished && user.role !== 'admin') {
     return (
       <main className="shell py-12">
         <div className="card mx-auto max-w-xl p-8 text-center">
@@ -43,10 +51,11 @@ export default async function ArchiveDetail({
               <path d="M10 1.5a4 4 0 00-4 4V8H5.5A1.5 1.5 0 004 9.5v7A1.5 1.5 0 005.5 18h9a1.5 1.5 0 001.5-1.5v-7A1.5 1.5 0 0014.5 8H14V5.5a4 4 0 00-4-4zm-2 4a2 2 0 114 0V8H8V5.5z" />
             </svg>
           </span>
-          <h1 className="mt-4 text-2xl font-black tracking-tight">Not open yet</h1>
+          <h1 className="mt-4 text-2xl font-black tracking-tight">Sit it first</h1>
           <p className="mx-auto mt-2 max-w-md text-ink-soft">
-            Answers and solutions for {formatIstDate(paper.date)} unlock when the paper closes, for
-            everyone at the same moment. Nobody sees them early, including whoever finished first.
+            Answers and solutions for {formatIstDate(paper.date)} open to you the moment you hand
+            the paper in &mdash; and to everybody once entry closes, whether they sat it or not.
+            Until then they stay shut, because you can still take it.
           </p>
           <Link href="/archive" className="btn btn-quiet mt-6 inline-flex">
             Back to past papers

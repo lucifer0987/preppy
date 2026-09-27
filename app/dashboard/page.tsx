@@ -109,13 +109,14 @@ export default async function Dashboard({
               href: `/test/${attempt.id}/done`,
               cta: 'See your result',
             }
-          // Nothing after it, so the clock that is left is the one to the
-          // answers on the paper they have just sat.
+          // Nothing after it. The answers are already theirs, so the clock
+          // that is left is the one their rank settles on: the last attempt
+          // on this paper has to end before the figures stop moving.
           : attempt && openPaper && !paperClosed(openPaper.window, now)
             ? {
-                label: `Answers unlock at ${labels.hardStop}`,
+                label: `Your rank settles at ${labels.hardStop}`,
                 targetIso: hardStopAt(openPaper.window).toISOString(),
-                countdownLabel: 'Answers unlock in',
+                countdownLabel: 'Your rank settles in',
                 href: `/test/${attempt.id}/done`,
                 cta: 'See your result',
               }
@@ -186,30 +187,27 @@ export default async function Dashboard({
         ) : attempt && openNow ? (
           <>
             <p className="mt-2 text-4xl font-black tabular-nums">{Number(attempt.total_score ?? 0).toFixed(2)}</p>
-            <p className="mt-1 text-sm font-semibold text-white/80">
-              Your rank appears when this paper closes at {labels.hardStop} and the leaderboard takes it in.
-            </p>
             <p className="mt-1 text-white/70">
               {attempt.state === 'AUTO_SUBMITTED' ? 'Submitted when time ran out. ' : 'Submitted. '}
-              {paperClosed(openPaper!.window, now)
-                ? 'Answers and solutions are open now.'
-                : `Answers unlock at ${labels.hardStop}.`}
+              Your answers, your rank and the board are open now.
+              {!paperClosed(openPaper!.window, now) && (
+                <> Entry stays open until {labels.closes}, so your rank can still move.</>
+              )}
             </p>
-            {/* Only once there is no aside carrying it: while the paper is
-                still running the countdown column owns this button. */}
+            {/* Both from the moment they hand in. The countdown column carries
+                "See your result" when it has a clock to show; this row is
+                where Review answers lives either way. */}
             <div className="mt-4 flex flex-wrap gap-3">
-              {paperClosed(openPaper!.window, now) ? (
-                <>
-                  <Link href={`/test/${attempt.id}/done`}
-                        className="btn btn-invert inline-block px-7 py-3.5">
-                    See your result
-                  </Link>
-                  <Link href={`/archive/${openNow.id}`}
-                        className="btn btn-invert inline-block bg-white/15 px-7 py-3.5 text-white">
-                    Review answers
-                  </Link>
-                </>
-              ) : null}
+              <Link href={`/archive/${openNow.id}`}
+                    className="btn btn-invert inline-block px-7 py-3.5">
+                Review answers
+              </Link>
+              {!heroAside && (
+                <Link href={`/test/${attempt.id}/done`}
+                      className="btn btn-invert inline-block bg-white/15 px-7 py-3.5 text-white">
+                  See your result
+                </Link>
+              )}
             </div>
             {afterThis && <NextPaper paper={afterThis} />}
           </>
@@ -283,7 +281,7 @@ export default async function Dashboard({
         {archive === null ? (
           <p className="mt-3 text-sm text-ink-soft">Past papers would not load. Nothing is lost — try again in a moment.</p>
         ) : archive.length === 0 ? (
-          <p className="mt-3 text-sm text-ink-soft">No paper has finished yet. Each one turns up here as soon as it does.</p>
+          <p className="mt-3 text-sm text-ink-soft">Nothing here yet. A paper turns up the moment you hand it in, and once it closes whether you sat it or not.</p>
         ) : (
           <ul className="mt-3 divide-y divide-black/10">
             {archive.slice(0, 5).map((a) => (

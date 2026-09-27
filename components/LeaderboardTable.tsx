@@ -24,12 +24,12 @@ export function LeaderboardTable({
     // the same kind of thing in a plain sentence.
     return compact ? (
       <p className="text-sm text-ink-soft">
-        The board fills in when the first paper finishes. Sit one and you are on it.
+        The board fills in as people hand papers in. Sit one and you are on it.
       </p>
     ) : (
       <p className="rounded-card border border-dashed border-line-strong bg-surface-sunken p-8
                     text-center text-ink-soft">
-        The board fills in when the first paper finishes. Sit one and you are on it.
+        The board fills in as people hand papers in. Sit one and you are on it.
       </p>
     )
   }

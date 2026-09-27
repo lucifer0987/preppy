@@ -48,14 +48,28 @@ export interface LeaderboardRow {
 export interface LeaderboardOptions {
   /** Restrict to the most recent N papers. Omit for all time. */
   lastN?: number
+  /**
+   * The papers a streak is measured over. Defaults to every paper on the
+   * board.
+   *
+   * These differ once a paper counts from the moment somebody finishes it
+   * rather than from its close: the first student to hand in puts that paper
+   * on the board, and if streaks ran over the same list, the four who have not
+   * sat it yet would watch their streak break and then heal an hour later.
+   * A streak is about the day, so it waits for the day's paper to settle.
+   */
+  streakKeys?: string[]
 }
 
 /**
  * @param records   one row per counted attempt on a paper the board includes
  *                  (lib/time.ts onBoard). Dry runs must already be excluded,
  *                  which excludes the admin by construction (FR-5.2).
- * @param paperKeys every paper on the board, ascending. Needed for streaks:
- *                  a night with no paper must not break one.
+ * @param paperKeys every paper on the board, ascending -- one somebody has
+ *                  finished, or one that has closed.
+ * @param options.streakKeys the papers that have settled, for streaks. A day
+ *                  with no paper must not break one, and neither must a paper
+ *                  still open to the person whose streak it is.
  */
 /** The IST date half of a `YYYY-MM-DD#MMMM` paper key. */
 const dayOf = (paperKey: string) => paperKey.split('#')[0]!
@@ -75,7 +89,7 @@ export function buildLeaderboard(
   // ...and it counts days, not papers. Once a day can hold two, a student who
   // reliably sits the evening paper would otherwise have the morning one they
   // skipped break the chain every single day. Turning up at all counts.
-  const days = [...new Set(dates.map(dayOf))].sort()
+  const days = [...new Set((options.streakKeys ?? paperKeys).map(dayOf))].sort()
   const attendance = new Map<string, Set<string>>()
   for (const r of records) {
     const set = attendance.get(r.userId)

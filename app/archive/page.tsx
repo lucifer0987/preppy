@@ -39,14 +39,14 @@ export default async function ArchivePage() {
       <main className="shell pt-6">
         <PageHeader
           title="Past papers"
-          lede="Every paper that has closed, with its answers and solutions. Open one whether or not you sat it."
+          lede="Every paper you have sat, and every paper that has closed, with its answers and worked solutions."
         />
 
         {!failure && rows.length > 0 && (
           <StatRow>
-            <Stat label="Papers closed" value={rows.length} />
+            <Stat label="Papers here" value={rows.length} />
             <Stat label="You sat" value={sat.length}
-                  hint={rows.length > sat.length ? `${rows.length - sat.length} missed` : 'every one'} />
+                  hint={rows.length > sat.length ? `${rows.length - sat.length} you did not` : 'every one'} />
             <Stat label="Best score" value={best === null ? '—' : best.toFixed(2)} tone="zap" />
             <Stat label="Top three finishes" value={podiums} tone={podiums > 0 ? 'good' : 'default'} />
           </StatRow>
@@ -60,8 +60,9 @@ export default async function ArchivePage() {
         ) : rows.length === 0 ? (
           <div className="mt-6">
             <Empty>
-              No paper has finished yet. One appears here the moment it does, with every
-              question, its key and a worked solution — whether or not you sat it.
+              Nothing here yet. A paper appears the moment you hand it in — with every
+              question, its key and a worked solution — and again when it closes, for
+              everybody, whether they sat it or not.
             </Empty>
           </div>
         ) : (
@@ -87,10 +88,10 @@ export default async function ArchivePage() {
                           <span className="numeral text-sm font-bold text-gold">{ordinal(r.rank)}</span>
                         )}
                         <span className="numeral text-lg font-bold text-ink">{r.score?.toFixed(2)}</span>
-                        {r.rank !== null ? (
-                          <StatusChip tone="done">{ordinal(r.rank)} of {r.cohortSize}</StatusChip>
-                        ) : (
-                          <span className="text-xs text-ink-faint">ranked when it finishes</span>
+                        {r.rank !== null && (
+                          <StatusChip tone={r.settled ? 'done' : 'waiting'}>
+                            {ordinal(r.rank)} of {r.cohortSize}{r.settled ? '' : ' so far'}
+                          </StatusChip>
                         )}
                       </>
                     ) : (

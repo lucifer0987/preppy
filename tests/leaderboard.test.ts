@@ -281,3 +281,42 @@ describe('derived figures', () => {
     expect(rows[0]!.accuracyPct).toBeNull()
   })
 })
+
+describe('a paper still open, counted from the moment somebody finishes it', () => {
+  // The first two papers have closed; the third is running, and only `a` has
+  // handed it in. It is on the board -- that is the point -- but it must not
+  // yet be a day `b` has missed.
+  const closed = [DATES[0]!, DATES[1]!]
+  const all = [DATES[0]!, DATES[1]!, DATES[2]!]
+  const records = [
+    rec('a', DATES[0]!, 10), rec('b', DATES[0]!, 10),
+    rec('a', DATES[1]!, 10), rec('b', DATES[1]!, 10),
+    rec('a', DATES[2]!, 10),
+  ]
+
+  it('scores the open paper for whoever has finished it', () => {
+    const rows = buildLeaderboard(records, all, { streakKeys: closed })
+    expect(rows.find((r) => r.userId === 'a')!.totalPoints).toBe(30)
+    expect(rows.find((r) => r.userId === 'b')!.totalPoints).toBe(20)
+    expect(rows[0]!.userId).toBe('a')
+  })
+
+  it('leaves the streak of whoever has not sat it yet alone', () => {
+    const rows = buildLeaderboard(records, all, { streakKeys: closed })
+    // Without streakKeys, `b` would read as having broken a two-day run on a
+    // paper they can still sit -- and it would heal an hour later.
+    expect(rows.find((r) => r.userId === 'b')!.currentStreak).toBe(2)
+    expect(rows.find((r) => r.userId === 'a')!.currentStreak).toBe(2)
+  })
+
+  it('counts the miss once the paper settles', () => {
+    const rows = buildLeaderboard(records, all, { streakKeys: all })
+    expect(rows.find((r) => r.userId === 'b')!.currentStreak).toBe(0)
+    expect(rows.find((r) => r.userId === 'a')!.currentStreak).toBe(3)
+  })
+
+  it('falls back to the board when no streak scope is given', () => {
+    const rows = buildLeaderboard(records, all)
+    expect(rows.find((r) => r.userId === 'b')!.currentStreak).toBe(0)
+  })
+})

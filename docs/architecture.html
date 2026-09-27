@@ -424,19 +424,28 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <p>Everything else is free. A morning slot of 6:00 to 7:30 works exactly as well as an evening one, and every surface that prints a time reads it from the paper: the home page countdown, the dashboard, the briefing, the admin console.</p>
 
 <h3>Nothing keys off the calendar day any more</h3>
-<p>Three rules used to wait for midnight or for 00:01 the next morning. They now wait for <strong>the paper's own hard stop</strong>, which is the moment every attempt on it has had to end:</p>
+<p>Three rules used to wait for midnight. They waited for the paper's own hard stop next. They now wait for <strong>the reader</strong> &mdash; each step moving the unlock closer to the person it is actually for:</p>
 <div class="tw"><table>
-<tr><th>When a paper closes</th><th>Why it waits for exactly that</th></tr>
-<tr><td>Its answers and solutions unlock</td><td>Nobody still sitting it can be given the key</td></tr>
-<tr><td>It joins the leaderboard</td><td>Until then it compares nothing, so the board cannot reveal who has already sat it</td></tr>
-<tr><td>It appears in the archive</td><td>Same reason, and the review shows the answers</td></tr>
+<tr><th>Rule</th><th>To you</th><th>To everybody</th></tr>
+<tr><td>Answers and solutions</td><td>When you hand the paper in</td><td>At the hard stop, sat or not (FR-6.3.2)</td></tr>
+<tr><td>Your rank, and the board</td><td>When the attempt is scored</td><td>Immediately &mdash; the board is one board, and it moves through the day</td></tr>
+<tr><td>The paper in your archive</td><td>When you hand it in</td><td>At the hard stop</td></tr>
 </table></div>
-<p>A paper that ran at breakfast is therefore reviewable by mid-morning, rather than waiting for a midnight that has nothing to do with it.</p>
+<p>The gate is the same in all three: <strong>a finished attempt of your own</strong>, or the paper having closed. So a paper sat at breakfast is reviewable at breakfast, and nothing about it is ever shown to somebody who could still take it.</p>
 
 <h3>Why almost nothing is scheduled</h3>
 <p>A job that must fire the moment a paper opens for the product to work is a job that will one day not fire. Instead, <code>lib/time.ts</code> answers <em>&ldquo;is this paper open right now?&rdquo;</em> from the current time every time a page loads. India has never observed daylight saving, so IST is a fixed UTC+05:30 and all of it is plain arithmetic with one offset.</p>
 
 <p>The tail between last entry and the hard stop is one whole paper, and it is not slack. A student starting one minute before entry closes still gets every minute the paper allows; the hard stop is defined as exactly that. Nobody ever sits a shortened paper.</p>
+
+<h3>What the clock no longer decides</h3>
+<p>One reversal is worth stating before the rest of this section, because it undoes an assumption the earlier drafts leaned on. <strong>A paper settles per student, not per clock.</strong> The result, the answers, the rank, the comparison and the board all arrive when an attempt is scored &mdash; not at the paper's hard stop.</p>
+<p>The gate that replaced the clock is the viewer's own finished attempt. That keeps the property that actually matters: <em>nothing about a paper is ever shown to somebody who can still sit it</em>. What it gives up is that a student who has finished could pass the answers to one who has not &mdash; a deliberate trade, argued in the PRD under FR-4.2. Three consequences fall out of it:</p>
+<ul>
+<li><strong>The board is live and the same for everybody.</strong> <code>loadCounted</code> counts every finished attempt on every scheduled paper; it no longer filters by close. A paper joins the board when the first student finishes it, or at its close if nobody did.</li>
+<li><strong>Streaks still wait.</strong> They are measured over papers that have <em>closed</em> (<code>streakKeys</code>), because on a live paper the first hand-in would put it on the board and break the streak of everyone who has not sat it yet &mdash; which would then heal an hour later. A streak is about the day, so it waits for the day's paper to settle.</li>
+<li><strong>Every provisional figure says so.</strong> While entry is open a rank is <em>&ldquo;2nd of 3 so far&rdquo;</em>, not <em>&ldquo;2nd of 3&rdquo;</em>. A number that will move is never dressed up as final.</li>
+</ul>
 
 <h3>The one time the clock is overruled</h3>
 <p>There is a single exception to &ldquo;everything is derived&rdquo;, and it is deliberate: <code>tests.ended_at</code>. An admin can end a paper for everybody, on the spot, whatever its window says &mdash; because the alternative, when something has gone wrong at ten past ten, is watching a broken paper run until midnight.</p>

@@ -9,8 +9,9 @@ import { PaperRankList } from '../../components/PaperRankList'
 export const dynamic = 'force-dynamic'
 
 /**
- * The leaderboard (PRD 6.7): all time by default, the last 30 papers, or one
- * paper's own rank list. It takes in each night's paper at 00:01.
+ * The leaderboard (PRD 6.7): all time by default, a window of recent papers,
+ * or one paper's own rank list. A result joins it the moment it is scored, so
+ * the board moves through the day as people hand in.
  */
 export default async function LeaderboardPage({
   searchParams,
@@ -28,9 +29,10 @@ export default async function LeaderboardPage({
   let papers: Awaited<ReturnType<typeof boardPapers>> = []
   try {
     ;[papers, rows, standings] = await Promise.all([
-      boardPapers(),
+      // Scoped to the papers this student may look at.
+      boardPapers(user.id),
       test ? Promise.resolve([]) : getLeaderboard(lastN ? { lastN } : {}),
-      test ? getPaperStandings(test) : Promise.resolve(null),
+      test ? getPaperStandings(test, user.id) : Promise.resolve(null),
     ])
   } catch (e) {
     failure = (e as Error).message
@@ -42,7 +44,7 @@ export default async function LeaderboardPage({
     <main className="shell pt-6">
       <PageHeader
         title="Leaderboard"
-        lede="Cumulative points across every paper. It never resets, and takes each paper in once that paper closes."
+        lede="Cumulative points across every paper. It never resets, and takes each result in the moment it is scored."
       />
 
       <BoardFilters basePath="/leaderboard" window={win} test={test} papers={papers} />

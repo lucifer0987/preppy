@@ -60,11 +60,16 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
   const testId = attempt.test_id as string
   const sections = (attempt.section_scores ?? []) as SectionScore[]
   const score = Number(attempt.total_score ?? 0)
-  const unlocked = paperClosed(paperWindow)
   const minutes = Math.round((attempt.time_spent_sec ?? 0) / 60)
   // A voided attempt is shown but is not ranked, and neither is a dry run.
   const counted = !attempt.is_dry_run && attempt.state !== 'VOIDED'
-  const ranked = counted && paperClosed(paperWindow)
+  // Yours the moment you hand it in: the answers are shut only to somebody who
+  // can still sit the paper, and that is no longer this student.
+  const unlocked = counted || paperClosed(paperWindow)
+  const ranked = counted
+  // Entry is over, so nothing on this page can move again. Until then every
+  // rank here is a standing among those who have finished so far, and says so.
+  const settled = paperClosed(paperWindow)
 
   const [record, sectionRows, responseRows, earlier, standing, standings] = await Promise.all([
     getPaperById(testId),
@@ -90,11 +95,11 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
           return null
         })
       : Promise.resolve<ResultStanding | null>(null),
-    // What everyone else scored on this paper. Only ever read once the paper
-    // is on the board, and only ever reduced to two figures -- the best and
-    // the average -- so no name leaves this query.
+    // What everyone else scored on this paper. Reduced to two figures -- the
+    // best and the average -- so no name leaves this query, and only read for
+    // somebody who has finished the paper and so cannot use it.
     ranked
-      ? getPaperStandings(testId).catch((e: Error) => {
+      ? getPaperStandings(testId, user.id).catch((e: Error) => {
           console.error('[result] could not compare', e.message)
           return null
         })
@@ -227,7 +232,9 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
             <Tally
               label="Rank on this paper"
               value={standing?.paper ? ordinal(standing.paper.rank) : '—'}
-              hint={standing?.paper ? `of ${standing.paper.of}` : ranked ? undefined : 'when it closes'}
+              hint={standing?.paper
+                ? `of ${standing.paper.of}${settled ? '' : ' so far'}`
+                : ranked ? undefined : 'not counted'}
             />
             <Tally
               label="Accuracy"
@@ -245,23 +252,23 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
           </dl>
         </div>
 
-        {counted && !ranked && (
+        {counted && !settled && (
           <p className="relative mt-5 border-t border-white/15 pt-4 text-sm font-semibold text-white/80">
-            Your rank, the best score on this paper and what the room averaged all appear at{' '}
-            <span className="numeral">{paperLabels(paperWindow).hardStop}</span>, when this paper
-            closes and the leaderboard takes it in.
+            Counted among everybody who has finished so far. Entry is open until{' '}
+            <span className="numeral">{paperLabels(paperWindow).closes}</span>, so these can still
+            move as the rest of the cohort hands in.
           </p>
         )}
       </section>
 
-      {/* Only once the paper is closed, which is also when the board shows the
-          cohort these numbers anyway. Two figures, no names. */}
+      {/* Two figures, never a name -- and only to somebody who has finished
+          the paper, so it can tell them nothing they could have used. */}
       {cohort && (
         <section className="card mt-4 p-5 sm:p-6">
           <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
             <h2 className="eyebrow">Where this sits</h2>
             <p className="numeral text-xs text-ink-faint">
-              {cohort.of} sat this paper
+              {cohort.of} {cohort.of === 1 ? 'has' : 'have'} finished{settled ? '' : ' so far'}
             </p>
           </div>
           <div className="mt-4 space-y-3.5">

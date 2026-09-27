@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic'
  * The board, from the console.
  *
  * The same figures the students see, with the same two filters, on the screen
- * the admin already lives in. It was reachable only by leaving the console for
+ * the admin already lives in. It moves through the day as people hand in. It was reachable only by leaving the console for
  * the student view, which is an odd trip to make to answer "who is actually
  * turning up" -- and the per-paper list is the one an admin wants most, since
  * it is the night-by-night view the cumulative board hides.
@@ -48,7 +48,7 @@ export default async function AdminBoard({
       <PageHeader
         compact
         title="Leaderboard"
-        lede="Cumulative points across every paper that has closed. It never resets, and a paper joins it the moment that paper finishes."
+        lede="Cumulative points across every paper. It never resets, and a result joins it the moment it is scored."
         meta={!test && rows.length > 0
           ? <span className="numeral">{rows.length} on the board &middot; {scope.toLowerCase()}</span>
           : undefined}
