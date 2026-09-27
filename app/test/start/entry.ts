@@ -1,4 +1,6 @@
-import { canStartAttempt, istDate, paperLabels, windowState, type PaperWindow } from '../../../lib/time'
+import {
+  canStartAttempt, istDate, paperClosed, paperLabels, windowState, type PaperWindow,
+} from '../../../lib/time'
 
 /**
  * Why a student may not begin this paper now, or null if they may. Shared by
@@ -21,4 +23,27 @@ export function entryRefusal(
     return 'This paper was ended early by your admin, so it can no longer be started.'
   }
   return `Entry for this paper closed at ${closes}.`
+}
+
+/**
+ * Why a student may not practise this paper, or null if they may (PRD 6.11).
+ *
+ * A practice run is the archive made sittable: the same engine, the same
+ * timers, no rank and no row on the board. It is offered on a paper that is
+ * already open to you and on no other, which is the same gate the archive
+ * itself uses -- you have finished it, or it has closed.
+ *
+ * That gate is the whole of the safety here. Practising a paper you can still
+ * sit for real would be sitting it twice, the second time knowing the
+ * questions, and the counted attempt is the one that would be worth less for
+ * it.
+ */
+export function practiceRefusal(
+  status: string, w: PaperWindow, finished: boolean, now: Date = new Date(),
+): string | null {
+  if (status !== 'SCHEDULED') return 'That paper is not scheduled.'
+  if (finished || paperClosed(w, now)) return null
+  return canStartAttempt(w, now)
+    ? 'You can still sit this paper for real, so there is nothing to practise yet.'
+    : 'This paper has not closed yet, so its questions are not open to you.'
 }

@@ -107,6 +107,11 @@ export default async function ArchiveDetail({
         title={paper.title ?? 'Daily mock'}
         meta={<span className="numeral">{formatIstDate(paper.date)}</span>}
         lede="Every question with its key and worked solution. Yours are marked where you answered."
+        actions={user.role === 'student' ? (
+          <Link href={`/test/start?test=${testId}&practice=1`} className="btn btn-quiet">
+            Sit it again as practice
+          </Link>
+        ) : undefined}
       />
 
       {/* Reading a paper is a reading task, so the questions keep a measure

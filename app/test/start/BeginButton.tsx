@@ -12,7 +12,10 @@ import { useFormStatus } from 'react-dom'
  * navigation, so the document — and full screen with it — carries straight
  * into the engine.
  */
-export function BeginButton() {
+export function BeginButton({ label = 'Begin' }: {
+  /** "Begin" for the real thing, "Start practising" for a practice run. */
+  label?: string
+}) {
   const { pending } = useFormStatus()
   const [requesting, setRequesting] = useState(false)
   const [denied, setDenied] = useState(false)
@@ -43,12 +46,12 @@ export function BeginButton() {
         disabled={busy}
         className="btn btn-zap w-full py-4 text-lg"
       >
-        {busy ? 'Starting…' : 'Begin'}
+        {busy ? 'Starting…' : label}
       </button>
       {denied && (
         <p role="alert" className="mt-3 text-center text-sm font-semibold text-bad-ink">
-          Your browser did not allow full screen, so the test has not started. Allow it and press
-          Begin again.
+          Your browser did not allow full screen, so nothing has started. Allow it and press{' '}
+          {label} again.
         </p>
       )}
     </>

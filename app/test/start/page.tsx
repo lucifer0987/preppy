@@ -8,7 +8,7 @@ import { formatIstDate, paperLabels } from '../../../lib/time'
 import { PAPER_WINDOW_COLUMNS, paperWindowOf } from '../../../lib/repo/papers'
 import { beginAction } from './actions'
 import { BeginButton } from './BeginButton'
-import { entryRefusal } from './entry'
+import { entryRefusal, practiceRefusal } from './entry'
 import { BackLink, Flash, PageHeader } from '../../../components/Page'
 import { ExamRules } from '../../../components/ExamRules'
 import { SectionShape } from '../../../components/SectionShape'
@@ -28,7 +28,8 @@ export const dynamic = 'force-dynamic'
 export default async function StartPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const user = await requireUser()
 
-  const { test: testId, error } = await searchParams
+  const { test: testId, error, practice: practiceParam } = await searchParams
+  const practice = practiceParam === '1'
   if (!testId) redirect('/dashboard')
 
   const { data: test } = await db()
@@ -37,7 +38,9 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
     .eq('id', testId).maybeSingle()
   if (!test) redirect('/dashboard')
 
-  const isDryRun = user.role === 'admin'
+  // A dry run for an admin, a practice run for a student: the same engine and
+  // the same timers, counted nowhere either way.
+  const isDryRun = user.role === 'admin' || practice
   const sections = ((test.sections ?? []) as {
     code: SectionCode; position: number; duration_sec: number; question_count: number
     marks_correct: number; marks_negative: number
@@ -62,7 +65,10 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
   return (
     <main className="shell py-8">
       <div className="flex items-center justify-between gap-3">
-        <BackLink href={isDryRun ? `/admin/papers/${testId}` : '/dashboard'}>Back</BackLink>
+  <BackLink href={
+          practice ? `/archive/${testId}`
+            : user.role === 'admin' ? `/admin/papers/${testId}` : '/dashboard'
+        }>Back</BackLink>
         <ThemeToggle />
       </div>
 
@@ -71,7 +77,13 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
         meta={<span className="numeral">{formatIstDate(test.date as string)}</span>}
       />
 
-      {isDryRun && (
+      {practice ? (
+        <Flash tone="warn" className="mt-4 text-sm">
+          This is practice. The engine, the timers and the marking are the real ones; the result is
+          yours alone. Nothing here reaches the leaderboard, and your counted score on this paper
+          does not move. Practising again replaces the practice result before it.
+        </Flash>
+      ) : isDryRun && (
         <Flash tone="warn" className="mt-4 text-sm">
           This is a dry run. It uses the real engine and the real timers, but it is never counted
           and never appears on the leaderboard.
@@ -124,7 +136,7 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
           <h2 className="eyebrow">Before you begin</h2>
           <div className="mt-3"><ExamRules /></div>
           <p className="mt-3 border-t border-line pt-3 text-sm font-semibold">
-            Your timer starts the moment you press Begin, not when this page opened.
+            Your timer starts the moment you press the button, not when this page opened.
           </p>
         </section>
 
@@ -169,12 +181,15 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
             <div className="card p-6">
               <form action={beginAction}>
                 <input type="hidden" name="testId" value={String(test.id)} />
-                <BeginButton />
+                {practice && <input type="hidden" name="practice" value="1" />}
+                <BeginButton label={practice ? 'Start practising' : 'Begin'} />
               </form>
               <p className="mt-3 text-center text-sm text-ink-soft">
-                {isDryRun
-                  ? 'Nothing here is counted.'
-                  : `Entry closes at ${paperLabels(paperWindow).closes}.`}
+                {practice
+                  ? 'Your counted score on this paper stays exactly as it is.'
+                  : isDryRun
+                    ? 'Nothing here is counted.'
+                    : `Entry closes at ${paperLabels(paperWindow).closes}.`}
               </p>
             </div>
           )}

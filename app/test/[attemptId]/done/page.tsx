@@ -65,6 +65,9 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
   const minutes = Math.round((attempt.time_spent_sec ?? 0) / 60)
   // A voided attempt is shown but is not ranked, and neither is a dry run.
   const counted = !attempt.is_dry_run && attempt.state !== 'VOIDED'
+  // The same row an admin's rehearsal leaves behind, asked for on purpose by
+  // a student re-sitting a paper already open to them (PRD 6.11).
+  const practice = Boolean(attempt.is_dry_run) && user.role === 'student'
   // Yours the moment you hand it in: the answers are shut only to somebody who
   // can still sit the paper, and that is no longer this student.
   const unlocked = counted || paperClosed(paperWindow)
@@ -222,7 +225,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
             {attempt.is_dry_run && (
               <p className="mb-3 inline-block rounded-full bg-white/20 px-3 py-1 text-[10px]
                             font-bold uppercase tracking-widest">
-                Dry run &middot; not counted
+                {practice ? 'Practice' : 'Dry run'} &middot; not counted
               </p>
             )}
             <p className="text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-white/60">
@@ -469,9 +472,17 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
         </section>
       </div>
 
-      <Link href="/dashboard" className="btn btn-primary mt-8">
-        Back to dashboard
-      </Link>
+      <div className="mt-8 flex flex-wrap gap-3">
+        <Link href="/dashboard" className="btn btn-primary">Back to dashboard</Link>
+        {practice && (
+          <>
+            <Link href={`/archive/${testId}`} className="btn btn-quiet">Read the solutions</Link>
+            <Link href={`/test/start?test=${testId}&practice=1`} className="btn btn-quiet">
+              Practise it again
+            </Link>
+          </>
+        )}
+      </div>
     </main>
   )
 }

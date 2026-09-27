@@ -5,7 +5,7 @@ import { actionUser } from '../../../lib/guard'
 import { currentSessionId, revokeSessions } from '../../../lib/auth'
 import { db } from '../../../lib/supabase/admin'
 import { findAttempt, loadAttempt, startAttempt } from '../../../lib/repo/attempts'
-import { entryRefusal } from './entry'
+import { entryRefusal, practiceRefusal } from './entry'
 import { paperWindowOf } from '../../../lib/repo/papers'
 
 /**
@@ -20,16 +20,30 @@ export async function beginAction(formData: FormData) {
   if (!user) redirect('/login')
 
   const testId = String(formData.get('testId'))
+  // A practice run of a paper already open to this student: the same engine
+  // and the same timers, counted nowhere (PRD 6.11).
+  const practice = formData.get('practice') === '1'
   // A refusal goes back to the briefing as a message, not to an error page.
   const refuse = (message: string): never =>
-    redirect(`/test/start?test=${encodeURIComponent(testId)}&error=${encodeURIComponent(message)}`)
+    redirect(`/test/start?test=${encodeURIComponent(testId)}`
+      + `${practice ? '&practice=1' : ''}&error=${encodeURIComponent(message)}`)
 
   const { data: test } = await db()
     .from('tests').select('id, status, date, opens_at_min, entry_closes_at_min, attempt_sec, ended_at').eq('id', testId).maybeSingle()
   if (!test) redirect('/dashboard')
 
-  // The admin can never hold a counted attempt (FR-5.2).
-  const isDryRun = user.role === 'admin'
+  // The admin can never hold a counted attempt (FR-5.2); a practice run is
+  // the same machinery asked for on purpose.
+  const isDryRun = user.role === 'admin' || practice
+
+  // Practice is offered only on a paper already open to this student. Checked
+  // here as well as on the briefing, because this action is the door.
+  if (practice && user.role !== 'admin') {
+    const own = await findAttempt(testId, user.id, false)
+    const finished = Boolean(own && own.state !== 'IN_PROGRESS' && own.state !== 'VOIDED')
+    const why = practiceRefusal(test.status as string, paperWindowOf(test), finished)
+    if (why) refuse(why)
+  }
 
   const existing = await findAttempt(testId, user.id, isDryRun)
   if (existing && existing.state === 'IN_PROGRESS') {
