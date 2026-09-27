@@ -24,7 +24,9 @@ export function paletteState(
 }
 
 const SHAPE: Record<PaletteState, { className: string; clipPath?: string }> = {
-  'not-visited': { className: 'rounded-md bg-notvisited text-ink' },
+  // A fixed grey fill, so it takes a fixed dark number rather than the theme's
+  // ink: white on this grey is 2.51:1, and in dark mode the ink is white.
+  'not-visited': { className: 'rounded-md bg-notvisited text-slate-900' },
   'not-answered': {
     className: 'bg-notanswered text-white pb-1',
     clipPath: 'polygon(0 0, 100% 0, 100% 62%, 50% 100%, 0 62%)',

@@ -85,6 +85,7 @@
   --color-bad-800:   #991b1b;
   --color-bad-500:   #dc2626;
   --color-bad-400:   #f05252;
+  --color-bad-300:   #f98080;
 
   /* ---- the four answer options: colour AND shape, never colour alone */
   --color-opt-red:    #e21b3c;
@@ -194,33 +195,36 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  /* Material's dark-theme guidance, applied rather than paraphrased: the base
-     is #121212 -- a dark grey, deliberately not black, because grey carries
-     elevation and shadow where black flattens them -- and a branded surface is
-     that base with a colour laid over it at a low opacity.
-     
-     The colour is a plum at hue 310, not the brand violet at 261. Tinting with
-     the brand gave every dark surface more blue than red, and a blue-black
-     room is a cold one to sit in for forty-five minutes at midnight. These
-     have red above blue at every step, which is what makes them read as warm
-     rather than as a screen that is simply off. */
-  --page: #1d161c;
-  --surface: #2a1a27;
-  --surface-sunken: #221720;
-  --surface-raised: #351e31;
-  /* Warmed with the rest of the dark room. The blue-violet brand-950 sat cold
-     against a plum ground, and that clash is what read as "blue and black". */
-  --surface-invert: #2c0f28;
+  /* A lit violet room, not a dark grey one.
 
-  /* Warmed with the surfaces: cool grey text on a warm ground reads as a
-     mistake even when the contrast is right. */
-  --text: #f4eff6;
-  --text-soft: #c3b4c6;
-  --text-faint: #9c8ba0;
+     These were a near-grey plum for a while, chasing Material's advice to
+     start from #121212 and tint. The advice is sound for a neutral product
+     and wrong for this one: desaturating the brand out of the surfaces left
+     every card a shade of brown-grey, a card lifted 1.08 off the page and a
+     border 1.24 off the card. Nothing had an edge, and the whole app read as
+     switched off.
 
-  /* Lifted with the surfaces, or the borders would have disappeared into them. */
-  --line: #3a2b38;
-  --line-strong: #4d394a;
+     The landing page never had that problem, because it was the one screen
+     that kept the brand violet in its ground. So these are its palette,
+     pushed a little further apart than a landing page needs: a card now lifts
+     1.22 and a border 1.42, with the stronger border at 2.10 so an input has
+     a visible outline. */
+  --page: #1c0a38;
+  --surface: #2e1a58;
+  --surface-sunken: #25123f;
+  --surface-raised: #3a2168;
+  /* Brighter than the surfaces rather than darker: on a violet page a darker
+     panel reads as a hole, and this is used for the things that should feel
+     raised -- the podium, the login panel. */
+  --surface-invert: #42207a;
+
+  --text: #ffffff;
+  --text-soft: #cbb9ef;
+  --text-faint: #ab95da;
+
+  /* Lifted with the surfaces, or the borders disappear into them. */
+  --line: #4a2f7d;
+  --line-strong: #65479f;
 
   --accent: var(--color-brand-400);
   /* On a light violet fill, white is 3.15:1 -- below AA. The deep brand
@@ -228,19 +232,21 @@
      action on every form, so it cannot be the one thing that fails. */
   --text-on-brand: var(--color-brand-950);
   --accent-hover: var(--color-brand-300);
-  --accent-soft: #241a3d;
+  --accent-soft: #38247a;
   --accent-text: var(--color-brand-300);
   --zap: var(--color-zap-400);
   --zap-solid: var(--color-zap-600);
   --zap-ink: var(--color-zap-300);
-  --zap-soft: #3a0f26;
+  --zap-soft: #521436;
 
   --good: var(--color-good-400);
   --warn: var(--color-warn-400);
   --bad: var(--color-bad-400);
   --good-ink: var(--color-good-400);
   --warn-ink: var(--color-warn-400);
-  --bad-ink: var(--color-bad-400);
+  /* bad-400 is 4.30 on the lit surface, just under AA, and this is the colour
+     every error message uses. */
+  --bad-ink: var(--color-bad-300);
   --gold: var(--color-gold-300);
   /* The test screen's two outline buttons, light enough to read on a dark page. */
   --mark: var(--color-gold-300);
@@ -365,16 +371,9 @@ h2, h3 { text-wrap: balance; }
   --line-strong: #d0c3f0;
 }
 
-:root[data-theme="dark"] [data-room="home"] {
-  --page: var(--color-brand-950);
-  --surface: #2e1a58;
-  --surface-sunken: #271449;
-  --line: #43296f;
-  --line-strong: #553a86;
-  --text: #ffffff;
-  --text-soft: #cbb9ef;
-  --text-faint: #ab95da;
-}
+/* No dark block of its own any more. This room's dark palette was the one that
+   worked, so it became the app's -- and a room that repeats the theme it sits
+   in is a room with two places to change one colour. */
 
 /* --------------------------------------------------------- the exam room */
 /**
@@ -414,17 +413,21 @@ h2, h3 { text-wrap: balance; }
 }
 
 :root[data-theme="dark"] [data-room="exam"] {
-  /* The exam room takes the same base with only a trace of brand in it, so it
-     stays the calmer of the two rooms without becoming a different product.
-     Chrome and page are the same value on purpose: one surface, one border. */
-  --chrome: #171216;
+  /* Deeper and less saturated than the app's dark, so the room still reads as
+     the quiet one, but the same violet family rather than the grey-plum it
+     used to be: walking from the dashboard into the paper should not look like
+     leaving the product. Chrome and page are the same value on purpose, so the
+     header and the question sit on one surface. */
+  --chrome: #120b20;
   --chrome-line: rgb(255 255 255 / 0.09);
-  --page: #171216;
-  --surface: #241a22;
-  --surface-sunken: #1d151b;
+  --page: #120b20;
+  --surface: #251749;
+  --surface-sunken: #1a1034;
+  --line: #402c6a;
+  --line-strong: #55407e;
   --accent: var(--color-brand-400);
   --accent-hover: var(--color-brand-300);
-  --accent-soft: #241a3d;
+  --accent-soft: #38247a;
 }
 
 /* ------------------------------------------------------------- layout */
