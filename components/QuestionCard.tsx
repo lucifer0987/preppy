@@ -95,13 +95,23 @@ export function QuestionCard({
       </ul>
 
       {canReveal && (
-        <div className="mt-4 rounded-control bg-surface-sunken p-4 text-sm">
-          <p><span className="font-bold">Answer:</span> {question.answer}</p>
-          {question.solution && <p className="mt-1 text-ink-soft">{question.solution}</p>}
-          <p className="mt-2 flex flex-wrap gap-3 text-xs text-ink-soft">
-            {question.tag && <span>Topic: {question.tag}</span>}
-            {question.difficulty && <span>Difficulty: {question.difficulty}</span>}
+        <div className="mt-4 rounded-control border border-line bg-surface-sunken p-4">
+          <p className="flex flex-wrap items-center gap-2">
+            <span className="eyebrow">Answer</span>
+            <span className="chip border-good/35 bg-good/10 font-display text-good-ink">
+              {question.answer}
+            </span>
           </p>
+          {question.solution && (
+            <p className="measure mt-2.5 leading-relaxed text-ink">{question.solution}</p>
+          )}
+          {(question.tag || question.difficulty) && (
+            <p className="mt-3 flex flex-wrap gap-x-3 gap-y-1 border-t border-line pt-2.5
+                          text-xs text-ink-faint">
+              {question.tag && <span>Topic: {question.tag}</span>}
+              {question.difficulty && <span>Difficulty: {question.difficulty}</span>}
+            </p>
+          )}
         </div>
       )}
     </div>

@@ -14,7 +14,7 @@ export function UploadForm() {
 
   return (
     <>
-      <form action={action} className="mt-6 rounded-card border border-dashed border-line-strong bg-surface p-6">
+      <form action={action} className="card p-5 sm:p-6">
         <label className="block">
           <span className="eyebrow">Paper file</span>
           <input
@@ -22,9 +22,9 @@ export function UploadForm() {
             name="paper"
             accept=".json,application/json"
             required
-            className="mt-2 block w-full text-sm file:mr-4 file:rounded-xl file:border-0
-                       file:bg-play-purple file:px-4 file:py-2.5 file:text-sm file:font-bold
-                       file:text-white hover:file:bg-play-purple-deep"
+            className="mt-2 block w-full text-sm file:mr-4 file:rounded-control file:border-0
+                       file:bg-accent file:px-4 file:py-2 file:font-display file:text-sm
+                       file:font-bold file:text-on-brand hover:file:bg-accent-hover"
           />
         </label>
         <p className="mt-3 text-sm text-ink-soft">
@@ -38,8 +38,9 @@ export function UploadForm() {
             name="images"
             multiple
             accept=".png,.jpg,.jpeg,.webp,.gif,image/png,image/jpeg,image/webp,image/gif"
-            className="mt-2 block w-full text-sm file:mr-4 file:rounded-xl file:border-0
-                       file:bg-surface-sunken file:px-4 file:py-2.5 file:text-sm file:font-bold"
+            className="mt-2 block w-full text-sm file:mr-4 file:rounded-control file:border
+                       file:border-line-strong file:bg-surface-sunken file:px-4 file:py-2
+                       file:font-display file:text-sm file:font-bold file:text-ink"
           />
         </label>
         <p className="mt-3 text-sm text-ink-soft">
@@ -66,7 +67,7 @@ function IssueList({ title, tone, issues }: { title: string; tone: 'error' | 'wa
   if (!issues.length) return null
   const accent = tone === 'error' ? 'text-bad-ink' : 'text-warn-ink'
   return (
-    <section className="mt-4 rounded-control bg-surface p-5">
+    <section className="card mt-4 p-5">
       <h2 className={`text-xs font-bold uppercase tracking-widest ${accent}`}>
         {issues.length} {title.toLowerCase()}
       </h2>

@@ -8,12 +8,43 @@ export default async function UploadPage() {
   await requireAdmin()
   return (
     <>
-      <PageHeader compact title="Upload a paper" lede="A JSON file and its images in one go. Nothing is saved unless every rule passes." />
-      <p className="mt-2 text-ink-soft">
-        It is checked before anything is saved, and saved as a draft even then. A paper only goes
-        live after you schedule it on the next screen.
-      </p>
-      <UploadForm />
+      {/* One sentence, not two saying the same thing: the lede used to promise
+          "nothing is saved unless every rule passes" and the paragraph under it
+          repeated that it is checked before anything is saved. */}
+      <PageHeader
+        compact
+        title="Upload a paper"
+        lede="The paper as one JSON file, with its images alongside. It is checked before anything is written, and saved as a draft even when it passes."
+      />
+
+      <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start">
+        <UploadForm />
+
+        {/* A screen used once a day at most, so it says what happens next
+            rather than assuming it is remembered. */}
+        <aside className="card p-5">
+          <h2 className="eyebrow">What happens next</h2>
+          <ol className="mt-3 space-y-3 text-sm">
+            {[
+              ['Checked', 'Every rule in the format runs before a row is written. Errors block it; warnings do not.'],
+              ['Saved as a draft', 'A draft is invisible to students. Nothing about it is live.'],
+              ['Read it through', 'The next screen shows every question exactly as a student will see it.'],
+              ['Scheduled by you', 'It only goes live when you pick the night and confirm you have read it.'],
+            ].map(([h, b], i) => (
+              <li key={h} className="flex gap-3">
+                <span className="numeral mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-pill
+                                 bg-accent-soft text-[0.625rem] font-black text-accent">
+                  {i + 1}
+                </span>
+                <span>
+                  <span className="block font-semibold text-ink">{h}</span>
+                  <span className="block text-ink-soft">{b}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
+        </aside>
+      </div>
     </>
   )
 }
