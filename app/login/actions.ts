@@ -30,7 +30,9 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
   }
 
   await clear(userKey)
-  redirect('/dashboard')
+  // An admin's home is the console, not the student dashboard. They can still
+  // reach the student view from the header; it just is not where they land.
+  redirect(result.role === 'admin' ? '/admin' : '/dashboard')
 }
 
 export async function logoutAction() {

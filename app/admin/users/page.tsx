@@ -5,7 +5,7 @@ import { formatIstDate, istDate } from '../../../lib/time'
 import { CreateUserForm, ResetPasswordForm } from './UserForms'
 import { BulkImport } from './BulkImport'
 import { toggleActiveAction } from './actions'
-import { BackLink, PageHeader, TableShell, Th } from '../../../components/Page'
+import { PageHeader, TableShell, Th } from '../../../components/Page'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,8 +15,7 @@ export default async function UsersPage() {
 
   return (
     <>
-      <BackLink href="/admin">Admin</BackLink>
-      <PageHeader title="People" lede="Six accounts, no self-service. You create them, you reset them, and a deactivated one keeps its history." />
+      <PageHeader compact title="People" lede="Six accounts, no self-service. You create them, you reset them, and a deactivated one keeps its history." />
 
       <CreateUserForm />
       <BulkImport />

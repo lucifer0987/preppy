@@ -99,7 +99,9 @@ export async function currentSessionId(): Promise<string | null> {
   return sessionIdFromToken(session?.access_token)
 }
 
-export type SignInResult = { ok: true; sessionId: string | null } | { ok: false; message: string }
+export type SignInResult =
+  | { ok: true; sessionId: string | null; role: string }
+  | { ok: false; message: string }
 
 /**
  * Failures are deliberately indistinguishable, so the form never reveals
@@ -124,7 +126,7 @@ export async function signIn(usernameInput: string, password: string): Promise<S
 
   const { data: profile } = await db()
     .from('profiles')
-    .select('is_active')
+    .select('is_active, role')
     .eq('id', data.user.id)
     .maybeSingle()
 
@@ -135,7 +137,13 @@ export async function signIn(usernameInput: string, password: string): Promise<S
   }
 
   await db().from('profiles').update({ last_login_at: new Date().toISOString() }).eq('id', data.user.id)
-  return { ok: true, sessionId: sessionIdFromToken(data.session?.access_token) }
+  // The caller needs the role to know where to send them: an admin landing on
+  // the student dashboard has to notice the mistake and navigate out of it.
+  return {
+    ok: true,
+    sessionId: sessionIdFromToken(data.session?.access_token),
+    role: String(profile.role ?? 'student'),
+  }
 }
 
 export async function signOut(): Promise<void> {

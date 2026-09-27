@@ -104,7 +104,7 @@ export default async function PaperPreview(
         </Flash>
       )}
 
-      <PageHeader
+      <PageHeader compact
         title={paper.title ?? 'Untitled paper'}
         meta={
           <>

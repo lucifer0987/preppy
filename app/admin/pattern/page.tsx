@@ -3,7 +3,7 @@ import { requireAdmin } from '../../../lib/guard'
 import { getPattern, getPatternMeta, getWindow } from '../../../lib/repo/settings'
 import { patternTotals, SECTION_NAMES } from '../../../lib/types'
 import { PatternForm } from './PatternForm'
-import { BackLink, PageHeader } from '../../../components/Page'
+import { PageHeader } from '../../../components/Page'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,31 +19,35 @@ export default async function PatternPage() {
 
   return (
     <>
-      <BackLink href="/admin">Admin</BackLink>
-      <PageHeader title="Paper pattern" lede="What a paper is given when its file does not say. Papers already uploaded keep their own shape." />
+      <PageHeader compact title="Paper pattern" lede="What a paper is given when its file does not say. Papers already uploaded keep their own shape." />
 
-      <section className="mt-6 rounded-card bg-surface-invert p-6 text-white shadow-high">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">A paper on this pattern</p>
-        <p className="mt-2 text-2xl font-black tabular-nums">
-          {totals.questions} questions &middot; {totals.minutes} minutes
+      <dl className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-card border border-line
+                     bg-line sm:grid-cols-4">
+        {[['Questions', String(totals.questions)], ['Minutes', String(totals.minutes)],
+          ['Perfect paper', String(totals.maxMarks)], ['All wrong', String(totals.minMarks)]].map(([k, v]) => (
+          <div key={k} className="bg-surface px-4 py-3">
+            <dt className="eyebrow">{k}</dt>
+            <dd className="numeral mt-0.5 text-xl font-bold">{v}</dd>
+          </div>
+        ))}
+      </dl>
+      <ul className="numeral mt-3 grid gap-1.5 text-sm sm:grid-cols-2">
+        {current.map((s) => (
+          <li key={s.code} className="flex items-baseline justify-between gap-3 rounded-control
+                                      border border-line bg-surface px-3 py-2">
+            <span className="truncate font-display font-semibold">{SECTION_NAMES[s.code]}</span>
+            <span className="shrink-0 text-xs text-ink-faint">
+              {s.questions} q &middot; {s.minutes} min &middot; +{s.marksCorrect}/&minus;{s.marksNegative}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {meta.updatedAt && (
+        <p className="mt-2 text-xs text-ink-faint">
+          Last changed {new Date(meta.updatedAt).toLocaleString('en-IN')}
+          {meta.updatedBy ? ` by ${meta.updatedBy}` : ''}
         </p>
-        <p className="mt-1 tabular-nums text-white/70">
-          {totals.maxMarks} marks for a perfect paper, {totals.minMarks} for every answer wrong.
-        </p>
-        <ul className="mt-3 space-y-1 text-sm tabular-nums text-white/70">
-          {current.map((s) => (
-            <li key={s.code}>
-              {SECTION_NAMES[s.code]} &mdash; {s.questions} q, {s.minutes} min, +{s.marksCorrect} / &minus;{s.marksNegative}
-            </li>
-          ))}
-        </ul>
-        {meta.updatedAt && (
-          <p className="mt-3 text-xs text-white/50">
-            Last changed {new Date(meta.updatedAt).toLocaleString('en-IN')}
-            {meta.updatedBy ? ` by ${meta.updatedBy}` : ''}
-          </p>
-        )}
-      </section>
+      )}
 
       <PatternForm current={current} latestEntryClose={latestEntryClose} />
 

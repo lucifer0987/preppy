@@ -5,7 +5,7 @@ import { formatIstDate } from '../../../lib/time'
 import { deleteDryRunAction, voidAttemptAction } from './actions'
 import { ConfirmButton } from './ConfirmButton'
 import { db } from '../../../lib/supabase/admin'
-import { BackLink, PageHeader, Flash, TableShell, Th } from '../../../components/Page'
+import { PageHeader, Flash, TableShell, Th } from '../../../components/Page'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,8 +22,7 @@ export default async function AttemptsPage({
 
   return (
     <>
-      <BackLink href="/admin">Admin</BackLink>
-      <PageHeader
+      <PageHeader compact
         title={person ? `${person.display_name}\u2019s attempts` : 'Attempts'}
         lede="Score, duration and the two integrity counters. Nothing else is recorded."
         actions={(user || test)

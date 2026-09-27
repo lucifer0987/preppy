@@ -3,7 +3,7 @@ import { requireAdmin } from '../../../lib/guard'
 import { defaultAttemptMinutes, getWindow, getWindowMeta } from '../../../lib/repo/settings'
 import { windowLabels } from '../../../lib/time'
 import { WindowForm } from './WindowForm'
-import { BackLink, PageHeader } from '../../../components/Page'
+import { PageHeader } from '../../../components/Page'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,24 +20,24 @@ export default async function WindowPage() {
 
   return (
     <>
-      <BackLink href="/admin">Admin</BackLink>
-      <PageHeader title="Nightly window" lede="The times a new paper is offered when you schedule it. Each paper keeps its own." />
+      <PageHeader compact title="Nightly window" lede="The times a new paper is offered when you schedule it. Each paper keeps its own." />
 
-      <section className="mt-6 rounded-card bg-surface-invert p-6 text-white shadow-high">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">Offered by default</p>
-        <p className="mt-2 text-2xl font-black">
-          {labels.opens} &rarr; {labels.closes}
+      <dl className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-card border border-line
+                     bg-line sm:grid-cols-4">
+        {[['Unlocks', labels.opens], ['Last entry', labels.closes],
+          ['Everyone finished by', labels.hardStop], ['Runs for', `${attemptMinutes} min`]].map(([k, v]) => (
+          <div key={k} className="bg-surface px-4 py-3">
+            <dt className="eyebrow">{k}</dt>
+            <dd className="numeral mt-0.5 text-xl font-bold">{v}</dd>
+          </div>
+        ))}
+      </dl>
+      {meta.updatedAt && (
+        <p className="mt-2 text-xs text-ink-faint">
+          Last changed {new Date(meta.updatedAt).toLocaleString('en-IN')}
+          {meta.updatedBy ? ` by ${meta.updatedBy}` : ''}
         </p>
-        <p className="mt-1 text-white/70">
-          Everyone is finished by {labels.hardStop}. A paper on the default pattern runs {attemptMinutes} minutes.
-        </p>
-        {meta.updatedAt && (
-          <p className="mt-3 text-xs text-white/50">
-            Last changed {new Date(meta.updatedAt).toLocaleString('en-IN')}
-            {meta.updatedBy ? ` by ${meta.updatedBy}` : ''}
-          </p>
-        )}
-      </section>
+      )}
 
       <WindowForm current={current} attemptMinutes={attemptMinutes} />
 

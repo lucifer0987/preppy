@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { listPapers } from '../../../lib/repo/papers'
 import { formatIstDate, istDate, paperLabels, windowState } from '../../../lib/time'
 import { requireAdmin } from '../../../lib/guard'
-import { BackLink, PageHeader } from '../../../components/Page'
+import { PageHeader } from '../../../components/Page'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,8 +13,7 @@ export default async function PapersPage() {
 
   return (
     <>
-      <BackLink href="/admin">Admin</BackLink>
-      <PageHeader
+      <PageHeader compact
         title="Papers"
         lede="Everything drafted or published. Open one to preview it, correct a key, or rehearse it as a dry run."
         actions={

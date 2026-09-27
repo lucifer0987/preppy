@@ -3,18 +3,17 @@ import { db } from '../../lib/supabase/admin'
 import { formatIstDate, istDate, paperLabels, windowState } from '../../lib/time'
 import { paperWindowOf } from '../../lib/repo/papers'
 import { requireAdmin } from '../../lib/guard'
+import { Flash, StatusChip } from '../../components/Page'
 import { FinaliseButton } from './FinaliseButton'
-import { Flash } from '../../components/Page'
 
 /**
- * Admin home (PRD section 6.9).
+ * The console home (PRD section 6.9).
  *
- * The first thing shown is whether tonight has a paper. That replaces the
- * publish-reminder cron dropped in v1.2: with no SMTP there is nowhere to send
- * a reminder, so the status lives where the admin already looks.
- */
-/**
- * Authenticated and live-data backed: never prerender it.
+ * Rebuilt for density. It used to be a full-screen decorative panel, two
+ * figures, and the six sections repeated as large tiles with a sentence each
+ * -- the same list the rail already shows, taking a screen to say it. What an
+ * admin opens this page to learn is whether tonight is covered, so that is the
+ * first line, and the rest is counts and the three things they actually do.
  */
 export const dynamic = 'force-dynamic'
 
@@ -24,14 +23,21 @@ export default async function AdminHome({
   await requireAdmin()
   const { password } = await searchParams
   const today = istDate()
-  const { data: tonight } = await db()
-    .from('tests').select('id, date, title, status, opens_at_min, entry_closes_at_min, attempt_sec').eq('date', today)
-  const { count: userCount } = await db()
-    .from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student')
+
+  const [tonightRes, students, scheduled, drafts, attempts] = await Promise.all([
+    db().from('tests')
+      .select('id, date, title, status, opens_at_min, entry_closes_at_min, attempt_sec')
+      .eq('date', today),
+    db().from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student'),
+    db().from('tests').select('*', { count: 'exact', head: true }).eq('status', 'SCHEDULED'),
+    db().from('tests').select('*', { count: 'exact', head: true }).eq('status', 'DRAFT'),
+    db().from('attempts').select('*', { count: 'exact', head: true })
+      .eq('is_dry_run', false).in('state', ['SUBMITTED', 'AUTO_SUBMITTED']),
+  ])
 
   const now = new Date()
   // A day can hold more than one paper, so this is a list rather than a verdict.
-  const papers = (tonight ?? [])
+  const papers = (tonightRes.data ?? [])
     .map((t) => ({
       id: t.id as string,
       title: (t.title as string | null) ?? null,
@@ -39,135 +45,109 @@ export default async function AdminHome({
       window: paperWindowOf(t),
     }))
     .sort((a, b) => a.window.opensAtMin - b.window.opensAtMin)
-  const anyScheduled = papers.some((p) => p.status === 'SCHEDULED')
-  const good = anyScheduled
 
   return (
     <>
-      {password === 'changed' && (
-        <Flash tone="good" className="mb-4">
-          Password changed.
-        </Flash>
-      )}
+      {password === 'changed' && <Flash tone="good" className="mb-4">Password changed.</Flash>}
 
-      {/* The console's headline. Not colour-coded green or red: a day with no
-          paper on it is a state, not a fault, and a wall of red for one says
-          something has gone wrong when nothing has. */}
-      <section className="relative overflow-hidden rounded-card bg-surface-invert p-6 text-white
-                          shadow-high sm:p-8">
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-          <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand-600/40 blur-3xl" />
-          <div className="absolute inset-0 opacity-[0.06]"
-               style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '26px 26px' }} />
-        </div>
-        <div className="relative max-w-3xl">
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-[0.6875rem] font-bold uppercase tracking-[0.16em] text-white/60">
-            Today &middot; <span className="numeral">{formatIstDate(today)}</span>
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+        <div>
+          <p className="eyebrow">Console</p>
+          <h1 className="mt-0.5 text-2xl font-black tracking-tight sm:text-3xl">
+            <span className="numeral">{formatIstDate(today)}</span>
           </h1>
-          <span className={[
-            'chip border-transparent',
-            good ? 'bg-good/25 text-white' : 'bg-white/15 text-white/80',
-          ].join(' ')}>
-            {good ? 'Scheduled' : 'Nothing scheduled'}
-          </span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/admin/papers/upload" className="btn btn-primary px-4 py-2 text-sm">
+            Upload a paper
+          </Link>
+          <Link href="/admin/papers" className="btn btn-quiet px-4 py-2 text-sm">All papers</Link>
+        </div>
+      </div>
+
+      {/* Four figures on one line. Colour only where it means something: a
+          draft is waiting on the admin, so it is the one that can go amber. */}
+      <dl className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-card border border-line
+                     bg-line sm:grid-cols-4">
+        <Kpi label="Students" value={students.count ?? 0} />
+        <Kpi label="Papers scheduled" value={scheduled.count ?? 0} />
+        <Kpi label="Drafts waiting" value={drafts.count ?? 0} tone={(drafts.count ?? 0) > 0 ? 'warn' : 'plain'} />
+        <Kpi label="Attempts counted" value={attempts.count ?? 0} />
+      </dl>
+
+      <section className="mt-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <h2 className="eyebrow">Tonight</h2>
+          {papers.length > 0 && (
+            <p className="numeral text-xs text-ink-faint">
+              {papers.length} paper{papers.length === 1 ? '' : 's'} on {formatIstDate(today)}
+            </p>
+          )}
         </div>
 
         {papers.length === 0 ? (
-          <>
-            <p className="mt-3 text-3xl font-black">No paper will unlock today</p>
-            <p className="mt-1.5 text-white/70">
-              Nobody&rsquo;s streak breaks for a day without a paper. Upload one and schedule it for
-              whatever time suits.
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-card border
+                          border-dashed border-line-strong bg-surface-sunken px-4 py-3.5">
+            <p className="text-sm text-ink-soft">
+              <span className="font-semibold text-ink">No paper will unlock today.</span>{' '}
+              Nobody&rsquo;s streak breaks for a night without one.
             </p>
-            <Link href="/admin/papers/upload" className="btn btn-invert mt-5 inline-flex">
-              Upload a paper
+            <Link href="/admin/papers/upload"
+                  className="ml-auto text-sm font-bold text-accent underline underline-offset-4">
+              Upload one &rarr;
             </Link>
-          </>
+          </div>
         ) : (
-          <>
-            <p className="mt-3 text-3xl font-black">
-              {papers.length} paper{papers.length === 1 ? '' : 's'} today
-            </p>
-            <ul className="mt-4 space-y-2">
-              {papers.map((p) => {
-                const l = paperLabels(p.window)
-                const state = p.status === 'DRAFT' ? 'DRAFT' : windowState(p.window, now)
-                return (
-                  <li key={p.id}>
-                    <Link href={`/admin/papers/${p.id}`}
-                          className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-control
-                                     border border-white/15 bg-white/5 px-3.5 py-2.5 transition
-                                     hover:border-white/35 hover:bg-white/10">
-                      <span className="font-bold">{p.title ?? 'Untitled'}</span>
-                      <span className="numeral text-sm text-white/70">{l.opens} &ndash; {l.closes}</span>
-                      <span className="ml-auto rounded-full bg-white/15 px-2.5 py-0.5 text-[0.625rem]
-                                       font-bold uppercase tracking-widest">
-                        {stateWord(state)}
-                      </span>
-                    </Link>
-                  </li>
-                )
-              })}
-            </ul>
-          </>
+          <ul className="mt-2 overflow-hidden rounded-card border border-line bg-surface">
+            {papers.map((p) => {
+              const l = paperLabels(p.window)
+              const state = p.status === 'DRAFT' ? 'DRAFT' : windowState(p.window, now)
+              return (
+                <li key={p.id} className="border-b border-line last:border-0">
+                  <Link href={`/admin/papers/${p.id}`}
+                        className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 transition
+                                   hover:bg-surface-sunken">
+                    <span className="min-w-0 flex-1 truncate font-semibold">{p.title ?? 'Untitled'}</span>
+                    <span className="numeral shrink-0 text-sm text-ink-soft">{l.opens} &ndash; {l.closes}</span>
+                    <StatusChip tone={chipTone(state)}>{stateWord(state)}</StatusChip>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
         )}
-        </div>
       </section>
 
-      <dl className="mt-6 grid gap-4 sm:grid-cols-2">
-        <Stat label="Students" value={userCount ?? 0} />
-        <Stat label="Papers published" value={<Published />} />
-      </dl>
-
-      <nav aria-label="Console" className="mt-8">
-        <h2 className="eyebrow">Everything else</h2>
-        <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <Tile href="/admin/papers/upload" primary
-                title="Upload a paper"
-                body="Read it through, then schedule it for whatever time suits." />
-          <Tile href="/admin/papers"
-                title="All papers"
-                body="Everything drafted or published. Correct a key, or dry-run one." />
-          <Tile href="/admin/pattern"
-                title="Paper pattern"
-                body="Questions, minutes and marking per section." />
-          <Tile href="/admin/window"
-                title="Nightly window"
-                body="The times a new paper is offered when you schedule it." />
-          <Tile href="/admin/users"
-                title="People"
-                body="Accounts, passwords, and who is still active." />
-          <Tile href="/admin/attempts"
-                title="Attempts"
-                body="Every attempt with its score and the two integrity counters." />
-        </ul>
-        <p className="mt-4 text-sm">
-          <a href="/api/admin/export" className="font-semibold text-accent underline underline-offset-4">
-            Export the question bank
-          </a>{' '}
-          <span className="text-ink-soft">
-            &mdash; every published paper as one JSON file, for keeping somewhere that is not Supabase.
-          </span>
-        </p>
-      </nav>
-
-      <section className="mt-8 rounded-control bg-surface px-5 py-4">
-        <h2 className="eyebrow">Nightly job</h2>
-        <div className="mt-2">
+      <section className="mt-6 rounded-card border border-line bg-surface px-4 py-3.5">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <div className="min-w-0">
+            <h2 className="eyebrow">Nightly job</h2>
+            <p className="mt-0.5 text-sm text-ink-soft">
+              Closes any attempt still open past its hard stop and scores it. Runs on its own at
+              1&nbsp;AM and 1&nbsp;PM; this is the same job, now.
+            </p>
+          </div>
           <FinaliseButton />
         </div>
       </section>
-
     </>
   )
 }
 
-/**
- * What the banner says about today's paper. A draft is not "nothing": it is
- * one click from going live, and saying "upload one" would send the admin to
- * redo work already done.
- */
+/** One figure. Cells share a hairline rather than each carrying a border. */
+function Kpi({ label, value, tone = 'plain' }: {
+  label: string; value: number; tone?: 'plain' | 'warn'
+}) {
+  return (
+    <div className="bg-surface px-4 py-3">
+      <dt className="eyebrow">{label}</dt>
+      <dd className={`numeral mt-0.5 text-2xl font-bold ${tone === 'warn' ? 'text-warn-ink' : 'text-ink'}`}>
+        {value}
+      </dd>
+    </div>
+  )
+}
+
 /** A paper's state today, in a word. */
 function stateWord(state: 'DRAFT' | ReturnType<typeof windowState>): string {
   switch (state) {
@@ -179,53 +159,11 @@ function stateWord(state: 'DRAFT' | ReturnType<typeof windowState>): string {
   }
 }
 
-async function Published() {
-  const { count } = await db()
-    .from('tests').select('*', { count: 'exact', head: true }).eq('status', 'SCHEDULED')
-  return <>{count ?? 0}</>
-}
-
-/** Local to this page because it is a <dl>, which the shared Stat is not. */
-function Stat({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="card p-4">
-      <dt className="eyebrow">{label}</dt>
-      <dd className="numeral mt-1.5 text-2xl font-bold">{value}</dd>
-    </div>
-  )
-}
-
-/**
- * One destination, with a sentence saying what it is for.
- *
- * Six buttons in a row told you the names of six screens and nothing about them,
- * which is fine once you know the console and useless before that.
- */
-function Tile({ href, title, body, primary = false }: {
-  href: string; title: string; body: string; primary?: boolean
-}) {
-  return (
-    <li>
-      <Link
-        href={href}
-        className={[
-          'group flex h-full flex-col rounded-card border p-4 transition',
-          primary
-            ? 'border-accent/40 bg-accent-soft hover:border-accent hover:shadow-float'
-            : 'border-line bg-surface hover:border-accent/50 hover:shadow-float',
-        ].join(' ')}
-      >
-        <span className="flex items-center justify-between gap-2">
-          <span className={`font-display font-bold ${primary ? 'text-accent' : 'text-ink'}`}>
-            {title}
-          </span>
-          <svg viewBox="0 0 16 16" aria-hidden="true"
-               className="h-3.5 w-3.5 shrink-0 fill-ink-faint transition group-hover:fill-accent">
-            <path d="M8.3 2.3a1 1 0 000 1.4L11.6 7H2a1 1 0 100 2h9.6l-3.3 3.3a1 1 0 101.4 1.4l5-5a1 1 0 000-1.4l-5-5a1 1 0 00-1.4 0z" />
-          </svg>
-        </span>
-        <span className="mt-1.5 text-sm text-ink-soft">{body}</span>
-      </Link>
-    </li>
-  )
+function chipTone(state: 'DRAFT' | ReturnType<typeof windowState>) {
+  switch (state) {
+    case 'DRAFT': return 'draft' as const
+    case 'BEFORE_OPEN': return 'waiting' as const
+    case 'OPEN': return 'live' as const
+    default: return 'done' as const
+  }
 }

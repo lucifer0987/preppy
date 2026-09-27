@@ -1101,6 +1101,23 @@ also what makes them line up with each other.</p>
   themselves at a measure, because reading a paper is a reading task.</p>
 </div>
 
+<h3>The console is dense on purpose</h3>
+<p>The admin console and the student app are not the same kind of surface. A
+student opens four screens a night and the chrome orients them; an admin lives
+in six, and every band of decoration is something between them and the table
+they came for. So the console follows what the dense-dashboard world settled
+on: a rail down the left, quiet chrome, hierarchy from type weight rather than
+from borders and shadow, and colour kept for state.</p>
+
+<p>What it replaced: the home page was a full-screen decorative panel, two
+figures, and all six sections repeated as large tiles with a sentence each
+&mdash; the rail&rsquo;s own list, said twice, taking a screen to do it. It is
+now four counts sharing hairlines, tonight&rsquo;s papers as rows, and the one
+job an admin runs by hand. The window and pattern screens each stated their
+current setting in a dark panel; both are the same figures strip now. Inner
+pages take <code>PageHeader compact</code> and drop their back link, because
+the rail already says where you are.</p>
+
 <h3>The dark palette comes from Material, not from taste</h3>
 <p>The dark theme used to run from <code>#110d18</code> down to
 <code>#0b0910</code> in the exam room, and it read as black rather than dark.
@@ -1191,7 +1208,7 @@ the logo and the accessibility rule are one decision rather than two.</p>
 <tr><td><code>app/globals.css</code></td><td>The whole system: scales, semantic tokens, both theme palettes, the room overrides, and the primitives &mdash; <code>card</code>, <code>eyebrow</code>, <code>numeral</code>, <code>chip</code>, <code>field</code>, <code>pill-brand</code>, and <code>btn</code> with <code>btn-primary</code> / <code>btn-zap</code> / <code>btn-invert</code> / <code>btn-quiet</code>. <code>btn</code> owns the press, disabled and reduced-motion states, so a button never re-implements them</td></tr>
 <tr><td><code>components/Page.tsx</code></td><td>The furniture every inner page was drawing by hand: <code>PageHeader</code>, <code>BackLink</code>, <code>Stat</code>, <code>TableShell</code>, <code>Th</code>, <code>Empty</code>, <code>StatusChip</code>, and <code>Flash</code> for the line a page shows after something happened</td></tr>
 <tr><td><code>components/ThemeToggle.tsx</code></td><td>The three-state theme switch. On every screen, including the landing page and the exam</td></tr>
-<tr><td><code>components/AdminNav.tsx</code></td><td>The admin console's tabs. There were none: getting from Attempts to People meant going back to the console home and picking a tile, every time</td></tr>
+<tr><td><code>components/AdminNav.tsx</code></td><td>The admin console's rail. A sidebar rather than tabs, because six destinations is past the point where a row scales, and it leaves the whole width of the page to the work</td></tr>
 <tr><td><code>components/AppShell.tsx</code></td><td>The frame every signed-in student page sits in. Each of them drew its own header before, so the way back differed page to page</td></tr>
 <tr><td><code>components/Wordmark.tsx</code></td><td>The mark, drawn as SVG so it scales and takes the theme with it</td></tr>
 <tr><td><code>app/admin/layout.tsx</code></td><td>The admin shell, and the outer half of the admin authorisation check</td></tr>

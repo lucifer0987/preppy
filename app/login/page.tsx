@@ -40,7 +40,10 @@ export default async function LoginPage({
     )
   }
 
-  if ((await currentUser())?.isActive) redirect('/dashboard')
+  // Already signed in: same rule as a fresh login, or an admin who revisits
+  // /login gets bounced to the student view.
+  const signedIn = await currentUser()
+  if (signedIn?.isActive) redirect(signedIn.role === 'admin' ? '/admin' : '/dashboard')
 
   // What a paper is, from the configured pattern rather than a sentence that
   // goes stale the first time somebody changes it.

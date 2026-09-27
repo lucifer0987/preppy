@@ -31,17 +31,25 @@ export function BackLink({ href, children }: { href: string; children: React.Rea
  * `lede` is a sentence, not a label: on a screen you land on once a week, the
  * useful thing is what it is for, not a restatement of the title.
  */
-export function PageHeader({ title, lede, actions, meta }: {
+export function PageHeader({ title, lede, actions, meta, compact = false }: {
   title: React.ReactNode
   lede?: React.ReactNode
   actions?: React.ReactNode
   /** A line under the title for counts, dates, status. */
   meta?: React.ReactNode
+  /**
+   * Smaller, for the admin console. A student opens four screens and the
+   * title orients them; an admin lives in six and a display-sized heading on
+   * each one is a band of chrome between them and the table they came for.
+   */
+  compact?: boolean
 }) {
   return (
-    <header className="mt-3 flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+    <header className={`flex flex-wrap items-start justify-between gap-x-6 gap-y-3 ${compact ? '' : 'mt-3'}`}>
       <div className="min-w-0">
-        <h1 className="text-3xl font-black tracking-tight sm:text-4xl">{title}</h1>
+        <h1 className={compact
+          ? 'text-xl font-black tracking-tight sm:text-2xl'
+          : 'text-3xl font-black tracking-tight sm:text-4xl'}>{title}</h1>
         {meta && <div className="mt-1.5 text-sm text-ink-soft">{meta}</div>}
         {lede && <p className="mt-2 max-w-2xl text-ink-soft">{lede}</p>}
       </div>
