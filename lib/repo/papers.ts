@@ -64,6 +64,8 @@ export interface PaperSummary {
   questionCount: number
   /** Counted attempts on it, so the list knows whether there are results. */
   attemptCount: number
+  /** The exam it belongs to. */
+  trackId: string
   /** Its own window, since a day may hold more than one paper. */
   window: PaperWindow
 }
@@ -88,18 +90,26 @@ export interface SaveResult {
   replacedId?: string
 }
 
-export async function savePaper(paper: Paper): Promise<SaveResult> {
+export async function savePaper(paper: Paper, trackId: string): Promise<SaveResult> {
   // One transaction in the database (save_paper in supabase/migrations):
-  // either the whole paper is written, replacing a draft for the same date, or
-  // nothing changes. A scheduled paper, or a draft students have sat, is
-  // refused there, where no race can slip past the check.
-  const { data, error } = await db().rpc('save_paper', { p: savePaperPayload(paperToRows(paper)) })
+  // either the whole paper is written, replacing a draft for the same date and
+  // track, or nothing changes. A scheduled paper, or a draft students have
+  // sat, is refused there, where no race can slip past the check.
+  const { data, error } = await db().rpc('save_paper', {
+    p: { ...savePaperPayload(paperToRows(paper)), track_id: trackId },
+  })
   if (error) {
     if (/DATE_SCHEDULED/.test(error.message)) {
       throw new Error(`A paper is already scheduled for ${paper.date}. Move it back to draft first, or pick another date.`)
     }
     if (/DRAFT_HAS_ATTEMPTS/.test(error.message)) {
       throw new Error(`The draft for ${paper.date} already has student attempts, so it cannot be replaced. Pick another date.`)
+    }
+    // Reachable only if the upload lost its track between the form and here.
+    // It is ours to get right rather than theirs, so it says what happened
+    // and what to do, and not which column was null.
+    if (/NO_TRACK/.test(error.message)) {
+      throw new Error('That upload did not say which exam it is for, so nothing was saved. Choose the exam and upload it again.')
     }
     throw new Error(`Could not save the paper, so nothing was changed: ${error.message}`)
   }
@@ -210,15 +220,17 @@ function assemble(
  * Four paged reads in all, filtered through joins, rather than four per paper:
  * after a year of nightly papers a per-paper loop would outlast the request.
  */
-export async function loadPublishedPapers(): Promise<PaperRecord[]> {
+export async function loadPublishedPapers(trackId?: string): Promise<PaperRecord[]> {
   const client = db()
-  const tests = await selectAll<Record<string, unknown>>('papers', (from, to) =>
-    client.from('tests')
+  const tests = await selectAll<Record<string, unknown>>('papers', (from, to) => {
+    const q = client.from('tests')
       // The window columns matter here too: every record this builds carries a
       // window, and paperWindowOf refuses a row read without them -- which is
       // what the export had been doing.
       .select(`id, title, status, published_at, rescored_at, key_version, ${PAPER_WINDOW_COLUMNS}`)
-      .eq('status', 'SCHEDULED').order('date').range(from, to))
+      .eq('status', 'SCHEDULED')
+    return (trackId ? q.eq('track_id', trackId) : q).order('date').range(from, to)
+  })
   if (!tests.length) return []
 
   const [sections, blocks, questions] = await Promise.all([
@@ -257,13 +269,15 @@ export async function loadPublishedPapers(): Promise<PaperRecord[]> {
   })
 }
 
-export async function listPapers(): Promise<PaperSummary[]> {
+export async function listPapers(trackId?: string): Promise<PaperSummary[]> {
   const client = db()
+  let papers = client.from('tests')
+    .select(`id, title, status, track_id, sections(question_count), ${PAPER_WINDOW_COLUMNS}`)
+    .order('date', { ascending: false })
+    .order('opens_at_min', { ascending: false })
+  if (trackId) papers = papers.eq('track_id', trackId)
   const [{ data, error }, sat] = await Promise.all([
-    client.from('tests')
-      .select(`id, title, status, sections(question_count), ${PAPER_WINDOW_COLUMNS}`)
-      .order('date', { ascending: false })
-      .order('opens_at_min', { ascending: false }),
+    papers,
     // Counted attempts per paper, so the list can offer Results only where
     // there are any and say how many without a query per row.
     selectAll<Record<string, unknown>>('attempt counts', (from, to) =>
@@ -287,17 +301,21 @@ export async function listPapers(): Promise<PaperSummary[]> {
     questionCount: ((t.sections ?? []) as { question_count: number }[])
       .reduce((a, s) => a + s.question_count, 0),
     attemptCount: counts.get(t.id as string) ?? 0,
+    trackId: t.track_id as string,
     window: paperWindowOf(t),
   }))
 }
 
 /** Dates that already hold a scheduled paper, for the upload's DATE_TAKEN check. */
-export async function scheduledDates(exceptId?: string): Promise<string[]> {
+export async function scheduledDates(exceptId?: string, trackId?: string): Promise<string[]> {
   // `exceptId` is for a replacement upload: the paper being replaced holds the
   // night, and it is the very paper the new file is for, so counting it would
   // reject every correct file.
   let query = db().from('tests').select('date').eq('status', 'SCHEDULED')
   if (exceptId) query = query.neq('id', exceptId)
+  // A date is only "taken" within the exam being uploaded for: two tracks may
+  // each run a paper on the same day, and usually will.
+  if (trackId) query = query.eq('track_id', trackId)
   const { data, error } = await query
   if (error) throw new Error(`Could not check which dates are taken: ${error.message}`)
   return (data ?? []).map((t) => t.date as string)
@@ -324,6 +342,8 @@ async function countRealAttempts(testId: string): Promise<number> {
  */
 export interface PaperLock {
   date: string
+  /** The exam it belongs to, which scopes every clash check below. */
+  trackId: string
   status: 'DRAFT' | 'SCHEDULED'
   state: WindowState
   /** The window this paper carries, including how long one attempt runs. */
@@ -346,11 +366,12 @@ export interface PaperLock {
 
 export async function paperLock(id: string): Promise<PaperLock | null> {
   const { data: test, error } = await db()
-    .from('tests').select(`status, ${PAPER_WINDOW_COLUMNS}`).eq('id', id).maybeSingle()
+    .from('tests').select(`status, track_id, ${PAPER_WINDOW_COLUMNS}`).eq('id', id).maybeSingle()
   if (error) throw new Error(`Could not load the paper: ${error.message}`)
   if (!test) return null
 
   const date = test.date as string
+  const trackId = test.track_id as string
   const status = test.status as 'DRAFT' | 'SCHEDULED'
   const window = paperWindowOf(test)
   const state = windowState(window)
@@ -369,6 +390,7 @@ export async function paperLock(id: string): Promise<PaperLock | null> {
   const ended = Boolean(window.endedAt)
   return {
     date,
+    trackId,
     status,
     state,
     window,
@@ -444,7 +466,7 @@ export async function schedulePaper(
 
   // A student may only sit one paper at a time, so two overlapping windows on
   // one day would force a choice rather than offer one.
-  const clash = await overlappingPaper(window, id)
+  const clash = await overlappingPaper(window, id, lock.trackId)
   if (clash) {
     throw new Error(
       `This overlaps ${clash.title ?? 'another paper'} on the same day, which runs ${clash.labels}. `
@@ -478,12 +500,15 @@ export async function schedulePaper(
 
 /** A scheduled paper on the same day whose window overlaps this one. */
 async function overlappingPaper(
-  window: PaperWindow, excludeId: string,
+  window: PaperWindow, excludeId: string, trackId: string,
 ): Promise<{ title: string | null; labels: string } | null> {
+  // Within the track only. Two exams running at the same moment is not a
+  // clash: a student follows one of them, so there is no choice to force.
   const { data } = await db()
     .from('tests')
     .select(`id, title, ${PAPER_WINDOW_COLUMNS}`)
-    .eq('date', window.date).eq('status', 'SCHEDULED').neq('id', excludeId)
+    .eq('date', window.date).eq('status', 'SCHEDULED')
+    .eq('track_id', trackId).neq('id', excludeId)
 
   for (const t of data ?? []) {
     const other = paperWindowOf(t)
@@ -570,7 +595,7 @@ export async function retimePaper(
     throw new Error('That would put the whole paper in the past. Pick a later time.')
   }
 
-  const clash = await overlappingPaper(window, id)
+  const clash = await overlappingPaper(window, id, lock.trackId)
   if (clash) {
     throw new Error(
       `That overlaps ${clash.title ?? 'another paper'} on the same day, which runs ${clash.labels}. `
@@ -808,17 +833,19 @@ export function shapeOf(sections: readonly Record<string, unknown>[], window: Pa
   }
 }
 
-export async function upcomingPapers(now = new Date()): Promise<UpcomingPapers> {
+export async function upcomingPapers(now = new Date(), trackId?: string): Promise<UpcomingPapers> {
   const today = istDate(now)
   // Today and later is the whole of it: `tests_window_within_the_day` forces
   // entry close + 45 minutes to land inside the paper's own IST day, so no
   // paper dated before today can still be running.
-  const rows = await selectAll<Record<string, unknown>>('papers', (from, to) =>
-    db().from('tests')
+  const rows = await selectAll<Record<string, unknown>>('papers', (from, to) => {
+    let q = db().from('tests')
       .select(`id, title, ${PAPER_WINDOW_COLUMNS}, sections(question_count, marks_correct, marks_negative)`)
       .eq('status', 'SCHEDULED')
       .gte('date', today)
-      .order('date').range(from, to))
+    if (trackId) q = q.eq('track_id', trackId)
+    return q.order('date').range(from, to)
+  })
 
   const papers = rows
     .map((r) => {

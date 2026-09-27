@@ -5,13 +5,17 @@ import { formatIstDate, istDate } from '../../../lib/time'
 import { CreateUserForm, RenameForm, ResetPasswordForm } from './UserForms'
 import { BulkImport } from './BulkImport'
 import { toggleActiveAction } from './actions'
+import { TrackCell } from './TrackCell'
+import { listTracks } from '../../../lib/repo/tracks'
 import { PageHeader, StatusChip, TableShell, Th } from '../../../components/Page'
 
 export const dynamic = 'force-dynamic'
 
 export default async function UsersPage() {
   const me = await requireAdmin()
-  const users = await listUsers()
+  const [users, tracks] = await Promise.all([listUsers(), listTracks()])
+  // With one exam there is nothing to say about which: every student is on it.
+  const manyTracks = tracks.length > 1
 
   return (
     <>
@@ -21,8 +25,8 @@ export default async function UsersPage() {
         lede="Nobody signs themselves up. You create the account, you rename it, you set a new password when one is forgotten, and a deactivated account keeps everything it ever scored."
       />
 
-      <CreateUserForm />
-      <BulkImport />
+      <CreateUserForm tracks={tracks} />
+      <BulkImport tracks={tracks} />
 
       <div className="mt-8">
         <TableShell minWidth="52rem">
@@ -31,6 +35,7 @@ export default async function UsersPage() {
               <Th>Username</Th>
               <Th>Name</Th>
               <Th>Role</Th>
+              {manyTracks && <Th>Exam</Th>}
               <Th align="right">Papers</Th>
               <Th>Last seen</Th>
               <Th>Status</Th>
@@ -53,6 +58,13 @@ export default async function UsersPage() {
                     <span className="text-ink-soft">student</span>
                   )}
                 </td>
+                {manyTracks && (
+                  <td className="px-3 py-3">
+                    {u.role === 'admin'
+                      ? <span className="text-ink-faint">every exam</span>
+                      : <TrackCell userId={u.id} trackId={u.trackId} tracks={tracks} />}
+                  </td>
+                )}
                 <td className="px-3 py-3 text-right tabular-nums">
                   {u.role === 'admin' ? '—' : (
                     <Link href={`/admin/attempts?user=${u.id}`} className="font-bold text-accent underline"

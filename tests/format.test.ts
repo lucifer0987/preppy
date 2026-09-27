@@ -4,7 +4,7 @@ import Ajv from 'ajv/dist/2020.js'
 import { FIELDS, readPaper, readQuestion, summarise } from '../lib/paper'
 import { buildTemplate } from '../lib/template'
 import {
-  DEFAULT_PATTERN, SECTION_CODES, patternBands, patternTotals, uniformMarking, type Pattern,
+  DEFAULT_PATTERN, patternBands, patternTotals, uniformMarking, type Pattern,
 } from '../lib/types'
 
 const sampleJson = readFileSync('format/sample.json', 'utf8')
@@ -654,7 +654,7 @@ describe('a pattern other than the default', () => {
 
 describe('the default pattern', () => {
   it('is what the product shipped with: 55 questions in 45 minutes', () => {
-    expect(DEFAULT_PATTERN.map((s) => s.code)).toEqual(SECTION_CODES)
+    expect(DEFAULT_PATTERN.map((s) => s.code)).toEqual(['QUANT', 'REASONING', 'ENGLISH', 'PK'])
     const t = patternTotals(DEFAULT_PATTERN)
     expect(t.questions).toBe(55)
     expect(t.minutes).toBe(45)

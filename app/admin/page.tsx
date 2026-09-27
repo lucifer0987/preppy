@@ -26,7 +26,7 @@ export default async function AdminHome({
 
   const [todayRes, students, scheduled, drafts, attempts] = await Promise.all([
     db().from('tests')
-      .select('id, date, title, status, opens_at_min, entry_closes_at_min, attempt_sec, ended_at')
+      .select('id, date, title, status, track_id, opens_at_min, entry_closes_at_min, attempt_sec, ended_at, tracks(name)')
       .eq('date', today),
     db().from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student'),
     db().from('tests').select('*', { count: 'exact', head: true }).eq('status', 'SCHEDULED'),
@@ -42,9 +42,13 @@ export default async function AdminHome({
       id: t.id as string,
       title: (t.title as string | null) ?? null,
       status: t.status as string,
+      // Today is today for every exam at once, so each row says which. With
+      // one exam the column is the same word repeated, so it is left out.
+      trackName: (t.tracks as unknown as { name: string } | null)?.name ?? null,
       window: paperWindowOf(t),
     }))
     .sort((a, b) => a.window.opensAtMin - b.window.opensAtMin)
+  const manyTracks = new Set(papers.map((p) => p.trackName)).size > 1
 
   return (
     <>
@@ -109,7 +113,12 @@ export default async function AdminHome({
                   <Link href={`/admin/papers/${p.id}`}
                         className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 transition
                                    hover:bg-surface-sunken">
-                    <span className="min-w-0 flex-1 truncate font-semibold">{p.title ?? 'Untitled'}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-semibold">{p.title ?? 'Untitled'}</span>
+                      {manyTracks && p.trackName && (
+                        <span className="block truncate text-xs text-ink-faint">{p.trackName}</span>
+                      )}
+                    </span>
                     <span className="numeral shrink-0 text-sm text-ink-soft">{l.opens} &ndash; {l.closes}</span>
                     <StatusChip tone={chipTone(state)}>{stateWord(state)}</StatusChip>
                   </Link>

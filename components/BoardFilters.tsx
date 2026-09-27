@@ -13,13 +13,24 @@ import { formatIstDate } from '../lib/time'
  * the one a bare URL lands on; all time is still here, but it is a thing you
  * ask for rather than the thing you are given.
  */
-export function BoardFilters({ basePath, window: win, test, papers }: {
+export function BoardFilters({ basePath, window: win, test, papers, track }: {
   /** '/leaderboard' or '/admin/board'. Both take the same two parameters. */
   basePath: string
   window: string | undefined
   test: string | undefined
   papers: { id: string; date: string; title: string | null }[]
+  /**
+   * The console's chosen track, which every link and the form have to carry:
+   * a filter that silently dropped it would bounce the admin back to the
+   * first track halfway through reading another one.
+   */
+  track?: string | undefined
 }) {
+  const keep = track ? `track=${encodeURIComponent(track)}` : ''
+  const href = (query: string) => {
+    const q = [keep, query].filter(Boolean).join('&')
+    return q ? `${basePath}?${q}` : basePath
+  }
   return (
     <div className="card mt-6 flex flex-wrap items-center gap-x-4 gap-y-3 p-3">
       <nav className="flex flex-wrap gap-1" aria-label="Window">
@@ -30,7 +41,7 @@ export function BoardFilters({ basePath, window: win, test, papers }: {
             return (
               <Link
                 key={label}
-                href={value === '7' ? basePath : `${basePath}?window=${value}`}
+                href={href(value === '7' ? '' : `window=${value}`)}
                 aria-current={current ? 'page' : undefined}
                 className={[
                   'rounded-full px-4 py-2 text-sm font-semibold transition',
@@ -47,6 +58,7 @@ export function BoardFilters({ basePath, window: win, test, papers }: {
 
       {papers.length > 0 && (
         <form method="get" action={basePath} className="flex flex-wrap items-center gap-2">
+          {track && <input type="hidden" name="track" value={track} />}
           <label htmlFor="paper" className="text-sm font-bold text-ink-soft">One paper</label>
           <select
             id="paper" name="test" defaultValue={test ?? ''}
@@ -61,7 +73,7 @@ export function BoardFilters({ basePath, window: win, test, papers }: {
           </select>
           <button className="pill-brand px-4 py-1.5 text-sm">Show</button>
           {test && (
-            <Link href={basePath} className="text-sm font-semibold text-ink-soft underline underline-offset-4">
+            <Link href={href('')} className="text-sm font-semibold text-ink-soft underline underline-offset-4">
               Back to all time
             </Link>
           )}

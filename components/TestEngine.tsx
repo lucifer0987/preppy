@@ -8,7 +8,7 @@ import { QuestionPalette, paletteState, type PaletteState } from './QuestionPale
 import { SectionTimer } from './SectionTimer'
 import { ExamRules } from './ExamRules'
 import { ThemeToggle } from './ThemeToggle'
-import { SECTION_NAMES, type OptionLabel } from '../lib/types'
+import type { OptionLabel } from '../lib/types'
 import type { AttemptSnapshot } from '../lib/repo/attempts'
 import {
   bumpCounterAction, endTestAction, nextSectionAction, saveResponsesAction, syncClockAction,
@@ -60,7 +60,15 @@ function writeMirror(attemptId: string, m: Mirror | null) {
  * boundary: a network blip shows a banner, never a crash, and the timer keeps
  * running throughout.
  */
-export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
+export function TestEngine({ snapshot, sectionLabel }: {
+  snapshot: AttemptSnapshot
+  /**
+   * What this paper's track calls the section being sat. Resolved on the
+   * server: the engine is a client component and has no business knowing how
+   * a section is named, only what it is called.
+   */
+  sectionLabel: string
+}) {
   const router = useRouter()
   const section = snapshot.section!
   const attemptId = snapshot.attemptId
@@ -448,7 +456,7 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
           {/* The section name is this screen's title, and it was a span, so a
               45-minute exam had no heading structure at all. TestEngine remounts
               per section, so this correctly changes as the student moves on. */}
-          <h1 className="truncate font-black">{SECTION_NAMES[section.code]}</h1>
+          <h1 className="truncate font-black">{sectionLabel}</h1>
           <span className="numeral shrink-0 text-sm text-white/70">
             <span className="hidden sm:inline">Question </span>
             {index + 1}/{section.questions.length}
@@ -638,7 +646,7 @@ export function TestEngine({ snapshot }: { snapshot: AttemptSnapshot }) {
       {confirming !== null && (
         <ConfirmDialog
           isLast={confirming === 'end' || isLastSection}
-          sectionName={SECTION_NAMES[section.code]}
+          sectionName={sectionLabel}
           tally={tally}
           onCancel={() => setConfirming(null)}
           onConfirm={advance}

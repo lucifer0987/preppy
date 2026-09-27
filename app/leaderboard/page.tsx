@@ -7,6 +7,7 @@ import {
 import { LeaderboardTable } from '../../components/LeaderboardTable'
 import { BoardFilters } from '../../components/BoardFilters'
 import { PaperRankList } from '../../components/PaperRankList'
+import { viewerTrack } from '../../lib/repo/tracks'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,6 +20,7 @@ export default async function LeaderboardPage({
   searchParams,
 }: { searchParams: Promise<Record<string, string>> }) {
   const user = await requireUser()
+  const track = await viewerTrack(user)
 
   const { window: win, test } = await searchParams
   // The last seven papers unless asked otherwise: a board that never resets
@@ -35,8 +37,10 @@ export default async function LeaderboardPage({
   try {
     ;[papers, board, standings] = await Promise.all([
       // Scoped to the papers this student may look at.
-      boardPapers(user.id),
-      test ? Promise.resolve({ rows: [], maxMarks: 0, papers: 0 }) : getLeaderboard(lastN ? { lastN } : {}),
+      track ? boardPapers(track.id, user.id) : Promise.resolve([]),
+      test || !track
+        ? Promise.resolve({ rows: [], maxMarks: 0, papers: 0 })
+        : getLeaderboard(track.id, lastN ? { lastN } : {}),
       test ? getPaperStandings(test, user.id) : Promise.resolve(null),
     ])
   } catch (e) {
@@ -45,7 +49,7 @@ export default async function LeaderboardPage({
 
 
   return (
-    <AppShell user={user} current="leaderboard">
+    <AppShell user={user} current="leaderboard" examName={track?.name}>
     <main className="shell pt-6">
       <PageHeader
         title="Leaderboard"

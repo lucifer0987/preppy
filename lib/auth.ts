@@ -29,6 +29,12 @@ export interface CurrentUser {
   mustChangePassword: boolean
   /** Remembered per person, not per browser (PRD 8.3). */
   soundEnabled: boolean
+  /**
+   * The exam this student is preparing for, and the whole of what they see:
+   * their papers, their archive, their board. Null for an admin, who runs
+   * every track rather than following one.
+   */
+  trackId: string | null
 }
 
 /**
@@ -53,7 +59,7 @@ export const currentUser = cache(async (): Promise<CurrentUser | null> => {
 
   const { data, error } = await db()
     .from('profiles')
-    .select('id, username, display_name, role, is_active, must_change_password, sound_enabled')
+    .select('id, username, display_name, role, is_active, must_change_password, sound_enabled, track_id')
     .eq('id', user.id)
     .maybeSingle()
 
@@ -66,6 +72,7 @@ export const currentUser = cache(async (): Promise<CurrentUser | null> => {
     isActive: data.is_active,
     mustChangePassword: data.must_change_password,
     soundEnabled: data.sound_enabled ?? false,
+    trackId: (data.track_id as string | null) ?? null,
   }
 })
 

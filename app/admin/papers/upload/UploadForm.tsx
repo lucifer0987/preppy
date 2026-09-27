@@ -7,11 +7,18 @@ import { emptyUpload } from './state'
 import type { Issue } from '../../../../lib/types'
 import { Flash } from '../../../../components/Page'
 
-export function UploadForm({ replaceId, defaultTitle }: {
+export function UploadForm({ replaceId, defaultTitle, tracks, trackSlug }: {
   /** Set when this upload corrects a paper that already exists. */
   replaceId?: string
   /** The name the paper carries now, when one is being replaced. */
   defaultTitle?: string
+  /**
+   * The exams this paper could be for. One of them and the picker does not
+   * appear: the paper goes on the only exam there is, and asking which would
+   * be asking a question with one answer.
+   */
+  tracks?: { slug: string; name: string }[]
+  trackSlug?: string
 }) {
   const [state, action] = useActionState(uploadAction, emptyUpload)
   const errors = state.issues.filter((i) => i.severity === 'error')
@@ -21,6 +28,21 @@ export function UploadForm({ replaceId, defaultTitle }: {
     <>
       <form action={action} className="card p-5 sm:p-6">
         {replaceId && <input type="hidden" name="replaceId" value={replaceId} />}
+        {tracks && tracks.length > 1 ? (
+          <label className="mb-5 block">
+            <span className="eyebrow">Which exam</span>
+            <select name="track" defaultValue={trackSlug ?? tracks[0]!.slug}
+                    className="field select-field mt-2 w-full max-w-sm">
+              {tracks.map((t) => <option key={t.slug} value={t.slug}>{t.name}</option>)}
+            </select>
+            <span className="mt-2 block text-sm text-ink-soft">
+              This decides the pattern the file is checked against: which sections it must have,
+              in what order, and how many questions each holds.
+            </span>
+          </label>
+        ) : (
+          trackSlug && <input type="hidden" name="track" value={trackSlug} />
+        )}
         <label className="block">
           <span className="eyebrow">Paper file</span>
           <input

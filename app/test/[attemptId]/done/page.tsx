@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { requireUser } from '../../../../lib/guard'
 import { db } from '../../../../lib/supabase/admin'
-import { SECTION_NAMES, type SectionCode } from '../../../../lib/types'
+import { sectionName, type SectionCode } from '../../../../lib/types'
+import { patternForPaper } from '../../../../lib/repo/tracks'
 import {
   pacingVerdict, scoreBounds, sectionTimeUsed, slowestQuestions, type SectionScore,
 } from '../../../../lib/scoring'
@@ -48,7 +49,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
   // result, so only affected students see the notice (FR-6.9.3).
   const { data: attempt } = await client
     .from('attempts')
-    .select('id, user_id, test_id, state, is_dry_run, total_score, section_scores, attempted, correct, wrong, skipped, not_reached, time_spent_sec, fullscreen_exits, tab_switches, rescored_at, tests(date, title, status, opens_at_min, entry_closes_at_min, attempt_sec, ended_at)')
+    .select('id, user_id, test_id, state, is_dry_run, total_score, section_scores, attempted, correct, wrong, skipped, not_reached, time_spent_sec, fullscreen_exits, tab_switches, rescored_at, tests(date, title, status, track_id, opens_at_min, entry_closes_at_min, attempt_sec, ended_at)')
     .eq('id', attemptId)
     .maybeSingle()
 
@@ -58,6 +59,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
   const test = attempt.tests as unknown as Record<string, unknown> & { date: string; title: string | null; status: string }
   const paperWindow = paperWindowOf(test)
   const testId = attempt.test_id as string
+  const pattern = await patternForPaper(testId)
   const sections = (attempt.section_scores ?? []) as SectionScore[]
   const score = Number(attempt.total_score ?? 0)
   const minutes = Math.round((attempt.time_spent_sec ?? 0) / 60)
@@ -90,7 +92,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
       : Promise.resolve({ data: [] as { total_score: number | null }[] }),
     // The rank is a bonus on this page; a failed read must never hide the score.
     ranked
-      ? getResultStanding(user.id, paperWindow).catch((e: Error) => {
+      ? getResultStanding(user.id, paperWindow, test.track_id as string).catch((e: Error) => {
           console.error('[result] could not compute standing', e.message)
           return null
         })
@@ -358,7 +360,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
                     <td className="py-3 pl-4 pr-3">
                       <span className="flex items-center gap-2.5">
                         <SectionShape index={i} />
-                        <span className="min-w-0 font-semibold">{SECTION_NAMES[sec.code as SectionCode]}</span>
+                        <span className="min-w-0 font-semibold">{sectionName(pattern, sec.code as SectionCode)}</span>
                       </span>
                     </td>
                     <td className="px-3 py-3 text-right">
@@ -408,7 +410,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
                   const verdict = pacingVerdict(sec)
                   return verdict ? (
                     <li key={sec.code}>
-                      <span className="font-semibold">{SECTION_NAMES[sec.code as SectionCode]}:</span> {verdict}
+                      <span className="font-semibold">{sectionName(pattern, sec.code as SectionCode)}:</span> {verdict}
                     </li>
                   ) : null
                 })}
@@ -423,7 +425,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
               <ul className="numeral mt-3 space-y-2 text-sm">
                 {slowest.map((sec) => sec.questions.length ? (
                   <li key={sec.code}>
-                    <span className="font-display font-semibold">{SECTION_NAMES[sec.code]}:</span>{' '}
+                    <span className="font-display font-semibold">{sectionName(pattern, sec.code)}:</span>{' '}
                     {sec.questions.map((q) => `Q${q.questionNumber} (${clock(q.timeSpentSec)})`).join(' · ')}
                   </li>
                 ) : null)}

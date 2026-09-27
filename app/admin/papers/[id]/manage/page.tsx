@@ -4,7 +4,8 @@ import { requireAdmin } from '../../../../../lib/guard'
 import { getPaperById, paperLock } from '../../../../../lib/repo/papers'
 import { countRunningAttempts } from '../../../../../lib/repo/attempt-admin'
 import { formatIstDate, formatIstMoment, paperLabels } from '../../../../../lib/time'
-import { SECTION_NAMES, type SectionCode } from '../../../../../lib/types'
+import { sectionName, type SectionCode } from '../../../../../lib/types'
+import { patternForPaper } from '../../../../../lib/repo/tracks'
 import { BackLink, Flash, PageHeader, StatusChip, Th } from '../../../../../components/Page'
 import { SectionShape } from '../../../../../components/SectionShape'
 import { TimeField } from '../../../../../components/TimeField'
@@ -30,7 +31,9 @@ export default async function ManagePaper({ params, searchParams }: {
   await requireAdmin()
   const { id } = await params
   const q = await searchParams
-  const [record, lock] = await Promise.all([getPaperById(id), paperLock(id)])
+  const [record, lock, pattern] = await Promise.all([
+    getPaperById(id), paperLock(id), patternForPaper(id),
+  ])
   if (!record || !lock) notFound()
 
   const { paper } = record
@@ -210,19 +213,19 @@ export default async function ManagePaper({ params, searchParams }: {
                     <td className="py-2.5 pr-3">
                       <span className="flex items-center gap-2.5">
                         <SectionShape index={i} />
-                        <span className="font-semibold">{SECTION_NAMES[m.code]}</span>
+                        <span className="font-semibold">{sectionName(pattern, m.code)}</span>
                       </span>
                     </td>
                     <td className="py-2.5 pr-3">
                       <input type="number" name={`${m.code}.correct`} defaultValue={m.correct}
                              step="0.25" min="0.25" max="10" required
-                             aria-label={`${SECTION_NAMES[m.code]}, marks for a right answer`}
+                             aria-label={`${sectionName(pattern, m.code)}, marks for a right answer`}
                              className="field w-24 tabular-nums" />
                     </td>
                     <td className="py-2.5">
                       <input type="number" name={`${m.code}.wrong`} defaultValue={m.negative}
                              step="0.25" min="0" max="10" required
-                             aria-label={`${SECTION_NAMES[m.code]}, marks a wrong answer costs`}
+                             aria-label={`${sectionName(pattern, m.code)}, marks a wrong answer costs`}
                              className="field w-24 tabular-nums" />
                     </td>
                   </tr>

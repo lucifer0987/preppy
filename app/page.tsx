@@ -4,11 +4,12 @@ import { Countdown } from '../components/Countdown'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { currentUser } from '../lib/auth'
 import { isConfigured } from '../lib/env'
-import { SECTION_NAMES, patternTotals, uniformMarking } from '../lib/types'
+import { patternTotals, sectionName, uniformMarking } from '../lib/types'
 import { Wordmark } from '../components/Wordmark'
 import { entryClosesAt, formatIstDate, opensAt, paperLabels, windowLabels } from '../lib/time'
 import type { PaperWindow } from '../lib/time'
-import { defaultAttemptMinutes, getPattern, getWindow } from '../lib/repo/settings'
+import { getWindow } from '../lib/repo/settings'
+import { defaultAttemptMinutes, getPattern } from '../lib/repo/tracks'
 import { upcomingPapers } from '../lib/repo/papers'
 
 /**
@@ -120,7 +121,7 @@ export default async function Home() {
                     <li key={s.code} className="flex items-baseline justify-between gap-4 text-sm">
                       <span className="flex min-w-0 items-baseline gap-2.5">
                         <Shape index={i} />
-                        <span className="truncate font-semibold">{SECTION_NAMES[s.code]}</span>
+                        <span className="truncate font-semibold">{sectionName(pattern, s.code)}</span>
                       </span>
                       <span className="numeral shrink-0 text-xs text-ink-faint">
                         {s.questions} questions &middot; {s.minutes} min

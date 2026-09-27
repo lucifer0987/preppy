@@ -1,31 +1,40 @@
 import Link from 'next/link'
 import { requireAdmin } from '../../../lib/guard'
-import { getPattern, getPatternMeta, getWindow } from '../../../lib/repo/settings'
+import { getWindow } from '../../../lib/repo/settings'
+import { consoleTrack, getPattern, getPatternMeta, listTracks } from '../../../lib/repo/tracks'
 import { patternTotals } from '../../../lib/types'
 import { formatIstMoment } from '../../../lib/time'
 import { PatternForm } from './PatternForm'
 import { PageHeader } from '../../../components/Page'
+import { TrackSwitcher } from '../../../components/TrackSwitcher'
 
 export const dynamic = 'force-dynamic'
 
-export default async function PatternPage() {
+export default async function PatternPage({
+  searchParams,
+}: { searchParams: Promise<Record<string, string>> }) {
   // The layout checks too, but a layout does not re-run on every
   // navigation, so the page is where the guarantee actually lives.
   await requireAdmin()
-  const current = await getPattern()
-  const meta = await getPatternMeta()
+  const { track: slug } = await searchParams
+  const [tracks, track] = await Promise.all([listTracks(), consoleTrack(slug)])
+  const current = await getPattern(track?.id)
+  const meta = track ? await getPatternMeta(track.id) : { updatedAt: null, updatedBy: null }
   const window = await getWindow()
   const totals = patternTotals(current)
   const latestEntryClose = window.entryCloseHour * 60 + window.entryCloseMinute
 
   return (
     <>
-      <PageHeader compact title="Paper pattern" lede="What a paper is given when its file does not say. Papers already uploaded keep their own shape." />
+      <PageHeader compact title="Paper pattern"
+                  lede="Which sections a paper has, in what order, and what each is worth. This is what a paper is given when its file does not say; papers already uploaded keep their own shape." />
+
+      <TrackSwitcher tracks={tracks} current={track} basePath="/admin/pattern" />
 
       <dl className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-card border border-line
                      bg-line sm:grid-cols-4">
-        {[['Questions', String(totals.questions)], ['Minutes', String(totals.minutes)],
-          ['Perfect paper', String(totals.maxMarks)], ['All wrong', String(totals.minMarks)]].map(([k, v]) => (
+        {[['Sections', String(current.length)], ['Questions', String(totals.questions)],
+          ['Minutes', String(totals.minutes)], ['Perfect paper', String(totals.maxMarks)]].map(([k, v]) => (
           <div key={k} className="bg-surface px-4 py-3">
             <dt className="eyebrow">{k}</dt>
             <dd className="numeral mt-0.5 text-xl font-bold">{v}</dd>
@@ -39,7 +48,15 @@ export default async function PatternPage() {
         </p>
       )}
 
-      <PatternForm current={current} latestEntryClose={latestEntryClose} />
+      {track ? (
+        <PatternForm key={track.id} trackId={track.id} current={current}
+                     latestEntryClose={latestEntryClose} />
+      ) : (
+        <p className="mt-4 card p-5 text-sm text-ink-soft">
+          There is no track yet, so there is no pattern to edit.{' '}
+          <Link href="/admin/tracks" className="font-bold text-accent underline">Add one</Link>.
+        </p>
+      )}
 
       <section className="mt-6 card p-5">
         <h2 className="eyebrow">Start a paper from this pattern</h2>
@@ -49,7 +66,7 @@ export default async function PatternPage() {
           here. The checker refuses a placeholder left in, so an unedited one can never go live.
         </p>
         <a
-          href="/api/admin/template"
+          href={track ? `/api/admin/template?track=${track.slug}` : '/api/admin/template'}
           className="btn btn-primary mt-3"
         >
           Download a blank template
@@ -64,10 +81,7 @@ export default async function PatternPage() {
           <li>Papers already uploaded keep their own counts, durations and marking.</li>
           <li>Scores already recorded are not recalculated. Correct a key on the paper to rescore it.</li>
           <li>An attempt already running keeps the deadline it started with.</li>
-          <li>
-            The four sections and the order they are sat in are fixed. They are the exam&rsquo;s
-            pattern, not a setting.
-          </li>
+          <li>Other exams. Each one has a pattern of its own, and nothing here reaches them.</li>
         </ul>
       </section>
 

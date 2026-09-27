@@ -5,6 +5,8 @@ import { loadAttempt } from '../../../lib/repo/attempts'
 import { currentSessionId, revokeSessions } from '../../../lib/auth'
 import { TestEngine } from '../../../components/TestEngine'
 import { DeviceGate } from '../../../components/DeviceGate'
+import { patternForPaper } from '../../../lib/repo/tracks'
+import { sectionName } from '../../../lib/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,12 +36,15 @@ export default async function TestPage({ params }: { params: Promise<{ attemptId
   // Every section closed while they were away.
   if (snapshot.status.finished || !snapshot.section) redirect(`/test/${attemptId}/done`)
 
+  const pattern = await patternForPaper(snapshot.testId)
+
   // Keyed on the section so moving on mounts a fresh engine: the question
   // index, the responses and the queue all belong to one section, and carrying
   // them into the next would point past the end of a shorter one.
   return (
     <DeviceGate>
-      <TestEngine key={snapshot.section.position} snapshot={snapshot} />
+      <TestEngine key={snapshot.section.position} snapshot={snapshot}
+                  sectionLabel={sectionName(pattern, snapshot.section.code)} />
     </DeviceGate>
   )
 }

@@ -2,7 +2,8 @@ import { redirect } from 'next/navigation'
 import { requireUser } from '../../../lib/guard'
 import { db } from '../../../lib/supabase/admin'
 import { findAttempt } from '../../../lib/repo/attempts'
-import { SECTION_NAMES, type SectionCode } from '../../../lib/types'
+import { sectionName, type SectionCode } from '../../../lib/types'
+import { patternForPaper } from '../../../lib/repo/tracks'
 import { formatIstDate, paperLabels } from '../../../lib/time'
 import { PAPER_WINDOW_COLUMNS, paperWindowOf } from '../../../lib/repo/papers'
 import { beginAction } from './actions'
@@ -54,6 +55,7 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
   if (existing?.state === 'IN_PROGRESS') redirect(`/test/${existing.id}`)
   if (existing && !isDryRun) redirect(`/test/${existing.id}/done`)
 
+  const pattern = await patternForPaper(testId)
   const paperWindow = paperWindowOf(test)
   const refusal = isDryRun ? null : entryRefusal(test.status as string, paperWindow)
 
@@ -102,7 +104,7 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
                 </span>
               </div>
               <h3 className="mt-3 font-display text-base font-black leading-tight">
-                {SECTION_NAMES[s.code]}
+                {sectionName(pattern, s.code)}
               </h3>
               <p className="numeral mt-2.5 flex items-baseline gap-1.5">
                 <span className="text-3xl font-black">{s.question_count}</span>

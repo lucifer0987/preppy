@@ -4,7 +4,7 @@ import {
   FORMAT_VERSION,
   DEFAULT_PATTERN,
   OPTION_LABELS,
-  SECTION_CODES,
+  ALL_SECTION_CODES,
   patternBands,
   patternOf,
   type Issue,
@@ -181,24 +181,24 @@ export function readPaper(rawText: string, opts: ReadOptions = {}): ReadResult {
    * section starts. A section states its own `questionCount` when it differs
    * from the pattern; where it does not, the pattern decides.
    */
-  const expected: Pattern = SECTION_CODES.map((code) => {
-    const base = patternOf(pattern, code)
+  // The pattern is the paper's shape, and which sections it has is part of
+  // that shape. This used to walk a fixed list of four codes, which is what
+  // made every paper in the product the same exam.
+  const expectedCodes = pattern.map((s) => s.code)
+  const expected: Pattern = pattern.map((base) => {
     // By code, not by position. A file with its sections out of order is
     // refused anyway, but reading the count off whatever happened to be in slot
     // one would report each section's size against another section's target.
     const raw = sections.find((x) =>
-      x && typeof x === 'object' && !Array.isArray(x) && (x as Record<string, unknown>)['code'] === code)
+      x && typeof x === 'object' && !Array.isArray(x) && (x as Record<string, unknown>)['code'] === base.code)
     const declared = raw && typeof raw === 'object' && !Array.isArray(raw)
       ? (raw as Record<string, unknown>)['questionCount']
       : undefined
     return {
-      code,
+      ...base,
       questions: typeof declared === 'number' && Number.isInteger(declared) && declared > 0
         ? declared
-        : base?.questions ?? 0,
-      minutes: base?.minutes ?? 0,
-      marksCorrect: base?.marksCorrect ?? 1,
-      marksNegative: base?.marksNegative ?? 0.25,
+        : base.questions,
     }
   })
   const bands = patternBands(expected)
@@ -217,9 +217,17 @@ export function readPaper(rawText: string, opts: ReadOptions = {}): ReadResult {
     const s = rawSection as Record<string, unknown>
     checkKeys(s, FIELDS.section, sp, err)
     const code = s['code']
-    if (typeof code !== 'string' || !SECTION_CODES.includes(code as SectionCode)) {
+    if (typeof code !== 'string' || !ALL_SECTION_CODES.includes(code as SectionCode)) {
       err(`${sp}.code`, 'SECTION_UNKNOWN',
-        `"code" must be one of ${SECTION_CODES.join(', ')}, got ${JSON.stringify(code)}.`)
+        `"code" must be one of ${ALL_SECTION_CODES.join(', ')}, got ${JSON.stringify(code)}.`)
+      return
+    }
+    // A real code, but not one this track's pattern has. Worth its own
+    // message: "General Awareness is not part of this exam" is actionable in
+    // a way that "unknown section" is not.
+    if (!expectedCodes.includes(code as SectionCode)) {
+      err(`${sp}.code`, 'SECTION_NOT_IN_PATTERN',
+        `This exam has no ${code} section. Its sections are ${expectedCodes.join(', ')}.`)
       return
     }
     const sc = code as SectionCode
@@ -228,11 +236,11 @@ export function readPaper(rawText: string, opts: ReadOptions = {}): ReadResult {
 
     // The test engine runs sections in document order, so the order is part
     // of the pattern, not a matter of taste.
-    if (si >= SECTION_CODES.length) {
-      err(sp, 'SECTION_EXTRA', `The paper has more than ${SECTION_CODES.length} sections.`)
-    } else if (sc !== SECTION_CODES[si]) {
+    if (si >= expectedCodes.length) {
+      err(sp, 'SECTION_EXTRA', `The paper has more than the ${expectedCodes.length} sections this exam has.`)
+    } else if (sc !== expectedCodes[si]) {
       err(`${sp}.code`, 'SECTION_ORDER',
-        `Section ${si + 1} must be ${SECTION_CODES[si]}, got ${sc}. The order is ${SECTION_CODES.join(', ')}.`)
+        `Section ${si + 1} must be ${expectedCodes[si]}, got ${sc}. The order is ${expectedCodes.join(', ')}.`)
     }
 
     const minutes = s['durationMinutes']
@@ -307,7 +315,7 @@ export function readPaper(rawText: string, opts: ReadOptions = {}): ReadResult {
     }
   })
 
-  for (const code of SECTION_CODES) {
+  for (const code of expectedCodes) {
     if (!seenCodes.includes(code)) err('sections', 'SECTION_MISSING', `Section ${code} is missing from the paper.`)
   }
 

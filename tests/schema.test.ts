@@ -50,12 +50,17 @@ beforeAll(async () => {
     insert into profiles (id, username, display_name) values
       ('${STUDENT}', 'student1', 'One'), ('${OTHER}', 'student2', 'Two');
   `)
+  TRACK = (await one<{ id: string }>(`select id from tracks where slug = 'ibps-so-it'`)).id
 }, 60_000)
 
-const savePaper = async (date: string, title?: string) => {
-  const payload = JSON.stringify(savePaperPayload(paperToRows({
-    ...sample, date, ...(title ? { title } : {}),
-  })))
+/** The track everything already in the database belongs to, from 0006. */
+let TRACK = ''
+
+const savePaper = async (date: string, title?: string, trackId?: string) => {
+  const payload = JSON.stringify({
+    ...savePaperPayload(paperToRows({ ...sample, date, ...(title ? { title } : {}) })),
+    track_id: trackId ?? TRACK,
+  })
   return (await one<{ r: { id: string; replaced_id: string | null } }>('select save_paper($1) as r', [payload])).r
 }
 
@@ -105,7 +110,9 @@ describe('save_paper', () => {
   it('refuses to replace a scheduled paper, and changes nothing', async () => {
     const { id } = await savePaper('2030-01-03')
     await db.query(`update tests set status = 'SCHEDULED' where id = $1`, [id])
-    const payload = JSON.stringify(savePaperPayload(paperToRows({ ...sample, date: '2030-01-03' })))
+    const payload = JSON.stringify({
+      ...savePaperPayload(paperToRows({ ...sample, date: '2030-01-03' })), track_id: TRACK,
+    })
     expect(await fails('select save_paper($1)', [payload])).toMatch(/DATE_SCHEDULED/)
     expect((await one<{ id: string }>(`select id from tests where date = '2030-01-03'`)).id).toBe(id)
   })
@@ -113,7 +120,9 @@ describe('save_paper', () => {
   it('refuses to replace a draft students have sat', async () => {
     const { id } = await savePaper('2030-01-04')
     await db.query('select start_attempt($1, $2, false)', [id, STUDENT])
-    const payload = JSON.stringify(savePaperPayload(paperToRows({ ...sample, date: '2030-01-04' })))
+    const payload = JSON.stringify({
+      ...savePaperPayload(paperToRows({ ...sample, date: '2030-01-04' })), track_id: TRACK,
+    })
     expect(await fails('select save_paper($1)', [payload])).toMatch(/DRAFT_HAS_ATTEMPTS/)
   })
 })
@@ -287,11 +296,11 @@ describe('a window has to be a time of day', () => {
   })
 })
 
-describe('the default pattern', () => {
+describe("a track's pattern", () => {
   it('starts as the pattern the product shipped with', async () => {
     const { rows } = await db.query<{ code: string; q: number; d: number; c: string; n: string }>(
       `select code, question_count q, duration_sec d, marks_correct::text c, marks_negative::text n
-         from default_sections order by position`)
+         from track_sections where track_id = $1 order by position`, [TRACK])
     expect(rows.map((r) => [r.code, r.q, r.d / 60])).toEqual([
       ['QUANT', 15, 12], ['REASONING', 15, 12], ['ENGLISH', 10, 9], ['PK', 15, 12],
     ])
@@ -301,15 +310,89 @@ describe('the default pattern', () => {
   })
 
   it('can be changed, and refuses nonsense', async () => {
-    expect(await fails(`update default_sections set question_count = 20, duration_sec = 15 * 60 where code = 'ENGLISH'`))
-      .toBeNull()
-    expect(await fails(`update default_sections set question_count = 0 where code = 'ENGLISH'`)).toMatch(/question_count/)
-    expect(await fails(`update default_sections set marks_correct = 0 where code = 'ENGLISH'`)).toMatch(/marks_correct/)
-    expect(await fails(`update default_sections set marks_negative = -1 where code = 'ENGLISH'`)).toMatch(/marks_negative/)
-    expect(await fails(`update default_sections set duration_sec = 30 where code = 'ENGLISH'`)).toMatch(/duration_sec/)
-    await db.query(`update default_sections set question_count = 10, duration_sec = 9 * 60 where code = 'ENGLISH'`)
+    const set = (what: string) =>
+      fails(`update track_sections set ${what} where code = 'ENGLISH' and track_id = $1`, [TRACK])
+    expect(await set('question_count = 20, duration_sec = 15 * 60')).toBeNull()
+    expect(await set('question_count = 0')).toMatch(/question_count/)
+    expect(await set('marks_correct = 0')).toMatch(/marks_correct/)
+    expect(await set('marks_negative = -1')).toMatch(/marks_negative/)
+    expect(await set('duration_sec = 30')).toMatch(/duration_sec/)
+    await set('question_count = 10, duration_sec = 9 * 60')
+  })
+
+  it('carries the label its track gives a section', async () => {
+    const { rows } = await db.query<{ label: string | null }>(
+      `select label from track_sections where track_id = $1 and code = 'PK'`, [TRACK])
+    // The name that used to be compiled into lib/types.ts, now said out loud
+    // so another discipline can say something else.
+    expect(rows[0]!.label).toBe('Professional Knowledge (CSE)')
+  })
+
+  it('is per track, so two tracks can hold the same section in slot one', async () => {
+    const other = (await one<{ id: string }>(
+      `insert into tracks (slug, name, position) values ('sbi-so', 'SBI SO', 90)
+       returning id`)).id
+    expect(await fails(
+      `insert into track_sections (track_id, code, position, question_count, duration_sec,
+                                   marks_correct, marks_negative)
+       values ($1, 'QUANT', 1, 20, 900, 1, 0.25)`, [other])).toBeNull()
+    // ...but not twice within one track.
+    expect(await fails(
+      `insert into track_sections (track_id, code, position, question_count, duration_sec,
+                                   marks_correct, marks_negative)
+       values ($1, 'GENERAL_AWARENESS', 1, 20, 900, 1, 0.25)`, [other]))
+      .toMatch(/track_sections_one_per_position/)
+    await db.query('delete from tracks where id = $1', [other])
   })
 })
+
+describe('an exam track', () => {
+  it('owns every paper, so a paper cannot exist without one', async () => {
+    expect(await fails(
+      `insert into tests (date, status) values ('2031-01-01', 'DRAFT')`))
+      .toMatch(/track_id/)
+  })
+
+  it('lets two tracks open a paper at the same minute on the same day', async () => {
+    const other = (await one<{ id: string }>(
+      `insert into tracks (slug, name, position) values ('rrb-so', 'IBPS RRB', 91)
+       returning id`)).id
+    await savePattern(other)
+    const mine = await savePaper('2031-02-01', 'Mine')
+    const theirs = await savePaper('2031-02-01', 'Theirs', other)
+    for (const id of [mine.id, theirs.id]) {
+      expect(await fails(
+        `update tests set status='SCHEDULED', opens_at_min=600, entry_closes_at_min=660
+          where id = $1`, [id])).toBeNull()
+    }
+    // Within one track it is still refused: two papers opening at the same
+    // minute is a choice a student cannot make.
+    const clash = await savePaper('2031-02-01', 'Mine again')
+    expect(await fails(
+      `update tests set status='SCHEDULED', opens_at_min=600, entry_closes_at_min=660
+        where id = $1`, [clash.id]))
+      .toMatch(/tests_one_scheduled_per_track_date_and_opening/)
+    await db.query('delete from tests where id = any($1)', [[mine.id, theirs.id, clash.id]])
+    await db.query('delete from tracks where id = $1', [other])
+  })
+
+  it('takes its sections with it when it goes', async () => {
+    const doomed = (await one<{ id: string }>(
+      `insert into tracks (slug, name, position) values ('gone', 'Gone', 92) returning id`)).id
+    await savePattern(doomed)
+    await db.query('delete from tracks where id = $1', [doomed])
+    const left = await one<{ n: number }>(
+      'select count(*)::int as n from track_sections where track_id = $1', [doomed])
+    expect(left.n).toBe(0)
+  })
+})
+
+/** The shipped pattern, for a track made inside a test. */
+const savePattern = (trackId: string) => db.query(
+  `insert into track_sections (track_id, code, position, question_count, duration_sec,
+                               marks_correct, marks_negative)
+   values ($1, 'QUANT', 1, 15, 720, 1, 0.25), ($1, 'REASONING', 2, 15, 720, 1, 0.25),
+          ($1, 'ENGLISH', 3, 10, 540, 1, 0.25), ($1, 'PK', 4, 15, 720, 1, 0.25)`, [trackId])
 
 describe('one paper at a time', () => {
   it('refuses a second counted attempt while another is still open', async () => {
@@ -546,7 +629,7 @@ describe('the configurable window', () => {
 
   it('no longer decides on its own whether an attempt fits the day', async () => {
     // It cannot: how long an attempt runs is now the default pattern's total,
-    // which lives in default_sections. So 23:16 is accepted here and refused by
+    // which lives in track_sections. So 23:16 is accepted here and refused by
     // windowProblem in lib/time.ts, which knows the total. What the row can
     // still say is that an entry close must be a time of day at all.
     expect(await fails(`update app_settings set entry_close_hour=23, entry_close_minute=16 where id`)).toBeNull()
@@ -590,6 +673,6 @@ describe('more than one paper a day', () => {
     expect(await fails(
       `update tests set status = 'SCHEDULED', opens_at_min = $2, entry_closes_at_min = $3 where id = $1`,
       [id, 22 * 60, 23 * 60],
-    )).toMatch(/tests_one_scheduled_per_date_and_opening/)
+    )).toMatch(/tests_one_scheduled_per_track_date_and_opening/)
   })
 })

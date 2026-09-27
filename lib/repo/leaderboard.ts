@@ -57,7 +57,7 @@ const windowOf = (t: Record<string, unknown>): PaperWindow => ({
  * attempts are always dry runs, so there is no role check to forget here or
  * anywhere else. VOIDED and IN_PROGRESS are excluded by state (FR-6.7.4).
  */
-async function loadCounted(now = new Date()): Promise<Counted> {
+async function loadCounted(trackId: string, now = new Date()): Promise<Counted> {
   const client = db()
 
   // Today is a cheap upper bound; which papers have actually closed depends on
@@ -68,7 +68,7 @@ async function loadCounted(now = new Date()): Promise<Counted> {
       // header reads "Total of 385", and 385 is the sum of the perfect scores
       // of the papers in the window.
       .select('id, date, opens_at_min, entry_closes_at_min, attempt_sec, ended_at, sections(question_count, marks_correct)')
-      .eq('status', 'SCHEDULED').lte('date', istDate(now))
+      .eq('status', 'SCHEDULED').eq('track_id', trackId).lte('date', istDate(now))
       .order('date').range(from, to))
 
   const tests = candidates
@@ -88,10 +88,11 @@ async function loadCounted(now = new Date()): Promise<Counted> {
   // instead of listing every paper id in a URL that grows every night.
   const attempts = await selectAll<Record<string, unknown>>('attempts', (from, to) =>
     client.from('attempts')
-      .select('id, user_id, total_score, correct, attempted, time_spent_sec, profiles(username, display_name), tests!inner(date, status, opens_at_min, entry_closes_at_min, attempt_sec, ended_at)')
+      .select('id, user_id, total_score, correct, attempted, time_spent_sec, profiles(username, display_name), tests!inner(date, status, track_id, opens_at_min, entry_closes_at_min, attempt_sec, ended_at)')
       .eq('is_dry_run', false)
       .in('state', COUNTED_STATES)
       .eq('tests.status', 'SCHEDULED')
+      .eq('tests.track_id', trackId)
       .lte('tests.date', istDate(now))
       .order('id')
       .range(from, to))
@@ -152,9 +153,16 @@ export interface Board {
   papers: number
 }
 
-/** Throws on a failed read, so a database error never renders as an empty board. */
-export async function getLeaderboard(options: { lastN?: number } = {}): Promise<Board> {
-  const { records, paperKeys, settledKeys, maxByPaper } = await loadCounted()
+/**
+ * Throws on a failed read, so a database error never renders as an empty board.
+ *
+ * One board per track. A student follows one exam, and a table mixing two of
+ * them would rank people against papers they were never offered.
+ */
+export async function getLeaderboard(
+  trackId: string, options: { lastN?: number } = {},
+): Promise<Board> {
+  const { records, paperKeys, settledKeys, maxByPaper } = await loadCounted(trackId)
   if (!paperKeys.length) return { rows: [], maxMarks: 0, papers: 0 }
   const inScope = options.lastN ? paperKeys.slice(-options.lastN) : paperKeys
   return {
@@ -179,9 +187,11 @@ export interface ResultStanding {
  * far, and the page says so rather than presenting a number that will move as
  * if it were final.
  */
-export async function getResultStanding(userId: string, w: PaperWindow): Promise<ResultStanding | null> {
+export async function getResultStanding(
+  userId: string, w: PaperWindow, trackId: string,
+): Promise<ResultStanding | null> {
   const paperKey = paperKeyOf(w)
-  const { records } = await loadCounted()
+  const { records } = await loadCounted(trackId)
   return {
     paper: paperRank(records, userId, paperKey),
     board: rankDelta(records, userId, paperKey),
@@ -259,11 +269,11 @@ async function hasFinished(testId: string, userId: string): Promise<boolean> {
  * the console (`viewerId` omitted), every paper that has been sat at all.
  */
 export async function boardPapers(
-  viewerId?: string,
+  trackId: string, viewerId?: string,
 ): Promise<{ id: string; date: string; title: string | null }[]> {
   const candidates = await selectAll<Record<string, unknown>>('papers', (from, to) =>
     db().from('tests').select('id, date, title, opens_at_min, entry_closes_at_min, attempt_sec, ended_at')
-      .eq('status', 'SCHEDULED').lte('date', istDate())
+      .eq('status', 'SCHEDULED').eq('track_id', trackId).lte('date', istDate())
       .order('date', { ascending: false }).range(from, to))
 
   const mine = viewerId ? await finishedTestIds(viewerId) : null
@@ -325,7 +335,7 @@ export interface ArchiveRow {
  * (FR-5.3). Rank needs the cohort's scores to compute, but only the student's
  * position and the cohort size are ever returned.
  */
-export async function getArchive(userId: string): Promise<ArchiveRow[]> {
+export async function getArchive(userId: string, trackId: string): Promise<ArchiveRow[]> {
   const client = db()
   const today = istDate()
 
@@ -333,7 +343,7 @@ export async function getArchive(userId: string): Promise<ArchiveRow[]> {
   const [candidates, mine] = await Promise.all([
     selectAll<Record<string, unknown>>('papers', (from, to) =>
       client.from('tests').select('id, date, title, opens_at_min, entry_closes_at_min, attempt_sec, ended_at')
-        .eq('status', 'SCHEDULED').lte('date', today)
+        .eq('status', 'SCHEDULED').eq('track_id', trackId).lte('date', today)
         .order('date', { ascending: false }).range(from, to)),
     finishedTestIds(userId),
   ])
@@ -352,10 +362,11 @@ export async function getArchive(userId: string): Promise<ArchiveRow[]> {
 
   const attempts = await selectAll<Record<string, unknown>>('attempts', (from, to) =>
     client.from('attempts')
-      .select('id, test_id, user_id, total_score, tests!inner(date, status)')
+      .select('id, test_id, user_id, total_score, tests!inner(date, status, track_id)')
       .eq('is_dry_run', false)
       .in('state', COUNTED_STATES)
       .eq('tests.status', 'SCHEDULED')
+      .eq('tests.track_id', trackId)
       .lte('tests.date', today)
       .order('id')
       .range(from, to))

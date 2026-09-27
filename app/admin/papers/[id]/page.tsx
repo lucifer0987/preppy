@@ -4,7 +4,8 @@ import { getPaperById, paperLock } from '../../../../lib/repo/papers'
 import { QuestionCard } from '../../../../components/QuestionCard'
 import { SectionShape } from '../../../../components/SectionShape'
 import { DirectionsBlock } from '../../../../components/DirectionsBlock'
-import { SECTION_NAMES, type SectionCode } from '../../../../lib/types'
+import { sectionName, type SectionCode } from '../../../../lib/types'
+import { patternForPaper } from '../../../../lib/repo/tracks'
 import {
   addDays, defaultPaperWindow, formatIstDate, istDate, paperLabels, windowState,
 } from '../../../../lib/time'
@@ -38,7 +39,9 @@ export default async function PaperPreview(
   await requireAdmin()
   const { id } = await params
   const q = await searchParams
-  const [record, lock] = await Promise.all([getPaperById(id), paperLock(id)])
+  const [record, lock, pattern] = await Promise.all([
+    getPaperById(id), paperLock(id), patternForPaper(id),
+  ])
   if (!record || !lock) notFound()
 
   const { paper, status } = record
@@ -219,7 +222,7 @@ export default async function PaperPreview(
           <h2 className="sticky top-0 z-10 -mx-2 flex flex-wrap items-center gap-x-3 gap-y-1
                          bg-page/95 px-2 py-2 text-lg font-black backdrop-blur">
             <SectionShape index={i} />
-            {SECTION_NAMES[section.code as SectionCode]}
+            {sectionName(pattern, section.code as SectionCode)}
             <span className="numeral text-sm font-semibold text-ink-soft">
               {section.questions.length} questions &middot; {section.durationMinutes} min
             </span>

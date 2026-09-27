@@ -3,6 +3,8 @@ import { listPapers } from '../../../lib/repo/papers'
 import { formatIstDate, istDate, paperLabels, windowState } from '../../../lib/time'
 import { requireAdmin } from '../../../lib/guard'
 import { Empty, Flash, PageHeader, StatusChip } from '../../../components/Page'
+import { TrackSwitcher } from '../../../components/TrackSwitcher'
+import { consoleTrack, listTracks } from '../../../lib/repo/tracks'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,8 +12,9 @@ export default async function PapersPage({
   searchParams,
 }: { searchParams: Promise<Record<string, string>> }) {
   await requireAdmin()
-  const { scheduled } = await searchParams
-  const papers = await listPapers()
+  const { scheduled, track: slug } = await searchParams
+  const [tracks, track] = await Promise.all([listTracks(), consoleTrack(slug)])
+  const papers = await listPapers(track?.id)
   const today = istDate()
 
   return (
@@ -25,16 +28,19 @@ export default async function PapersPage({
         title="Papers"
         lede="Everything drafted or published. Solutions opens the paper itself: every question with its key, and where you correct one, schedule it, rehearse it or manage it once it is out."
         actions={
-          <Link href="/admin/papers/upload" className="btn btn-primary hover:bg-accent-hover">
+          <Link href={track ? `/admin/papers/upload?track=${track.slug}` : '/admin/papers/upload'}
+                className="btn btn-primary hover:bg-accent-hover">
             Upload a paper
           </Link>
         }
       />
+
+      <TrackSwitcher tracks={tracks} current={track} basePath="/admin/papers" />
       {papers.length === 0 ? (
         <div className="mt-6">
           <Empty>
-            No papers yet. Upload one and it lands here as a draft, ready to read through
-            before you give it a day and a window.
+            No papers on {track?.name ?? 'this exam'} yet. Upload one and it lands here as a
+            draft, ready to read through before you give it a day and a window.
           </Empty>
         </div>
       ) : (

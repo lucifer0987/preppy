@@ -11,6 +11,7 @@ import {
 } from '../../lib/time'
 import { getWindow } from '../../lib/repo/settings'
 import { upcomingPapers } from '../../lib/repo/papers'
+import { viewerTrack } from '../../lib/repo/tracks'
 import { Countdown } from '../../components/Countdown'
 import { StreakBadge } from '../../components/StreakBadge'
 import { Flash } from '../../components/Page'
@@ -32,13 +33,16 @@ export default async function Dashboard({
 }: { searchParams: Promise<Record<string, string>> }) {
   const user = await requireUser()
   const { password } = await searchParams
+  // Everything on this page is about one exam: the student's own. An admin
+  // looking at the student view has none, and is shown the first track.
+  const track = await viewerTrack(user)
 
   const now = new Date()
   const nowIso = now.toISOString()
   const today = istDate(now)
   // A day can hold more than one paper, so this is whichever is open now and
   // whichever opens next, rather than a lookup by date.
-  const { live: openPaper, next: nextPaper } = await upcomingPapers(now)
+  const { live: openPaper, next: nextPaper } = await upcomingPapers(now, track?.id)
   // Whichever paper is open right now -- papers carry their own windows, so
   // this is not "tonight's" and has not been for a while.
   const openNow = openPaper ? { id: openPaper.id, date: openPaper.window.date, title: openPaper.title } : null
@@ -137,14 +141,19 @@ export default async function Dashboard({
   const [board, archive] = await Promise.all([
     // The same window the full board opens on, so the panel and the page it
     // links to never disagree about who is first.
-    getLeaderboard({ lastN: DEFAULT_BOARD_PAPERS })
-      .catch((e: Error) => { console.error('[dashboard] board', e.message); return null }),
-    getArchive(user.id).catch((e: Error) => { console.error('[dashboard] archive', e.message); return null }),
+    track
+      ? getLeaderboard(track.id, { lastN: DEFAULT_BOARD_PAPERS })
+          .catch((e: Error) => { console.error('[dashboard] board', e.message); return null })
+      : Promise.resolve(null),
+    track
+      ? getArchive(user.id, track.id)
+          .catch((e: Error) => { console.error('[dashboard] archive', e.message); return null })
+      : Promise.resolve(null),
   ])
   const mine = board?.rows.find((r) => r.userId === user.id)
 
   return (
-    <AppShell user={user} current="dashboard">
+    <AppShell user={user} current="dashboard" examName={track?.name}>
     <main className="shell pt-6">
       <header className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
         <h1 className="text-lg font-bold tracking-tight">

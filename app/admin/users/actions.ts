@@ -2,7 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { actionAdmin } from '../../../lib/guard'
-import { createUser, resetPassword, setActive, setDisplayName } from '../../../lib/repo/users'
+import { defaultTrack } from '../../../lib/repo/tracks'
+import { createUser, resetPassword, setActive, setDisplayName, setUserTrack } from '../../../lib/repo/users'
 import { emptyBulk, type BulkState, type RenameState, type UserActionState } from './state'
 import { MAX_BULK_ROWS, parseUserCsv } from '../../../lib/csv'
 
@@ -17,10 +18,14 @@ export async function createUserAction(
 ): Promise<UserActionState> {
   if (!(await actionAdmin())) return { error: NOT_AUTHORISED, credential: null }
   try {
+    // With one exam the form shows no picker, so the account joins the only
+    // one there is rather than being created with none and seeing nothing.
+    const chosen = String(formData.get('trackId') ?? '') || (await defaultTrack())?.id || null
     const credential = await createUser(
       String(formData.get('username') ?? ''),
       String(formData.get('displayName') ?? ''),
       formData.get('role') === 'admin' ? 'admin' : 'student',
+      chosen,
     )
     revalidatePath('/admin/users')
     return { error: null, credential }
@@ -100,12 +105,17 @@ export async function bulkCreateAction(_prev: BulkState, formData: FormData): Pr
     }
   }
 
+  // Everyone in one paste joins the same exam. A CSV column for it would be
+  // one more thing to get wrong in a file typed by hand, and a mixed import
+  // is not something anybody has wanted.
+  const bulkTrack = String(formData.get('trackId') ?? '') || (await defaultTrack())?.id || null
+
   const created: { username: string; password: string }[] = []
   const failed: { username: string; message: string }[] = []
 
   for (const u of users) {
     try {
-      created.push(await createUser(u.username, u.displayName, u.role))
+      created.push(await createUser(u.username, u.displayName, u.role, bulkTrack))
     } catch (e) {
       failed.push({ username: u.username, message: (e as Error).message })
     }
@@ -113,4 +123,12 @@ export async function bulkCreateAction(_prev: BulkState, formData: FormData): Pr
 
   revalidatePath('/admin/users')
   return { error: null, problems, warnings, created, failed }
+}
+
+/** Move a student to another exam, from the row they are already on. */
+export async function setUserTrackAction(formData: FormData) {
+  if (!(await actionAdmin())) return
+  await setUserTrack(String(formData.get('userId')), String(formData.get('trackId')))
+  revalidatePath('/admin/users')
+  revalidatePath('/dashboard')
 }

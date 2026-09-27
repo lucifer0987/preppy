@@ -1,4 +1,4 @@
-import { OPTION_LABELS, SECTION_CODES, patternBands, patternOf, type Pattern } from './types'
+import { OPTION_LABELS, patternBands, type Pattern } from './types'
 
 /**
  * A fill-in skeleton for a paper: the right sections, counts, numbering and
@@ -30,8 +30,8 @@ export function buildTemplate(pattern: Pattern): Record<string, unknown> {
     version: 1,
     date: '2026-01-01',
     title: 'Daily Mock NNN',
-    sections: SECTION_CODES.map((code) => {
-      const shape = patternOf(pattern, code)!
+    sections: pattern.map((shape) => {
+      const code = shape.code
       const band = bands.find((b) => b.code === code)!
       const section: Record<string, unknown> = {
         code,

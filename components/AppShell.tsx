@@ -13,9 +13,14 @@ import { Wordmark } from './Wordmark'
  * same weight wherever you are, which is most of what makes an application feel
  * finished rather than assembled.
  */
-export function AppShell({ user, current, children }: {
+export function AppShell({ user, current, examName, children }: {
   user: { displayName: string; role: string; soundEnabled: boolean }
   current: 'dashboard' | 'leaderboard' | 'archive' | null
+  /**
+   * The exam this student is preparing for. It used to be written into the
+   * footer, which meant an Agriculture student was told they were sitting IT.
+   */
+  examName?: string | null
   children: React.ReactNode
 }) {
   return (
@@ -65,7 +70,7 @@ export function AppShell({ user, current, children }: {
 
       <footer className="shell pb-8 pt-10">
         <p className="border-t border-line pt-5 text-xs text-ink-faint">
-          Preppy &middot; daily mock tests for IBPS Specialist Officer (IT)
+          Preppy{examName ? ` \u00b7 daily mock tests for ${examName}` : ''}
         </p>
       </footer>
     </div>

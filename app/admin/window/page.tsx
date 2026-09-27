@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { requireAdmin } from '../../../lib/guard'
-import { defaultAttemptMinutes, getWindow, getWindowMeta } from '../../../lib/repo/settings'
+import { getWindow, getWindowMeta } from '../../../lib/repo/settings'
+import { defaultAttemptMinutes } from '../../../lib/repo/tracks'
 import { formatIstMoment, windowLabels } from '../../../lib/time'
 import { WindowForm } from './WindowForm'
 import { PageHeader } from '../../../components/Page'

@@ -42,6 +42,7 @@ describe.skipIf(!configured)('every read, against the real project', () => {
     papers: typeof import('../../lib/repo/papers')
     leaderboard: typeof import('../../lib/repo/leaderboard')
     settings: typeof import('../../lib/repo/settings')
+    tracks: typeof import('../../lib/repo/tracks')
     users: typeof import('../../lib/repo/users')
     admin: typeof import('../../lib/repo/attempt-admin')
     rescore: typeof import('../../lib/repo/rescore')
@@ -53,6 +54,7 @@ describe.skipIf(!configured)('every read, against the real project', () => {
       papers: await import('../../lib/repo/papers'),
       leaderboard: await import('../../lib/repo/leaderboard'),
       settings: await import('../../lib/repo/settings'),
+      tracks: await import('../../lib/repo/tracks'),
       users: await import('../../lib/repo/users'),
       admin: await import('../../lib/repo/attempt-admin'),
       rescore: await import('../../lib/repo/rescore'),
@@ -61,11 +63,21 @@ describe.skipIf(!configured)('every read, against the real project', () => {
   })
 
   it('reads the settings the whole app reads on every page', async () => {
-    await expect(repo.settings.getPattern()).resolves.toHaveLength(4)
     await expect(repo.settings.getWindow()).resolves.toMatchObject({ openHour: expect.any(Number) })
-    await expect(repo.settings.getPatternMeta()).resolves.toBeDefined()
     await expect(repo.settings.getWindowMeta()).resolves.toBeDefined()
-    await expect(repo.settings.defaultAttemptMinutes()).resolves.toBeGreaterThan(0)
+  })
+
+  it('reads the exams, and the pattern behind each one', async () => {
+    const tracks = await repo.tracks.listTracks()
+    expect(tracks.length).toBeGreaterThan(0)
+    for (const t of tracks) {
+      const pattern = await repo.tracks.getPattern(t.id)
+      expect(pattern.length).toBeGreaterThan(0)
+      await expect(repo.tracks.getPatternMeta(t.id)).resolves.toBeDefined()
+      await expect(repo.tracks.defaultAttemptMinutes(t.id)).resolves.toBeGreaterThan(0)
+    }
+    await expect(repo.tracks.trackStudentCounts()).resolves.toBeInstanceOf(Map)
+    await expect(repo.tracks.trackPaperCounts()).resolves.toBeInstanceOf(Map)
   })
 
   it('lists papers, and every one of them carries a window', async () => {
@@ -97,17 +109,18 @@ describe.skipIf(!configured)('every read, against the real project', () => {
   })
 
   it('reads the board, its papers, and one paper\'s standings', async () => {
-    const all = await repo.leaderboard.getLeaderboard()
+    const track = (await repo.tracks.defaultTrack())!
+    const all = await repo.leaderboard.getLeaderboard(track.id)
     expect(all.rows).toBeInstanceOf(Array)
     // What a total is out of: the sum of the perfect scores of the papers in
     // the window, so it can never be less than anybody's total on it.
     expect(all.maxMarks).toBeGreaterThanOrEqual(0)
     for (const row of all.rows) expect(row.totalPoints).toBeLessThanOrEqual(all.maxMarks)
 
-    const recent = await repo.leaderboard.getLeaderboard({ lastN: 7 })
+    const recent = await repo.leaderboard.getLeaderboard(track.id, { lastN: 7 })
     expect(recent.rows).toBeInstanceOf(Array)
     expect(recent.papers).toBeLessThanOrEqual(all.papers)
-    const papers = await repo.leaderboard.boardPapers()
+    const papers = await repo.leaderboard.boardPapers(track.id)
     expect(papers).toBeInstanceOf(Array)
     if (papers.length) {
       await expect(repo.leaderboard.getPaperStandings(papers[0]!.id)).resolves.not.toBeNull()
@@ -118,7 +131,11 @@ describe.skipIf(!configured)('every read, against the real project', () => {
     const people = await repo.users.listUsers()
     expect(people.length).toBeGreaterThan(0)
     const student = people.find((p) => p.role === 'student')
-    if (student) await expect(repo.leaderboard.getArchive(student.id)).resolves.toBeInstanceOf(Array)
+    const track = (await repo.tracks.defaultTrack())!
+    if (student) {
+      await expect(repo.leaderboard.getArchive(student.id, student.trackId ?? track.id))
+        .resolves.toBeInstanceOf(Array)
+    }
   })
 
   it('reads the attempts the console lists', async () => {

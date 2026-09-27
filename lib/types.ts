@@ -1,13 +1,36 @@
 /** The fixed JSON paper format (see docs/architecture.html, section 7). */
 
-export type SectionCode = 'QUANT' | 'REASONING' | 'ENGLISH' | 'PK'
-export const SECTION_CODES: SectionCode[] = ['QUANT', 'REASONING', 'ENGLISH', 'PK']
+export type SectionCode =
+  | 'QUANT' | 'REASONING' | 'ENGLISH' | 'PK'
+  | 'COMPUTER_AWARENESS' | 'GENERAL_AWARENESS'
 
+/**
+ * Every section code that exists, for checking that a file names a real one.
+ *
+ * This is deliberately *not* the order sections are sat in, and it used to be:
+ * it was the four codes of one exam, in sequence, and the whole application
+ * read the shape of a paper off it. A track's own pattern decides which
+ * sections it has and in what order, so anything that wants the order asks the
+ * pattern (`patternBands`, `pattern.map(s => s.code)`) rather than this.
+ */
+export const ALL_SECTION_CODES: SectionCode[] = [
+  'QUANT', 'REASONING', 'ENGLISH', 'PK', 'COMPUTER_AWARENESS', 'GENERAL_AWARENESS',
+]
+
+/**
+ * What a section is called when its track does not say.
+ *
+ * PK is the one that usually needs saying: it is Professional Knowledge, and
+ * which knowledge is the whole difference between one discipline and the next.
+ * A track labels it, and this is the fallback for a track that has not.
+ */
 export const SECTION_NAMES: Record<SectionCode, string> = {
   QUANT: 'Quantitative Aptitude',
   REASONING: 'Reasoning Ability',
   ENGLISH: 'English Language',
-  PK: 'Professional Knowledge (CSE)',
+  PK: 'Professional Knowledge',
+  COMPUTER_AWARENESS: 'Computer Awareness',
+  GENERAL_AWARENESS: 'General Awareness',
 }
 
 /** How one section is shaped. Every number here is configurable per paper. */
@@ -17,6 +40,8 @@ export interface SectionPattern {
   minutes: number
   marksCorrect: number
   marksNegative: number
+  /** What this track calls it. Absent means the built-in name. */
+  label?: string
 }
 
 /**
@@ -73,6 +98,18 @@ export function patternBands(pattern: Pattern): { code: SectionCode; from: numbe
 /** By code, for the many places that have a section in hand and want its shape. */
 export function patternOf(pattern: Pattern, code: SectionCode): SectionPattern | undefined {
   return pattern.find((s) => s.code === code)
+}
+
+/**
+ * What to call a section on screen: the track's own label, or the built-in
+ * name when it has not set one.
+ *
+ * Every screen that prints a section name goes through here. Reading
+ * SECTION_NAMES directly is how "Professional Knowledge (CSE)" ends up on an
+ * Agriculture paper.
+ */
+export function sectionName(pattern: Pattern, code: SectionCode): string {
+  return patternOf(pattern, code)?.label?.trim() || SECTION_NAMES[code]
 }
 
 /** Marking is uniform across a paper more often than not; say so when it is. */

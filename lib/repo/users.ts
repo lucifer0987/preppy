@@ -21,6 +21,16 @@ export interface UserRow {
   mustChangePassword: boolean
   lastLoginAt: string | null
   attemptCount: number
+  /** The exam they follow. Null for an admin, who runs all of them. */
+  trackId: string | null
+  trackName: string | null
+}
+
+/** Move a student to another exam. Their history stays where it was sat. */
+export async function setUserTrack(userId: string, trackId: string): Promise<void> {
+  const { error } = await db().from('profiles')
+    .update({ track_id: trackId }).eq('id', userId).eq('role', 'student')
+  if (error) throw new Error(`Could not move them: ${error.message}`)
 }
 
 export { generatePassword } from '../password'
@@ -29,7 +39,7 @@ export async function listUsers(): Promise<UserRow[]> {
   const client = db()
   const { data: profiles } = await client
     .from('profiles')
-    .select('id, username, display_name, role, is_active, must_change_password, last_login_at')
+    .select('id, username, display_name, role, is_active, must_change_password, last_login_at, track_id, tracks(name)')
     .order('role').order('username')
 
   // Papers that count: finished and not voided, as on the leaderboard. Paged,
@@ -56,11 +66,19 @@ export async function listUsers(): Promise<UserRow[]> {
     mustChangePassword: p.must_change_password as boolean,
     lastLoginAt: (p.last_login_at as string | null) ?? null,
     attemptCount: counts.get(p.id as string) ?? 0,
+    trackId: (p.track_id as string | null) ?? null,
+    trackName: (p.tracks as unknown as { name: string } | null)?.name ?? null,
   }))
 }
 
 export async function createUser(
   usernameInput: string, displayName: string, role: 'student' | 'admin',
+  /**
+   * The exam a student is preparing for. An admin follows none, and a student
+   * without one would see an empty product, so the caller resolves it before
+   * getting here.
+   */
+  trackId?: string | null,
 ): Promise<{ username: string; password: string }> {
   const username = normaliseUsername(usernameInput)
   if (!USERNAME_PATTERN.test(username)) {
@@ -80,6 +98,7 @@ export async function createUser(
 
   const { error: profileError } = await client.from('profiles').insert({
     id: data.user.id, username, display_name: displayName.trim(), role, must_change_password: true,
+    track_id: role === 'student' ? trackId ?? null : null,
   })
   if (profileError) {
     // Never leave an auth user without a profile: login would half-work.

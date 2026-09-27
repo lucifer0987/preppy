@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { actionAdmin } from '../../../../lib/guard'
-import { getPattern } from '../../../../lib/repo/settings'
+import { consoleTrack, getPattern } from '../../../../lib/repo/tracks'
 import { buildTemplate, templateQuestionCount } from '../../../../lib/template'
 import { patternTotals } from '../../../../lib/types'
 
@@ -14,12 +14,14 @@ export const dynamic = 'force-dynamic'
  * alternative was editing DEFAULT_PATTERN and running a script -- which is not
  * something the rest of the setup ever asks of whoever runs this.
  */
-export async function GET() {
+export async function GET(request: Request) {
   if (!(await actionAdmin())) {
     return NextResponse.json({ error: 'Not authorised.' }, { status: 401 })
   }
 
-  const pattern = await getPattern()
+  const slug = new URL(request.url).searchParams.get('track') ?? undefined
+  const track = await consoleTrack(slug)
+  const pattern = await getPattern(track?.id)
   const template = buildTemplate(pattern)
   const n = templateQuestionCount(template)
   const { minutes } = patternTotals(pattern)

@@ -8,7 +8,7 @@ import {
   updateQuestionContent,
 } from '../../../../lib/repo/papers'
 import { correctAnswerKey, setSectionMarks } from '../../../../lib/repo/rescore'
-import { OPTION_LABELS, SECTION_CODES, type OptionLabel, type SectionCode } from '../../../../lib/types'
+import { ALL_SECTION_CODES, OPTION_LABELS, type OptionLabel, type SectionCode } from '../../../../lib/types'
 import type { EditState } from './edit-state'
 
 /**
@@ -165,7 +165,9 @@ export async function endNowAction(formData: FormData) {
 export async function setMarksAction(formData: FormData) {
   if (!(await actionAdmin())) redirect('/login')
   const id = String(formData.get('id'))
-  const marks = SECTION_CODES
+  // Whichever sections this paper actually has; the form posts a pair of
+  // boxes per section and they are the only ones to read.
+  const marks = ALL_SECTION_CODES
     .filter((code) => formData.has(`${code}.correct`))
     .map((code: SectionCode) => ({
       code,

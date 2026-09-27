@@ -11,7 +11,10 @@ const SAMPLE = `username,display_name,role
 student6,Student Six,student
 student7,Student Seven,student`
 
-export function BulkImport() {
+export function BulkImport({ tracks = [] }: {
+  /** Shown only when there is more than one exam to choose between. */
+  tracks?: { id: string; name: string }[]
+}) {
   const [state, action] = useActionState(bulkCreateAction, emptyBulk)
   const [open, setOpen] = useState(false)
 
@@ -41,6 +44,19 @@ export function BulkImport() {
           name="csv" rows={6} defaultValue={SAMPLE} spellCheck={false}
           className="field font-mono text-sm"
         />
+        {tracks.length > 1 && (
+          <label className="mt-3 block">
+            <span className="eyebrow">Exam</span>
+            <select name="trackId" defaultValue={tracks[0]!.id}
+                    className="field select-field mt-1.5 w-full max-w-sm">
+              {tracks.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+            <span className="mt-1.5 block text-sm text-ink-soft">
+              Everyone in this paste joins the same one. Move anybody afterwards from the table
+              below.
+            </span>
+          </label>
+        )}
         <Submit />
       </form>
 

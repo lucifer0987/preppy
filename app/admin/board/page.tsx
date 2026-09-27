@@ -7,6 +7,8 @@ import { LeaderboardTable } from '../../../components/LeaderboardTable'
 import { BoardFilters } from '../../../components/BoardFilters'
 import { PaperRankList } from '../../../components/PaperRankList'
 import { Empty, Flash, PageHeader, StatusChip } from '../../../components/Page'
+import { TrackSwitcher } from '../../../components/TrackSwitcher'
+import { consoleTrack, listTracks } from '../../../lib/repo/tracks'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,7 +28,8 @@ export default async function AdminBoard({
   searchParams,
 }: { searchParams: Promise<Record<string, string>> }) {
   await requireAdmin()
-  const { window: win, test } = await searchParams
+  const { window: win, test, track: slug } = await searchParams
+  const [tracks, track] = await Promise.all([listTracks(), consoleTrack(slug)])
   // The last seven papers unless asked otherwise: a board that never resets
   // becomes a record of who joined first, and recent form is the thing a
   // student can still do something about. All time is one press away.
@@ -38,8 +41,10 @@ export default async function AdminBoard({
   let papers: Awaited<ReturnType<typeof boardPapers>> = []
   try {
     ;[papers, board, standings] = await Promise.all([
-      boardPapers(),
-      test ? Promise.resolve({ rows: [], maxMarks: 0, papers: 0 }) : getLeaderboard(lastN ? { lastN } : {}),
+      track ? boardPapers(track.id) : Promise.resolve([]),
+      test || !track
+        ? Promise.resolve({ rows: [], maxMarks: 0, papers: 0 })
+        : getLeaderboard(track.id, lastN ? { lastN } : {}),
       test ? getPaperStandings(test) : Promise.resolve(null),
     ])
   } catch (e) {
@@ -60,7 +65,10 @@ export default async function AdminBoard({
         actions={<StatusChip tone="done">What students see</StatusChip>}
       />
 
-      <BoardFilters basePath="/admin/board" window={win} test={test} papers={papers} />
+      <TrackSwitcher tracks={tracks} current={track} basePath="/admin/board" />
+
+      <BoardFilters basePath="/admin/board" window={win} test={test} papers={papers}
+                    track={tracks.length > 1 ? track?.slug : undefined} />
 
       <div className="mt-6">
         {failure ? (

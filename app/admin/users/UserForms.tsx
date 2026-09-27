@@ -28,7 +28,13 @@ function Credential({ credential, compact = false }: {
   )
 }
 
-export function CreateUserForm() {
+export function CreateUserForm({ tracks }: {
+  /**
+   * The exams a new student could be preparing for. With one there is nothing
+   * to choose, so nothing is shown and the account joins it.
+   */
+  tracks: { id: string; name: string }[]
+}) {
   const [state, action] = useActionState(createUserAction, emptyUserAction)
 
   return (
@@ -52,6 +58,19 @@ export function CreateUserForm() {
             ))}
           </div>
         </fieldset>
+        {tracks.length > 1 && (
+          <label className="block sm:col-span-2">
+            <span className="eyebrow">Exam</span>
+            <select name="trackId" defaultValue={tracks[0]!.id}
+                    className="field select-field mt-1.5 w-full max-w-sm">
+              {tracks.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+            <span className="mt-1.5 block text-sm text-ink-soft">
+              What they are preparing for. It decides which papers they are offered and which
+              leaderboard they are on; an admin follows none.
+            </span>
+          </label>
+        )}
         <div className="sm:col-start-3 sm:row-start-1">
           <Submit label="Create" pendingLabel="Creating..." />
         </div>

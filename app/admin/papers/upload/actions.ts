@@ -9,6 +9,7 @@ import { formatIstDate, istDate } from '../../../../lib/time'
 import { actionAdmin } from '../../../../lib/guard'
 import { LIMITS } from '../../../../lib/rate-limit'
 import { hit } from '../../../../lib/repo/rate-limit'
+import { consoleTrack, getPattern } from '../../../../lib/repo/tracks'
 
 import { emptyUpload, type UploadState } from './state'
 
@@ -33,6 +34,16 @@ export async function uploadAction(_prev: UploadState, formData: FormData): Prom
   // exists, rather than a new one. The paper keeps its id, its night and its
   // place in the schedule; only what is inside it changes.
   const replaceId = String(formData.get('replaceId') ?? '') || null
+
+  // Which exam the paper is for. It decides the pattern the file is checked
+  // against, which sections it must have and in what order, so it is resolved
+  // before the file is read rather than after.
+  const trackSlug = String(formData.get('track') ?? '').trim() || undefined
+  const track = await consoleTrack(trackSlug)
+  if (!track) {
+    return { ...emptyUpload, fatal: 'There is no exam track to upload against yet. Add one first.' }
+  }
+  const pattern = await getPattern(track.id)
 
   // What the admin typed in the name box, if anything. The file's own title is
   // the default -- most papers are numbered in the file and never need this --
@@ -93,12 +104,14 @@ export async function uploadAction(_prev: UploadState, formData: FormData): Prom
 
   let takenDates: string[]
   try {
-    takenDates = await scheduledDates(replaceId ?? undefined)
+    takenDates = await scheduledDates(replaceId ?? undefined, track.id)
   } catch (e) {
     return { ...emptyUpload, fileName: file.name, fatal: (e as Error).message }
   }
 
-  const { paper: read, issues } = readPaper(text, { takenDates, today: istDate(), availableImages: images.map((i) => i.name) })
+  const { paper: read, issues } = readPaper(text, {
+    takenDates, pattern, today: istDate(), availableImages: images.map((i) => i.name),
+  })
   const { publishable } = summarise(issues)
 
   if (!publishable || !read) {
@@ -144,7 +157,7 @@ export async function uploadAction(_prev: UploadState, formData: FormData): Prom
   // taken after the preview screen (FR-6.9.1).
   let saved
   try {
-    saved = await savePaper(paper)
+    saved = await savePaper(paper, track.id)
   } catch (e) {
     return { issues, fileName: file.name, fatal: (e as Error).message }
   }

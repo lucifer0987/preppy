@@ -7,7 +7,8 @@ import { db } from '../../../lib/supabase/admin'
 import { getPaperById } from '../../../lib/repo/papers'
 import { QuestionCard } from '../../../components/QuestionCard'
 import { DirectionsBlock } from '../../../components/DirectionsBlock'
-import { SECTION_NAMES, type OptionLabel, type SectionCode } from '../../../lib/types'
+import { sectionName, type OptionLabel, type SectionCode } from '../../../lib/types'
+import { patternForPaper, viewerTrack } from '../../../lib/repo/tracks'
 import { formatIstDate, paperClosed } from '../../../lib/time'
 import { findAttempt } from '../../../lib/repo/attempts'
 
@@ -34,6 +35,10 @@ export default async function ArchiveDetail({
   const record = await getPaperById(testId)
   if (!record || record.status !== 'SCHEDULED') notFound()
   const { paper } = record
+  // Section names come from the paper's own track, so an Agriculture paper
+  // never says (CSE).
+  const pattern = await patternForPaper(testId)
+  const examName = (await viewerTrack(user))?.name ?? null
 
   // A paper opens to you the moment you finish it; to everybody once it has
   // closed. The one thing this page must never do is hand the answers to
@@ -95,7 +100,7 @@ export default async function ArchiveDetail({
   }
 
   return (
-    <AppShell user={user} current="archive">
+    <AppShell user={user} current="archive" examName={examName}>
     <main className="shell pt-6">
       <BackLink href="/archive">Past papers</BackLink>
       <PageHeader
@@ -112,7 +117,7 @@ export default async function ArchiveDetail({
         <div className="xl:sticky xl:top-24 xl:self-start">
           <nav className="flex flex-wrap gap-2 xl:flex-col xl:items-start" aria-label="Filter by section">
             <h2 className="eyebrow w-full">Sections</h2>
-            {[['All sections', undefined] as const, ...paper.sections.map((s) => [SECTION_NAMES[s.code as SectionCode], s.code] as const)].map(
+            {[['All sections', undefined] as const, ...paper.sections.map((s) => [sectionName(pattern, s.code as SectionCode), s.code] as const)].map(
               ([label, value], i) => (
                 <FilterLink key={label} label={label}
                             shape={i === 0 ? undefined : i - 1}
@@ -148,7 +153,7 @@ export default async function ArchiveDetail({
             if (!visible.length) return null
             return (
               <section key={section.code} className="mt-6 first:mt-0">
-                <h2 className="text-lg font-black">{SECTION_NAMES[section.code as SectionCode]}</h2>
+                <h2 className="text-lg font-black">{sectionName(pattern, section.code as SectionCode)}</h2>
                 <ol className="mt-3 space-y-4">
                   {visible.map((question) => {
                     const block = section.directions?.find(

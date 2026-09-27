@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { requireUser } from '../../lib/guard'
 import { getArchive } from '../../lib/repo/leaderboard'
+import { viewerTrack } from '../../lib/repo/tracks'
 import { formatIstDate } from '../../lib/time'
 import { ordinal } from '../../lib/leaderboard'
 import { AppShell } from '../../components/AppShell'
@@ -17,10 +18,11 @@ export const dynamic = 'force-dynamic'
  */
 export default async function ArchivePage() {
   const user = await requireUser()
+  const track = await viewerTrack(user)
   let rows: Awaited<ReturnType<typeof getArchive>> = []
   let failure: string | null = null
   try {
-    rows = await getArchive(user.id)
+    if (track) rows = await getArchive(user.id, track.id)
   } catch (e) {
     failure = (e as Error).message
   }
@@ -35,7 +37,7 @@ export default async function ArchivePage() {
   const podiums = sat.filter((r) => r.rank !== null && r.rank <= 3).length
 
   return (
-    <AppShell user={user} current="archive">
+    <AppShell user={user} current="archive" examName={track?.name}>
       <main className="shell pt-6">
         <PageHeader
           title="Past papers"

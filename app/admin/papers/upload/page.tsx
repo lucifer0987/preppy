@@ -3,6 +3,7 @@ import { requireAdmin } from '../../../../lib/guard'
 import { BackLink, Flash, PageHeader } from '../../../../components/Page'
 import { getPaperById, paperLock } from '../../../../lib/repo/papers'
 import { formatIstDate } from '../../../../lib/time'
+import { consoleTrack, getTrack, listTracks } from '../../../../lib/repo/tracks'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,9 +14,13 @@ export default async function UploadPage({
   // `?replace=` turns this screen into "here is a corrected version of that
   // paper": same checks, same format, but the result goes into the paper that
   // already exists instead of making another one.
-  const { replace } = await searchParams
+  const { replace, track: slug } = await searchParams
   const target = replace ? await getPaperById(replace) : null
   const lock = replace && target ? await paperLock(replace) : null
+  const tracks = await listTracks()
+  // A replacement goes back on the paper's own exam, whatever the URL says:
+  // the questions are being swapped, not moved.
+  const chosen = lock ? await getTrack(lock.trackId) : await consoleTrack(slug)
 
   if (replace && (!target || !lock)) {
     return (
@@ -44,7 +49,8 @@ export default async function UploadPage({
           </Flash>
         ) : (
           <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start">
-            <UploadForm replaceId={replace} defaultTitle={target.paper.title ?? ''} />
+            <UploadForm replaceId={replace} defaultTitle={target.paper.title ?? ''}
+                        trackSlug={chosen?.slug} />
             <aside className="card p-5">
               <h2 className="eyebrow">What this changes</h2>
               <ul className="mt-3 space-y-2.5 text-sm text-ink-soft">
@@ -72,7 +78,7 @@ export default async function UploadPage({
       />
 
       <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start">
-        <UploadForm />
+        <UploadForm tracks={tracks} trackSlug={chosen?.slug} />
 
         {/* A screen used once a day at most, so it says what happens next
             rather than assuming it is remembered. */}
