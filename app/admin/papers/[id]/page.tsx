@@ -104,8 +104,8 @@ export default async function PaperPreview(
       )}
       {q['replaced'] && (
         <Flash tone="good" className="mt-4 mb-5">
-          The questions were replaced. The paper keeps the day and the window it already had &mdash;
-          read it through again below.
+          The questions were replaced. The paper keeps the day and the window it already had.
+          Read it through again below.
         </Flash>
       )}
       {q['scheduled'] && (

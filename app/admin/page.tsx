@@ -123,10 +123,10 @@ export default async function AdminHome({
       <section className="mt-6 rounded-card border border-line bg-surface px-4 py-3.5">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <div className="min-w-0">
-            <h2 className="eyebrow">Nightly job</h2>
+            <h2 className="eyebrow">Unfinished attempts</h2>
             <p className="mt-0.5 text-sm text-ink-soft">
-              Closes any attempt still open past its hard stop and scores it. Runs on its own at
-              1&nbsp;AM and 1&nbsp;PM; this is the same job, now.
+              Anything still open past its hard stop is closed and scored. This runs on its own at
+              1&nbsp;AM and 1&nbsp;PM; the button is the same sweep, now.
             </p>
           </div>
           <FinaliseButton />

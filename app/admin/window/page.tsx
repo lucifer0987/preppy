@@ -20,7 +20,7 @@ export default async function WindowPage() {
 
   return (
     <>
-      <PageHeader compact title="Nightly window" lede="The times a new paper is offered when you schedule it. Each paper keeps its own." />
+      <PageHeader compact title="Default times" lede="The times a paper is given when you schedule it without picking any. Each paper keeps its own from then on." />
 
       <dl className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-card border border-line
                      bg-line sm:grid-cols-4">

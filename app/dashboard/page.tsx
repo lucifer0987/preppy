@@ -230,6 +230,9 @@ export default async function Dashboard({
             <p className="mt-2 text-2xl font-black">
               Entry closed at {labels.closes}
             </p>
+            <p className="mt-1 text-white/70">
+              You did not start today&rsquo;s paper. Its answers open to everyone once it closes.
+            </p>
             <NextPaper paper={afterThis} />
           </>
         ) : (
@@ -282,15 +285,20 @@ export default async function Dashboard({
           <Link href="/archive" className="text-sm font-bold text-accent">All papers &rarr;</Link>
         </div>
         {archive === null ? (
-          <p className="mt-3 text-sm text-ink-soft">Past papers would not load. Nothing is lost — try again in a moment.</p>
+          <p className="mt-3 text-sm text-ink-soft">Past papers would not load. Nothing is lost. Try again in a moment.</p>
         ) : archive.length === 0 ? (
-          <p className="mt-3 text-sm text-ink-soft">Nothing here yet. A paper turns up the moment you hand it in, and once it closes whether you sat it or not.</p>
+          <p className="mt-3 text-sm text-ink-soft">Nothing here yet. Hand a paper in and it turns up here. Papers you skip appear once they close.</p>
         ) : (
           <ul className="mt-3 divide-y divide-black/10">
             {archive.slice(0, 5).map((a) => (
               <li key={a.testId}
                   className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5 text-sm">
-                <span className="min-w-0 flex-1 font-bold">{formatIstDate(a.date)}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-bold">{a.title ?? 'Daily mock'}</span>
+                  <span className="numeral mt-0.5 block text-xs text-ink-faint">
+                    {formatIstDate(a.date)}
+                  </span>
+                </span>
                 <span className="flex items-center gap-3 tabular-nums">
                   {a.attemptId ? (
                     <>
@@ -312,7 +320,7 @@ export default async function Dashboard({
                   {a.attemptId && (
                     <Link href={`/test/${a.attemptId}/done`}
                           className="btn btn-quiet px-3 py-1 text-xs">
-                      Result
+                      See result
                     </Link>
                   )}
                   <Link href={`/archive/${a.testId}`} className="btn btn-quiet px-3 py-1 text-xs">
@@ -355,7 +363,7 @@ function NextPaper({ paper }: { paper: { title: string | null; window: PaperWind
   if (!paper) {
     return (
       <p className="mt-3 text-white/70">
-        No paper is scheduled yet. Check back later; a day without one never breaks your streak.
+        No paper is scheduled yet. A day without one breaks nobody&rsquo;s streak.
       </p>
     )
   }

@@ -23,8 +23,8 @@ export function ExamRules({ compact = false }: { compact?: boolean }) {
         question still scores as blank unless an option is also chosen.
       </li>
       <li>
-        <strong>Full screen is required.</strong> Esc always works &mdash; no page can take that
-        away &mdash; but the question is covered until you come back, the exit is counted on your
+        <strong>Full screen is required.</strong> Esc always works, and no page can take that
+        away. But the question is covered until you come back, the exit is counted on your
         result, and <strong>the clock keeps running</strong>. It never ends your test.
       </li>
       <li>

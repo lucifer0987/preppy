@@ -17,8 +17,8 @@ export function PaperRankList({ standings, meUserId }: {
   if (!standings) {
     return (
       <Empty>
-        That paper is not open to you yet. Its rank list appears as soon as you hand it in
-        &mdash; and to everybody once entry closes, whether they sat it or not.
+        That paper is not open to you yet. Hand it in and its rank list appears. Once entry
+        closes, everybody sees it.
       </Empty>
     )
   }

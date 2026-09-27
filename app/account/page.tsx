@@ -78,9 +78,11 @@ export default async function AccountPage() {
 
       <div className="mt-7 space-y-3 border-t border-line pt-4">
         <p className="text-sm text-ink-soft">
+          There is no email on file, so nobody can send you a reset link. Forget this password
+          and{' '}
           {user.role === 'admin'
-            ? 'There is no email on file, so nobody can send you a reset. If you forget this one, another admin has to set a new one for you from People.'
-            : 'There is no email on file, so nobody can send you a reset. If you forget this one, your admin has to set a new one for you.'}
+            ? 'another admin sets a new one for you from People.'
+            : 'your admin sets a new one for you.'}
         </p>
         <div className="flex items-center gap-4 text-sm font-semibold">
           {!forced && (

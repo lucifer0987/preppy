@@ -71,9 +71,9 @@ export function WindowForm(
           <p className="mt-2.5 text-sm font-semibold text-bad-ink">{problem}</p>
         ) : (
           <ul className="mt-2.5 space-y-1.5 text-sm">
-            <li><strong className="numeral">{labels!.opens}</strong> &mdash; paper unlocks</li>
-            <li><strong className="numeral">{labels!.closes}</strong> &mdash; last entry, nobody new starts after this</li>
-            <li><strong className="numeral">{labels!.hardStop}</strong> &mdash; everyone finished; answers unlock</li>
+            <li><strong className="numeral">{labels!.opens}</strong> &middot; the paper unlocks</li>
+            <li><strong className="numeral">{labels!.closes}</strong> &middot; last entry, nobody new starts after this</li>
+            <li><strong className="numeral">{labels!.hardStop}</strong> &middot; everyone is finished, answers unlock</li>
           </ul>
         )}
         <p className="measure-wide mt-3.5 text-xs text-ink-soft">

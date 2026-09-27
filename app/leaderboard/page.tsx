@@ -49,7 +49,7 @@ export default async function LeaderboardPage({
     <main className="shell pt-6">
       <PageHeader
         title="Leaderboard"
-        lede="Points across the last seven papers by default, and all time if you ask for it. It takes each result in the moment it is scored."
+        lede="Points across the last seven papers, or every paper ever, or one on its own. A result joins the board the moment it is scored."
         meta={!test && board.rows.length > 0
           ? <span className="numeral">
               {lastN ? `Last ${lastN} papers` : 'All time'} &middot; {board.rows.length} on the board
@@ -62,7 +62,7 @@ export default async function LeaderboardPage({
       <div className="mt-6">
         {failure ? (
           <Flash tone="bad">
-            The board would not load. Every score is still recorded — it is the reading of
+            The board would not load. Every score is still recorded; it is the reading of
             them that failed. Try again in a moment. ({failure})
           </Flash>
         ) : test ? (

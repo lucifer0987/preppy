@@ -363,17 +363,17 @@ h2, h3 { text-wrap: balance; }
  * Solid colours rather than white-at-an-alpha, because an alpha wash only
  * works over a ground you already know, and this ground now moves.
  */
-[data-room="home"] {
+/* Light only. The dark half of this room became the app's dark theme, so
+   there is nothing left to override there -- and scoping these to light is
+   what lets them fall through to it. Unguarded, they painted a light ground
+   under dark-theme text, which is the classic unreadable page. */
+:root:not([data-theme="dark"]) [data-room="home"] {
   --page: #f6f2fe;
   --surface: #ffffff;
   --surface-sunken: #efe9fc;
   --line: #e4dbf8;
   --line-strong: #d0c3f0;
 }
-
-/* No dark block of its own any more. This room's dark palette was the one that
-   worked, so it became the app's -- and a room that repeats the theme it sits
-   in is a room with two places to change one colour. */
 
 /* --------------------------------------------------------- the exam room */
 /**

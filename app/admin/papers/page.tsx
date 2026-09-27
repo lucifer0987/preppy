@@ -23,7 +23,7 @@ export default async function PapersPage({
         )}
         <PageHeader compact
         title="Papers"
-        lede="Everything drafted or published. Solutions opens the paper itself &mdash; every question with its key, where you correct one, schedule it, rehearse it or manage it once it is out."
+        lede="Everything drafted or published. Solutions opens the paper itself: every question with its key, and where you correct one, schedule it, rehearse it or manage it once it is out."
         actions={
           <Link href="/admin/papers/upload" className="btn btn-primary hover:bg-accent-hover">
             Upload a paper

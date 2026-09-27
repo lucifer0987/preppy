@@ -109,7 +109,7 @@ function Credentials({ rows }: { rows: { username: string; password: string }[] 
   return (
     <div className="mt-4 rounded-control bg-answered p-5 text-white">
       <p className="text-xs font-bold uppercase tracking-widest text-white/70">
-        {rows.length} account{rows.length === 1 ? '' : 's'} created — copy these now
+        {rows.length} account{rows.length === 1 ? '' : 's'} created. Copy these now
       </p>
       <pre className="mt-2 overflow-x-auto rounded-xl bg-surface-sunken p-3 font-mono text-sm">{csv}</pre>
       <a

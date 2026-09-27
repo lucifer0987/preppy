@@ -54,15 +54,15 @@ export default async function ArchivePage() {
 
         {failure ? (
           <p role="alert" className="mt-6 rounded-card border border-bad/30 bg-bad/10 p-5 font-semibold text-bad-ink">
-            Past papers would not load. Nothing is lost — try again in a moment.
+            Past papers would not load. Nothing is lost. Try again in a moment.
             <span className="mt-1 block text-sm font-normal text-ink-soft">{failure}</span>
           </p>
         ) : rows.length === 0 ? (
           <div className="mt-6">
             <Empty>
-              Nothing here yet. A paper appears the moment you hand it in — with every
-              question, its key and a worked solution — and again when it closes, for
-              everybody, whether they sat it or not.
+              Nothing here yet. Hand a paper in and it turns up here straight away, with every
+              question, its key and a worked solution. Once it closes everybody sees it,
+              whether they sat it or not.
             </Empty>
           </div>
         ) : (

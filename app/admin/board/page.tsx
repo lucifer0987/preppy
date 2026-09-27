@@ -53,7 +53,7 @@ export default async function AdminBoard({
       <PageHeader
         compact
         title="Leaderboard"
-        lede="Points across the last seven papers by default, and all time if you ask for it. A result joins the moment it is scored."
+        lede="What the students see, with every account listed. Points across the last seven papers, or every paper ever, or one on its own."
         meta={!test && board.rows.length > 0
           ? <span className="numeral">{scope} &middot; {board.rows.length} on the board</span>
           : undefined}
@@ -65,7 +65,7 @@ export default async function AdminBoard({
       <div className="mt-6">
         {failure ? (
           <Flash tone="bad">
-            The board would not load. Every score is still recorded &mdash; it is the reading of
+            The board would not load. Every score is still recorded; it is the reading of
             them that failed. ({failure})
           </Flash>
         ) : test ? (

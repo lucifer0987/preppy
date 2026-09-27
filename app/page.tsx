@@ -196,8 +196,8 @@ function NextPaper({ live, next, now, labels, totals }: {
         <h2 id="next-paper" className="eyebrow">Next paper</h2>
         <p className="mt-2.5 font-display text-2xl font-black">Nothing scheduled yet</p>
         <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">
-          Papers go up a day at a time. The countdown appears here the moment your admin
-          schedules one &mdash; and a day without a paper never breaks anyone&rsquo;s streak.
+          Papers go up a day at a time. The countdown starts as soon as your admin schedules
+          the next one. A day without a paper breaks nobody&rsquo;s streak.
         </p>
         <p className="mt-3.5 border-t border-line pt-3 text-xs text-ink-faint">
           They usually open at {labels.opens}, with last entry {labels.closes}.

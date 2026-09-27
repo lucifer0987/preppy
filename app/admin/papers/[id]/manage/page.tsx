@@ -86,8 +86,8 @@ export default async function ManagePaper({ params, searchParams }: {
           {q['stuck'] && q['stuck'] !== '0' && (
             <span className="mt-1 block font-normal">
               {q['stuck']} could not be scored just now. The paper is closed either way, and the
-              nightly job will pick {q['stuck'] === '1' ? 'it' : 'them'} up &mdash; or press
-              &ldquo;Finalise open attempts now&rdquo; on the console home.
+              sweep picks {q['stuck'] === '1' ? 'it' : 'them'} up on its next run. To do it at
+              once, press &ldquo;Finalise open attempts now&rdquo; on the console home.
             </span>
           )}
         </Flash>
@@ -114,7 +114,7 @@ export default async function ManagePaper({ params, searchParams }: {
         <h2 className="text-lg font-black">What it is called</h2>
         <p className="measure-wide mt-1 text-sm text-ink-soft">
           What students see on the dashboard and in the archive. Nothing keys off it, so it can
-          change at any point &mdash; including after the paper has closed.
+          change at any point, including after the paper has closed.
         </p>
         <form action={renamePaperAction} className="mt-5 flex flex-wrap items-end gap-3">
           <input type="hidden" name="id" value={id} />

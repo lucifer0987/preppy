@@ -16,7 +16,7 @@ function Credential({ credential, compact = false }: {
     <div className={`rounded-control bg-answered text-left text-white ${
       compact ? 'mt-2 w-60 px-3.5 py-3' : 'mt-4 px-5 py-4'}`}>
       <p className="text-[0.625rem] font-bold uppercase tracking-[0.12em] text-white/70">
-        Copy this now &mdash; it is not shown again
+        Copy this now. It is not shown again
       </p>
       <p className={`mt-1.5 font-mono ${compact ? 'text-sm' : 'text-lg'}`}>
         {credential.username} &middot; {credential.password}

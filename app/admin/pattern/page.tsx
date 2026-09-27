@@ -65,14 +65,14 @@ export default async function PatternPage() {
           <li>Scores already recorded are not recalculated. Correct a key on the paper to rescore it.</li>
           <li>An attempt already running keeps the deadline it started with.</li>
           <li>
-            The four sections and the order they are sat in are fixed &mdash; they are the exam&rsquo;s
+            The four sections and the order they are sat in are fixed. They are the exam&rsquo;s
             pattern, not a setting.
           </li>
         </ul>
       </section>
 
       <p className="mt-6 text-sm">
-        <Link href="/admin/window" className="font-bold text-accent underline">Nightly window &rarr;</Link>{' '}
+        <Link href="/admin/window" className="font-bold text-accent underline">Default times &rarr;</Link>{' '}
         <span className="text-ink-soft">
           when papers open and the last moment to start. A longer pattern needs entry to close earlier,
           so the two are worth checking together.

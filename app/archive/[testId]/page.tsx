@@ -53,9 +53,9 @@ export default async function ArchiveDetail({
           </span>
           <h1 className="mt-4 text-2xl font-black tracking-tight">Sit it first</h1>
           <p className="mx-auto mt-2 max-w-md text-ink-soft">
-            Answers and solutions for {formatIstDate(paper.date)} open to you the moment you hand
-            the paper in &mdash; and to everybody once entry closes, whether they sat it or not.
-            Until then they stay shut, because you can still take it.
+            You can still take the paper for {formatIstDate(paper.date)}, so its answers stay
+            shut. Hand it in and they open straight away. Once entry closes they open to
+            everybody, whether they sat it or not.
           </p>
           <Link href="/archive" className="btn btn-quiet mt-6 inline-flex">
             Back to past papers

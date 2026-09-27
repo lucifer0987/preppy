@@ -64,8 +64,8 @@ export function UploadForm({ replaceId, defaultTitle }: {
         </label>
         <p className="measure mt-2 text-sm text-ink-soft">
           This is what students and the archive call it. Most files name themselves and need
-          nothing here; type something only when the file&rsquo;s own name would be confusing
-          &mdash; two papers called the same thing on the same day, say.
+          nothing here. Type something when the file&rsquo;s own name would be confusing, such as
+          two papers called the same thing on the same day.
         </p>
         <Submit label={replaceId ? 'Check and replace' : 'Check this paper'} />
       </form>

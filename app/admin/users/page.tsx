@@ -95,9 +95,9 @@ export default async function UsersPage() {
       </div>
 
       <p className="measure-wide mt-4 text-sm text-ink-soft">
-        A username is the login and never changes. A name is what the board and the archive show, so
-        it can be edited any time &mdash; click it. Deactivating only stops the login: every attempt
-        and every leaderboard entry stays.
+        A username is the login and never changes. A name is what the board and the archive show,
+        so click it to edit it at any time. Deactivating only stops the login: every attempt and
+        every leaderboard entry stays.
       </p>
     </>
   )
