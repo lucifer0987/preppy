@@ -64,6 +64,29 @@ export default async function Dashboard({
   const entryStillOpen = Boolean(openPaper && canStartAttempt(openPaper.window, now))
   const afterTonight = live && (doneWithLive || (!attempt && !entryStillOpen)) ? nextPaper : null
 
+  // The hero panel is full width; its text was capped at max-w-3xl, so half of
+  // it sat empty on any laptop. The two states that have a clock and a button
+  // put them in a column of their own, which is also the better reading order:
+  // what the paper is on the left, what to do about it on the right.
+  const heroAside =
+    attempt && attempt.state === 'IN_PROGRESS'
+      ? {
+          label: 'Time left in this section',
+          targetIso: new Date(now.getTime() + remainingSec * 1000).toISOString(),
+          countdownLabel: 'Time left in this section',
+          href: `/test/${attempt.id}`,
+          cta: 'Resume test',
+        }
+      : live && tonight && openPaper && entryStillOpen
+        ? {
+            label: `Entry closes at ${labels.closes}`,
+            targetIso: entryClosesAt(openPaper.window).toISOString(),
+            countdownLabel: 'Entry closes in',
+            href: `/test/start?test=${tonight.id}`,
+            cta: 'Start test',
+          }
+        : null
+
   // Panels 2 and 3. Either failing must not take the whole dashboard down:
   // tonight's paper is the panel that matters once the window opens.
   const [board, archive] = await Promise.all([
@@ -93,7 +116,8 @@ export default async function Dashboard({
           <div className="absolute inset-0 opacity-[0.06]"
                style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '26px 26px' }} />
         </div>
-        <div className="relative max-w-3xl">
+        <div className="relative flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
+        <div className="min-w-0 max-w-xl">
         <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-white/60">
           {live || attempt ? "Tonight's paper" : 'Next paper'}
         </h2>
@@ -101,17 +125,10 @@ export default async function Dashboard({
         {attempt && attempt.state === 'IN_PROGRESS' ? (
           <>
             <p className="mt-2 text-2xl font-black">You are part way through</p>
-            <p className="mt-1 text-white/70">Time left in this section:</p>
-            <div className="mt-3">
-              <Countdown
-                targetIso={new Date(now.getTime() + remainingSec * 1000).toISOString()}
-                nowIso={nowIso} label="Time left in this section"
-              />
-            </div>
-            <Link href={`/test/${attempt.id}`}
-                  className="btn btn-zap mt-4 px-7 py-3.5">
-              Resume test
-            </Link>
+            <p className="mt-1 text-white/70">
+              Your section timer has been running since you started, so pick up where you
+              left off.
+            </p>
           </>
         ) : attempt && attempt.state === 'VOIDED' ? (
           <>
@@ -158,17 +175,6 @@ export default async function Dashboard({
                 ? <> &middot; +{openPaper.shape.marking.correct} correct, &minus;{openPaper.shape.marking.negative} wrong</>
                 : <> &middot; marking varies by section</>}
             </p>
-            <p className="mt-4 text-sm text-white/70">
-              Time left to enter (entry closes at{' '}
-              {labels.closes}):
-            </p>
-            <div className="mt-2">
-              <Countdown targetIso={entryClosesAt(openPaper!.window).toISOString()} nowIso={nowIso} label="Entry closes in" />
-            </div>
-            <Link href={`/test/start?test=${tonight.id}`}
-                  className="btn btn-zap mt-4 px-7 py-3.5">
-              Start test
-            </Link>
           </>
         ) : live ? (
           <>
@@ -196,6 +202,22 @@ export default async function Dashboard({
               </p>
             )}
           </>
+        )}
+        </div>
+
+        {heroAside && (
+          <div className="w-full shrink-0 sm:w-auto">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/55">
+              {heroAside.label}
+            </p>
+            <div className="mt-2">
+              <Countdown targetIso={heroAside.targetIso} nowIso={nowIso}
+                         label={heroAside.countdownLabel} />
+            </div>
+            <Link href={heroAside.href} className="btn btn-zap mt-4 w-full px-7 py-3.5">
+              {heroAside.cta}
+            </Link>
+          </div>
         )}
         </div>
       </section>

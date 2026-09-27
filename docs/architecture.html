@@ -1260,6 +1260,22 @@ words.</p>
   is actually on screen.</p>
 </div>
 
+<div class="note care">
+  <h4>Every transition is held still for one frame during the swap</h4>
+  <p>Two reasons, and the second is a correctness one. A page-wide cross-fade of
+  every colour at once is a smear rather than a nicety. And more seriously: a
+  <code>background-color</code> that reads a custom property does not reliably
+  re-resolve when only that property changes, while a transition is declared on
+  it &mdash; the element keeps the previous theme's colour. It is reproducible:
+  the leaderboard's &ldquo;you&rdquo; row sat at the dark <code>--accent-soft</code>
+  three seconds after a flip to light, while its own <code>--accent-soft</code>
+  computed to the light value. Removing the transition fixed it; putting it back
+  broke it again.</p>
+  <p><code>ThemeToggle</code> therefore adds <code>.theme-switching</code> to the
+  root, flips the attribute, forces a reflow and drops the class on the next
+  frame. One mechanism, and it covers every button, tab and row at once.</p>
+</div>
+
 <div class="note why">
   <h4>This used to have three states</h4>
   <p>&ldquo;Match my computer&rdquo; was the default, and it worked by writing

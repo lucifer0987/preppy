@@ -12,10 +12,15 @@ export function StreakBadge({ days, size = 'sm' }: { days: number; size?: 'sm' |
   if (days <= 0) return null
   const big = size === 'lg'
 
+  // Fixed fills, not theme tokens: this badge sits on a card, on the dark hero
+  // panel and on the podium, and a fill that flipped with the theme would be
+  // measured against whichever of those it happened to land on. The gold was
+  // gold-700 behind white, which is legible and reads as mud; a bright gold
+  // carrying dark text is the same idea done properly.
   const tone =
-    days >= 30 ? 'bg-zap-solid text-white ring-2 ring-gold'
+    days >= 30 ? 'bg-zap-solid text-white ring-2 ring-gold-300'
     : days >= 7 ? 'bg-zap-solid text-white'
-    : days >= 3 ? 'bg-gold-700 text-white'
+    : days >= 3 ? 'bg-gold-400 text-brand-950'
     : 'bg-surface-sunken text-ink-soft ring-1 ring-line-strong'
 
   return (

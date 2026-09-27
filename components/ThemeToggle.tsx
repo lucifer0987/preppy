@@ -35,8 +35,19 @@ export function ThemeToggle({ tone = 'default' }: { tone?: 'default' | 'invert' 
 
   function toggle() {
     const next: Theme = theme === 'dark' ? 'light' : 'dark'
+    const root = document.documentElement
     setTheme(next)
-    document.documentElement.setAttribute('data-theme', next)
+
+    // Hold every transition still for one frame while the palette swaps. A
+    // page-wide cross-fade is a smear, and a background-color that reads a
+    // custom property will not reliably re-resolve when only that property
+    // changes while a transition is declared on it -- the element keeps the
+    // old theme's colour. Suppressing transitions across the swap avoids both.
+    root.classList.add('theme-switching')
+    root.setAttribute('data-theme', next)
+    void root.offsetWidth          // force the style recalc before releasing
+    requestAnimationFrame(() => root.classList.remove('theme-switching'))
+
     try { localStorage.setItem(KEY, next) } catch { /* still applies for this visit */ }
   }
 

@@ -614,6 +614,26 @@ h2, h3 { text-wrap: balance; }
   .exam-print-note { display: block; padding: 2rem; font-weight: 700; }
 }
 
+/**
+ * Theme switching, with every transition held still for one frame.
+ *
+ * Two reasons, and the second is a correctness one. A page-wide cross-fade of
+ * every colour is a smear, not a nicety. And more seriously: a background-color
+ * that reads a custom property does not reliably re-resolve when only that
+ * property changes, if a transition is declared on it -- the element keeps the
+ * previous theme's colour until something else forces a repaint. It is
+ * reproducible: the leaderboard's "you" row stayed at the dark accent-soft
+ * three seconds after a flip to light, while its own --accent-soft read light.
+ *
+ * Suppressing transitions across the swap fixes both. ThemeToggle adds this
+ * class, flips the attribute, forces a reflow and drops the class next frame.
+ */
+:root.theme-switching *,
+:root.theme-switching *::before,
+:root.theme-switching *::after {
+  transition: none !important;
+}
+
 @keyframes rise {
   from { opacity: 0; transform: translateY(14px) scale(0.97); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
