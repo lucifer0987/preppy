@@ -3,12 +3,13 @@ import { notFound } from 'next/navigation'
 import { requireAdmin } from '../../../../../lib/guard'
 import { getPaperById, paperLock } from '../../../../../lib/repo/papers'
 import { countRunningAttempts } from '../../../../../lib/repo/attempt-admin'
-import { formatIstDate, formatIstMoment, paperLabels } from '../../../../../lib/time'
+import { addDays, entryClosesOn, formatIstDate, formatIstMoment, paperLabels } from '../../../../../lib/time'
 import { sectionName, type SectionCode } from '../../../../../lib/types'
 import { patternForPaper } from '../../../../../lib/repo/tracks'
 import { BackLink, Flash, PageHeader, StatusChip, Th } from '../../../../../components/Page'
 import { SectionShape } from '../../../../../components/SectionShape'
 import { TimeField } from '../../../../../components/TimeField'
+import { DateField } from '../../../../../components/DateField'
 import { endNowAction, renamePaperAction, retimeAction, setMarksAction } from '../actions'
 import { EndNowButton } from './EndNowButton'
 import { DeleteButton } from '../DeleteButton'
@@ -157,10 +158,20 @@ export default async function ManagePaper({ params, searchParams }: {
                   <p className="numeral mt-1.5 py-2 text-lg font-bold">{l.opens}</p>
                 </div>
               )}
+              {/* A day as well as a time: entry may close on the morning after
+                   the paper opens, and a time on its own cannot say which day
+                   it means. */}
+              <DateField
+                name="entryClosesOn"
+                label="Last entry on"
+                defaultValue={entryClosesOn(lock.window)}
+                min={lock.window.date}
+                max={addDays(lock.window.date, 1)}
+              />
               <TimeField
                 name="entryClosesAt"
                 label="Last moment to start"
-                defaultValue={hhmm(lock.window.entryClosesAtMin)}
+                defaultValue={hhmm(lock.window.entryClosesAtMin % (24 * 60))}
                 hint={`Whoever starts then still gets the full ${lock.window.attemptMinutes} minutes, `
                   + `finishing at ${paperLabels(lock.window).hardStop}.`}
               />

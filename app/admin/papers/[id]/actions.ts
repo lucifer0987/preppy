@@ -5,8 +5,9 @@ import { revalidatePath } from 'next/cache'
 import { actionAdmin } from '../../../../lib/guard'
 import {
   deletePaper, endPaperNow, renamePaper, retimePaper, schedulePaper, unschedulePaper,
-  updateQuestionContent,
+  updateQuestionContent, paperLock,
 } from '../../../../lib/repo/papers'
+import { daysBetween } from '../../../../lib/time'
 import { correctAnswerKey, setSectionMarks } from '../../../../lib/repo/rescore'
 import { ALL_SECTION_CODES, OPTION_LABELS, type OptionLabel, type SectionCode } from '../../../../lib/types'
 import type { EditState } from './edit-state'
@@ -52,7 +53,8 @@ export async function scheduleAction(formData: FormData) {
     return Number.isInteger(h) && Number.isInteger(m) ? h * 60 + m : null
   }
   const opensAtMin = minutes('opensAt')
-  const entryClosesAtMin = minutes('entryClosesAt')
+  // Counted from the day being scheduled, which is the date in this same form.
+  const entryClosesAtMin = entryCloseMinutes(formData, date)
   const times = opensAtMin !== null && entryClosesAtMin !== null
     ? { opensAtMin, entryClosesAtMin }
     : undefined
@@ -106,6 +108,24 @@ function minutesOf(formData: FormData, name: string): number | null {
 }
 
 /**
+ * Entry close as minutes from midnight of the paper's OWN date, given a date
+ * and a time from the form.
+ *
+ * The two fields are a day and a clock time; the column is one number counted
+ * from the opening day, so closing at 1 AM on the 29th of a paper that opens
+ * on the 28th is 1500. A close date before the opening day would come out
+ * negative, and paperWindowProblem refuses it rather than this quietly
+ * clamping it into something that looks deliberate.
+ */
+function entryCloseMinutes(formData: FormData, openingDate: string | undefined): number | null {
+  const time = minutesOf(formData, 'entryClosesAt')
+  if (time === null) return null
+  const closesOn = String(formData.get('entryClosesOn') ?? '')
+  if (!openingDate || !/^\d{4}-\d{2}-\d{2}$/.test(closesOn)) return time
+  return daysBetween(openingDate, closesOn) * 24 * 60 + time
+}
+
+/**
  * Moving a live paper's window: the flexible half of managing one.
  *
  * Its usual use is giving somebody longer to start. Moving entry close also
@@ -115,7 +135,10 @@ function minutesOf(formData: FormData, name: string): number | null {
 export async function retimeAction(formData: FormData) {
   if (!(await actionAdmin())) redirect('/login')
   const id = String(formData.get('id'))
-  const entryClosesAtMin = minutesOf(formData, 'entryClosesAt')
+  // The paper's own date is what the offset is measured from, so it is read
+  // rather than taken from the form: retiming never moves the day.
+  const paper = await paperLock(id)
+  const entryClosesAtMin = entryCloseMinutes(formData, paper?.date)
   const opensAtMin = minutesOf(formData, 'opensAt')
   if (entryClosesAtMin === null) {
     redirect(`/admin/papers/${id}/manage?error=${encodeURIComponent('Pick a last moment to start.')}`)

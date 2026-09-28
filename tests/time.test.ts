@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   addDays, canStartAttempt, DEFAULT_WINDOW, entryClosesAt, formatIstDate,
   formatIstTime, hardStopAt, istDate, istInstant, opensAt, paperClosed,
-  paperWindowProblem, windowLabels, windowState, windowsOverlap, paperLabels
+  paperWindowProblem, windowLabels, windowState, windowsOverlap, paperLabels, entryClosesOn, daysBetween
 } from '../lib/time'
 import { attemptHardStop } from '../lib/attempt'
 
@@ -236,8 +236,36 @@ describe('which windows are allowed', () => {
 
   it('refuses a time that is not on the clock', () => {
     expect(paperWindowProblem(win(-1, 600))).toMatch(/not a time of day/)
-    expect(paperWindowProblem(win(0, 1440))).toMatch(/not a time of day/)
     expect(paperWindowProblem(win(0, 90.5))).toMatch(/not a time of day/)
+    // Opening is a time on the paper's own date and nothing else.
+    expect(paperWindowProblem(win(1440, 1500))).toMatch(/opening time is not a time of day/)
+  })
+
+  /**
+   * Entry close is minutes from midnight of the paper's own date, so it may
+   * run past 1440 and mean the following day: 1500 is 1 AM tomorrow. That is
+   * how "opens 10 PM, last entry 1 AM" is expressed, which a time alone could
+   * not say.
+   */
+  it('lets entry close on the following day, but not the one after', () => {
+    expect(paperWindowProblem(win(22 * 60, 24 * 60 + 60))).toBeNull()
+    expect(paperWindowProblem(win(22 * 60, 2 * 24 * 60 - 1))).toBeNull()
+    expect(paperWindowProblem(win(22 * 60, 2 * 24 * 60))).toMatch(/closing time is not a time of day/)
+  })
+
+  it('names which day entry closes on, and which date the close belongs to', () => {
+    const w = { date: '2026-09-28', opensAtMin: 22 * 60, entryClosesAtMin: 25 * 60, attemptMinutes: 45, endedAt: null }
+    expect(paperLabels(w).closes).toBe('1:00 AM next day')
+    expect(entryClosesOn(w)).toBe('2026-09-29')
+    expect(entryClosesOn({ date: '2026-09-28', entryClosesAtMin: 1395 })).toBe('2026-09-28')
+  })
+
+  it('counts whole days between two dates', () => {
+    expect(daysBetween('2026-09-28', '2026-09-29')).toBe(1)
+    expect(daysBetween('2026-09-28', '2026-09-28')).toBe(0)
+    expect(daysBetween('2026-09-29', '2026-09-28')).toBe(-1)
+    // Across a month end, where naive arithmetic goes wrong.
+    expect(daysBetween('2026-09-30', '2026-10-01')).toBe(1)
   })
 
   it('allows a paper first thing in the morning', () => {

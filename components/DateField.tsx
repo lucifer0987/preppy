@@ -37,11 +37,14 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
 const longDate = (d: Date) =>
   `${WEEKDAYS[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`
 
-export function DateField({ name, defaultValue, min, label }: {
+export function DateField({ name, defaultValue, min, max, label }: {
   name: string
   defaultValue: string
   /** Earliest selectable day, as YYYY-MM-DD. */
   min?: string
+  /** Latest selectable day, as YYYY-MM-DD. Entry close uses it: the day after
+   *  the paper opens and no further. */
+  max?: string
   label: string
 }) {
   const [value, setValue] = useState(defaultValue)
@@ -91,7 +94,10 @@ export function DateField({ name, defaultValue, min, label }: {
             selected={selected}
             defaultMonth={selected}
             onSelect={(d) => { if (d) { setValue(iso(d)); setOpen(false) } }}
-            disabled={min ? { before: fromIso(min) } : undefined}
+            disabled={[
+              ...(min ? [{ before: fromIso(min) }] : []),
+              ...(max ? [{ after: fromIso(max) }] : []),
+            ]}
             showOutsideDays
           />
         </div>

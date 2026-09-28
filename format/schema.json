@@ -21,7 +21,7 @@
     "date": {
       "type": "string",
       "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-      "description": "The day this paper opens, YYYY-MM-DD. Its times are chosen when it is scheduled, not here, and they may carry it past midnight -- a paper that opens on the 28th and finishes at 00:15 is still the 28th's paper everywhere it is counted."
+      "description": "The day this paper opens, YYYY-MM-DD. Its window is chosen when it is scheduled, not here: a day and a time for each end, and entry may close on the following morning. A paper that opens on the 28th and takes entry until 1 AM on the 29th is still the 28th's paper everywhere it is counted."
     },
     "title": {
       "type": "string",

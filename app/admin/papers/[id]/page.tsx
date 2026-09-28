@@ -7,7 +7,7 @@ import { DirectionsBlock } from '../../../../components/DirectionsBlock'
 import { sectionName, type SectionCode } from '../../../../lib/types'
 import { patternForPaper } from '../../../../lib/repo/tracks'
 import {
-  addDays, defaultPaperWindow, formatIstDate, istDate, paperLabels, windowState,
+  addDays, defaultPaperWindow, formatIstDate, istDate, paperLabels, windowState, entryClosesOn,
 } from '../../../../lib/time'
 import { getWindow } from '../../../../lib/repo/settings'
 import { listPaperImages } from '../../../../lib/repo/images'
@@ -259,19 +259,27 @@ export default async function PaperPreview(
                is the one thing it does better than anything hand-built -- but it now
                sits in the app's own field, and accent-color points its selection at
                the brand instead of the system blue. */}
-          <div className="mt-4">
-            <DateField name="date" label="Day" defaultValue={defaultDate} min={istDate()} />
-          </div>
-
+          {/* A day and a time for each end, because a window may cross midnight:
+               "opens 10 PM on the 28th, last entry 1 AM on the 29th" is a thing
+               an admin may want and could not say while the close was a time
+               alone. The close date is limited to the opening day or the one
+               after it -- beyond that it is two papers, not one window. */}
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <DateField name="date" label="Opens on" defaultValue={defaultDate} min={istDate()} />
             <TimeField name="opensAt" label="Unlocks at"
                        defaultValue={hhmm(defaultWindow.opensAtMin)} />
+          </div>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <DateField name="entryClosesOn" label="Last entry on"
+                       defaultValue={entryClosesOn({ date: defaultDate, entryClosesAtMin: defaultWindow.entryClosesAtMin })}
+                       min={defaultDate} max={addDays(defaultDate, 1)} />
             <TimeField name="entryClosesAt" label="Last moment to start"
-                       defaultValue={hhmm(defaultWindow.entryClosesAtMin)} max="23:15" />
+                       defaultValue={hhmm(defaultWindow.entryClosesAtMin % (24 * 60))} />
           </div>
           <p className="mt-2 text-xs text-ink-soft">
-            Anyone starting before the second time still gets the full {totalMinutes} minutes, so the
-            paper finishes {paperLabels(defaultWindow).hardStop === 'midnight' ? 'by midnight' : `by ${paperLabels(defaultWindow).hardStop}`}.
+            Anyone starting before the last moment still gets the full {totalMinutes} minutes, so the
+            paper finishes at {paperLabels(defaultWindow).hardStop}. Entry may close on the day after
+            it opens; the paper still belongs to the day it opened.
             More than one paper can run in a day, and they may share a window. A student sits one at a time and picks the order; two on one night need different names.
           </p>
           <label className="mt-4 flex items-start gap-3 text-sm">

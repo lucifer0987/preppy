@@ -186,6 +186,26 @@ export function defaultPaperWindow(
   }
 }
 
+/**
+ * How late entry may close, as minutes from midnight of the paper's own date.
+ *
+ * One full day past its own midnight: entry opening on the 28th may close at
+ * any time up to 23:59 on the 29th. Beyond that the window stops describing a
+ * night and starts describing a holiday, and the date field is the honest way
+ * to say so.
+ */
+export const MAX_ENTRY_CLOSE_MIN = 2 * 24 * 60 - 1
+
+/** Whole days between two YYYY-MM-DD dates, b minus a. */
+export function daysBetween(a: string, b: string): number {
+  const ms = Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)
+  return Math.round(ms / 86_400_000)
+}
+
+/** The date entry closes on, which is the paper's own unless it runs past midnight. */
+export const entryClosesOn = (p: Pick<PaperWindow, 'date' | 'entryClosesAtMin'>) =>
+  addDays(p.date, Math.floor(p.entryClosesAtMin / (24 * 60)))
+
 export const opensAt = (p: PaperWindow) => istInstant(p.date, 0, p.opensAtMin)
 export const entryClosesAt = (p: PaperWindow) => istInstant(p.date, 0, p.entryClosesAtMin)
 
@@ -238,7 +258,9 @@ export function paperLabels(p: PaperWindow): { opens: string; closes: string; ha
   const stop = p.entryClosesAtMin + p.attemptMinutes
   return {
     opens: formatIstTime(Math.floor(p.opensAtMin / 60), p.opensAtMin % 60),
-    closes: formatIstTime(Math.floor(p.entryClosesAtMin / 60), p.entryClosesAtMin % 60),
+    closes: p.entryClosesAtMin >= 24 * 60
+      ? `${formatIstTime(Math.floor((p.entryClosesAtMin - 24 * 60) / 60), p.entryClosesAtMin % 60)} next day`
+      : formatIstTime(Math.floor(p.entryClosesAtMin / 60), p.entryClosesAtMin % 60),
     // 24:00 is midnight at the end of the paper's date, not the start of it.
     // Exactly 24:00 is midnight. Past it the time belongs to the next morning,
     // and calling that "midnight" would be out by however long it runs -- on
@@ -262,8 +284,16 @@ export function windowLabels(
 export function paperWindowProblem(
   p: Pick<PaperWindow, 'opensAtMin' | 'entryClosesAtMin' | 'attemptMinutes'>,
 ): string | null {
-  for (const [v, what] of [[p.opensAtMin, 'opening'], [p.entryClosesAtMin, 'closing']] as const) {
-    if (!Number.isInteger(v) || v < 0 || v > 1439) return `The ${what} time is not a time of day.`
+  if (!Number.isInteger(p.opensAtMin) || p.opensAtMin < 0 || p.opensAtMin > 1439) {
+    return 'The opening time is not a time of day.'
+  }
+  // Entry close is minutes from midnight of the paper's own date, and may run
+  // past 1440 -- the same arithmetic the hard stop has always used. 1500 is
+  // 1 AM the next morning, which is a window an admin may reasonably want and
+  // could not previously express.
+  if (!Number.isInteger(p.entryClosesAtMin) || p.entryClosesAtMin < 0
+      || p.entryClosesAtMin > MAX_ENTRY_CLOSE_MIN) {
+    return 'The closing time is not a time of day.'
   }
   if (p.opensAtMin >= p.entryClosesAtMin) return 'Entry must open before it closes.'
   // A paper may run past midnight, and this used to refuse it: entry close plus
