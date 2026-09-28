@@ -216,7 +216,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <div><dt>Routes</dt><dd>24</dd></div>
     <div><dt>Tables</dt><dd>12</dd></div>
     <div><dt>SQL functions</dt><dd>15</dd></div>
-    <div><dt>Migrations</dt><dd>11</dd></div>
+    <div><dt>Migrations</dt><dd>12</dd></div>
     <div><dt>Modules</dt><dd>32<small>lib/</small></dd></div>
     <div><dt>Tests</dt><dd>523</dd></div>
     <div><dt>Runtime deps</dt><dd>11</dd></div>
@@ -860,7 +860,7 @@ whose scores are already public to everyone on it.</p>
 <h3>Where to start</h3>
 <div class="tw"><table>
 <tr><th>File in <code>format/</code></th><th>What it is</th></tr>
-<tr><td><code>sample.json</code></td><td>A complete worked paper with a DI table, a seating puzzle and a reading passage. Copy this one. Swap the content question by question; the numbering, bands and structure are already right, and it states its own shape, so it keeps validating whatever the default pattern is changed to. Its key is spread evenly &mdash; A&ndash;D on the questions whose fifth option is "None of these", A&ndash;E on the rest &mdash; so it can be sat as a trial without a guessable pattern. Worth keeping that way when you replace the content</td></tr>
+<tr><td><code>sample.json</code></td><td>A complete worked paper with a DI table, a seating puzzle and a reading passage. Copy this one. Swap the content question by question; the numbering, bands and structure are already right, and it states its own shape, so it keeps validating whatever the default pattern is changed to. Its key is spread evenly across A&ndash;D &mdash; 13, 14, 14, 14 of the 55 &mdash; so it can be sat as a trial without a guessable pattern. Worth keeping that way when you replace the content</td></tr>
 <tr><td><code>template.json</code></td><td>A blank skeleton numbered correctly for the pattern the product shipped with, if you would rather fill in placeholders. The checker refuses any placeholder left in, so an unedited template can never go live. If you have changed the pattern, use <strong>Download a blank template</strong> on the Paper pattern screen instead &mdash; it is built from the pattern as it stands</td></tr>
 <tr><td><code>schema.json</code></td><td>A JSON Schema. Point your editor at it and mistakes are underlined as you type</td></tr>
 </table></div>
@@ -1026,18 +1026,19 @@ whose scores are already public to everyone on it.</p>
   <p>The upload checker knew none of that. It saw a date already in use and refused the file outright, which made a supported arrangement unreachable through the console: the only way to a second paper was to edit the date in the file, upload it, and move it back at the scheduling step. It warns now, and the database decides on the real key.</p>
 </div>
 
-<p>The option count is no longer among them. A question carries <strong>exactly
-four options, keyed A to D</strong> &mdash; three is refused and so is five, as
-an error rather than a warning, because every part of the product is built to
-that number: four shapes in the option motif, four keys under a student's
-fingers, four columns in the analysis. A range would have to be handled in all
-of them.</p>
+<p>The option count is no longer among them either, and it is a floor rather
+than a fixed number: a question carries <strong>at least four options and at
+most five, keyed from A with no gaps</strong>. Three is refused and so is a
+sixth, as an error rather than a warning. <strong>The rule is per question</strong>
+&mdash; one paper may mix them, and the engine reads each question's own
+options rather than the paper's.</p>
 
 <div class="note care">
-  <h4>Four is a decision, and the real exam prints five</h4>
-  <p>IBPS's own Information Handout is unambiguous: "Out of the five answers to a question only one will be the correct answer." Preppy runs four anyway, and the reason is the cohort writing the questions rather than the exam &mdash; the fifth distractor was usually filler, and a shorter option card reads faster under a clock.</p>
-  <p>The cost is worth stating rather than discovering. A blind guess is worth 25% here against 20% on the real paper, so against &minus;0.25 marking a guess breaks even on Preppy (0.25 &times; 1 &minus; 0.75 &times; 0.25 = 0.0625 per question, in fact slightly positive) and loses on the real thing. A Preppy score is a little kinder than the exam's on that one axis, and a student who guesses freely here will find the real paper punishes it more.</p>
-  <p>Four is stated once, in <code>OPTION_LABELS</code>. The validator, the JSON schema, the blank template, the key editor and the option palette all read it from there, and migration 0008 is the floor under all of them: the table itself refuses a question whose options are not exactly A, B, C, D.</p>
+  <h4>Why four is the floor and five is the ceiling</h4>
+  <p>IBPS's own Information Handout is unambiguous: "Out of the five answers to a question only one will be the correct answer." So five is the exam's number, and a paper written to match the exam should not have to be cut down to fit the product. Four stays legal because plenty of questions have no fifth distractor worth writing, and a filler option teaches nothing.</p>
+  <p>Five is the ceiling for a reason that is visible on screen rather than arbitrary. The option motif is five shapes &mdash; triangle, diamond, circle, square, star &mdash; and <strong>shape is what separates the options for a reader who cannot use colour</strong>. A sixth option would need a sixth shape and a sixth colour that reads in both themes before it could honestly be offered, and the engine's number keys run along the same set. So a sixth is refused rather than stored and drawn wrongly.</p>
+  <p>What the choice costs a student is worth stating rather than discovering. A blind guess is worth 25% on a four-option question and 20% on a five, against &minus;0.25 marking either way: guessing breaks even on four (0.25 &times; 1 &minus; 0.75 &times; 0.25 = 0.0625 per question, in fact slightly positive) and loses on five, which is the real paper's arithmetic. A four-option paper is a little kinder than the exam on that one axis.</p>
+  <p>The range is stated once, in <code>OPTION_LABELS</code> and <code>MIN_OPTIONS</code>. The validator, the JSON schema, the blank template, the key editor and the option palette all read it from there, and migration 0012 is the floor under all of them: the table itself refuses a question whose options are not A&ndash;D, optionally with E.</p>
 </div>
 
 <div class="note care">

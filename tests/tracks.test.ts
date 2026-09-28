@@ -104,8 +104,8 @@ describe('a paper is checked against its own exam', () => {
       }
       delete s['directions']
     }
-    // Warnings are fine -- four options rather than five is one -- but
-    // nothing about the shape may be an error.
+    // Warnings are fine here; nothing about the shape may be an error. Four
+    // options is not one of either -- it is the floor, and legal.
     const { issues } = readPaper(JSON.stringify(real), { pattern: AGRICULTURE })
     expect(issues.filter((i) => i.severity === 'error')).toEqual([])
     expect(read(JSON.stringify(real), AGRICULTURE).publishable).toBe(true)

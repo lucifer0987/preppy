@@ -138,25 +138,41 @@ export const FORMAT_VERSION = 1
 export const TEMPLATE_DATE = '9999-12-31'
 
 /**
- * The four option labels, and there are always four.
+ * The option labels a question may use: four at least, five at most.
  *
- * A real IBPS paper prints five: "Out of the five answers to a question only
+ * A real IBPS paper prints five -- "Out of the five answers to a question only
  * one will be the correct answer" is the wording in their own Information
- * Handout. Preppy deliberately runs four, which is a product decision rather
- * than a reading of the exam -- it shortens the option card, and a cohort
- * writing its own questions found the fifth distractor was usually filler.
+ * Handout -- so five is the exam's number and a paper written to match it
+ * should not have to be cut down to fit. Four stays legal because plenty of
+ * questions do not have a fifth distractor worth writing, and a filler option
+ * teaches nothing.
  *
- * The cost is stated so nobody has to rediscover it: a blind guess is worth
- * 25% here against 20% in the real thing, so with -0.25 marking a guess breaks
- * even on Preppy and loses on the real paper. Read a Preppy score as a little
- * kinder than the exam's on that axis.
+ * So the rule is a floor, not a fixed count: at least A to D, and E when the
+ * question has one. Per question, not per paper -- a paper may mix them.
  *
- * Everything derives from this array -- the validator, the schema mirror, the
- * blank template, the key editor, the option palette in the engine -- so four
- * is stated once.
+ * Why five and not more. The option motif is five shapes (PRD 8.2), and shape
+ * is what distinguishes an option independently of colour; the engine's number
+ * keys run along the same set. A sixth option would need a sixth shape and a
+ * sixth colour that reads in both themes before it could be offered, and no
+ * exam in scope asks for one.
+ *
+ * What it costs, stated so nobody rediscovers it: a blind guess is worth 25%
+ * on a four-option question and 20% on a five, against -0.25 marking either
+ * way. Guessing breaks even on four and loses on five, which is the real
+ * paper's arithmetic.
+ *
+ * Everything derives from this array and MIN_OPTIONS -- the validator, the
+ * schema mirror, the blank template, the key editor, the option palette in the
+ * engine -- so the range is stated once.
  */
-export const OPTION_LABELS = ['A', 'B', 'C', 'D'] as const
+export const OPTION_LABELS = ['A', 'B', 'C', 'D', 'E'] as const
 export type OptionLabel = (typeof OPTION_LABELS)[number]
+
+/**
+ * The fewest options a question may carry. Below four a question stops being
+ * a multiple-choice question in the sense the marking assumes.
+ */
+export const MIN_OPTIONS = 4
 export type Difficulty = 'Easy' | 'Medium' | 'Hard'
 
 export interface PaperTable {

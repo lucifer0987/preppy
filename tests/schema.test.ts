@@ -254,10 +254,10 @@ describe("a paper's own size", () => {
     expect(await addQuestion(id, 4 * 200)).toBeNull()
   })
 
-  // 0008. The validator already refuses these with a message naming the
-  // question; this is the floor under it, for save_paper, a key correction, and
-  // a hand-run UPDATE, none of which go through the validator.
-  describe('exactly four options, enforced by the table', () => {
+  // 0008, relaxed by 0012. The validator already refuses these with a message
+  // naming the question; this is the floor under it, for save_paper, a key
+  // correction, and a hand-run UPDATE, none of which go through the validator.
+  describe('four options at least and five at most, enforced by the table', () => {
     const withOptions = async (testId: string, number: number, options: string, key = 'A') => {
       const { sid } = await one<{ sid: string }>(
         `select id sid from sections where test_id = $1 and code = 'PK'`, [testId])
@@ -267,16 +267,17 @@ describe("a paper's own size", () => {
         [sid, number, options, key])
     }
 
-    it('takes four keyed A to D', async () => {
-      const { id } = await savePaper('2027-03-04', 'Four options')
+    it('takes four keyed A to D, and five keyed A to E', async () => {
+      const { id } = await savePaper('2027-03-04', 'Four and five')
       expect(await withOptions(id, 1, '{"A":"w","B":"x","C":"y","D":"z"}')).toBeNull()
+      expect(await withOptions(id, 2, '{"A":"v","B":"w","C":"x","D":"y","E":"z"}')).toBeNull()
     })
 
-    it('refuses five, three, and a gap in the middle', async () => {
+    it('refuses three, a sixth, and a gap in the middle', async () => {
       const { id } = await savePaper('2027-03-05', 'Wrong counts')
-      expect(await withOptions(id, 1, '{"A":"v","B":"w","C":"x","D":"y","E":"z"}'))
+      expect(await withOptions(id, 1, '{"A":"x","B":"y","C":"z"}'))
         .toMatch(/questions_four_options/)
-      expect(await withOptions(id, 2, '{"A":"x","B":"y","C":"z"}'))
+      expect(await withOptions(id, 2, '{"A":"u","B":"v","C":"w","D":"x","E":"y","F":"z"}'))
         .toMatch(/questions_four_options/)
       // Four keys, but E instead of D: the count alone would have let this by,
       // which is why the constraint names the keys as well as counting them.
@@ -284,9 +285,11 @@ describe("a paper's own size", () => {
         .toMatch(/questions_four_options/)
     })
 
-    it('refuses E as the key, in the question and in a response', async () => {
+    it('takes E as the key when there is an E, and refuses F either way', async () => {
       const { id } = await savePaper('2027-03-06', 'Key out of range')
-      expect(await withOptions(id, 1, '{"A":"w","B":"x","C":"y","D":"z"}', 'E'))
+      expect(await withOptions(id, 1, '{"A":"v","B":"w","C":"x","D":"y","E":"z"}', 'E'))
+        .toBeNull()
+      expect(await withOptions(id, 2, '{"A":"w","B":"x","C":"y","D":"z"}', 'F'))
         .toMatch(/questions_correct_option_check/)
     })
   })

@@ -5,6 +5,7 @@ import {
   TEMPLATE_DATE,
   DEFAULT_PATTERN,
   OPTION_LABELS,
+  MIN_OPTIONS,
   ALL_SECTION_CODES,
   patternBands,
   patternOf,
@@ -79,13 +80,20 @@ export const FIELDS = {
  */
 const PLACEHOLDERS: RegExp[] = [
   /^Replace this with the text of question \d+\.$/,
-  /^Replace with option [A-D]$/,
+  /^Replace with option [A-E]$/,
   /^Replace with the worked explanation\./,
   /^Optional\. Use a directions block for anything several questions share/,
   /^Topic-Name$/,
   /\bNNN\b/,
 ]
 const isPlaceholder = (v: unknown) => typeof v === 'string' && PLACEHOLDERS.some((re) => re.test(v))
+
+/**
+ * How the labels are named in a message an admin reads. Derived rather than
+ * written out, because "A to D" outliving the array it describes is exactly
+ * the drift that sends somebody to the wrong file.
+ */
+const LABEL_RANGE = `${OPTION_LABELS[0]} to ${OPTION_LABELS[OPTION_LABELS.length - 1]}`
 
 type ErrFn = (path: string | null, code: string, message: string, excerpt?: string) => void
 type WarnFn = (path: string | null, code: string, message: string) => void
@@ -469,25 +477,24 @@ function checkQuestion(
   if (isPlaceholder(text)) placeholders.push('text')
   const options = q['options']
   if (typeof options !== 'object' || options === null || Array.isArray(options)) {
-    err(`${qp}.options`, 'OPTIONS_MISSING', '"options" must be an object keyed A to D.')
+    err(`${qp}.options`, 'OPTIONS_MISSING', '"options" must be an object keyed A to E.')
   } else {
     const o = options as Record<string, unknown>
     const keys = Object.keys(o)
     const bad = keys.filter((k) => !OPTION_LABELS.includes(k as OptionLabel))
     if (bad.length) {
       err(`${qp}.options`, 'OPTION_LABEL_INVALID',
-        `Option key(s) ${bad.join(', ')} are not A-D.`)
+        `Option key(s) ${bad.join(', ')} are not ${LABEL_RANGE}.`)
     }
     const good = keys.filter((k) => OPTION_LABELS.includes(k as OptionLabel))
     present = good
-    // Exactly four, always. Not a range: every question in this product carries
-    // the same number of options, so the option card is one shape, the keyboard
-    // keys are one set, and a question with three or five is a mistake in the
-    // file rather than a variant to support.
-    if (good.length !== OPTION_LABELS.length) {
+    // A floor, not a fixed count: four or five, per question. A paper may mix
+    // them -- the engine reads each question's own options, and the option
+    // motif and number keys cover five.
+    if (good.length < MIN_OPTIONS) {
       err(`${qp}.options`, 'OPTION_COUNT',
-        `${good.length} option(s). Every question carries exactly ${OPTION_LABELS.length}, `
-        + `keyed ${OPTION_LABELS.join(', ')}.`)
+        `${good.length} option(s). A question carries at least ${MIN_OPTIONS}, `
+        + `and at most ${OPTION_LABELS.length}, keyed from A with no gaps.`)
     }
     // Options must be contiguous from A, so the palette and keyboard keys line up.
     const ordered = OPTION_LABELS.slice(0, good.length)
@@ -512,7 +519,7 @@ function checkQuestion(
   const answer = q['answer']
   if (typeof answer !== 'string' || !OPTION_LABELS.includes(answer as OptionLabel)) {
     err(`${qp}.answer`, 'ANSWER_MISSING',
-      `"answer" must be one of A-D, got ${JSON.stringify(answer)}.`)
+      `"answer" must be one of ${LABEL_RANGE}, got ${JSON.stringify(answer)}.`)
   } else if (present.length && !present.includes(answer)) {
     err(`${qp}.answer`, 'ANSWER_NOT_AN_OPTION',
       `"answer" is ${answer} but there is no option ${answer} (present: ${present.join(', ')}).`)

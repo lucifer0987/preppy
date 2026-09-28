@@ -475,7 +475,7 @@ describe('warnings do not block', () => {
 
 })
 
-describe('exactly four options, never three and never five', () => {
+describe('four options at least, five at most', () => {
   it('refuses a question with three', () => {
     const r = ok(mutate((p) => {
       const q = p.sections[0].questions[0]
@@ -486,13 +486,57 @@ describe('exactly four options, never three and never five', () => {
     expect(r.publishable).toBe(false)
   })
 
-  it('refuses a question with five', () => {
+  /**
+   * The case this rule exists for. A real IBPS paper prints five, and a paper
+   * written to match the exam used to be refused once per question for doing
+   * so -- sixty-six blocking errors on one upload, every one of them wrong.
+   */
+  it('accepts a question with five, and lets it be the answer', () => {
     const r = ok(mutate((p) => {
       p.sections[0].questions[0].options.E = 'A fifth option'
+      p.sections[0].questions[0].answer = 'E'
     }))
-    // E is not a label at all now, so it is caught twice over: as an unknown
-    // key and as the wrong number of options. Both are worth saying.
+    expect(r.codes).not.toContain('OPTION_COUNT')
+    expect(r.codes).not.toContain('OPTION_LABEL_INVALID')
+    expect(r.codes).not.toContain('ANSWER_MISSING')
+    expect(r.codes).not.toContain('ANSWER_NOT_AN_OPTION')
+    expect(r.publishable).toBe(true)
+  })
+
+  it('lets one paper mix four-option and five-option questions', () => {
+    const r = ok(mutate((p) => {
+      p.sections[0].questions[0].options.E = 'A fifth option'
+      // Every other question keeps its four. The rule is per question.
+    }))
+    expect(r.publishable).toBe(true)
+    const counts = new Set(
+      r.paper!.sections.flatMap((sec) => sec.questions.map((q) => Object.keys(q.options).length)))
+    expect([...counts].sort()).toEqual([4, 5])
+  })
+
+  it('refuses a sixth, because there is no sixth shape to draw it with', () => {
+    const r = ok(mutate((p) => {
+      const q = p.sections[0].questions[0]
+      q.options.E = 'A fifth option'
+      q.options.F = 'A sixth option'
+    }))
     expect(r.codes).toContain('OPTION_LABEL_INVALID')
+    expect(r.publishable).toBe(false)
+  })
+
+  /**
+   * Five keys is the right count and still the wrong shape if one of them is
+   * out of order. E is the only optional label, so a gap before it means the
+   * option card and the number keys would disagree about what key 4 selects.
+   */
+  it('refuses a gap, even at the right count', () => {
+    const r = ok(mutate((p) => {
+      const q = p.sections[0].questions[0]
+      delete q.options.D
+      q.options.E = 'A fifth option'
+      if (q.answer === 'D') q.answer = 'A'
+    }))
+    expect(r.codes).toContain('OPTION_NOT_CONTIGUOUS')
     expect(r.publishable).toBe(false)
   })
 
@@ -504,11 +548,16 @@ describe('exactly four options, never three and never five', () => {
     expect(ok(sampleJson).publishable).toBe(true)
   })
 
-  it('builds a blank template with four', () => {
+  /**
+   * The blank template offers five, which is the exam's own number: deleting
+   * the option a question does not need is easier than remembering to add one
+   * and getting its key right.
+   */
+  it('builds a blank template with five', () => {
     const t = buildTemplate(DEFAULT_PATTERN) as { sections: { questions: { options: object }[] }[] }
     const counts = new Set(
       t.sections.flatMap((sec) => sec.questions.map((q) => Object.keys(q.options).length)))
-    expect([...counts]).toEqual([4])
+    expect([...counts]).toEqual([5])
   })
 })
 

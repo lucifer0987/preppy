@@ -45,7 +45,8 @@
         "A",
         "B",
         "C",
-        "D"
+        "D",
+        "E"
       ]
     },
     "section": {
@@ -191,17 +192,18 @@
         "options": {
           "type": "object",
           "minProperties": 4,
-          "maxProperties": 4,
+          "maxProperties": 5,
           "additionalProperties": false,
           "propertyNames": {
             "$ref": "#/$defs/optionLabel"
           },
           "patternProperties": {
-            "^[A-D]$": {
+            "^[A-E]$": {
               "type": "string",
               "pattern": "\\S"
             }
-          }
+          },
+          "description": "Four at least, five at most, keyed from A with no gaps. E is the only optional one."
         },
         "answer": {
           "$ref": "#/$defs/optionLabel"
