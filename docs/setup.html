@@ -498,8 +498,13 @@ query</strong> one file at a time, in order.</p>
 <li>In Vercel, <strong>Add New &rarr; Project</strong>, and import it. The
 framework is detected; leave the build and output settings alone. The build
 command is <code>npm run build</code>, which is <code>build:prod</code>:
-preflight, typecheck, the whole test suite, then the build. <strong>A failing
-test fails the deploy</strong>, which is the point.</li>
+preflight, typecheck, the whole test suite, the build, then a scan of
+everything the browser downloads for the secret key. <strong>A failing test
+fails the deploy</strong>, which is the point.</li>
+<li>Check <strong>Settings &rarr; Node.js Version</strong> is <strong>20.9 or
+newer</strong>. Next 16 says so in its own <code>engines</code> field, and a
+project pinned to 18.x fails during install with an error about the engine
+rather than about anything you wrote.</li>
 <li><strong>Settings &rarr; Environment Variables</strong>, add the four from
 step 3 &mdash; URL, publishable key, secret key, <code>CRON_SECRET</code>.
 Apply each to <strong>Production</strong> (and Preview, if you want preview
@@ -584,9 +589,9 @@ means "pass the rest through".</p>
 <div class="tw"><table>
 <thead><tr><th>Command</th><th>What it does</th></tr></thead>
 <tbody>
-<tr><td><code>npm run build:local</code></td><td>Preflight, then a build that keeps source maps so a stack trace names real files. For reproducing something locally</td></tr>
+<tr><td><code>npm run build:local</code></td><td>Preflight, a build that keeps source maps so a stack trace names real files, then the bundle scan. For reproducing something locally. It does <em>not</em> typecheck or run the tests</td></tr>
 <tr><td><code>npm run start:local</code></td><td>Serves that build on port 3000</td></tr>
-<tr><td><code>npm run build:prod</code></td><td>Preflight, typecheck, all 477 tests, then a build with no source maps. Any failure stops it</td></tr>
+<tr><td><code>npm run build:prod</code></td><td>Preflight, typecheck, all 477 tests, a build with no source maps, then the bundle scan. Any failure stops it</td></tr>
 <tr><td><code>npm run start:prod</code></td><td>Serves the production build</td></tr>
 <tr><td><code>npm run build</code></td><td>The same as <code>build:prod</code>. This is what Vercel runs</td></tr>
 <tr><td><code>npm run start</code></td><td>The same as <code>start:prod</code></td></tr>

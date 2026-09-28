@@ -1607,9 +1607,9 @@ words.</p>
 <div class="tw"><table>
 <tr><th>Command</th><th>When</th><th>What it does</th></tr>
 <tr><td><code>npm run dev</code></td><td><span class="pill local">daily</span></td><td>Development server that reloads as you edit. This is what you use almost always</td></tr>
-<tr><td><code>npm run build:local</code></td><td><span class="pill local">rare</span></td><td>A real production server, built here, with source maps</td></tr>
+<tr><td><code>npm run build:local</code></td><td><span class="pill local">rare</span></td><td>A real production server, built here, with source maps kept. Preflight and the bundle scan still run; the typecheck and the tests do not</td></tr>
 <tr><td><code>npm run start:local</code></td><td><span class="pill local">rare</span></td><td>Serves that build on port 3000</td></tr>
-<tr><td><code>npm run build:prod</code></td><td><span class="pill prod">before shipping</span></td><td>Typecheck, all tests, then build without source maps</td></tr>
+<tr><td><code>npm run build:prod</code></td><td><span class="pill prod">before shipping</span></td><td>Preflight, typecheck, all tests, a build without source maps, then the bundle scan. Any one of them failing stops the rest</td></tr>
 <tr><td><code>npm run start:prod</code></td><td><span class="pill prod">on the host</span></td><td>Serves the production build</td></tr>
 <tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>477 tests. No database needed, about a second</td></tr>
 <tr><td><code>npm run test:live</code></td><td><span class="pill both">after touching a query</span></td><td>Runs every read <code>lib/repo/</code> makes against the real project in <code>.env.local</code>. Read-only. Skipped when there are no credentials</td></tr>
@@ -1634,9 +1634,9 @@ words.</p>
 <h2><i>13</i>Two databases, not one</h2>
 
 <div class="note care">
-  <h4>Where you are today</h4>
-  <p>There is one Supabase project, <code>preppy-dev</code>, and no deployment. Everything below describes what to do <em>when</em> you put this in front of students &mdash; it is not something you have to act on now, and nothing in the app needs it.</p>
-  <p>One thing does follow from it, though. With a single database, migrations only ever have to be applied in one place, which is why collapsing the early ones into a single baseline was safe. Once <code>preppy-prod</code> exists, the same files have to be run against both, and then the rule about never editing an applied file starts to carry real weight &mdash; production would have run it and your laptop would not, or the other way round.</p>
+  <h4>The rule that only bites once there are two</h4>
+  <p>While a single Supabase project exists, migrations are only ever applied in one place, which is what made collapsing the early ones into a single baseline safe. The moment a second project exists, the same files have to run against both, and the rule about <strong>never editing a migration that has been applied</strong> starts to carry real weight: production would have run the old text and your laptop the new one, or the other way round, and nothing would say so. Add a new file instead, always.</p>
+  <p><code>npm run migrate -- --status</code>, pointed at each project in turn, is how you find out whether they actually agree. Section 17 shows how to point it at production without touching <code>.env.local</code>.</p>
 </div>
 
 
@@ -2245,8 +2245,18 @@ landed and what has not, at any time.</p>
   <p>The application never opens a Postgres connection &mdash; it talks to Supabase over HTTPS, and the only thing in this repository that reads <code>DATABASE_URL</code> is the migration runner, which runs from your machine. Adding it to Vercel puts a production database password somewhere that has no use for one.</p>
   <p>The other half of that rule: anything in a <code>NEXT_PUBLIC_</code> variable is compiled into the JavaScript a browser downloads, so a secret key in that slot is published. Preflight refuses the build if it sees one, and <code>check-bundle</code> scans the output afterwards &mdash; but a key that has been in a build or a commit should be rotated, not reasoned about.</p>
 </div>
-<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 477 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
-<p><strong>Check it worked:</strong> the deployment goes green and the URL shows the countdown page.</p>
+<p>Check <strong>Settings &rarr; Node.js Version</strong> before deploying. Next 16 declares <code>node &gt;=20.9.0</code> in its own <code>engines</code> field, so a project still pinned to 18.x fails the install before any of this runs, with an error about the engine rather than about your code.</p>
+<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>, and it is the same five steps you get locally:</p>
+<div class="tw"><table>
+<tr><th>Step</th><th>What it catches</th></tr>
+<tr><td><code>preflight prod</code></td><td>A missing or malformed variable, before anything expensive runs. It names the variable and what it expected &mdash; including a secret key sitting in the publishable slot</td></tr>
+<tr><td><code>typecheck</code></td><td><code>tsc --noEmit</code> across the whole repository, tests included</td></tr>
+<tr><td><code>test</code></td><td>All 477. They need no database, so they run on the build machine exactly as they do on yours. <strong>One failure fails the deploy</strong> and nothing changes</td></tr>
+<tr><td><code>next build</code></td><td>The build itself, with <code>APP_ENV=production</code>, which drops browser source maps</td></tr>
+<tr><td><code>check-bundle</code></td><td>Reads everything under <code>.next/static</code> &mdash; the files a browser downloads &mdash; and fails if any of it contains the secret key's variable name, the <code>sb_secret_</code> prefix, or the key's own value. It is the last gate on the one mistake that cannot be taken back</td></tr>
+</table></div>
+<p>A green deploy ends with a line like <code>check-bundle: 37 client files scanned, no secret key found.</code> in the build log. That line is worth looking for the first time.</p>
+<p><strong>Check it worked:</strong> the deployment goes green and the URL shows the landing page with a <strong>Log in</strong> box.</p>
 </li>
 
 <li>
