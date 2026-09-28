@@ -38,7 +38,7 @@ export function paperWindowOf(row: Record<string, unknown>): PaperWindow {
 import { paperToRows, rowsToPaper, savePaperPayload, type PaperRows } from '../paper-rows'
 import { readQuestion, summarise } from '../paper'
 import {
-  defaultPaperWindow, istDate, istMinuteOfDay, paperWindowProblem, windowState, windowsOverlap,
+  defaultPaperWindow, istDate, istMinuteOfDay, paperWindowProblem, windowState,
   opensAt, paperLabels, type PaperWindow, type WindowState,
 } from '../time'
 import { getWindow } from './settings'
@@ -109,7 +109,7 @@ export async function savePaper(paper: Paper, trackId: string): Promise<SaveResu
       throw new Error(
         `A scheduled paper on ${paper.date} is already called ${paper.title ?? 'this'}. `
         + `Give this one a different name, or move that one back to draft first. `
-        + `Two papers can share a night as long as their windows do not overlap.`)
+        + `Two papers can share a night, and even a window.`)
     }
     if (/DRAFT_HAS_ATTEMPTS/.test(error.message)) {
       throw new Error(`The draft for ${paper.date} already has student attempts, so it cannot be replaced. Pick another date.`)
@@ -487,15 +487,11 @@ export async function schedulePaper(
     )
   }
 
-  // A student may only sit one paper at a time, so two overlapping windows on
-  // one day would force a choice rather than offer one.
-  const clash = await overlappingPaper(window, id, lock.trackId)
-  if (clash) {
-    throw new Error(
-      `This overlaps ${clash.title ?? 'another paper'} on the same day, which runs ${clash.labels}. `
-      + `A student can only sit one paper at a time, so pick a window that does not overlap.`,
-    )
-  }
+  // Overlap is allowed (migration 0009). A student may still only hold one
+  // running attempt -- attempts_one_live_per_user sees to that -- so two open
+  // papers are a choice offered rather than forced, and the dashboard lists
+  // them. What is refused is two papers with the same name on one night, which
+  // the unique index catches below.
 
   // The status filter repeats the check above in the write itself, so a paper
   // that changed in between is not touched.
@@ -514,33 +510,15 @@ export async function schedulePaper(
     .select('id')
   if (error) {
     if (error.code === '23505') {
-      throw new Error(`Another paper already opens at that exact time on ${target}. Pick a different time.`)
+      // The only uniqueness left on a scheduled paper is its name within an
+      // exam and a day. Two may share a window.
+      throw new Error(
+        `Another scheduled paper on ${target} already has this name. Rename one of them — `
+        + `two papers can share a night, and even a window, but not a name.`)
     }
     throw new Error(`Could not schedule the paper: ${error.message}`)
   }
   if (!data?.length) throw new Error('The paper changed while you were looking at it. Reload and try again.')
-}
-
-/** A scheduled paper on the same day whose window overlaps this one. */
-async function overlappingPaper(
-  window: PaperWindow, excludeId: string, trackId: string,
-): Promise<{ title: string | null; labels: string } | null> {
-  // Within the track only. Two exams running at the same moment is not a
-  // clash: a student follows one of them, so there is no choice to force.
-  const { data } = await db()
-    .from('tests')
-    .select(`id, title, ${PAPER_WINDOW_COLUMNS}`)
-    .eq('date', window.date).eq('status', 'SCHEDULED')
-    .eq('track_id', trackId).neq('id', excludeId)
-
-  for (const t of data ?? []) {
-    const other = paperWindowOf(t)
-    if (windowsOverlap(window, other)) {
-      const l = paperLabels(other)
-      return { title: (t.title as string | null) ?? null, labels: `${l.opens} to ${l.hardStop}` }
-    }
-  }
-  return null
 }
 
 export async function unschedulePaper(id: string): Promise<void> {
@@ -618,13 +596,9 @@ export async function retimePaper(
     throw new Error('That would put the whole paper in the past. Pick a later time.')
   }
 
-  const clash = await overlappingPaper(window, id, lock.trackId)
-  if (clash) {
-    throw new Error(
-      `That overlaps ${clash.title ?? 'another paper'} on the same day, which runs ${clash.labels}. `
-      + 'A student can only sit one paper at a time, so pick a window that does not overlap.',
-    )
-  }
+  // Overlap allowed, as when scheduling: see 0009. Moving a paper onto another
+  // one's window is a choice an admin may want -- two papers open together,
+  // sit either -- and the student can still only hold one attempt at a time.
 
   const { data, error } = await db()
     .from('tests')
@@ -838,6 +812,17 @@ export interface UpcomingPapers {
   live: (UpcomingPaper & { state: WindowState }) | null
   /** The soonest paper that has not opened yet. */
   next: UpcomingPaper | null
+  /**
+   * Every paper open right now, soonest to open first -- `live` is its first
+   * element, or null when it is empty.
+   *
+   * `live` alone was written when a night held one paper. Windows may overlap
+   * now, and with two open at once a single slot shows one of them and the
+   * other is unreachable: no link, no mention, nothing until the first closes.
+   * A list is the honest shape, and the dashboard only has to choose how to
+   * draw it.
+   */
+  open: (UpcomingPaper & { state: WindowState })[]
 }
 
 /** The totals a paper actually carries, from its own section rows. */
@@ -882,13 +867,15 @@ export async function upcomingPapers(now = new Date(), trackId?: string): Promis
     })
     .sort((a, b) => opensAt(a.window).getTime() - opensAt(b.window).getTime())
 
-  let live: UpcomingPapers['live'] = null
+  const open: UpcomingPapers['open'] = []
   let next: UpcomingPapers['next'] = null
 
   for (const p of papers) {
     const state = windowState(p.window, now)
-    if ((state === 'OPEN' || state === 'ENTRY_CLOSED') && !live) live = { ...p, state }
+    if (state === 'OPEN' || state === 'ENTRY_CLOSED') open.push({ ...p, state })
     if (state === 'BEFORE_OPEN' && !next) next = p
   }
-  return { live, next }
+  // Already sorted by opening time, so the first is the one that opened
+  // soonest -- which is what `live` has always meant.
+  return { live: open[0] ?? null, next, open }
 }

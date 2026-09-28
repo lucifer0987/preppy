@@ -42,7 +42,7 @@ export default async function Dashboard({
   const today = istDate(now)
   // A day can hold more than one paper, so this is whichever is open now and
   // whichever opens next, rather than a lookup by date.
-  const { live: openPaper, next: nextPaper } = await upcomingPapers(now, track?.id)
+  const { live: openPaper, next: nextPaper, open: openPapers } = await upcomingPapers(now, track?.id)
   // Whichever paper is open right now -- papers carry their own windows, so
   // this is not "tonight's" and has not been for a while.
   const openNow = openPaper ? { id: openPaper.id, date: openPaper.window.date, title: openPaper.title } : null
@@ -59,6 +59,28 @@ export default async function Dashboard({
     if (snapshot?.status.finished) attempt = await findAttempt(openNow!.id as string, user.id, false)
     else remainingSec = snapshot?.status.remainingSec ?? 0
   }
+
+  /**
+   * Every paper open right now, with what this student may do with each.
+   *
+   * The hero above shows one paper, which was the whole truth while a night
+   * held one. Windows may overlap now, and a second open paper with nothing
+   * pointing at it is a paper nobody can sit. Built only when there is more
+   * than one, so the ordinary night does no extra work.
+   */
+  const openList = openPapers.length > 1
+    ? await Promise.all(openPapers.map(async (p) => {
+        const own = await findAttempt(p.id, user.id, false)
+        const state = (own?.state as string | undefined) ?? null
+        return {
+          paper: p,
+          attemptId: (own?.id as string | undefined) ?? null,
+          running: state === 'IN_PROGRESS',
+          finished: Boolean(state && state !== 'IN_PROGRESS' && state !== 'VOIDED'),
+          canStart: !own && canStartAttempt(p.window, now),
+        }
+      }))
+    : []
 
   // Rows of 6.3 that point at a later paper need the next one actually
   // scheduled, not merely the next opening time.
@@ -291,6 +313,54 @@ export default async function Dashboard({
           min-width auto, so it cannot shrink under its own content. Without it
           the past-papers card was sized by its widest row -- title, score and
           three buttons -- and pushed the whole page 310px wider than a phone. */}
+      {openList.length > 1 && (
+        <section className="card mt-4 p-5" aria-labelledby="open-now">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <h2 id="open-now" className="eyebrow">Open now</h2>
+            <span className="text-sm text-ink-faint">
+              {openList.length} papers, and you may sit them in any order
+            </span>
+          </div>
+          <ul className="mt-3 divide-y divide-line">
+            {openList.map(({ paper, attemptId, running, finished, canStart }) => {
+              const labels = paperLabels(paper.window)
+              return (
+                <li key={paper.id}
+                    className="flex flex-wrap items-center gap-x-3 gap-y-2 py-3 text-sm">
+                  <span className="min-w-0 basis-full sm:basis-auto sm:flex-1">
+                    <span className="block truncate font-bold">{paper.title ?? 'Daily mock'}</span>
+                    <span className="numeral mt-0.5 block text-xs text-ink-faint">
+                      {paper.shape.questions} questions &middot; {paper.shape.minutes} minutes
+                      &middot; {running ? 'in progress' : finished ? 'handed in'
+                        : canStart ? `last entry ${labels.closes}` : `entry closed at ${labels.closes}`}
+                    </span>
+                  </span>
+                  {running && attemptId && (
+                    <Link href={`/test/${attemptId}`} className="btn btn-zap px-4 py-2 text-sm">
+                      Resume
+                    </Link>
+                  )}
+                  {finished && attemptId && (
+                    <Link href={`/test/${attemptId}/done`} className="btn btn-quiet px-4 py-2 text-sm">
+                      See result
+                    </Link>
+                  )}
+                  {canStart && (
+                    <Link href={`/test/start?test=${paper.id}`}
+                          className="btn btn-primary px-4 py-2 text-sm">
+                      Start
+                    </Link>
+                  )}
+                  {!running && !finished && !canStart && (
+                    <span className="text-xs text-ink-faint">Too late to start</span>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      )}
+
       <div className="mt-4 grid gap-4 lg:grid-cols-2 lg:items-start">
       <section className="card min-w-0 p-5" aria-labelledby="archive-panel">
         <div className="flex items-baseline justify-between gap-4">

@@ -402,14 +402,21 @@ describe('an exam track', () => {
         `update tests set status='SCHEDULED', opens_at_min=600, entry_closes_at_min=660
           where id = $1`, [id])).toBeNull()
     }
-    // Within one track it is still refused: two papers opening at the same
-    // minute is a choice a student cannot make.
-    const clash = await savePaper('2031-02-01', 'Mine again')
+    // Within one track it is allowed too, since 0009: two papers may be open
+    // together and a student sits whichever they choose, one at a time.
+    const alongside = await savePaper('2031-02-01', 'Mine again')
     expect(await fails(
       `update tests set status='SCHEDULED', opens_at_min=600, entry_closes_at_min=660
-        where id = $1`, [clash.id]))
-      .toMatch(/tests_one_scheduled_per_track_date_and_opening/)
-    await db.query('delete from tests where id = any($1)', [[mine.id, theirs.id, clash.id]])
+        where id = $1`, [alongside.id])).toBeNull()
+    // What is still refused is the same name on the same night, within a
+    // track. save_paper will not create that draft at all, so the index is
+    // reached by renaming on the way to SCHEDULED.
+    const duplicate = await savePaper('2031-02-01', 'Something else')
+    expect(await fails(
+      `update tests set status='SCHEDULED', title='Mine', opens_at_min=600, entry_closes_at_min=660
+        where id = $1`, [duplicate.id]))
+      .toMatch(/tests_one_scheduled_per_track_date_and_title/)
+    await db.query('delete from tests where id = any($1)', [[mine.id, theirs.id, alongside.id, duplicate.id]])
     await db.query('delete from tracks where id = $1', [other])
   })
 
@@ -788,12 +795,44 @@ describe('more than one paper a day', () => {
     expect(n).toBe('2')
   })
 
-  it('refuses two scheduled papers opening at the same minute', async () => {
+  /**
+   * 0009. Two papers open together is the arrangement the dashboard's "Open
+   * now" list exists for, and the engine was always safe for it:
+   * attempts_one_live_per_user allows one running attempt and no more, so a
+   * student chooses rather than being forced.
+   */
+  it('accepts two scheduled papers in the same window', async () => {
     await scheduledPaper('2026-12-03', 22 * 60, 23 * 60)
-    const { id } = await savePaper('2026-12-03', 'A clash')
+    const { id } = await savePaper('2026-12-03', 'Alongside it')
     expect(await fails(
       `update tests set status = 'SCHEDULED', opens_at_min = $2, entry_closes_at_min = $3 where id = $1`,
       [id, 22 * 60, 23 * 60],
-    )).toMatch(/tests_one_scheduled_per_track_date_and_opening/)
+    )).toBeNull()
+  })
+
+  it('refuses two scheduled papers on one night with the same name', async () => {
+    await scheduledPaper('2026-12-04', 22 * 60, 23 * 60)
+    // save_paper refuses to create a draft that already matches a scheduled
+    // paper on all three, so the index is reached by renaming on the way up.
+    const { id } = await savePaper('2026-12-04', 'A different name')
+    expect(await fails(
+      `update tests set status = 'SCHEDULED', title = 'Paper at 1320',
+                        opens_at_min = $2, entry_closes_at_min = $3 where id = $1`,
+      [id, 9 * 60, 10 * 60],
+    )).toMatch(/tests_one_scheduled_per_track_date_and_title/)
+  })
+
+  it('refuses two untitled papers on one night, which a bare unique index would not', async () => {
+    // NULL is distinct from NULL in Postgres, so the index coalesces. Without
+    // that, the same file uploaded twice with no name would schedule twice.
+    const first = await savePaper('2026-12-07')
+    const second = await savePaper('2026-12-08')
+    await db.query(
+      `update tests set status='SCHEDULED', date='2026-12-07', opens_at_min=600, entry_closes_at_min=660
+        where id = $1`, [first.id])
+    expect(await fails(
+      `update tests set status='SCHEDULED', date='2026-12-07', opens_at_min=700, entry_closes_at_min=760
+        where id = $1`, [second.id]))
+      .toMatch(/tests_one_scheduled_per_track_date_and_title/)
   })
 })

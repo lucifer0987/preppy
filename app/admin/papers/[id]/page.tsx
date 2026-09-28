@@ -272,7 +272,7 @@ export default async function PaperPreview(
           <p className="mt-2 text-xs text-ink-soft">
             Anyone starting before the second time still gets the full {totalMinutes} minutes, so the
             paper finishes {paperLabels(defaultWindow).hardStop === 'midnight' ? 'by midnight' : `by ${paperLabels(defaultWindow).hardStop}`}.
-            More than one paper can run in a day, as long as their windows do not overlap.
+            More than one paper can run in a day, and they may share a window. A student sits one at a time and picks the order; two on one night need different names.
           </p>
           <label className="mt-4 flex items-start gap-3 text-sm">
             <input type="checkbox" name="reviewed" value="yes" required className="mt-1 h-4 w-4" />

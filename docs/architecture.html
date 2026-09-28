@@ -216,9 +216,9 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <div><dt>Routes</dt><dd>22</dd></div>
     <div><dt>Tables</dt><dd>11</dd></div>
     <div><dt>SQL functions</dt><dd>11</dd></div>
-    <div><dt>Migrations</dt><dd>8</dd></div>
+    <div><dt>Migrations</dt><dd>9</dd></div>
     <div><dt>Modules</dt><dd>31<small>lib/</small></dd></div>
-    <div><dt>Tests</dt><dd>501</dd></div>
+    <div><dt>Tests</dt><dd>503</dd></div>
     <div><dt>Runtime deps</dt><dd>11</dd></div>
   </dl>
 </header>
@@ -551,7 +551,7 @@ whose scores are already public to everyone on it.</p>
   <rect x="20" y="160" width="470" height="76" rx="8" fill="none" stroke="#0E767F" stroke-width="2.5"/>
   <text x="38" y="184" font-size="13.5" font-weight="700" fill="currentColor">Pure domain logic</text>
   <text x="38" y="203" font-size="10.5" fill="currentColor" opacity=".7">time &middot; attempt &middot; scoring &middot; leaderboard &middot; paper &middot; csv &middot; images</text>
-  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 438 of the 501 tests live here</text>
+  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 438 of the 503 tests live here</text>
 
   <rect x="20" y="252" width="470" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
   <text x="38" y="276" font-size="13.5" font-weight="600" fill="currentColor">Repository</text>
@@ -1018,7 +1018,7 @@ whose scores are already public to everyone on it.</p>
 
 <div class="note care">
   <h4>A night may hold more than one paper, and the checker used to say otherwise</h4>
-  <p>A paper is identified by its <strong>exam, its date and its name</strong>. The scheduler allows two on one night as long as their windows do not overlap; the unique index is on the opening time for exactly that reason; <code>save_paper</code> refuses only a paper matching a scheduled one on all three.</p>
+  <p>A paper is identified by its <strong>exam, its date and its name</strong>. Two may share a night and even a window (migration 0009); the unique index is on the name for exactly that reason; <code>save_paper</code> refuses only a paper matching a scheduled one on all three.</p>
   <p>The upload checker knew none of that. It saw a date already in use and refused the file outright, which made a supported arrangement unreachable through the console: the only way to a second paper was to edit the date in the file, upload it, and move it back at the scheduling step. It warns now, and the database decides on the real key.</p>
 </div>
 
@@ -1644,7 +1644,7 @@ words.</p>
     <text x="179" y="209" text-anchor="middle" font-weight="600">typecheck</text>
     <line x1="226" y1="205" x2="238" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="238" y="186" width="94" height="38" rx="6" fill="none" stroke="#94202B" stroke-width="2"/>
-    <text x="285" y="209" text-anchor="middle" font-weight="600">501 tests</text>
+    <text x="285" y="209" text-anchor="middle" font-weight="600">503 tests</text>
     <line x1="332" y1="205" x2="344" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="344" y="186" width="84" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
     <text x="386" y="209" text-anchor="middle" font-weight="600">build</text>
@@ -1669,7 +1669,7 @@ words.</p>
 <tr><td><code>npm run start:local</code></td><td><span class="pill local">rare</span></td><td>Serves that build on port 3000</td></tr>
 <tr><td><code>npm run build:prod</code></td><td><span class="pill prod">before shipping</span></td><td>Preflight, typecheck, all tests, a build without source maps, then the bundle scan. Any one of them failing stops the rest</td></tr>
 <tr><td><code>npm run start:prod</code></td><td><span class="pill prod">on the host</span></td><td>Serves the production build</td></tr>
-<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>501 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>503 tests. No database needed, about a second</td></tr>
 <tr><td><code>npm run test:live</code></td><td><span class="pill both">after touching a query</span></td><td>Runs every read <code>lib/repo/</code> makes against the real project in <code>.env.local</code>. Read-only. Skipped when there are no credentials</td></tr>
 <tr><td><code>npm run typecheck</code></td><td><span class="pill both">anytime</span></td><td>Checks types without building</td></tr>
 <tr><td><code>npm run seed</code></td><td><span class="pill both">setup</span></td><td>Creates the accounts, prints passwords once</td></tr>
@@ -1799,7 +1799,7 @@ words.</p>
 <b>npm install</b></pre>
 </div>
 <p>Downloads everything into a <code>node_modules</code> folder. Safe to re-run at any time.</p>
-<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>501 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
+<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>503 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
 </li>
 
 <li>
@@ -1926,6 +1926,7 @@ up in exactly the same place.</p>
     applied  0006_an_exam_track_owns_its_pattern_and_its_papers.sql
     applied  0007_a_pattern_is_replaced_whole_or_not_at_all.sql
     applied  0008_a_question_carries_exactly_four_options.sql
+    applied  0009_two_papers_may_be_open_at_once.sql
 
   Done. 8 migrations applied in total.</i></pre>
 </div>
@@ -2096,6 +2097,7 @@ landed and what has not, at any time.</p>
 <tr><td><code>0006_an_exam_track_owns_its_pattern_and_its_papers.sql</code></td><td>Tracks. Adds <code>tracks</code> and <code>track_sections</code>, retires <code>default_sections</code> into it, puts a <code>track_id</code> on <code>tests</code> and <code>profiles</code>, scopes the scheduling index to the track, and adds the two Awareness section codes</td></tr>
 <tr><td><code>0007_a_pattern_is_replaced_whole_or_not_at_all.sql</code></td><td><code>save_track_pattern</code>, so replacing a track's pattern is one transaction. It was a delete and an insert as two calls, and a failure between them left a track with no sections &mdash; which reads as the shipped pattern, so nothing raised and the track had quietly become a different exam</td></tr>
 <tr><td><code>0008_a_question_carries_exactly_four_options.sql</code></td><td>Narrows <code>correct_option</code> and <code>selected_option</code> to A&ndash;D and adds a check that a question's <code>options</code> object holds exactly the four keys A, B, C, D. The validator already said so; this is the floor under <code>save_paper</code>, a key correction, and anything run by hand. It refuses to apply to a database still holding five-option questions, which is correct &mdash; those rows would be unreachable by a UI that renders four</td></tr>
+<tr><td><code>0009_two_papers_may_be_open_at_once.sql</code></td><td>Replaces the unique index keyed on the opening minute with one keyed on the name, so two papers may share a night and even a window. <code>coalesce(title, '')</code>, because a NULL is distinct from every other NULL and two untitled papers on one night are exactly the mistake the index is for. The engine was always safe for this: <code>attempts_one_live_per_user</code> allows one running attempt and no more</td></tr>
 </tbody>
 </table></div>
 
@@ -2315,7 +2317,7 @@ landed and what has not, at any time.</p>
 <tr><th>Step</th><th>What it catches</th></tr>
 <tr><td><code>preflight prod</code></td><td>A missing or malformed variable, before anything expensive runs. It names the variable and what it expected &mdash; including a secret key sitting in the publishable slot</td></tr>
 <tr><td><code>typecheck</code></td><td><code>tsc --noEmit</code> across the whole repository, tests included</td></tr>
-<tr><td><code>test</code></td><td>All 501. They need no database, so they run on the build machine exactly as they do on yours. <strong>One failure fails the deploy</strong> and nothing changes</td></tr>
+<tr><td><code>test</code></td><td>All 503. They need no database, so they run on the build machine exactly as they do on yours. <strong>One failure fails the deploy</strong> and nothing changes</td></tr>
 <tr><td><code>next build</code></td><td>The build itself, with <code>APP_ENV=production</code>, which drops browser source maps</td></tr>
 <tr><td><code>check-bundle</code></td><td>Reads everything under <code>.next/static</code> &mdash; the files a browser downloads &mdash; and fails if any of it contains the secret key's variable name, the <code>sb_secret_</code> prefix, or the key's own value. It is the last gate on the one mistake that cannot be taken back</td></tr>
 </table></div>
@@ -2443,7 +2445,7 @@ landed and what has not, at any time.</p>
 <ol>
 <li><strong>Which database am I talking to?</strong> Check the URL in <code>.env.local</code> against the project name in Supabase.</li>
 <li><strong>Did the schema actually apply?</strong> Table Editor: twelve tables plus <code>schema_migrations</code>, with RLS badges. Or <code>npm run migrate -- --status</code>, which names any file that has not landed.</li>
-<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 501 pass, the logic is fine and the problem is configuration or a query.</li>
+<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 503 pass, the logic is fine and the problem is configuration or a query.</li>
 </ol>
 
 <p class="end">

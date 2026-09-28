@@ -214,7 +214,7 @@ file has to exist before anything can be written into it.</p>
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>node -v</b>            <i># needs v20.9 or newer</i>
 <b>npm install</b>
-<b>npm test</b>           <i># 501 passing means the code is sound</i></pre>
+<b>npm test</b>           <i># 503 passing means the code is sound</i></pre>
 </div>
 
 <h3>2 &middot; The Supabase project</h3>
@@ -286,7 +286,7 @@ blank until you deploy.</p>
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>npm run migrate</b>
 
-<i>  Applying 8 migrations...
+<i>  Applying 9 migrations...
     applied  0001_baseline.sql
     applied  0002_since_baseline.sql
     applied  0003_managing_a_live_paper.sql
@@ -295,8 +295,9 @@ blank until you deploy.</p>
     applied  0006_an_exam_track_owns_its_pattern_and_its_papers.sql
     applied  0007_a_pattern_is_replaced_whole_or_not_at_all.sql
     applied  0008_a_question_carries_exactly_four_options.sql
+    applied  0009_two_papers_may_be_open_at_once.sql
 
-  Done. 8 migrations applied in total.</i></pre>
+  Done. 9 migrations applied in total.</i></pre>
 </div>
 <p>No <code>DATABASE_URL</code>? <code>npm run migrate -- --print</code> prints the
 SQL to paste into <strong>SQL Editor</strong> &rarr; <strong>New query</strong>
@@ -362,7 +363,7 @@ equally fine.</p>
 <pre><b>npm run check -- my-paper.json</b>          <i># validate before opening the app</i>
 <b>npm run check -- my-paper.json --images ./img</b></pre>
 </div>
-<p>Then in the app: <strong>Admin &rarr; Upload a paper</strong> &rarr; read the preview &rarr; <strong>Schedule</strong>. The upload screen has an optional <strong>name box</strong>: blank uses the name in the file, and anything typed wins. A paper can also be renamed later from <strong>Manage</strong>. You choose its date and times on the schedule form; <strong>Admin &rarr; Default times</strong> only sets what is offered by default, and <strong>Admin &rarr; Paper pattern</strong> what a section holds when the file does not say. More than one paper can run in a day if their windows do not overlap. Copy <code>format/sample.json</code> as your starting point. The format is specified in <a href="architecture.html#s7">architecture.html section 7</a>.</p>
+<p>Then in the app: <strong>Admin &rarr; Upload a paper</strong> &rarr; read the preview &rarr; <strong>Schedule</strong>. The upload screen has an optional <strong>name box</strong>: blank uses the name in the file, and anything typed wins. A paper can also be renamed later from <strong>Manage</strong>. You choose its date and times on the schedule form; <strong>Admin &rarr; Default times</strong> only sets what is offered by default, and <strong>Admin &rarr; Paper pattern</strong> what a section holds when the file does not say. More than one paper can run in a day, and they may share a window &mdash; a student sits one at a time and chooses the order. Two papers on one night need different names. Copy <code>format/sample.json</code> as your starting point. The format is specified in <a href="architecture.html#s7">architecture.html section 7</a>.</p>
 
 <h3>If it goes wrong while it is running</h3>
 <p><strong>Manage</strong>, on a scheduled paper, is the screen for it. Nothing here needs the terminal.</p>
@@ -396,7 +397,7 @@ equally fine.</p>
 <h2><i>4</i>Shipping a change</h2>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
-<pre><b>npm run build:prod</b>      <i># preflight + typecheck + 501 tests + build</i>
+<pre><b>npm run build:prod</b>      <i># preflight + typecheck + 503 tests + build</i>
 <b>git add -A &amp;&amp; git commit -m "what changed"</b>
 <b>git push</b>                 <i># Vercel deploys by itself</i></pre>
 </div>
@@ -521,10 +522,10 @@ Vercel rather than to this file.</p>
 <i>    PENDING   0001_baseline.sql
     PENDING   0002_since_baseline.sql
     ...
-  0 applied, 8 pending.        &larr; a new project shows every file pending</i>
+  0 applied, 9 pending.        &larr; a new project shows every file pending</i>
 
 <b>npx tsx --env-file=.env.prod.local supabase/migrate.ts</b>
-<i>  Applying 8 migrations...
+<i>  Applying 9 migrations...
     applied  0001_baseline.sql
     applied  0002_since_baseline.sql
     applied  0003_managing_a_live_paper.sql
@@ -533,8 +534,9 @@ Vercel rather than to this file.</p>
     applied  0006_an_exam_track_owns_its_pattern_and_its_papers.sql
     applied  0007_a_pattern_is_replaced_whole_or_not_at_all.sql
     applied  0008_a_question_carries_exactly_four_options.sql
+    applied  0009_two_papers_may_be_open_at_once.sql
 
-  Done. 8 migrations applied in total.</i></pre>
+  Done. 9 migrations applied in total.</i></pre>
 </div>
 
 <p><strong>Check it worked:</strong> <strong>Table Editor</strong> shows twelve
@@ -625,7 +627,7 @@ Apply each to <strong>Production</strong>. Add them to <strong>Preview</strong> 
 <tr><th>Step</th><th>What it catches</th></tr>
 <tr><td><code>preflight prod</code></td><td>A missing or malformed variable, before anything expensive runs. It names the variable and what it expected, including a secret key in the publishable slot or a value pasted with a trailing space</td></tr>
 <tr><td><code>typecheck</code></td><td><code>tsc --noEmit</code> over the whole repository, tests included</td></tr>
-<tr><td><code>test</code></td><td>All 501. They need no database, so they run on Vercel exactly as they do on your machine. <strong>One failure fails the deploy</strong> and the live site does not change</td></tr>
+<tr><td><code>test</code></td><td>All 503. They need no database, so they run on Vercel exactly as they do on your machine. <strong>One failure fails the deploy</strong> and the live site does not change</td></tr>
 <tr><td><code>next build</code></td><td>The build itself, with browser source maps dropped</td></tr>
 <tr><td><code>check-bundle</code></td><td>Reads everything under <code>.next/static</code> &mdash; the files a browser downloads &mdash; and fails if any of it contains the secret key's name, the <code>sb_secret_</code> prefix, or the key itself</td></tr>
 </table></div>
@@ -688,7 +690,7 @@ means "pass the rest through".</p>
 <thead><tr><th>Command</th><th>What it does</th></tr></thead>
 <tbody>
 <tr><td><code>npm run dev</code></td><td>Development server on port 3000, reloads as you edit. Restart it after editing <code>.env.local</code></td></tr>
-<tr><td><code>npm test</code></td><td>501 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm test</code></td><td>503 tests. No database needed, about a second</td></tr>
 <tr><td><code>npm run test:live</code></td><td>Every read the app makes, run against the real Supabase project in <code>.env.local</code>. Read-only, so it is safe to point anywhere. Worth running after changing a query &mdash; it catches a select that forgot a column, which nothing else does</td></tr>
 <tr><td><code>npm run typecheck</code></td><td>Types only, no build. Faster than a build when you just want to know it compiles</td></tr>
 </tbody>
@@ -722,7 +724,7 @@ means "pass the rest through".</p>
 <tbody>
 <tr><td><code>npm run build:local</code></td><td>Preflight, a build that keeps source maps so a stack trace names real files, then the bundle scan. For reproducing something locally. It does <em>not</em> typecheck or run the tests</td></tr>
 <tr><td><code>npm run start:local</code></td><td>Serves that build on port 3000</td></tr>
-<tr><td><code>npm run build:prod</code></td><td>Preflight, typecheck, all 501 tests, a build with no source maps, then the bundle scan. Any failure stops it</td></tr>
+<tr><td><code>npm run build:prod</code></td><td>Preflight, typecheck, all 503 tests, a build with no source maps, then the bundle scan. Any failure stops it</td></tr>
 <tr><td><code>npm run start:prod</code></td><td>Serves the production build</td></tr>
 <tr><td><code>npm run build</code></td><td>The same as <code>build:prod</code>. This is what Vercel runs</td></tr>
 <tr><td><code>npm run start</code></td><td>The same as <code>start:prod</code></td></tr>
