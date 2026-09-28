@@ -350,6 +350,28 @@ export function readPaper(rawText: string, opts: ReadOptions = {}): ReadResult {
       `The sections add up to ${totalMinutes} minutes, longer than the ${MAX_TOTAL_MINUTES} a single day can hold.`)
   }
 
+  // ---- a key nobody set
+  //
+  // The blank template ships "answer": "A" on every question, because a key has
+  // to be one of A-E and so cannot say "fill me in" the way the title and the
+  // date can. Replace the text and the options but overlook the keys, and the
+  // paper passes every rule here while being wrong about all of them -- the one
+  // mistake in this format that no other check can see.
+  //
+  // A warning rather than an error: a genuine paper could in principle key
+  // every question the same way, and refusing it outright would be the
+  // validator overruling the person who wrote it. Below five questions it says
+  // nothing at all, since a short paper landing on one letter is chance.
+  const answers = collectAnswers(doc)
+  if (answers.length >= 5) {
+    const distinct = new Set(answers)
+    if (distinct.size === 1) {
+      ctx.warn('sections', 'ANSWER_KEY_UNIFORM',
+        `Every one of the ${answers.length} answers is ${[...distinct][0]}. `
+        + 'That is what a blank template ships; check the keys are the real ones.')
+    }
+  }
+
   // ---- images
   checkImagesPresent(ctx.images, opts.availableImages, err)
 
@@ -371,6 +393,28 @@ export function readQuestion(
   checkQuestion(raw, 'question', sectionCode, ctx)
   checkImagesPresent(ctx.images, opts.availableImages, ctx.err)
   return issues
+}
+
+/**
+ * Every answer the document states, in order, ignoring anything malformed --
+ * this runs for its shape, not to validate, and the real checks have already
+ * reported on a question that has no usable key.
+ */
+function collectAnswers(doc: Record<string, unknown>): string[] {
+  const out: string[] = []
+  const sections = doc['sections']
+  if (!Array.isArray(sections)) return out
+  for (const s of sections) {
+    if (typeof s !== 'object' || s === null || Array.isArray(s)) continue
+    const qs = (s as Record<string, unknown>)['questions']
+    if (!Array.isArray(qs)) continue
+    for (const q of qs) {
+      if (typeof q !== 'object' || q === null || Array.isArray(q)) continue
+      const a = (q as Record<string, unknown>)['answer']
+      if (typeof a === 'string' && a !== '') out.push(a)
+    }
+  }
+  return out
 }
 
 /** Checks one question; returns its number when it has a usable one. */

@@ -11,6 +11,19 @@ const sampleJson = readFileSync('format/sample.json', 'utf8')
 const templateJson = readFileSync('format/template.json', 'utf8')
 const schema = JSON.parse(readFileSync('format/schema.json', 'utf8'))
 
+/**
+ * The sample's own date, and the days either side of it. Read off the file
+ * rather than written down again: these tests used to name 2026-09-26, and
+ * moving the sample's date to a day that had not passed broke two of them for
+ * no reason connected to what they check.
+ */
+const sampleDate = JSON.parse(sampleJson).date as string
+const shiftDay = (iso: string, days: number) => {
+  const d = new Date(`${iso}T00:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + days)
+  return d.toISOString().slice(0, 10)
+}
+
 const ok = (src: string, opts = {}) => {
   const r = readPaper(src, opts)
   return { ...r, ...summarise(r.issues), codes: r.issues.map((i) => i.code) }
@@ -40,6 +53,28 @@ describe('the shipped format kit', () => {
     expect(r.errors.map((e) => e.path)).toContain('sections[0].directions[0]')
     // The date counts as placeholder text too, so a forgotten one cannot ship.
     expect(r.errors.map((e) => e.path)).toContain('date')
+  })
+
+  it('warns when every answer is the same letter, as a blank template is', () => {
+    // The mistake this catches: text and options replaced, keys overlooked.
+    const r = ok(mutate((p) => {
+      for (const sec of p.sections) for (const q of sec.questions) q.answer = 'A'
+    }))
+    expect(r.codes).toContain('ANSWER_KEY_UNIFORM')
+    // A warning, not a refusal -- the validator does not overrule the author.
+    expect(r.errors.map((e) => e.code)).not.toContain('ANSWER_KEY_UNIFORM')
+    expect(r.publishable).toBe(true)
+  })
+
+  it('says nothing about a spread key, or about a paper too short to judge', () => {
+    expect(ok(sampleJson).codes).not.toContain('ANSWER_KEY_UNIFORM')
+    // Four questions all keyed B is chance, not a forgotten template.
+    const short = ok(mutate((p) => {
+      p.sections = [{ ...p.sections[0], questionCount: 4,
+        directions: undefined,
+        questions: p.sections[0].questions.slice(0, 4).map((q: Record<string, unknown>) => ({ ...q, answer: 'B' })) }]
+    }))
+    expect(short.codes).not.toContain('ANSWER_KEY_UNIFORM')
   })
 
   it('refuses the template date, which no real paper could mean', () => {
@@ -187,7 +222,8 @@ describe('blocking errors', () => {
   })
 
   it('rejects a date that already has a paper', () => {
-    expect(ok(sampleJson, { takenDates: ['2026-09-26'] }).codes).toContain('DATE_TAKEN')
+    expect(ok(sampleJson, { takenDates: [sampleDate] }).codes).toContain('DATE_TAKEN')
+    expect(ok(sampleJson, { takenDates: [shiftDay(sampleDate, 1)] }).codes).not.toContain('DATE_TAKEN')
   })
 
   it('rejects a missing answer', () => {
@@ -266,10 +302,12 @@ describe('blocking errors', () => {
   })
 
   it('warns, without blocking, about a date that has passed', () => {
-    const r = ok(sampleJson, { today: '2027-01-01' })
+    const r = ok(sampleJson, { today: shiftDay(sampleDate, 1) })
     expect(r.codes).toContain('DATE_PAST')
     expect(r.publishable).toBe(true)
-    expect(ok(sampleJson, { today: '2026-01-01' }).codes).not.toContain('DATE_PAST')
+    // The paper's own day has not passed, and neither has the day before it.
+    expect(ok(sampleJson, { today: sampleDate }).codes).not.toContain('DATE_PAST')
+    expect(ok(sampleJson, { today: shiftDay(sampleDate, -1) }).codes).not.toContain('DATE_PAST')
   })
 
   it('rejects an image that was not uploaded', () => {

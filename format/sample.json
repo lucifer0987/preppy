@@ -1,7 +1,7 @@
 {
   "format": "preppy-paper",
   "version": 1,
-  "date": "2026-09-26",
+  "date": "2027-04-15",
   "title": "Daily Mock 001",
   "sections": [
     {
@@ -54,13 +54,13 @@
           "number": 1,
           "text": "A train 150 m long crosses a pole in 15 seconds. Find its speed.",
           "options": {
-            "A": "30 km/h",
-            "B": "36 km/h",
+            "A": "36 km/h",
+            "B": "30 km/h",
             "C": "40 km/h",
             "D": "45 km/h",
             "E": "None of these"
           },
-          "answer": "B",
+          "answer": "A",
           "solution": "Speed = 150/15 = 10 m/s = 10 x 18/5 = 36 km/h.",
           "tag": "Speed-Time-Distance",
           "difficulty": "Easy"
@@ -85,12 +85,12 @@
           "text": "A shopkeeper marks an article 40% above cost price and allows a discount of 25%. His profit percentage is:",
           "options": {
             "A": "4%",
-            "B": "5%",
-            "C": "6%",
+            "B": "6%",
+            "C": "5%",
             "D": "10%",
             "E": "None of these"
           },
-          "answer": "B",
+          "answer": "C",
           "solution": "Let CP = 100. MP = 140. SP = 140 x 0.75 = 105. Profit = 5%.",
           "tag": "Profit-Loss",
           "difficulty": "Medium"
@@ -99,13 +99,13 @@
           "number": 4,
           "text": "Two pipes A and B can fill a tank in 12 minutes and 18 minutes respectively. If both are opened together, the tank fills in:",
           "options": {
-            "A": "7 1/5 minutes",
+            "A": "6 3/4 minutes",
             "B": "7 1/2 minutes",
             "C": "8 minutes",
-            "D": "6 3/4 minutes",
+            "D": "7 1/5 minutes",
             "E": "None of these"
           },
-          "answer": "A",
+          "answer": "D",
           "solution": "1/12 + 1/18 = 5/36. Time = 36/5 = 7.2 = 7 1/5 minutes.",
           "tag": "Pipes-Cisterns",
           "difficulty": "Medium"
@@ -114,13 +114,13 @@
           "number": 5,
           "text": "The average of five consecutive even numbers is 36. The largest of these numbers is:",
           "options": {
-            "A": "38",
-            "B": "40",
+            "A": "40",
+            "B": "38",
             "C": "42",
             "D": "44",
             "E": "None of these"
           },
-          "answer": "B",
+          "answer": "A",
           "solution": "For five consecutive even numbers the average is the middle term, so the numbers are 32, 34, 36, 38, 40.",
           "tag": "Averages",
           "difficulty": "Easy"
@@ -160,12 +160,12 @@
           "text": "In 2024, students enrolled in Java and Networking together form what percent of the total enrolment that year?",
           "options": {
             "A": "35%",
-            "B": "40%",
+            "B": "50%",
             "C": "45%",
-            "D": "50%",
+            "D": "40%",
             "E": "None of these"
           },
-          "answer": "B",
+          "answer": "D",
           "solution": "Total 2024 = 15 + 24 + 12 + 9 = 60. Java + Networking = 15 + 9 = 24. 24/60 x 100 = 40%.",
           "tag": "Data-Interpretation",
           "difficulty": "Medium"
@@ -174,13 +174,13 @@
           "number": 9,
           "text": "The ratio of total Networking enrolment to total Java enrolment over the three years is:",
           "options": {
-            "A": "2:3",
-            "B": "3:5",
+            "A": "3:5",
+            "B": "2:3",
             "C": "5:9",
             "D": "4:7",
             "E": "None of these"
           },
-          "answer": "B",
+          "answer": "A",
           "solution": "Networking = 6 + 9 + 12 = 27. Java = 12 + 15 + 18 = 45. Ratio = 27:45 = 3:5.",
           "tag": "Data-Interpretation",
           "difficulty": "Medium"
@@ -221,11 +221,11 @@
           "options": {
             "A": "148",
             "B": "151",
-            "C": "153",
-            "D": "157",
+            "C": "157",
+            "D": "153",
             "E": "None of these"
           },
-          "answer": "C",
+          "answer": "D",
           "solution": "Each term is the previous term x 2 plus an increasing counter: 3x2+1=7, 7x2+2=16, 16x2+3=35, 35x2+4=74, 74x2+5=153.",
           "tag": "Number-Series",
           "difficulty": "Hard"
@@ -234,13 +234,13 @@
           "number": 13,
           "text": "A sum of money doubles itself in 8 years at simple interest. In how many years will it become four times itself?",
           "options": {
-            "A": "16 years",
+            "A": "24 years",
             "B": "20 years",
-            "C": "24 years",
+            "C": "16 years",
             "D": "32 years",
             "E": "None of these"
           },
-          "answer": "C",
+          "answer": "A",
           "solution": "Interest equal to the principal accrues in 8 years. Four times requires interest of 3P, so 3 x 8 = 24 years.",
           "tag": "Simple-Interest",
           "difficulty": "Medium"
@@ -250,12 +250,12 @@
           "text": "The ratio of the present ages of A and B is 5:7. After 6 years the ratio becomes 3:4. A's present age is:",
           "options": {
             "A": "25 years",
-            "B": "28 years",
-            "C": "30 years",
+            "B": "30 years",
+            "C": "28 years",
             "D": "35 years",
             "E": "None of these"
           },
-          "answer": "C",
+          "answer": "B",
           "solution": "(5x+6)/(7x+6) = 3/4 gives 20x + 24 = 21x + 18, so x = 6 and A = 30 years.",
           "tag": "Ages",
           "difficulty": "Medium"
@@ -265,12 +265,12 @@
           "text": "A boat covers 24 km downstream in 2 hours and returns in 3 hours. The speed of the stream is:",
           "options": {
             "A": "1 km/h",
-            "B": "2 km/h",
-            "C": "2.5 km/h",
+            "B": "2.5 km/h",
+            "C": "2 km/h",
             "D": "4 km/h",
             "E": "None of these"
           },
-          "answer": "B",
+          "answer": "C",
           "solution": "Downstream = 12 km/h, upstream = 8 km/h. Stream = (12 - 8)/2 = 2 km/h.",
           "tag": "Boats-Streams",
           "difficulty": "Medium"
@@ -295,13 +295,13 @@
           "number": 16,
           "text": "In a certain code, TABLE is written as UBCMF. How is CHAIR written in that code?",
           "options": {
-            "A": "DIBJS",
+            "A": "BGZHQ",
             "B": "DJBJS",
             "C": "DIBKS",
-            "D": "BGZHQ",
+            "D": "DIBJS",
             "E": "None of these"
           },
-          "answer": "A",
+          "answer": "D",
           "solution": "Each letter moves one step forward, so CHAIR becomes DIBJS.",
           "tag": "Coding-Decoding",
           "difficulty": "Easy"
@@ -310,13 +310,13 @@
           "number": 17,
           "text": "A is the brother of B, B is the sister of C, and C is the father of D. How is A related to D?",
           "options": {
-            "A": "Brother",
-            "B": "Uncle",
+            "A": "Uncle",
+            "B": "Brother",
             "C": "Father",
             "D": "Cousin",
             "E": "Cannot be determined"
           },
-          "answer": "B",
+          "answer": "A",
           "solution": "A and C are siblings, and C is D's father, so A is D's uncle.",
           "tag": "Blood-Relations",
           "difficulty": "Easy"
@@ -325,13 +325,13 @@
           "number": 18,
           "text": "Pointing to a man, a woman said, \"His mother is the only daughter of my mother.\" How is the woman related to the man?",
           "options": {
-            "A": "Sister",
-            "B": "Mother",
+            "A": "Mother",
+            "B": "Sister",
             "C": "Aunt",
             "D": "Grandmother",
             "E": "None of these"
           },
-          "answer": "B",
+          "answer": "A",
           "solution": "The only daughter of the woman's mother is the woman herself, so she is the man's mother.",
           "tag": "Blood-Relations",
           "difficulty": "Medium"
@@ -340,13 +340,13 @@
           "number": 19,
           "text": "A man walks 5 km north, turns right and walks 3 km, then turns right and walks 5 km. How far is he from the starting point?",
           "options": {
-            "A": "3 km",
-            "B": "5 km",
+            "A": "5 km",
+            "B": "3 km",
             "C": "8 km",
             "D": "13 km",
             "E": "None of these"
           },
-          "answer": "A",
+          "answer": "B",
           "solution": "He ends 3 km due east of his start, since the two 5 km legs cancel.",
           "tag": "Direction-Sense",
           "difficulty": "Easy"
@@ -370,13 +370,13 @@
           "number": 21,
           "text": "Who sits at the extreme left end of the row?",
           "options": {
-            "A": "V",
-            "B": "S",
+            "A": "S",
+            "B": "V",
             "C": "U",
             "D": "T",
             "E": "P"
           },
-          "answer": "A",
+          "answer": "B",
           "solution": "The final arrangement from left to right is V, S, R, Q, U, T, P.",
           "tag": "Seating-Arrangement",
           "difficulty": "Medium"
@@ -386,12 +386,12 @@
           "text": "How many people sit between S and T?",
           "options": {
             "A": "Two",
-            "B": "Three",
-            "C": "Four",
+            "B": "Four",
+            "C": "Three",
             "D": "Five",
             "E": "None"
           },
-          "answer": "B",
+          "answer": "C",
           "solution": "S is second and T is sixth, so R, Q and U sit between them.",
           "tag": "Seating-Arrangement",
           "difficulty": "Medium"
@@ -402,11 +402,11 @@
           "options": {
             "A": "U",
             "B": "Q",
-            "C": "T",
-            "D": "R",
+            "C": "R",
+            "D": "T",
             "E": "S"
           },
-          "answer": "C",
+          "answer": "D",
           "solution": "P is seventh and T is sixth.",
           "tag": "Seating-Arrangement",
           "difficulty": "Easy"
@@ -416,12 +416,12 @@
           "text": "What is the position of U from the right end?",
           "options": {
             "A": "Second",
-            "B": "Third",
+            "B": "Sixth",
             "C": "Fourth",
             "D": "Fifth",
-            "E": "Sixth"
+            "E": "Third"
           },
-          "answer": "B",
+          "answer": "E",
           "solution": "U is fifth from the left in a row of seven, so third from the right.",
           "tag": "Seating-Arrangement",
           "difficulty": "Medium"
@@ -430,13 +430,13 @@
           "number": 25,
           "text": "Which of the following pairs sits at the two extreme ends?",
           "options": {
-            "A": "V and P",
+            "A": "V and T",
             "B": "S and P",
-            "C": "V and T",
+            "C": "V and P",
             "D": "U and P",
             "E": "None of these"
           },
-          "answer": "A",
+          "answer": "C",
           "solution": "V is first and P is seventh.",
           "tag": "Seating-Arrangement",
           "difficulty": "Easy"
@@ -446,12 +446,12 @@
           "text": "In a row of 40 students, Rahul is 12th from the left end. What is his position from the right end?",
           "options": {
             "A": "28th",
-            "B": "29th",
+            "B": "27th",
             "C": "30th",
-            "D": "27th",
+            "D": "29th",
             "E": "None of these"
           },
-          "answer": "B",
+          "answer": "D",
           "solution": "40 - 12 + 1 = 29.",
           "tag": "Order-Ranking",
           "difficulty": "Easy"
@@ -490,13 +490,13 @@
           "number": 29,
           "text": "Which word comes third when the following are arranged in dictionary order? Nature, Nation, Native, Natural, Naughty",
           "options": {
-            "A": "Nature",
+            "A": "Natural",
             "B": "Native",
-            "C": "Natural",
+            "C": "Nature",
             "D": "Nation",
             "E": "Naughty"
           },
-          "answer": "C",
+          "answer": "A",
           "solution": "The order is Nation, Native, Natural, Nature, Naughty.",
           "tag": "Alphabet-Test",
           "difficulty": "Medium"
@@ -505,13 +505,13 @@
           "number": 30,
           "text": "In a certain language MONKEY is coded as XDJMNL. How is CHAIR coded in that language?",
           "options": {
-            "A": "QHZGB",
-            "B": "QHZGC",
+            "A": "QHZGC",
+            "B": "QHZGB",
             "C": "BGZHQ",
             "D": "QIZGB",
             "E": "None of these"
           },
-          "answer": "A",
+          "answer": "B",
           "solution": "Reverse the word and move each letter one step back: CHAIR reversed is RIAHC, which becomes QHZGB.",
           "tag": "Coding-Decoding",
           "difficulty": "Hard"
@@ -552,12 +552,12 @@
           "text": "The phrase \"the preserve of the salaried urban household\" most nearly means:",
           "options": {
             "A": "protected by urban households",
-            "B": "something restricted to salaried city dwellers",
-            "C": "a savings scheme for city workers",
+            "B": "a savings scheme for city workers",
+            "C": "something restricted to salaried city dwellers",
             "D": "an obligation placed on urban families",
             "E": "a record kept by urban banks"
           },
-          "answer": "B",
+          "answer": "C",
           "solution": "A preserve here means an exclusive domain.",
           "tag": "Vocabulary-In-Context",
           "difficulty": "Medium"
@@ -567,12 +567,12 @@
           "text": "Which of the following best captures the author's central argument?",
           "options": {
             "A": "Digital payments have failed in India",
-            "B": "Building infrastructure is easier than building the institutional trust needed to use it",
+            "B": "Government transfers should be discontinued",
             "C": "Commercial banks should be compelled to open rural branches",
-            "D": "Government transfers should be discontinued",
+            "D": "Building infrastructure is easier than building the institutional trust needed to use it",
             "E": "Mobile networks are the chief obstacle to financial inclusion"
           },
-          "answer": "B",
+          "answer": "D",
           "solution": "The final paragraph states that infrastructure is necessary but not sufficient and that the habit of use accrues far more slowly.",
           "tag": "Reading-Comprehension",
           "difficulty": "Medium"
@@ -583,11 +583,11 @@
           "options": {
             "A": "Uniformly celebratory",
             "B": "Dismissive and hostile",
-            "C": "Appreciative but qualified",
+            "C": "Nostalgic",
             "D": "Indifferent and detached",
-            "E": "Nostalgic"
+            "E": "Appreciative but qualified"
           },
-          "answer": "C",
+          "answer": "E",
           "solution": "The author acknowledges the achievement but immediately qualifies it as uneven.",
           "tag": "Tone",
           "difficulty": "Medium"
@@ -596,13 +596,13 @@
           "number": 35,
           "text": "Choose the word most nearly OPPOSITE in meaning to \"ubiquitous\" as used in the passage.",
           "options": {
-            "A": "Widespread",
-            "B": "Scarce",
+            "A": "Scarce",
+            "B": "Widespread",
             "C": "Reliable",
             "D": "Modern",
             "E": "Affordable"
           },
-          "answer": "B",
+          "answer": "A",
           "solution": "Ubiquitous means present everywhere, so scarce is its opposite.",
           "tag": "Antonyms",
           "difficulty": "Easy"
@@ -612,12 +612,12 @@
           "text": "Select the part of the sentence that contains an error. Neither the manager (A) nor the employees (B) was present (C) at the meeting (D). No error (E)",
           "options": {
             "A": "A",
-            "B": "B",
-            "C": "C",
+            "B": "C",
+            "C": "B",
             "D": "D",
             "E": "E"
           },
-          "answer": "C",
+          "answer": "B",
           "solution": "With neither-nor the verb agrees with the nearer subject, so it should be \"were present\".",
           "tag": "Subject-Verb-Agreement",
           "difficulty": "Medium"
@@ -627,12 +627,12 @@
           "text": "Fill in the blank: She is not only an excellent teacher ___ a gifted administrator.",
           "options": {
             "A": "and also",
-            "B": "but also",
-            "C": "as well",
+            "B": "as well",
+            "C": "but also",
             "D": "but and",
             "E": "however"
           },
-          "answer": "B",
+          "answer": "C",
           "solution": "The correlative pair is \"not only ... but also\".",
           "tag": "Conjunctions",
           "difficulty": "Easy"
@@ -642,12 +642,12 @@
           "text": "Choose the correctly spelt word.",
           "options": {
             "A": "Priviledge",
-            "B": "Privilege",
+            "B": "Privilage",
             "C": "Privelege",
-            "D": "Privilage",
+            "D": "Privilege",
             "E": "Priviledg"
           },
-          "answer": "B",
+          "answer": "D",
           "solution": "The correct spelling is privilege.",
           "tag": "Spelling",
           "difficulty": "Easy"
@@ -657,12 +657,12 @@
           "text": "Choose the word most nearly SIMILAR in meaning to MITIGATE.",
           "options": {
             "A": "Aggravate",
-            "B": "Alleviate",
+            "B": "Complicate",
             "C": "Provoke",
             "D": "Postpone",
-            "E": "Complicate"
+            "E": "Alleviate"
           },
-          "answer": "B",
+          "answer": "E",
           "solution": "To mitigate is to make less severe, which is to alleviate.",
           "tag": "Synonyms",
           "difficulty": "Easy"
@@ -696,12 +696,12 @@
           "text": "In a relational database, a superkey that contains no redundant attributes is called a:",
           "options": {
             "A": "Foreign key",
-            "B": "Candidate key",
-            "C": "Composite key",
+            "B": "Composite key",
+            "C": "Candidate key",
             "D": "Secondary key",
             "E": "None of these"
           },
-          "answer": "B",
+          "answer": "C",
           "solution": "A candidate key is a minimal superkey, containing no redundant attributes.",
           "tag": "DBMS-Keys",
           "difficulty": "Easy"
@@ -711,12 +711,12 @@
           "text": "Which normal form eliminates transitive functional dependency on the primary key?",
           "options": {
             "A": "1NF",
-            "B": "2NF",
-            "C": "3NF",
+            "B": "3NF",
+            "C": "2NF",
             "D": "BCNF",
             "E": "4NF"
           },
-          "answer": "C",
+          "answer": "B",
           "solution": "Third normal form removes transitive dependencies on the primary key.",
           "tag": "DBMS-Normalisation",
           "difficulty": "Easy"
@@ -726,12 +726,12 @@
           "text": "The time complexity of searching for an element in a balanced binary search tree containing n nodes is:",
           "options": {
             "A": "O(1)",
-            "B": "O(log n)",
-            "C": "O(n)",
+            "B": "O(n)",
+            "C": "O(log n)",
             "D": "O(n log n)",
             "E": "O(n squared)"
           },
-          "answer": "B",
+          "answer": "C",
           "solution": "A balanced BST has height proportional to log n, so search is O(log n).",
           "tag": "Data-Structures",
           "difficulty": "Easy"
@@ -742,11 +742,11 @@
           "options": {
             "A": "First Come First Served",
             "B": "Round Robin",
-            "C": "Shortest Job First",
-            "D": "FIFO",
+            "C": "FIFO",
+            "D": "Shortest Job First",
             "E": "None of these"
           },
-          "answer": "C",
+          "answer": "D",
           "solution": "Shortest Job First keeps preferring short jobs, so long jobs may never run.",
           "tag": "OS-Scheduling",
           "difficulty": "Medium"
@@ -756,12 +756,12 @@
           "text": "In the OSI model, which layer is responsible for end-to-end error recovery and flow control?",
           "options": {
             "A": "Network layer",
-            "B": "Transport layer",
+            "B": "Data link layer",
             "C": "Session layer",
-            "D": "Data link layer",
+            "D": "Transport layer",
             "E": "Presentation layer"
           },
-          "answer": "B",
+          "answer": "D",
           "solution": "The transport layer provides end-to-end reliability, error recovery and flow control.",
           "tag": "Networking-OSI",
           "difficulty": "Easy"
@@ -831,12 +831,12 @@
           "text": "Thrashing in an operating system occurs when:",
           "options": {
             "A": "The CPU is idle waiting for I/O",
-            "B": "The system spends more time paging than executing processes",
-            "C": "Two processes each hold a resource the other needs",
+            "B": "Two processes each hold a resource the other needs",
+            "C": "The system spends more time paging than executing processes",
             "D": "A process never gets CPU time",
             "E": "Memory is fragmented into small blocks"
           },
-          "answer": "B",
+          "answer": "C",
           "solution": "Thrashing is excessive paging activity that leaves little time for useful work.",
           "tag": "OS-Memory",
           "difficulty": "Medium"
@@ -846,12 +846,12 @@
           "text": "Which data structure is used by the runtime to implement recursion?",
           "options": {
             "A": "Queue",
-            "B": "Stack",
+            "B": "Heap",
             "C": "Linked list",
-            "D": "Heap",
+            "D": "Stack",
             "E": "Graph"
           },
-          "answer": "B",
+          "answer": "D",
           "solution": "Each recursive call pushes an activation record onto the call stack.",
           "tag": "Data-Structures",
           "difficulty": "Easy"
@@ -862,11 +862,11 @@
           "options": {
             "A": "Encapsulation",
             "B": "Inheritance",
-            "C": "Polymorphism",
+            "C": "Overloading",
             "D": "Abstraction",
-            "E": "Overloading"
+            "E": "Polymorphism"
           },
-          "answer": "C",
+          "answer": "E",
           "solution": "Polymorphism lets one interface serve different underlying types.",
           "tag": "OOP",
           "difficulty": "Easy"
@@ -875,13 +875,13 @@
           "number": 53,
           "text": "Which protocol resolves an IP address to a MAC address?",
           "options": {
-            "A": "DNS",
+            "A": "ARP",
             "B": "DHCP",
-            "C": "ARP",
+            "C": "DNS",
             "D": "ICMP",
             "E": "RARP"
           },
-          "answer": "C",
+          "answer": "A",
           "solution": "The Address Resolution Protocol maps an IP address to a hardware address.",
           "tag": "Networking-Protocols",
           "difficulty": "Easy"
@@ -891,12 +891,12 @@
           "text": "The worst-case time complexity of QuickSort is:",
           "options": {
             "A": "O(n)",
-            "B": "O(n log n)",
-            "C": "O(n squared)",
+            "B": "O(n squared)",
+            "C": "O(n log n)",
             "D": "O(log n)",
             "E": "O(n cubed)"
           },
-          "answer": "C",
+          "answer": "B",
           "solution": "When the pivot is consistently the smallest or largest element, QuickSort degrades to O(n squared).",
           "tag": "Algorithms",
           "difficulty": "Medium"
@@ -906,12 +906,12 @@
           "text": "In software engineering, the process model that emphasises risk analysis at each iteration is the:",
           "options": {
             "A": "Waterfall model",
-            "B": "Spiral model",
-            "C": "V-model",
+            "B": "V-model",
+            "C": "Spiral model",
             "D": "Big Bang model",
             "E": "Prototype model"
           },
-          "answer": "B",
+          "answer": "C",
           "solution": "The spiral model places explicit risk analysis in every cycle.",
           "tag": "Software-Engineering",
           "difficulty": "Medium"

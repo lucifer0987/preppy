@@ -664,7 +664,7 @@ actual reason it is not one.</p>
 <div class="fr"><p><b class="id">FR-6.9.1</b><strong>Publishing is never automatic.</strong> A paper reaches <code>SCHEDULED</code> only by explicit admin action after preview.</p></div>
 <div class="tw"><table>
 <tr><th>Blocking errors</th><th>Warnings — still publishable</th></tr>
-<tr><td>Wrong question count · missing or unparseable key · key not among the options · fewer than 2 or more than 5 options · duplicate question numbers · referenced image not uploaded · <code>directions</code> range covering non-existent questions · unrecognised section code · date already holds a published test</td><td>No solution · no tag · no difficulty · option text over 300 characters · fewer than 5 options</td></tr>
+<tr><td>Wrong question count · missing or unparseable key · key not among the options · fewer than 2 or more than 5 options · duplicate question numbers · referenced image not uploaded · <code>directions</code> range covering non-existent questions · unrecognised section code · date already holds a published test</td><td>No solution · no tag · no difficulty · option text over 300 characters · fewer than 5 options · every answer the same letter, which is what a blank template ships</td></tr>
 </table></div>
 <h4>Dry run</h4>
 <div class="fr"><p><b class="id">FR-6.9.2</b>The admin can take <strong>any</strong> test — <code>DRAFT</code>, <code>SCHEDULED</code>, <code>LIVE</code> or <code>CLOSED</code> — as a dry run, using the real test engine: real sectional timers, real full-screen, real scoring. The attempt is stored with <code>is_dry_run = true</code>, excluded from the leaderboard, ranks and every aggregate.</p></div>
@@ -748,7 +748,7 @@ actual reason it is not one.</p>
 <pre><code>{
   <b>"format"</b>: "preppy-paper",
   <b>"version"</b>: 1,
-  <b>"date"</b>: "2026-09-26",
+  <b>"date"</b>: "2027-04-15",
   <b>"title"</b>: "Daily Mock 042",              <i>(optional)</i>
   <b>"sections"</b>: [
     {
@@ -1006,7 +1006,7 @@ actual reason it is not one.</p>
 
 <div class="good">
   <h4>What is still unproven</h4>
-  <p>The schema and its functions are exercised against real Postgres, 404 tests cover the pure logic, and <code>npm run test:live</code> now runs every <em>read</em> the app makes against the real project &mdash; a suite that exists because a select which forgets a column is invisible to both TypeScript and an in-process Postgres, and had already shipped twice. What no automated test reaches is the half that writes: signing in, starting and submitting an attempt, and reading an image out of Storage. The engineering reference has a ten-minute walkthrough that covers those.</p>
+  <p>The schema and its functions are exercised against real Postgres, 406 tests cover the pure logic, and <code>npm run test:live</code> now runs every <em>read</em> the app makes against the real project &mdash; a suite that exists because a select which forgets a column is invisible to both TypeScript and an in-process Postgres, and had already shipped twice. What no automated test reaches is the half that writes: signing in, starting and submitting an attempt, and reading an image out of Storage. The engineering reference has a ten-minute walkthrough that covers those.</p>
 </div>
 </div></section>
 
