@@ -192,6 +192,18 @@ export function daysBetween(a: string, b: string): number {
   return Math.round(ms / 86_400_000)
 }
 
+/**
+ * Which day entry closes on, relative to the day the paper opens: 0 for the
+ * same night, 1 for the following morning. Never anything else -- a window
+ * that took entry for two days would be two papers.
+ *
+ * Clamped rather than trusted, because it is also read off a form mid-edit,
+ * where the two dates can briefly disagree.
+ */
+export function entryCloseOffset(date: string, closesOn: string): number {
+  return Math.min(1, Math.max(0, daysBetween(date, closesOn)))
+}
+
 /** The date entry closes on, which is the paper's own unless it runs past midnight. */
 export const entryClosesOn = (p: Pick<PaperWindow, 'date' | 'entryClosesAtMin'>) =>
   addDays(p.date, Math.floor(p.entryClosesAtMin / (24 * 60)))

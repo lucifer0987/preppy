@@ -1,8 +1,23 @@
 import { describe, expect, it } from 'vitest'
 import {
-  addDays, canStartAttempt, DEFAULT_WINDOW, entryClosesAt, formatIstDate,
-  formatIstTime, hardStopAt, istDate, istInstant, opensAt, paperClosed,
-  paperWindowProblem, windowLabels, windowState, paperLabels, entryClosesOn, daysBetween
+  DEFAULT_WINDOW,
+  addDays,
+  canStartAttempt,
+  daysBetween,
+  entryCloseOffset,
+  entryClosesAt,
+  entryClosesOn,
+  formatIstDate,
+  formatIstTime,
+  hardStopAt,
+  istDate,
+  istInstant,
+  opensAt,
+  paperClosed,
+  paperLabels,
+  paperWindowProblem,
+  windowLabels,
+  windowState,
 } from '../lib/time'
 import { attemptHardStop } from '../lib/attempt'
 
@@ -346,5 +361,51 @@ describe('a window that crosses midnight', () => {
     // figure an admin uses to decide whether the window is what they meant.
     expect(paperLabels(late).hardStop).toBe('12:15 AM next day')
     expect(paperLabels({ ...late, entryClosesAtMin: 23 * 60 + 15 }).hardStop).toBe('midnight')
+  })
+})
+
+/**
+ * The schedule form shows two dates -- the day a paper opens and the day entry
+ * closes -- and the second is only ever the first or the day after it. The
+ * bounds on that second calendar were once worked out from the day the page
+ * happened to load with and never moved again, so choosing an earlier opening
+ * day left the close calendar refusing the very day just chosen. This is the
+ * arithmetic the linked pair runs on.
+ */
+describe('how far after the opening day entry closes', () => {
+  it('is 0 for a window that closes the same night', () => {
+    expect(entryCloseOffset('2026-09-29', '2026-09-29')).toBe(0)
+  })
+
+  it('is 1 for one that closes the next morning', () => {
+    expect(entryCloseOffset('2026-09-29', '2026-09-30')).toBe(1)
+  })
+
+  it('crosses a month and a year without special-casing either', () => {
+    expect(entryCloseOffset('2026-09-30', '2026-10-01')).toBe(1)
+    expect(entryCloseOffset('2026-12-31', '2027-01-01')).toBe(1)
+  })
+
+  /**
+   * Both ends are clamped because this is also read off a form being edited,
+   * where the two dates can briefly disagree -- and a window taking entry for
+   * two days would be two papers, not one.
+   */
+  it('clamps anything wider, and anything backwards', () => {
+    expect(entryCloseOffset('2026-09-29', '2026-10-05')).toBe(1)
+    expect(entryCloseOffset('2026-09-29', '2026-09-28')).toBe(0)
+    expect(entryCloseOffset('2026-09-29', '2020-01-01')).toBe(0)
+  })
+
+  it('moves a window with its paper, keeping its shape', () => {
+    // What the form does: read the offset, then re-hang it off the new day.
+    const carry = (date: string, closes: string, to: string) =>
+      addDays(to, entryCloseOffset(date, closes))
+    // Closed the same night, still closes the same night.
+    expect(carry('2026-09-30', '2026-09-30', '2026-09-29')).toBe('2026-09-29')
+    // Closed the next morning, still closes the next morning.
+    expect(carry('2026-09-30', '2026-10-01', '2026-09-29')).toBe('2026-09-30')
+    // And forwards over a month boundary.
+    expect(carry('2026-09-29', '2026-09-30', '2026-10-31')).toBe('2026-11-01')
   })
 })

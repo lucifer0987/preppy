@@ -11,6 +11,9 @@ import { sectionName, type OptionLabel, type SectionCode } from '../../../lib/ty
 import { paperOnViewersTrack, patternForPaper, viewerTrack } from '../../../lib/repo/tracks'
 import { formatIstDate, paperClosed } from '../../../lib/time'
 import { findAttempt } from '../../../lib/repo/attempts'
+import { RevealAnswer } from '../../../components/RevealAnswer'
+import { answerIsSealed, reviewState, tally, type ReviewState } from '../../../lib/review'
+import { COUNT_TONE, RING, ReviewBadge } from '../../../components/ReviewBadge'
 
 export const dynamic = 'force-dynamic'
 
@@ -95,13 +98,23 @@ export default async function ArchiveDetail({
     }
   }
 
+  const stateOf = (n: number, answer: OptionLabel): ReviewState =>
+    reviewState(mine.get(n), answer, Boolean(attempt))
+
   const keep = (n: number, answer: OptionLabel) => {
     if (!attempt) return true
-    const r = mine.get(n)
-    if (filter === 'wrong') return Boolean(r?.selected) && r!.selected !== answer
-    if (filter === 'missed') return !r || !r.visited
+    const st = stateOf(n, answer)
+    if (filter === 'wrong') return st === 'wrong'
+    if (filter === 'skipped') return st === 'skipped'
+    if (filter === 'missed') return st === 'unreached'
+    if (filter === 'sealed') return answerIsSealed(st)
     return true
   }
+
+  // Counted over the whole paper, not the current filter: the strip is what
+  // the paper came to, and it should not move when you narrow the list.
+  const counts = tally(
+    paper.sections.flatMap((sec) => sec.questions.map((q) => stateOf(q.number, q.answer))))
 
   return (
     <AppShell user={user} current="archive" examName={examName}>
@@ -117,6 +130,22 @@ export default async function ArchiveDetail({
           </Link>
         ) : undefined}
       />
+
+      {attempt && (
+        /* What the paper came to, before any of the detail. Counted over the
+           whole paper rather than the filtered list, so narrowing to "I got
+           these wrong" does not rewrite the score above it. */
+        <dl className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-card border
+                       border-line bg-line sm:grid-cols-4">
+          {([['correct', 'Right'], ['wrong', 'Wrong'], ['skipped', 'Skipped'],
+             ['unreached', 'Not reached']] as const).map(([k, label]) => (
+            <div key={k} className="bg-surface px-4 py-3">
+              <dt className="eyebrow">{label}</dt>
+              <dd className={`numeral mt-0.5 text-xl font-bold ${COUNT_TONE[k]}`}>{counts[k]}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
 
       {/* Reading a paper is a reading task, so the questions keep a measure
           rather than stretching to 1900px. The width goes to the filters
@@ -138,7 +167,9 @@ export default async function ArchiveDetail({
           {attempt && (
             <nav className="mt-5 flex flex-wrap gap-2 xl:flex-col xl:items-start" aria-label="Filter by your answers">
               <h2 className="eyebrow w-full">Yours</h2>
-              {([['Everything', undefined], ['I got these wrong', 'wrong'], ['I never reached these', 'missed']] as const).map(
+              {([['Everything', undefined], ['I got these wrong', 'wrong'],
+                 ['I skipped these', 'skipped'], ['I never reached these', 'missed'],
+                 ['Answers still sealed', 'sealed']] as const).map(
                 ([label, value]) => (
                   <FilterLink key={label} label={label}
                               href={hrefFor(testId, { filter: value, section: sectionFilter })}
@@ -169,23 +200,30 @@ export default async function ArchiveDetail({
                       (b) => question.number >= b.from && question.number <= b.to,
                     )
                     const r = mine.get(question.number)
+                    const state = stateOf(question.number, question.answer)
+                    const sealed = answerIsSealed(state)
+                    const card = (
+                      <QuestionCard question={question} testId={testId}
+                                    selected={r?.selected ?? null} reveal disabled />
+                    )
                     return (
-                      <li key={question.number} className="card p-5">
+                      <li key={question.number} className={`card p-5 ${RING[state]}`}>
                         {block && <DirectionsBlock block={block} testId={testId} />}
                         {attempt && (
-                          <p className="mb-3 flex flex-wrap gap-x-3 text-[11px] font-bold uppercase tracking-widest text-ink-soft">
-                            <span>
-                              {!r || !r.visited ? 'You never reached this'
-                                : r.selected === null ? 'You saw this and skipped it'
-                                : r.selected === question.answer ? 'You got this right'
-                                : 'You got this wrong'}
-                            </span>
-                            {r && r.visited && r.timeSpentSec > 0 && (
-                              <span className="numeral">Your time {clock(r.timeSpentSec)}</span>
-                            )}
-                          </p>
+                          <ReviewBadge state={state} answer={question.answer}
+                                       chose={r?.selected ?? null}
+                                       seconds={r?.visited ? r.timeSpentSec : 0} />
                         )}
-                        <QuestionCard question={question} testId={testId} selected={r?.selected ?? null} reveal disabled />
+                        {sealed ? (
+                          <RevealAnswer
+                            label={`question ${question.number}`}
+                            sealed={(
+                              <QuestionCard question={question} testId={testId}
+                                            selected={r?.selected ?? null} disabled />
+                            )}
+                            revealed={card}
+                          />
+                        ) : card}
                       </li>
                     )
                   })}
@@ -232,10 +270,4 @@ function FilterLink({ label, href, active, shape }: {
       {label}
     </Link>
   )
-}
-
-/** Seconds as m:ss. */
-function clock(sec: number): string {
-  const s = Math.round(sec)
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 }

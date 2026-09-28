@@ -217,8 +217,8 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <div><dt>Tables</dt><dd>12</dd></div>
     <div><dt>SQL functions</dt><dd>15</dd></div>
     <div><dt>Migrations</dt><dd>12</dd></div>
-    <div><dt>Modules</dt><dd>32<small>lib/</small></dd></div>
-    <div><dt>Tests</dt><dd>523</dd></div>
+    <div><dt>Modules</dt><dd>33<small>lib/</small></dd></div>
+    <div><dt>Tests</dt><dd>542</dd></div>
     <div><dt>Runtime deps</dt><dd>11</dd></div>
   </dl>
 </header>
@@ -587,6 +587,7 @@ whose scores are already public to everyone on it.</p>
 <tr><td>Marks, or how skipped differs from not-reached</td><td><code>lib/scoring.ts</code></td></tr>
 <tr><td>Which section is open and how long is left</td><td><code>lib/attempt.ts</code></td></tr>
 <tr><td>Ranking, tie-breaks, streaks</td><td><code>lib/leaderboard.ts</code></td></tr>
+<tr><td>How a question went on review, and which keys stay sealed</td><td><code>lib/review.ts</code>. Pure, so the rule about what is hidden is checked rather than read off a JSX expression</td></tr>
 <tr><td>The paper format and its validation</td><td><code>lib/paper.ts</code>, and section 7 here</td></tr>
 <tr><td>The topic plan &mdash; which day covers what</td><td><code>lib/schedule.ts</code>. It is a module, not a table: the plan changes in a commit, where the change is visible in a diff, and nothing in the database refers to it</td></tr>
 <tr><td>What the live test screen does</td><td><code>components/TestEngine.tsx</code></td></tr>

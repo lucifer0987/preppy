@@ -18,8 +18,7 @@ import { QuestionEditor } from './QuestionEditor'
 import { DeleteButton } from './DeleteButton'
 import { getItemStats } from '../../../../lib/repo/rescore'
 import { BackLink, PageHeader, StatusChip } from '../../../../components/Page'
-import { TimeField } from '../../../../components/TimeField'
-import { DateField } from '../../../../components/DateField'
+import { ScheduleDates } from '../../../../components/ScheduleDates'
 import { OPTION_LABELS, type OptionLabel, type PaperQuestion } from '../../../../lib/types'
 import { Flash } from '../../../../components/Page'
 
@@ -263,19 +262,19 @@ export default async function PaperPreview(
                "opens 10 PM on the 28th, last entry 1 AM on the 29th" is a thing
                an admin may want and could not say while the close was a time
                alone. The close date is limited to the opening day or the one
-               after it -- beyond that it is two papers, not one window. */}
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <DateField name="date" label="Opens on" defaultValue={defaultDate} min={istDate()} />
-            <TimeField name="opensAt" label="Unlocks at"
-                       defaultValue={hhmm(defaultWindow.opensAtMin)} />
-          </div>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <DateField name="entryClosesOn" label="Last entry on"
-                       defaultValue={entryClosesOn({ date: defaultDate, entryClosesAtMin: defaultWindow.entryClosesAtMin })}
-                       min={defaultDate} max={addDays(defaultDate, 1)} />
-            <TimeField name="entryClosesAt" label="Last moment to start"
-                       defaultValue={hhmm(defaultWindow.entryClosesAtMin % (24 * 60))} />
-          </div>
+               after it -- beyond that it is two papers, not one window. The
+               two dates are one component because that limit is relative to
+               whichever opening day is currently chosen, not to the one the
+               page was rendered with. */}
+          <ScheduleDates
+            defaultDate={defaultDate}
+            minDate={istDate()}
+            defaultOpensAt={hhmm(defaultWindow.opensAtMin)}
+            defaultEntryClosesOn={entryClosesOn({
+              date: defaultDate, entryClosesAtMin: defaultWindow.entryClosesAtMin,
+            })}
+            defaultEntryClosesAt={hhmm(defaultWindow.entryClosesAtMin % (24 * 60))}
+          />
           <p className="mt-2 text-xs text-ink-soft">
             Anyone starting before the last moment still gets the full {totalMinutes} minutes, so the
             paper finishes at {paperLabels(defaultWindow).hardStop}. Entry may close on the day after

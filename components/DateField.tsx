@@ -37,7 +37,7 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
 const longDate = (d: Date) =>
   `${WEEKDAYS[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`
 
-export function DateField({ name, defaultValue, min, max, label }: {
+export function DateField({ name, defaultValue, min, max, label, onChange }: {
   name: string
   defaultValue: string
   /** Earliest selectable day, as YYYY-MM-DD. */
@@ -46,6 +46,11 @@ export function DateField({ name, defaultValue, min, max, label }: {
    *  the paper opens and no further. */
   max?: string
   label: string
+  /**
+   * Told the new YYYY-MM-DD whenever it changes, for a form where one date
+   * bounds another. Must be stable across renders, as TimeField's is.
+   */
+  onChange?: (value: string) => void
 }) {
   const [value, setValue] = useState(defaultValue)
   const [open, setOpen] = useState(false)
@@ -93,7 +98,13 @@ export function DateField({ name, defaultValue, min, max, label }: {
             required
             selected={selected}
             defaultMonth={selected}
-            onSelect={(d) => { if (d) { setValue(iso(d)); setOpen(false) } }}
+            onSelect={(d) => {
+              if (!d) return
+              const next = iso(d)
+              setValue(next)
+              onChange?.(next)
+              setOpen(false)
+            }}
             disabled={[
               ...(min ? [{ before: fromIso(min) }] : []),
               ...(max ? [{ after: fromIso(max) }] : []),
