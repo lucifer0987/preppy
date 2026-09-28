@@ -214,7 +214,7 @@ file has to exist before anything can be written into it.</p>
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>node -v</b>            <i># needs v20.9 or newer</i>
 <b>npm install</b>
-<b>npm test</b>           <i># 486 passing means the code is sound</i></pre>
+<b>npm test</b>           <i># 488 passing means the code is sound</i></pre>
 </div>
 
 <h3>2 &middot; The Supabase project</h3>
@@ -396,7 +396,7 @@ equally fine.</p>
 <h2><i>4</i>Shipping a change</h2>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
-<pre><b>npm run build:prod</b>      <i># preflight + typecheck + 486 tests + build</i>
+<pre><b>npm run build:prod</b>      <i># preflight + typecheck + 488 tests + build</i>
 <b>git add -A &amp;&amp; git commit -m "what changed"</b>
 <b>git push</b>                 <i># Vercel deploys by itself</i></pre>
 </div>
@@ -594,6 +594,7 @@ That first command is worth running every time regardless.</p>
 <ol class="steps">
 <li>At <a href="https://vercel.com">vercel.com</a>, <strong>Add New &rarr; Project</strong>, and pick the repository. Next.js is detected; leave the build and output settings alone.</li>
 <li>Check <strong>Settings &rarr; Node.js Version</strong> is <strong>20.9 or newer</strong>. Next 16 says so in its own <code>engines</code> field, and a project pinned to 18.x fails during install with an error about the engine rather than about anything you wrote.</li>
+<li>Check <strong>Settings &rarr; Functions &rarr; Function Regions</strong> says <strong>Mumbai (bom1)</strong>, or whichever region your Supabase project is in. <code>vercel.json</code> already asks for <code>bom1</code>, so this is a confirmation rather than a step &mdash; but it is the single setting with the largest effect on how fast the site feels, and the note below says why.</li>
 <li>Open <strong>Environment Variables</strong> and add <strong>four</strong>, all from preppy-prod:
 <div class="tw"><table>
 <tr><th>Name</th><th>Value</th></tr>
@@ -606,6 +607,13 @@ Apply each to <strong>Production</strong>. Add them to <strong>Preview</strong> 
 <li><strong>Deploy.</strong></li>
 </ol>
 
+<div class="note care">
+  <h4>Run the functions where the database is, or the site is slow for no visible reason</h4>
+  <p>Vercel Functions default to <strong>iad1, Washington DC</strong>, for every new project &mdash; sensible, since most databases are on the US east coast. This one is not: a Supabase project created in <strong>ap-south-1</strong> is in Mumbai.</p>
+  <p>Left on the default, every query crosses the Atlantic and most of Asia and comes back. A dashboard render makes several Supabase calls one after another, and each of them pays that round trip, so a page that takes a fraction of a second on a laptop in India takes a second or two deployed. Nothing errors and nothing in the logs looks wrong; it is simply slow, and the cause is a map rather than the code.</p>
+  <p><code>vercel.json</code> carries <code>"regions": ["bom1"]</code>, which is Vercel's Mumbai region &mdash; the same city as the database. If your Supabase project is somewhere else, change it to match: the region list is at <a href="https://vercel.com/docs/regions">vercel.com/docs/regions</a>, and Vercel's own advice is that "functions should be executed in the same region as your database, or as close to it as possible".</p>
+</div>
+
 <div class="note never">
   <h4>Four variables, and <code>DATABASE_URL</code> is not one of them</h4>
   <p>The application never opens a Postgres connection &mdash; it speaks to Supabase over HTTPS. The only thing in this repository that reads <code>DATABASE_URL</code> is the migration runner, which runs from your machine. Putting it in Vercel stores a production database password somewhere that has no use for one.</p>
@@ -617,7 +625,7 @@ Apply each to <strong>Production</strong>. Add them to <strong>Preview</strong> 
 <tr><th>Step</th><th>What it catches</th></tr>
 <tr><td><code>preflight prod</code></td><td>A missing or malformed variable, before anything expensive runs. It names the variable and what it expected, including a secret key in the publishable slot or a value pasted with a trailing space</td></tr>
 <tr><td><code>typecheck</code></td><td><code>tsc --noEmit</code> over the whole repository, tests included</td></tr>
-<tr><td><code>test</code></td><td>All 486. They need no database, so they run on Vercel exactly as they do on your machine. <strong>One failure fails the deploy</strong> and the live site does not change</td></tr>
+<tr><td><code>test</code></td><td>All 488. They need no database, so they run on Vercel exactly as they do on your machine. <strong>One failure fails the deploy</strong> and the live site does not change</td></tr>
 <tr><td><code>next build</code></td><td>The build itself, with browser source maps dropped</td></tr>
 <tr><td><code>check-bundle</code></td><td>Reads everything under <code>.next/static</code> &mdash; the files a browser downloads &mdash; and fails if any of it contains the secret key's name, the <code>sb_secret_</code> prefix, or the key itself</td></tr>
 </table></div>
@@ -680,7 +688,7 @@ means "pass the rest through".</p>
 <thead><tr><th>Command</th><th>What it does</th></tr></thead>
 <tbody>
 <tr><td><code>npm run dev</code></td><td>Development server on port 3000, reloads as you edit. Restart it after editing <code>.env.local</code></td></tr>
-<tr><td><code>npm test</code></td><td>486 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm test</code></td><td>488 tests. No database needed, about a second</td></tr>
 <tr><td><code>npm run test:live</code></td><td>Every read the app makes, run against the real Supabase project in <code>.env.local</code>. Read-only, so it is safe to point anywhere. Worth running after changing a query &mdash; it catches a select that forgot a column, which nothing else does</td></tr>
 <tr><td><code>npm run typecheck</code></td><td>Types only, no build. Faster than a build when you just want to know it compiles</td></tr>
 </tbody>
@@ -714,7 +722,7 @@ means "pass the rest through".</p>
 <tbody>
 <tr><td><code>npm run build:local</code></td><td>Preflight, a build that keeps source maps so a stack trace names real files, then the bundle scan. For reproducing something locally. It does <em>not</em> typecheck or run the tests</td></tr>
 <tr><td><code>npm run start:local</code></td><td>Serves that build on port 3000</td></tr>
-<tr><td><code>npm run build:prod</code></td><td>Preflight, typecheck, all 486 tests, a build with no source maps, then the bundle scan. Any failure stops it</td></tr>
+<tr><td><code>npm run build:prod</code></td><td>Preflight, typecheck, all 488 tests, a build with no source maps, then the bundle scan. Any failure stops it</td></tr>
 <tr><td><code>npm run start:prod</code></td><td>Serves the production build</td></tr>
 <tr><td><code>npm run build</code></td><td>The same as <code>build:prod</code>. This is what Vercel runs</td></tr>
 <tr><td><code>npm run start</code></td><td>The same as <code>start:prod</code></td></tr>
