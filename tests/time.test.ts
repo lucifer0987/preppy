@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   addDays, canStartAttempt, DEFAULT_WINDOW, entryClosesAt, formatIstDate,
   formatIstTime, hardStopAt, istDate, istInstant, opensAt, paperClosed,
-  paperWindowProblem, windowLabels, windowState, windowsOverlap,
+  paperWindowProblem, windowLabels, windowState, windowsOverlap, paperLabels
 } from '../lib/time'
 import { attemptHardStop } from '../lib/attempt'
 
@@ -219,12 +219,17 @@ describe('which windows are allowed', () => {
     expect(paperWindowProblem(win(22 * 60, 22 * 60))).toMatch(/open before it closes/)
   })
 
-  it('refuses an entry close that would run an attempt past midnight', () => {
-    // The whole reason for the limit: an attempt finishing on the next
-    // calendar day would sit on the wrong date for the archive and the board.
-    expect(paperWindowProblem(win(22 * 60, 23 * 60 + 16))).toMatch(/45-minute paper must close entry by 11:15 PM/)
-    // A longer paper has to close entry earlier, and the message says which.
-    expect(paperWindowProblem(win(20 * 60, 23 * 60, 90))).toMatch(/90-minute paper must close entry by 10:30 PM/)
+  /**
+   * This used to be refused, justified by "an attempt finishing on the next
+   * calendar day would sit on the wrong date for the archive and the board".
+   * That was not so: an attempt belongs to its paper and a paper keeps its own
+   * date, so a paper opening on the 28th and finishing at 00:15 on the 29th is
+   * still the 28th's paper everywhere it is counted. The limit cost the admin
+   * a choice and bought nothing.
+   */
+  it('allows an entry close that runs the attempt past midnight', () => {
+    expect(paperWindowProblem(win(22 * 60, 23 * 60 + 16))).toBeNull()
+    expect(paperWindowProblem(win(20 * 60, 23 * 60, 90))).toBeNull()
     expect(paperWindowProblem(win(20 * 60, 22 * 60 + 30, 90))).toBeNull()
     expect(paperWindowProblem(win(22 * 60, 23 * 60 + 15))).toBeNull()
   })
@@ -292,5 +297,52 @@ describe('a paper an admin ended early', () => {
     const junk = { ...W, endedAt: 'not a time' }
     expect(hardStopAt(junk).getTime()).toBe(hardStopAt(W).getTime())
     expect(windowState(junk, ist(D, 22, 15))).toBe('OPEN')
+  })
+})
+
+describe('a window that crosses midnight', () => {
+  /**
+   * It used to be refused outright: entry close plus the paper's length had to
+   * land on or before 24:00, so a 45-minute paper could not take entry after
+   * 11:15 PM. Nothing needed that. A paper's instants come from its own
+   * opening day, so minute 1455 is a quarter past midnight the next morning,
+   * and every state below was already right -- only the check said no.
+   */
+  const late = {
+    date: '2026-09-28', opensAtMin: 23 * 60, entryClosesAtMin: 23 * 60 + 30,
+    attemptMinutes: 45, endedAt: null,
+  }
+
+  it('is allowed', () => {
+    expect(paperWindowProblem(late)).toBeNull()
+  })
+
+  it('still refuses a window that closes before it opens', () => {
+    expect(paperWindowProblem({ ...late, opensAtMin: 1400, entryClosesAtMin: 600 }))
+      .toMatch(/open before it closes/)
+  })
+
+  it('puts the hard stop on the following morning', () => {
+    // 23:30 + 45 = 00:15 the next day.
+    expect(hardStopAt(late).toISOString()).toBe(istInstant('2026-09-29', 0, 15).toISOString())
+  })
+
+  it('runs through midnight rather than ending at it', () => {
+    expect(windowState(late, istInstant('2026-09-28', 23, 15))).toBe('OPEN')
+    expect(windowState(late, istInstant('2026-09-28', 23, 45))).toBe('ENTRY_CLOSED')
+    expect(windowState(late, istInstant('2026-09-29', 0, 10))).toBe('ENTRY_CLOSED')
+    expect(windowState(late, istInstant('2026-09-29', 0, 20))).toBe('CLOSED')
+  })
+
+  it('will not let anybody start after entry closes, even before midnight', () => {
+    expect(canStartAttempt(late, istInstant('2026-09-28', 23, 29))).toBe(true)
+    expect(canStartAttempt(late, istInstant('2026-09-28', 23, 31))).toBe(false)
+  })
+
+  it('labels the hard stop as a time on the next day, not as midnight', () => {
+    // "midnight" for 00:15 would be a quarter of an hour out, on the one
+    // figure an admin uses to decide whether the window is what they meant.
+    expect(paperLabels(late).hardStop).toBe('12:15 AM next day')
+    expect(paperLabels({ ...late, entryClosesAtMin: 23 * 60 + 15 }).hardStop).toBe('midnight')
   })
 })

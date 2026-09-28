@@ -78,11 +78,8 @@ export function windowProblem(w: WindowSettings, attemptMinutes = DEFAULT_ATTEMP
   if (minutesOf(w.openHour, w.openMinute) >= minutesOf(w.entryCloseHour, w.entryCloseMinute)) {
     return 'Entry must open before it closes.'
   }
-  if (hardStopMinutes(w, attemptMinutes) > 24 * 60) {
-    const latest = 24 * 60 - attemptMinutes
-    return `Entry must close by ${formatIstTime(Math.floor(latest / 60), latest % 60)}, `
-      + `so the last person to start still finishes before midnight.`
-  }
+  // As for a paper's own window: running past midnight is allowed, and which
+  // day a paper belongs to is its date rather than the hours it occupies.
   return null
 }
 
@@ -243,7 +240,14 @@ export function paperLabels(p: PaperWindow): { opens: string; closes: string; ha
     opens: formatIstTime(Math.floor(p.opensAtMin / 60), p.opensAtMin % 60),
     closes: formatIstTime(Math.floor(p.entryClosesAtMin / 60), p.entryClosesAtMin % 60),
     // 24:00 is midnight at the end of the paper's date, not the start of it.
-    hardStop: stop >= 24 * 60 ? 'midnight' : formatIstTime(Math.floor(stop / 60), stop % 60),
+    // Exactly 24:00 is midnight. Past it the time belongs to the next morning,
+    // and calling that "midnight" would be out by however long it runs -- on
+    // the one figure an admin reads to check the window is what they meant.
+    hardStop: stop === 24 * 60
+      ? 'midnight'
+      : stop > 24 * 60
+        ? `${formatIstTime(Math.floor((stop - 24 * 60) / 60), stop % 60)} next day`
+        : formatIstTime(Math.floor(stop / 60), stop % 60),
   }
 }
 
@@ -262,12 +266,12 @@ export function paperWindowProblem(
     if (!Number.isInteger(v) || v < 0 || v > 1439) return `The ${what} time is not a time of day.`
   }
   if (p.opensAtMin >= p.entryClosesAtMin) return 'Entry must open before it closes.'
-  if (p.entryClosesAtMin + p.attemptMinutes > 24 * 60) {
-    const latest = 24 * 60 - p.attemptMinutes
-    return `A ${p.attemptMinutes}-minute paper must close entry by `
-      + `${formatIstTime(Math.floor(latest / 60), latest % 60)}, `
-      + `so the last person to start still finishes before midnight.`
-  }
+  // A paper may run past midnight, and this used to refuse it: entry close plus
+  // the paper's length had to land on or before 24:00, which made the calendar
+  // decide the window rather than the admin. Nothing needed it. A paper's
+  // instants come from its own opening day, so a hard stop of 24:15 has always
+  // meant a quarter past midnight and every state has always been right.
+  // A paper belongs to its date, not to the hours it occupies.
   return null
 }
 

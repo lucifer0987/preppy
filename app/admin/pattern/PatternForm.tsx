@@ -41,7 +41,8 @@ export function PatternForm({ trackId, current, latestEntryClose }: {
     Number.isInteger(s.minutes) && s.minutes > 0 && s.marksCorrect > 0 && s.marksNegative >= 0)
 
   // The hard stop is entry close plus the paper's length, so a longer pattern
-  // can leave the saved window impossible. Say so here rather than at save.
+  // can push the finish past midnight. Allowed since 0010, and worth saying
+  // here rather than letting an admin discover it on the night.
   const overrunsTheDay = latestEntryClose + totals.minutes > 24 * 60
   const tooLong = totals.minutes > 8 * 60
   const unused = ALL_SECTION_CODES.filter((c) => !draft.some((s) => s.code === c))
@@ -180,9 +181,11 @@ export function PatternForm({ trackId, current, latestEntryClose }: {
               </p>
             )}
             {!tooLong && overrunsTheDay && (
-              <p className="mt-3 text-sm font-semibold text-bad-ink">
-                A {totals.minutes}-minute paper cannot finish before midnight if entry stays open as
-                late as it does now. Move the last entry time earlier on the window screen first.
+              <p className="mt-3 text-sm text-ink-soft">
+                With the current last entry time, a {totals.minutes}-minute paper finishes after
+                midnight, on the following morning. That is allowed &mdash; it still belongs to the
+                day it opened &mdash; but move the last entry time earlier on the window screen if
+                you would rather it did not.
               </p>
             )}
           </>

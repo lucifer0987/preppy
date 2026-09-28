@@ -21,13 +21,13 @@
     "date": {
       "type": "string",
       "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-      "description": "The day this paper runs, YYYY-MM-DD. The times within that day are chosen when it is scheduled, not here."
+      "description": "The day this paper opens, YYYY-MM-DD. Its times are chosen when it is scheduled, not here, and they may carry it past midnight -- a paper that opens on the 28th and finishes at 00:15 is still the 28th's paper everywhere it is counted."
     },
     "title": {
       "type": "string",
       "minLength": 1,
       "maxLength": 80,
-      "description": "What students and the archive call this paper. Optional: leave it out and the paper is known by its date. The upload screen offers a name box that overrides whatever is here, so a file that names itself badly can be fixed without editing it, and a paper can be renamed afterwards from Manage."
+      "description": "What students and the archive call this paper, and part of what identifies it: a paper is its exam, its date and its name, so two papers on one night must differ by name. Optional, and then the paper is known by its date -- but only one untitled paper can be scheduled per day per exam. The upload screen offers a name box that overrides whatever is here, so a file that names itself badly can be fixed without editing it, and a paper can be renamed afterwards from Manage."
     },
     "sections": {
       "type": "array",

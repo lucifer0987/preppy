@@ -161,8 +161,8 @@ export default async function ManagePaper({ params, searchParams }: {
                 name="entryClosesAt"
                 label="Last moment to start"
                 defaultValue={hhmm(lock.window.entryClosesAtMin)}
-                max={hhmm(24 * 60 - lock.window.attemptMinutes)}
-                hint={`Whoever starts then still gets the full ${lock.window.attemptMinutes} minutes.`}
+                hint={`Whoever starts then still gets the full ${lock.window.attemptMinutes} minutes, `
+                  + `finishing at ${paperLabels(lock.window).hardStop}.`}
               />
             </div>
             <button className="btn btn-primary mt-5 px-6">Save the window</button>

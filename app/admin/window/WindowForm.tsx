@@ -47,7 +47,6 @@ export function WindowForm(
 
   const problem = windowProblem(draft, attemptMinutes)
   const labels = problem ? null : windowLabels(draft, attemptMinutes)
-  const latestClose = 24 * 60 - attemptMinutes
 
   return (
     <form action={action} className="card mt-4 p-5 sm:p-6">
@@ -60,7 +59,6 @@ export function WindowForm(
         <TimeField
           name="entryCloseAt" label="Last moment to start" defaultValue={closeAt}
           onChange={onClose}
-          max={hhmm(Math.floor(latestClose / 60), latestClose % 60)}
           hint={`Anyone starting before this still gets the full ${attemptMinutes} minutes.`}
         />
       </div>
@@ -77,9 +75,9 @@ export function WindowForm(
           </ul>
         )}
         <p className="mt-3.5 text-xs text-ink-soft">
-          Entry must close by {formatIstTime(Math.floor(latestClose / 60), latestClose % 60)} at the
-          very latest, so the last person to start still finishes before midnight. An attempt running
-          past midnight would sit on the wrong date for the archive and the leaderboard.
+          Entry may close as late as you like. A paper that runs past midnight finishes on the
+          following morning and still belongs to the day it opened, which is the date the archive,
+          the leaderboard and the streak all count it under.
         </p>
       </div>
 

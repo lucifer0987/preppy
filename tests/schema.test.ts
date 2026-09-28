@@ -184,20 +184,28 @@ describe("a paper's own length", () => {
     expect((await one<{ n: number }>('select attempt_sec n from tests where id=$1', [id])).n).toBe(36 * 60)
   })
 
-  it('decides the hard stop, so a longer paper needs an earlier entry close', async () => {
+  /**
+   * 0010. A paper's length still decides its hard stop; what changed is that
+   * the hard stop may land after midnight. The window is the admin's to pick,
+   * and a two-hour paper taking entry until 23:15 simply finishes at 01:15 the
+   * next morning.
+   */
+  it('decides the hard stop, and the hard stop may be after midnight', async () => {
     const { id } = await savePaper('2027-02-04', 'Long one')
-    // 90 minutes. Entry closing at 23:15 would run it to 00:45 the next day.
     await db.query(`update sections set duration_sec = 30 * 60 where test_id = $1`, [id])
     expect((await one<{ n: number }>('select attempt_sec n from tests where id=$1', [id])).n).toBe(120 * 60)
 
+    // Entry closing at 23:15 runs this to 01:15 the next day. Allowed now.
     expect(await fails(
       `update tests set status='SCHEDULED', opens_at_min=1320, entry_closes_at_min=1395 where id=$1`, [id]))
-      .toMatch(/tests_window_within_the_day/)
-
-    // 22:00 entry close leaves exactly the two hours it needs.
-    expect(await fails(
-      `update tests set status='SCHEDULED', opens_at_min=1200, entry_closes_at_min=1320 where id=$1`, [id]))
       .toBeNull()
+  })
+
+  it('still refuses a window that closes before it opens', async () => {
+    const { id } = await savePaper('2027-02-06', 'Backwards')
+    expect(await fails(
+      `update tests set status='SCHEDULED', opens_at_min=1320, entry_closes_at_min=600 where id=$1`, [id]))
+      .toMatch(/tests_window_opens_before_it_closes/)
   })
 
   it('lets a draft be any length, whatever window it happens to carry', async () => {

@@ -43,21 +43,34 @@ describe('the finalise job', () => {
     expect(Math.max(...gaps)).toBeLessThanOrEqual(12 * 60)
   })
 
-  it('sweeps after midnight, so one run always covers the whole day before', () => {
-    // A paper cannot reach past midnight on its own date, whatever its length,
-    // so a run in the small hours has the previous day complete behind it.
+  it('sweeps in the small hours, when almost every paper is behind it', () => {
     const afterMidnight = crons.map((c) => istMinute(c.schedule)).filter((t) => t > 0 && t < 6 * 60)
     expect(afterMidnight.length).toBeGreaterThan(0)
   })
 
-  it('agrees with the rule that a paper must finish inside its own day', () => {
-    // Not a fact about 45 minutes: whatever a paper's length, entry has to
-    // close early enough that the last entrant finishes by midnight.
+  /**
+   * The window is the admin's to choose (0010), so a paper may still be
+   * running when a sweep fires -- entry closing at 23:45 on a 45-minute paper
+   * finishes at 00:30, after the 1 AM run has been and gone for the papers
+   * before it.
+   *
+   * That is not a hole. finaliseOverdueAttempts scores anything past its hard
+   * stop whenever it runs, the second sweep is twelve hours later, the admin
+   * has a button, and reading a result finalises it. The sweep is a backstop
+   * with several other backstops behind it, which is why widening the window
+   * did not need it rescheduled.
+   */
+  it('no longer assumes a paper ends inside its own day', () => {
     for (const len of [20, DEFAULT_ATTEMPT_MINUTES, 90, 180, 8 * 60]) {
-      const latest = DAY - len
-      expect(paperWindowProblem({ opensAtMin: 0, entryClosesAtMin: latest, attemptMinutes: len })).toBeNull()
-      expect(paperWindowProblem({ opensAtMin: 0, entryClosesAtMin: latest + 1, attemptMinutes: len })).not.toBeNull()
-      expect(latest + len).toBe(DAY)
+      // Entry closing one minute before midnight, whatever the paper's length.
+      expect(paperWindowProblem({ opensAtMin: 0, entryClosesAtMin: DAY - 1, attemptMinutes: len }))
+        .toBeNull()
     }
+  })
+
+  it('still runs twice, so nothing waits a full day to be scored', () => {
+    expect(crons).toHaveLength(2)
+    const apart = Math.abs(istMinute(crons[0]!.schedule) - istMinute(crons[1]!.schedule))
+    expect(Math.min(apart, DAY - apart)).toBe(12 * 60)
   })
 })

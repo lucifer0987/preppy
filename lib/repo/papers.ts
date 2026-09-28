@@ -38,7 +38,7 @@ export function paperWindowOf(row: Record<string, unknown>): PaperWindow {
 import { paperToRows, rowsToPaper, savePaperPayload, type PaperRows } from '../paper-rows'
 import { readQuestion, summarise } from '../paper'
 import {
-  defaultPaperWindow, istDate, istMinuteOfDay, paperWindowProblem, windowState,
+  addDays, defaultPaperWindow, istDate, istMinuteOfDay, paperWindowProblem, windowState,
   opensAt, paperLabels, type PaperWindow, type WindowState,
 } from '../time'
 import { getWindow } from './settings'
@@ -843,14 +843,24 @@ export function shapeOf(sections: readonly Record<string, unknown>[], window: Pa
 
 export async function upcomingPapers(now = new Date(), trackId?: string): Promise<UpcomingPapers> {
   const today = istDate(now)
-  // Today and later is the whole of it: `tests_window_within_the_day` forces
-  // entry close + 45 minutes to land inside the paper's own IST day, so no
-  // paper dated before today can still be running.
+  /**
+   * Yesterday and later, not today and later.
+   *
+   * This used to start at today, and said so: the old constraint forced entry
+   * close plus the paper's length inside its own IST day, so nothing dated
+   * earlier could still be running. A window may cross midnight now, so a
+   * paper dated yesterday and still running at ten past twelve is real -- and
+   * starting at today would have dropped it from the dashboard mid-attempt,
+   * for everyone who had not started it and everyone who had.
+   *
+   * One day back is enough: a paper cannot run for 24 hours, because
+   * tests_attempt_sec_sane caps it at eight.
+   */
   const rows = await selectAll<Record<string, unknown>>('papers', (from, to) => {
     let q = db().from('tests')
       .select(`id, title, ${PAPER_WINDOW_COLUMNS}, sections(question_count, marks_correct, marks_negative)`)
       .eq('status', 'SCHEDULED')
-      .gte('date', today)
+      .gte('date', addDays(today, -1))
     if (trackId) q = q.eq('track_id', trackId)
     return q.order('date').range(from, to)
   })
