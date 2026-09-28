@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { IBM_Plex_Mono, IBM_Plex_Sans, Nunito } from 'next/font/google'
 import './globals.css'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import { Analytics } from '../components/Analytics'
 import { ServiceWorker } from '../components/ServiceWorker'
 
 /**
@@ -122,6 +123,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             in development would mean a cross-origin request on every page
             load, every day, reporting nothing anybody will ever read. */}
         {process.env.NODE_ENV === 'production' && <SpeedInsights />}
+        {/* Page views, on the same terms and for the same reason. The wrapper
+            strips ids out of the URL first -- components/Analytics.tsx says
+            why that matters at six people when it would not at six thousand. */}
+        {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
   )

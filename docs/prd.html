@@ -863,7 +863,7 @@ actual reason it is not one.</p>
 <tr><td>Paper validation</td><td><strong>Hand-written validator</strong> in a Server Action</td><td>Every message names the field path; <code>format/schema.json</code> mirrors it for editors</td></tr>
 <tr><td>Styling</td><td><strong>Tailwind CSS v4</strong></td><td>Configured in CSS, in <code>app/globals.css</code>. There is no <code>tailwind.config.js</code> in this repo and v4 does not want one</td></tr>
 <tr><td>Celebration</td><td><strong><code>canvas-confetti</code></strong></td><td>CSS animations cover the rest; no animation library</td></tr>
-<tr><td>Performance telemetry</td><td><strong><code>@vercel/speed-insights</code></strong></td><td>Core Web Vitals from real devices, production builds only. Anonymous, no cookie; section 9 of the engineering reference lists every field</td></tr>
+<tr><td>Telemetry</td><td><strong><code>@vercel/speed-insights</code></strong><br><strong><code>@vercel/analytics</code></strong></td><td>Core Web Vitals and page views, production builds only, no cookie. Ids are stripped from the URL before either sends it; section 9 of the engineering reference lists every field and says why six people changes the calculation</td></tr>
 <tr><td>Hosting</td><td><strong>Vercel</strong></td><td></td></tr>
 <tr><td>Scheduling</td><td><strong>Vercel Cron — 1 daily job</strong></td><td>See below</td></tr>
 </table></div>
@@ -935,7 +935,7 @@ actual reason it is not one.</p>
 <li>Admin routes gated by role server-side, not by route obscurity.</li>
 <li>Rate limits on login, response writes and paper upload. Uploads restricted by MIME type and size.</li>
 <li><strong>Minimal PII</strong> — a username, a display name, and a synthetic internal address that receives no mail.</li>
-<li><strong>Minimal behavioural data</strong> — two integers per attempt. No event log, no timestamps, <strong>nothing to retain</strong>. Students are told in the briefing what the two counters are and that the admin can see them. One exception, and it is not Preppy's own store: Vercel Speed Insights records a timestamped page-load measurement, anonymous and not tied to a visitor. Section 9 of the engineering reference lists every field it sends.</li>
+<li><strong>Minimal behavioural data</strong> — two integers per attempt. No event log, no timestamps, <strong>nothing to retain</strong>. Students are told in the briefing what the two counters are and that the admin can see them. One exception, and it is not Preppy's own store: Vercel's Speed Insights and Web Analytics record timestamped page-load and page-view measurements. Ids are stripped from the URL before either sends it, but a city and a 24-hour visitor hash remain. Section 9 of the engineering reference lists every field and is honest about what six people does to the word anonymous.</li>
 <li>FR-5.3 makes the privacy posture structural: a student's data is visible to that student, to the admin, and — for the leaderboard columns only — to the cohort.</li>
 </ul>
 </div></section>
@@ -1014,7 +1014,7 @@ actual reason it is not one.</p>
 
 <div class="good">
   <h4>What is still unproven</h4>
-  <p>The schema and its functions are exercised against real Postgres, 418 tests cover the pure logic, and <code>npm run test:live</code> now runs every <em>read</em> the app makes against the real project &mdash; a suite that exists because a select which forgets a column is invisible to both TypeScript and an in-process Postgres, and had already shipped twice. What no automated test reaches is the half that writes: signing in, starting and submitting an attempt, and reading an image out of Storage. The engineering reference has a ten-minute walkthrough that covers those.</p>
+  <p>The schema and its functions are exercised against real Postgres, 425 tests cover the pure logic, and <code>npm run test:live</code> now runs every <em>read</em> the app makes against the real project &mdash; a suite that exists because a select which forgets a column is invisible to both TypeScript and an in-process Postgres, and had already shipped twice. What no automated test reaches is the half that writes: signing in, starting and submitting an attempt, and reading an image out of Storage. The engineering reference has a ten-minute walkthrough that covers those.</p>
 </div>
 </div></section>
 

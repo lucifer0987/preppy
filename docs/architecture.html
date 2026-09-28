@@ -218,8 +218,8 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <div><dt>SQL functions</dt><dd>11</dd></div>
     <div><dt>Migrations</dt><dd>8</dd></div>
     <div><dt>Modules</dt><dd>31<small>lib/</small></dd></div>
-    <div><dt>Tests</dt><dd>479</dd></div>
-    <div><dt>Runtime deps</dt><dd>10</dd></div>
+    <div><dt>Tests</dt><dd>486</dd></div>
+    <div><dt>Runtime deps</dt><dd>11</dd></div>
   </dl>
 </header>
 
@@ -298,7 +298,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td>Supabase Postgres</td><td>Every piece of durable state</td><td>Relational fits the data; transactions make scoring safe</td></tr>
 <tr><td>Supabase Auth</td><td>Password hashing, sessions, refresh</td><td>So no custom crypto is written anywhere in this codebase</td></tr>
 <tr><td>Supabase Storage</td><td>Diagrams for DI sets and puzzles</td><td>Private bucket; served through an app route that checks permission</td></tr>
-<tr><td>Vercel</td><td>Hosting, the one cron, and Speed Insights</td><td>Zero-config for Next; the free tier covers six people</td></tr>
+<tr><td>Vercel</td><td>Hosting, the one cron, and the two telemetry scripts</td><td>Zero-config for Next; the free tier covers six people</td></tr>
 </table></div>
 
 <p>One more file runs on more requests than any of those: <code>proxy.ts</code> in
@@ -551,7 +551,7 @@ whose scores are already public to everyone on it.</p>
   <rect x="20" y="160" width="470" height="76" rx="8" fill="none" stroke="#0E767F" stroke-width="2.5"/>
   <text x="38" y="184" font-size="13.5" font-weight="700" fill="currentColor">Pure domain logic</text>
   <text x="38" y="203" font-size="10.5" fill="currentColor" opacity=".7">time &middot; attempt &middot; scoring &middot; leaderboard &middot; paper &middot; csv &middot; images</text>
-  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 418 of the 479 tests live here</text>
+  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 425 of the 486 tests live here</text>
 
   <rect x="20" y="252" width="470" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
   <text x="38" y="276" font-size="13.5" font-weight="600" fill="currentColor">Repository</text>
@@ -1097,7 +1097,7 @@ of them.</p>
 <tr><td>Write endpoints</td><td>Server actions, which are POST-only and carry Next's origin check</td></tr>
 <tr><td>Framing</td><td>Every response refuses to be embedded, so the exam room cannot be put inside somebody else's page</td></tr>
 <tr><td>Search engines</td><td><code>robots.txt</code> disallows everything and every page is <code>noindex</code>. Nobody arrives here by searching</td></tr>
-<tr><td>Performance telemetry</td><td>Vercel Speed Insights, production only. Page timings and the URL that produced them, never who was on it &mdash; the subsection below says exactly what leaves the browser</td></tr>
+<tr><td>Telemetry</td><td>Vercel Speed Insights and Web Analytics, production only. Page timings and page views; ids are stripped from the URL before either sends it. The subsection below lists every field</td></tr>
 </table></div>
 
 <h3>The response headers, and the one that is missing</h3>
@@ -1126,8 +1126,9 @@ of them.</p>
 
 <p>That sentence used to end "no retention policy anywhere in this system", which stopped being true the day Speed Insights was added. It holds for everything Preppy stores; it does not hold for what Vercel stores on Preppy's behalf, and the next subsection is there so the difference is not something anyone has to discover.</p>
 
-<h3>What Speed Insights sends, exactly</h3>
-<p>Real-user performance &mdash; how long a page actually took on the machines people sit papers on, rather than on a developer's laptop. It is a script from Vercel, rendered in the root layout, <strong>in production builds only</strong>. Every data point carries this, and nothing else, per Vercel's own privacy page:</p>
+<h3>What the two Vercel scripts send, exactly</h3>
+<p><strong>Speed Insights</strong> is real-user performance &mdash; how long a page actually took on the machines people sit papers on, rather than on a developer's laptop. <strong>Web Analytics</strong> is page views: which screens get used, on what, from where. Both are rendered in the root layout <strong>in production builds only</strong>, and on a Vercel deployment both load same-origin, from <code>/_vercel/speed-insights/script.js</code> and <code>/_vercel/insights/script.js</code>.</p>
+<p>Speed Insights carries this per data point, and nothing else, per Vercel's own privacy page:</p>
 <div class="tw"><table>
 <tr><th>Sent</th><th>Example</th></tr>
 <tr><td>Route</td><td><code>/archive/[testId]</code></td></tr>
@@ -1142,11 +1143,36 @@ of them.</p>
 </table></div>
 <p>Vercel states that the recording "does not collect or store information that would enable us to reconstruct a browsing session across pages or identify a user", and that it is not tied to any individual visitor or IP address. No cookie is set and nothing is kept in the browser.</p>
 
+<p>Web Analytics carries rather more:</p>
+<div class="tw"><table>
+<tr><th>Sent</th><th>Example</th></tr>
+<tr><td>Event timestamp</td><td>2026-09-28 09:06:30</td></tr>
+<tr><td>URL, and the dynamic path</td><td><code>/archive/[id]</code>, <code>/archive/[testId]</code></td></tr>
+<tr><td>Referrer, and filtered query params</td><td>&mdash;, <code>?window=30</code></td></tr>
+<tr><td><strong>Geolocation</strong></td><td><strong>IN, Maharashtra, Mumbai</strong></td></tr>
+<tr><td>Device OS, browser, device type</td><td>Android 10, Chrome 86, Mobile</td></tr>
+<tr><td>Script version</td><td>1.0.0</td></tr>
+</table></div>
+<p>There are no third-party cookies. Vercel identifies a visitor by "a hash created from the incoming request", and says the session "is automatically discarded after 24 hours".</p>
+
+<div class="note care">
+  <h4>Six people is not six thousand, and that changes what "anonymous" means</h4>
+  <p>Web Analytics is designed for a site with real traffic, where a city and a device model describe a crowd. This cohort is six. "Mumbai, Chrome on Android, 10:14pm" describes one person to anyone who knows the group, and if the URL carried <code>/test/&lt;attemptId&gt;</code> as well, the dashboard would be a per-student activity log that nobody decided to build.</p>
+  <p>So <code>components/Analytics.tsx</code> wraps the package and rewrites the URL with <code>beforeSend</code>, which is Vercel's own documented mechanism for this, before anything is sent:</p>
+  <div class="tw"><table>
+  <tr><th>What the browser would send</th><th>What is actually sent</th></tr>
+  <tr><td><code>/archive/37a7d6b7-7c06-4c6a-ac23-2e77966e00ef</code></td><td><code>/archive/[id]</code></td></tr>
+  <tr><td><code>/test/6225f300-&hellip;/done</code></td><td><code>/test/[id]/done</code></td></tr>
+  </table></div>
+  <p>Every uuid goes, in any position, upper or lower case, however many a url holds. What survives is the part worth having: which screens get used, on what device, from where. <code>tests/analytics.test.ts</code> checks the rule against every url shape this app produces rather than trusting one regular expression by eye.</p>
+  <p>The geolocation and the 24-hour visitor hash remain, and cannot be turned off from here. They are Vercel's, they are documented above, and if that is not a trade worth making, two lines out of <code>app/layout.tsx</code> remove both scripts entirely.</p>
+</div>
+
 <div class="note care">
   <h4>Two rows in that table are worth reading twice</h4>
   <p><strong>The URL, not only the route.</strong> Preppy's URLs carry ids: <code>/archive/&lt;testId&gt;</code>, <code>/test/&lt;attemptId&gt;</code>. Those uuids mean nothing to Vercel &mdash; only this database can turn one into a person &mdash; but they do leave the browser, and "we send the route" would have been a more comfortable sentence than the true one.</p>
   <p><strong>A server-received time.</strong> Preppy deliberately keeps no timestamps about behaviour. Vercel's own record of a page view has one. It says when a page was loaded, not who loaded it or what they did &mdash; but this is the system's only timestamped trail, and it is not ours.</p>
-  <p>If that trade is not wanted, deleting one line from <code>app/layout.tsx</code> removes it entirely. Nothing else depends on it.</p>
+  <p>If that trade is not wanted, deleting the line from <code>app/layout.tsx</code> removes it entirely. Nothing else depends on it.</p>
 </div>
 
 <h3>What is written to the device, and why it is not a trade</h3>
@@ -1204,7 +1230,7 @@ of them.</p>
 
 <div class="tw"><table>
 <tr><th>Layer</th><th>Status</th></tr>
-<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 418 tests, no database needed</td></tr>
+<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 425 tests, no database needed</td></tr>
 <tr><td>The schema, its functions, triggers and indexes</td><td><strong>Tested against real Postgres.</strong> <code>tests/schema.test.ts</code> applies every migration to an in-process Postgres and exercises each function and guard. <code>tests/migrate.test.ts</code> proves the chain is ordered and that a second run changes nothing</td></tr>
 <tr><td>The queries &mdash; what <code>lib/repo/</code> actually asks PostgREST for</td><td><strong>Tested against the real project, on request.</strong> <code>npm run test:live</code> runs every read the app makes against the Supabase project in <code>.env.local</code>. Read-only, so it is safe to point at production, and skipped when there are no credentials. It exists because a select that forgets a column is invisible to both TypeScript and pglite &mdash; and had already shipped twice</td></tr>
 <tr><td>The queries in <code>lib/repo/</code></td><td><strong>Typechecked only.</strong> The PostgREST calls have never run against a live server</td></tr>
@@ -1612,7 +1638,7 @@ words.</p>
     <text x="179" y="209" text-anchor="middle" font-weight="600">typecheck</text>
     <line x1="226" y1="205" x2="238" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="238" y="186" width="94" height="38" rx="6" fill="none" stroke="#94202B" stroke-width="2"/>
-    <text x="285" y="209" text-anchor="middle" font-weight="600">479 tests</text>
+    <text x="285" y="209" text-anchor="middle" font-weight="600">486 tests</text>
     <line x1="332" y1="205" x2="344" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="344" y="186" width="84" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
     <text x="386" y="209" text-anchor="middle" font-weight="600">build</text>
@@ -1637,7 +1663,7 @@ words.</p>
 <tr><td><code>npm run start:local</code></td><td><span class="pill local">rare</span></td><td>Serves that build on port 3000</td></tr>
 <tr><td><code>npm run build:prod</code></td><td><span class="pill prod">before shipping</span></td><td>Preflight, typecheck, all tests, a build without source maps, then the bundle scan. Any one of them failing stops the rest</td></tr>
 <tr><td><code>npm run start:prod</code></td><td><span class="pill prod">on the host</span></td><td>Serves the production build</td></tr>
-<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>479 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>486 tests. No database needed, about a second</td></tr>
 <tr><td><code>npm run test:live</code></td><td><span class="pill both">after touching a query</span></td><td>Runs every read <code>lib/repo/</code> makes against the real project in <code>.env.local</code>. Read-only. Skipped when there are no credentials</td></tr>
 <tr><td><code>npm run typecheck</code></td><td><span class="pill both">anytime</span></td><td>Checks types without building</td></tr>
 <tr><td><code>npm run seed</code></td><td><span class="pill both">setup</span></td><td>Creates the accounts, prints passwords once</td></tr>
@@ -1767,7 +1793,7 @@ words.</p>
 <b>npm install</b></pre>
 </div>
 <p>Downloads everything into a <code>node_modules</code> folder. Safe to re-run at any time.</p>
-<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>479 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
+<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>486 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
 </li>
 
 <li>
@@ -2278,7 +2304,7 @@ landed and what has not, at any time.</p>
 <tr><th>Step</th><th>What it catches</th></tr>
 <tr><td><code>preflight prod</code></td><td>A missing or malformed variable, before anything expensive runs. It names the variable and what it expected &mdash; including a secret key sitting in the publishable slot</td></tr>
 <tr><td><code>typecheck</code></td><td><code>tsc --noEmit</code> across the whole repository, tests included</td></tr>
-<tr><td><code>test</code></td><td>All 479. They need no database, so they run on the build machine exactly as they do on yours. <strong>One failure fails the deploy</strong> and nothing changes</td></tr>
+<tr><td><code>test</code></td><td>All 486. They need no database, so they run on the build machine exactly as they do on yours. <strong>One failure fails the deploy</strong> and nothing changes</td></tr>
 <tr><td><code>next build</code></td><td>The build itself, with <code>APP_ENV=production</code>, which drops browser source maps</td></tr>
 <tr><td><code>check-bundle</code></td><td>Reads everything under <code>.next/static</code> &mdash; the files a browser downloads &mdash; and fails if any of it contains the secret key's variable name, the <code>sb_secret_</code> prefix, or the key's own value. It is the last gate on the one mistake that cannot be taken back</td></tr>
 </table></div>
@@ -2406,7 +2432,7 @@ landed and what has not, at any time.</p>
 <ol>
 <li><strong>Which database am I talking to?</strong> Check the URL in <code>.env.local</code> against the project name in Supabase.</li>
 <li><strong>Did the schema actually apply?</strong> Table Editor: twelve tables plus <code>schema_migrations</code>, with RLS badges. Or <code>npm run migrate -- --status</code>, which names any file that has not landed.</li>
-<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 479 pass, the logic is fine and the problem is configuration or a query.</li>
+<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 486 pass, the logic is fine and the problem is configuration or a query.</li>
 </ol>
 
 <p class="end">
