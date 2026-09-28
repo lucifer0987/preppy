@@ -1885,18 +1885,19 @@ landed and what has not, at any time.</p>
 <tr><th>What</th><th>How many</th><th>For</th></tr>
 <tr><td>Tables</td><td>12</td><td>People, papers, attempts, answers, the exams and their patterns, the two settings tables, rate limits. Thirteen counting <code>schema_migrations</code>, which is the ledger rather than the product</td></tr>
 <tr><td>Types</td><td>5</td><td>Roles, paper status, attempt state, section codes, and why a section ended</td></tr>
-<tr><td>Functions</td><td>15</td><td>The operations that must be all-or-nothing, plus the three the rate limiter counts with</td></tr>
+<tr><td>Functions</td><td>15</td><td>The operations that must be all-or-nothing, plus the three the rate limiter counts with. A current Supabase project lists a sixteenth, <code>rls_auto_enable</code>, which is theirs rather than ours &mdash; see below</td></tr>
 <tr><td>Triggers</td><td>3</td><td>Refusing to delete a paper students have sat; keeping each paper's length in step with its sections</td></tr>
 <tr><td>Indexes</td><td>33</td><td>Speed, plus the keys that enforce uniqueness &mdash; one counted attempt per person, one scheduled paper per opening</td></tr>
-<tr><td>RLS policies</td><td><strong>0</strong></td><td>Deliberately. Row Level Security is <em>enabled</em> on all twelve tables and granted to nobody, and an enabled table with no policy allows nothing &mdash; see the note below</td></tr>
+<tr><td>RLS policies</td><td><strong>0</strong></td><td>Deliberately. Row Level Security is <em>enabled</em> on every table and granted to nobody, and an enabled table with no policy allows nothing &mdash; see the note below</td></tr>
 </table></div>
 
 <div class="note why">
   <h4>Zero is the number that makes this work</h4>
   <p>It is tempting to read a policy count of zero as unfinished. It is the whole design. Postgres denies every row on a table that has RLS enabled and no policy matching the request, so the twelve tables are shut to anything holding a publishable or anon key &mdash; there is no rule to argue with. The server reaches them with the secret key, which bypasses RLS, and that key is never sent to a browser: <code>npm run build:prod</code> scans the client bundle for it and fails the build if it appears.</p>
   <p>The counts above are read off the live schema rather than off the migration files, so they include anything Supabase adds of its own accord. If a number here disagrees with your project, trust your project and fix this table.</p>
+  <p><strong>One of those is worth naming.</strong> A current Supabase project ships an event trigger, <code>ensure_rls</code>, backed by a function <code>rls_auto_enable</code> in <code>public</code>. It turns RLS on for every table created in that schema, which is why a fresh install shows sixteen functions rather than fifteen and an <strong>RLS enabled</strong> badge on all thirteen tables &mdash; <code>schema_migrations</code> included. An older project may show twelve badges and no such function, because its ledger was created before Supabase added the trigger. Both are correct; neither needs fixing.</p>
 </div>
-<p><strong>Check it worked:</strong> open <strong>Table Editor</strong>. You should see twelve tables each carrying an <strong>RLS enabled</strong> badge, plus <code>schema_migrations</code>, which carries none. That is correct and not a missed step: the ledger records which migrations have run and holds nothing about anybody, and the secret key the runner uses bypasses RLS regardless. The badge on the other twelve is the thing to check &mdash; it means nothing reaches those tables except your own server.</p>
+<p><strong>Check it worked:</strong> open <strong>Table Editor</strong>. You should see <strong>twelve tables</strong> plus <code>schema_migrations</code>, and on a current Supabase project every one of the thirteen carries an <strong>RLS enabled</strong> badge. The badge is the thing to check: it means nothing reaches those tables except your own server. If the ledger is the one row without a badge, that is fine too &mdash; it records which migrations have run, holds nothing about anybody, and the secret key the runner uses bypasses RLS either way.</p>
 <div class="note do">
   <h4>Safe to run twice</h4>
   <p>The whole file is written to be re-runnable: it creates nothing that already exists and replaces functions in place. If you are ever unsure whether it applied, run it again. There is a test that proves this &mdash; <em>"applies twice without error"</em>.</p>

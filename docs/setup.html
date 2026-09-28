@@ -295,9 +295,11 @@ blank until you deploy.</p>
 <p>No <code>DATABASE_URL</code>? <code>npm run migrate -- --print</code> prints the
 SQL to paste into <strong>SQL Editor</strong> &rarr; <strong>New query</strong>
 instead, one file at a time, in order. Either way you should end with
-<strong>twelve tables</strong>, each showing an <strong>RLS enabled</strong>
-badge, and a thirteenth, <code>schema_migrations</code>, which shows none. The
-ledger is meant to be the exception.</p>
+<strong>twelve tables</strong> plus <code>schema_migrations</code>, and on a
+current Supabase project all thirteen show an <strong>RLS enabled</strong>
+badge &mdash; their own event trigger turns it on for anything created in
+<code>public</code>. An older project may leave the ledger without one, which is
+equally fine.</p>
 
 <div class="note why">
   <h4>Why it may say the baseline is pending</h4>
@@ -529,7 +531,7 @@ means "pass the rest through".</p>
 <p>Three questions answer most problems:</p>
 <ol>
 <li><strong>Which database am I talking to?</strong> Compare the URL in <code>.env.local</code> with the project name in Supabase.</li>
-<li><strong>Did the schema apply?</strong> Table Editor: twelve tables each with an RLS badge, plus <code>schema_migrations</code> without one.</li>
+<li><strong>Did the schema apply?</strong> Table Editor: twelve tables plus <code>schema_migrations</code>, essentially all of them showing an RLS badge.</li>
 <li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those pass, it is configuration, not logic.</li>
 </ol>
 
