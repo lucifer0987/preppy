@@ -534,6 +534,11 @@ actual reason it is not one.</p>
 <p>Filters: by section · <strong>"questions I got wrong"</strong> · <strong>"questions I never reached"</strong>.</p>
 <h4>Panel 3 — Leaderboard</h4>
 <p>The whole cohort, inline, however many that is. The current user's row is highlighted.</p>
+<h4>Panel 4 — Timetable</h4>
+<p>The topic plan the series is cut from, day by day, from the first paper to the exam: what Professional Knowledge covers and the Quant, Reasoning and English item beside it. It is the same table for everybody and read-only on both sides &mdash; a student opens it to know what is coming, an admin to know what to set. The only thing it knows about the reader is today, which it marks.</p>
+<div class="fr"><p><b class="id">FR-6.3.5</b><strong>The timetable is a plan, not state.</strong> No row of it is linked to a paper, no paper is required to follow it, and nothing about a student's progress is written to it. A day the plan names and no paper was set for is a fact about the week, not an error the product should report.</p></div>
+<div class="fr"><p><b class="id">FR-6.3.6</b>It renders as <strong>a table</strong> on a laptop and as a stacked card per day on a phone. Six columns of prose behind a sideways scroll is a timetable nobody checks.</p></div>
+<div class="fr"><p><b class="id">FR-6.3.7</b>The same table is reachable from the admin console, <strong>from one source through one component</strong>. An admin setting tomorrow's paper needs the row the cohort is looking at, not a second copy that may disagree.</p></div>
 
 <h3>6.4 &nbsp;Test engine</h3>
 <div class="mock" role="img" aria-label="Mock of the Kahoot-themed test interface: a question with five shape-coded colour option cards and a question palette showing the five status colours.">

@@ -15,7 +15,7 @@ import { Wordmark } from './Wordmark'
  */
 export function AppShell({ user, current, examName, children }: {
   user: { displayName: string; role: string; soundEnabled: boolean }
-  current: 'dashboard' | 'leaderboard' | 'archive' | null
+  current: 'dashboard' | 'leaderboard' | 'timetable' | 'archive' | null
   /**
    * The exam this student is preparing for. It used to be written into the
    * footer, which meant an Agriculture student was told they were sitting IT.
@@ -36,6 +36,7 @@ export function AppShell({ user, current, examName, children }: {
           <nav className="hidden items-center gap-1 sm:flex" aria-label="Main">
             <Tab href="/dashboard" active={current === 'dashboard'}>Today</Tab>
             <Tab href="/leaderboard" active={current === 'leaderboard'}>Leaderboard</Tab>
+            <Tab href="/timetable" active={current === 'timetable'}>Timetable</Tab>
             <Tab href="/archive" active={current === 'archive'}>Past papers</Tab>
           </nav>
 
@@ -59,6 +60,7 @@ export function AppShell({ user, current, examName, children }: {
              aria-label="Main">
           <Tab href="/dashboard" active={current === 'dashboard'}>Today</Tab>
           <Tab href="/leaderboard" active={current === 'leaderboard'}>Leaderboard</Tab>
+          <Tab href="/timetable" active={current === 'timetable'}>Timetable</Tab>
           <Tab href="/archive" active={current === 'archive'}>Past papers</Tab>
         </nav>
       </header>

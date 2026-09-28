@@ -213,12 +213,12 @@ figcaption b{color:var(--ink-2); font-weight:600}
   <h1>How Preppy is built,<br>and how to run it</h1>
   <p class="lede">A daily mock-test platform for IBPS Specialist Officer (IT) candidates. This document is in two halves: <strong>how the system works</strong>, for when you need to reason about it, and <strong>how to set it up and run it</strong>, written for someone who does not write web code.</p>
   <dl class="facts">
-    <div><dt>Routes</dt><dd>22</dd></div>
+    <div><dt>Routes</dt><dd>24</dd></div>
     <div><dt>Tables</dt><dd>12</dd></div>
     <div><dt>SQL functions</dt><dd>15</dd></div>
     <div><dt>Migrations</dt><dd>11</dd></div>
-    <div><dt>Modules</dt><dd>31<small>lib/</small></dd></div>
-    <div><dt>Tests</dt><dd>510</dd></div>
+    <div><dt>Modules</dt><dd>32<small>lib/</small></dd></div>
+    <div><dt>Tests</dt><dd>523</dd></div>
     <div><dt>Runtime deps</dt><dd>11</dd></div>
   </dl>
 </header>
@@ -588,6 +588,7 @@ whose scores are already public to everyone on it.</p>
 <tr><td>Which section is open and how long is left</td><td><code>lib/attempt.ts</code></td></tr>
 <tr><td>Ranking, tie-breaks, streaks</td><td><code>lib/leaderboard.ts</code></td></tr>
 <tr><td>The paper format and its validation</td><td><code>lib/paper.ts</code>, and section 7 here</td></tr>
+<tr><td>The topic plan &mdash; which day covers what</td><td><code>lib/schedule.ts</code>. It is a module, not a table: the plan changes in a commit, where the change is visible in a diff, and nothing in the database refers to it</td></tr>
 <tr><td>What the live test screen does</td><td><code>components/TestEngine.tsx</code></td></tr>
 <tr><td>Anything that reads or writes the database</td><td><code>lib/repo/</code></td></tr>
 <tr><td>Tables, constraints, SQL functions</td><td><code>supabase/migrations/</code></td></tr>
