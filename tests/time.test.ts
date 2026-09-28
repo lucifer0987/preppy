@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   addDays, canStartAttempt, DEFAULT_WINDOW, entryClosesAt, formatIstDate,
   formatIstTime, hardStopAt, istDate, istInstant, opensAt, paperClosed,
-  paperWindowProblem, windowLabels, windowState, windowsOverlap, paperLabels, entryClosesOn, daysBetween
+  paperWindowProblem, windowLabels, windowState, paperLabels, entryClosesOn, daysBetween
 } from '../lib/time'
 import { attemptHardStop } from '../lib/attempt'
 
@@ -150,32 +150,6 @@ describe('date helpers', () => {
     expect(formatIstTime(24, 0)).toBe('12:00 AM')
     expect(formatIstTime(0, 5)).toBe('12:05 AM')
     expect(formatIstTime(0, 5)).toBe('12:05 AM')
-  })
-})
-
-describe('two papers in one day', () => {
-  const morning = { date: D, opensAtMin: 6 * 60, entryClosesAtMin: 7 * 60, attemptMinutes: 45 }
-  const evening = { date: D, opensAtMin: 22 * 60, entryClosesAtMin: 23 * 60, attemptMinutes: 45 }
-
-  it('does not call well-separated windows an overlap', () => {
-    expect(windowsOverlap(morning, evening)).toBe(false)
-  })
-
-  it('counts the running time, not just entry, when judging an overlap', () => {
-    // Entry closes at 07:00 but attempts run to 07:45, so a paper opening at
-    // 07:30 clashes even though entry never overlaps.
-    const tooSoon = { date: D, opensAtMin: 7 * 60 + 30, entryClosesAtMin: 8 * 60, attemptMinutes: 45 }
-    expect(windowsOverlap(morning, tooSoon)).toBe(true)
-    expect(windowsOverlap(tooSoon, morning)).toBe(true)
-  })
-
-  it('allows one to start exactly as the other finishes', () => {
-    const after = { date: D, opensAtMin: 7 * 60 + 45, entryClosesAtMin: 8 * 60 + 30, attemptMinutes: 45 }
-    expect(windowsOverlap(morning, after)).toBe(false)
-  })
-
-  it('never calls papers on different days an overlap', () => {
-    expect(windowsOverlap(morning, { ...morning, date: '2026-09-27' })).toBe(false)
   })
 })
 

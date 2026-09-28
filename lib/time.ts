@@ -54,16 +54,6 @@ export const DEFAULT_ATTEMPT_MINUTES = patternTotals(DEFAULT_PATTERN).minutes
 const minutesOf = (h: number, m: number) => h * 60 + m
 
 /**
- * Entry close plus one paper. Derived, never stored.
- *
- * @param attemptMinutes How long the paper runs. The defaults screen has no
- *                       paper in hand, so it passes the default pattern's total.
- */
-export function hardStopMinutes(w: WindowSettings, attemptMinutes = DEFAULT_ATTEMPT_MINUTES): number {
-  return minutesOf(w.entryCloseHour, w.entryCloseMinute) + attemptMinutes
-}
-
-/**
  * Why this window cannot be used, or null. The same rules the database
  * enforces, so the admin form can explain a refusal before submitting it.
  */
@@ -303,13 +293,6 @@ export function paperWindowProblem(
   // meant a quarter past midnight and every state has always been right.
   // A paper belongs to its date, not to the hours it occupies.
   return null
-}
-
-/** Two papers whose windows overlap, so a student cannot sit both. */
-export function windowsOverlap(a: PaperWindow, b: PaperWindow): boolean {
-  if (a.date !== b.date) return false
-  return a.opensAtMin < b.entryClosesAtMin + b.attemptMinutes
-      && b.opensAtMin < a.entryClosesAtMin + a.attemptMinutes
 }
 
 export function addDays(date: string, days: number): string {
