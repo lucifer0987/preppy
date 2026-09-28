@@ -212,7 +212,7 @@ file has to exist before anything can be written into it.</p>
 <h3>1 &middot; The code</h3>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
-<pre><b>node -v</b>            <i># needs v20 or newer</i>
+<pre><b>node -v</b>            <i># needs v20.9 or newer</i>
 <b>npm install</b>
 <b>npm test</b>           <i># 462 passing means the code is sound</i></pre>
 </div>
@@ -296,7 +296,8 @@ blank until you deploy.</p>
 SQL to paste into <strong>SQL Editor</strong> &rarr; <strong>New query</strong>
 instead, one file at a time, in order. Either way you should end with
 <strong>twelve tables</strong>, each showing an <strong>RLS enabled</strong>
-badge.</p>
+badge, and a thirteenth, <code>schema_migrations</code>, which shows none. The
+ledger is meant to be the exception.</p>
 
 <div class="note why">
   <h4>Why it may say the baseline is pending</h4>
@@ -527,7 +528,7 @@ means "pass the rest through".</p>
 <p>Three questions answer most problems:</p>
 <ol>
 <li><strong>Which database am I talking to?</strong> Compare the URL in <code>.env.local</code> with the project name in Supabase.</li>
-<li><strong>Did the schema apply?</strong> Table Editor: twelve tables plus <code>schema_migrations</code>, each with an RLS badge.</li>
+<li><strong>Did the schema apply?</strong> Table Editor: twelve tables each with an RLS badge, plus <code>schema_migrations</code> without one.</li>
 <li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those pass, it is configuration, not logic.</li>
 </ol>
 

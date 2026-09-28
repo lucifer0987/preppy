@@ -301,6 +301,27 @@ figcaption b{color:var(--ink-2); font-weight:600}
 <tr><td>Vercel</td><td>Hosting and the one cron</td><td>Zero-config for Next; the free tier covers six people</td></tr>
 </table></div>
 
+<p>One more file runs on more requests than any of those: <code>proxy.ts</code> in
+the project root. It refreshes the Supabase session cookie on every navigation,
+which has to happen somewhere outside a page because a Server Component cannot
+write cookies &mdash; without it a session would expire mid-visit and sign
+somebody out with no explanation. It touches auth cookies and nothing else; it
+never reads application data.</p>
+
+<div class="note care">
+  <h4>This is what used to be called middleware</h4>
+  <p>Next.js 16 deprecated the <code>middleware.ts</code> convention and renamed
+  it <code>proxy.ts</code>, exporting <code>proxy</code> rather than
+  <code>middleware</code>. The framework's own reference is blunt about the
+  scope of the change: "All functionality remains the same &mdash; only the file
+  and export names have changed." A build prints it as
+  <code>&#402; Proxy (Middleware)</code>, naming both.</p>
+  <p>Worth knowing before putting anything else in there: the same reference
+  warns that proxy "is meant to be invoked separately of your render code and in
+  optimized cases deployed to your CDN", so it must not lean on shared modules
+  or globals. Refreshing a cookie is exactly the shape of work it is for.</p>
+</div>
+
 <div class="note why">
   <h4>Why no separate backend</h4>
   <p>A Next.js server action <em>is</em> a backend endpoint: it runs on the server, it is POST-only, and it carries an origin check. Splitting the same logic into a second service would add a network hop, a second deploy, and a second place for the secret key to live, and would buy nothing at this size.</p>
@@ -1033,7 +1054,8 @@ whose scores are already public to everyone on it.</p>
 
 <div class="note care">
   <h4>A cap that would have bitten quietly</h4>
-  <p>PostgREST returns at most 1,000 rows, and a capped response looks exactly like a complete one. Read in a single request, the board would silently start losing attempts once the history grew past that. <code>lib/repo/select-all.ts</code> pages through every result and advances by what actually came back, so a server configured with a lower cap still reads everything.</p>
+  <p>A Supabase project caps an API response at <strong>1,000 rows by default</strong>, and a capped response looks exactly like a complete one. Read in a single request, the board would silently start losing attempts once the history grew past that.</p>
+  <p>The cap is Supabase's setting, not the framework's: PostgREST's own <code>db-max-rows</code> defaults to no limit at all, and Supabase sets it to 1,000 on every project as a guard against an accidental or malicious request pulling a whole table. It is a project setting and can be changed, which is the reason <code>lib/repo/select-all.ts</code> advances by <em>what actually came back</em> rather than by a page size of 1,000 &mdash; a project configured to 500 still reads everything, and one raised to 10,000 makes fewer round trips without a code change.</p>
 </div>
 
 <h3>Correcting a key after the fact</h3>
@@ -1306,9 +1328,10 @@ the score band, the dashboard hero and the login panel are made of.</p>
 invisible to whoever does it.</p>
 
 <p>A status colour bright enough to fill a shape is too light to read as words on
-a pale background. Amber on white is the clearest case: <code>--warn</code> is a
-good fill and a 2.84:1 text colour, where the standard for body text is 4.5:1. So
-each status colour comes as a pair:</p>
+a pale background. Amber is the clearest case: on <code>--page</code>,
+<code>--warn</code> is a good fill and a 2.84:1 text colour, where WCAG 2.1 AA
+asks 4.5:1 for body text and 3:1 only for large text &mdash; 18pt, or 14pt bold.
+It does not clear either. So each status colour comes as a pair:</p>
 
 <div class="tw"><table>
 <thead><tr><th>Token</th><th>Use it for</th><th>Do not use it for</th></tr></thead>
@@ -1673,12 +1696,12 @@ words.</p>
 <p>Do this once. About twenty minutes, most of it waiting for Supabase. Every step ends with a way to check it worked, so you never move on from a half-finished one.</p>
 
 <h3>Before you start</h3>
-<p>You need <strong>Node 20 or newer</strong> and a free <strong>Supabase</strong> account. Check Node:</p>
+<p>You need <strong>Node 20.9 or newer</strong> &mdash; the floor Next 16 sets in its own <code>engines</code> field, so 20.0 through 20.8 will not do &mdash; and a free <strong>Supabase</strong> account. Check Node:</p>
 
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>node -v</b>
-<i>v22.9.0</i>   <i>&larr; anything v20 or higher is fine</i></pre>
+<i>v22.9.0</i>   <i>&larr; anything from v20.9 up is fine</i></pre>
 </div>
 
 <p>If that says <code>command not found</code>, install Node from <a href="https://nodejs.org">nodejs.org</a> &mdash; take the version marked <strong>LTS</strong> &mdash; then close the terminal and open a new one.</p>
@@ -1838,14 +1861,20 @@ landed and what has not, at any time.</p>
 <p>Between them the files create:</p>
 <div class="tw"><table>
 <tr><th>What</th><th>How many</th><th>For</th></tr>
-<tr><td>Tables</td><td>11</td><td>People, papers, attempts, answers, the two settings tables, rate limits</td></tr>
-<tr><td>Types</td><td>5</td><td>Roles, paper status, attempt state, section codes</td></tr>
-<tr><td>Functions</td><td>13</td><td>The operations that must be all-or-nothing</td></tr>
+<tr><td>Tables</td><td>12</td><td>People, papers, attempts, answers, the exams and their patterns, the two settings tables, rate limits. Thirteen counting <code>schema_migrations</code>, which is the ledger rather than the product</td></tr>
+<tr><td>Types</td><td>5</td><td>Roles, paper status, attempt state, section codes, and why a section ended</td></tr>
+<tr><td>Functions</td><td>15</td><td>The operations that must be all-or-nothing, plus the three the rate limiter counts with</td></tr>
 <tr><td>Triggers</td><td>3</td><td>Refusing to delete a paper students have sat; keeping each paper's length in step with its sections</td></tr>
-<tr><td>Indexes</td><td>29</td><td>Speed, plus the keys that enforce uniqueness &mdash; one counted attempt per person, one scheduled paper per opening</td></tr>
-<tr><td>Access rules</td><td>11</td><td>Row Level Security on every table</td></tr>
+<tr><td>Indexes</td><td>33</td><td>Speed, plus the keys that enforce uniqueness &mdash; one counted attempt per person, one scheduled paper per opening</td></tr>
+<tr><td>RLS policies</td><td><strong>0</strong></td><td>Deliberately. Row Level Security is <em>enabled</em> on all twelve tables and granted to nobody, and an enabled table with no policy allows nothing &mdash; see the note below</td></tr>
 </table></div>
-<p><strong>Check it worked:</strong> open <strong>Table Editor</strong>. You should see twelve tables plus <code>schema_migrations</code>, each with an <strong>RLS enabled</strong> badge. That badge is intentional &mdash; it means nothing can read those tables except your own server.</p>
+
+<div class="note why">
+  <h4>Zero is the number that makes this work</h4>
+  <p>It is tempting to read a policy count of zero as unfinished. It is the whole design. Postgres denies every row on a table that has RLS enabled and no policy matching the request, so the twelve tables are shut to anything holding a publishable or anon key &mdash; there is no rule to argue with. The server reaches them with the secret key, which bypasses RLS, and that key is never sent to a browser: <code>npm run build:prod</code> scans the client bundle for it and fails the build if it appears.</p>
+  <p>The counts above are read off the live schema rather than off the migration files, so they include anything Supabase adds of its own accord. If a number here disagrees with your project, trust your project and fix this table.</p>
+</div>
+<p><strong>Check it worked:</strong> open <strong>Table Editor</strong>. You should see twelve tables each carrying an <strong>RLS enabled</strong> badge, plus <code>schema_migrations</code>, which carries none. That is correct and not a missed step: the ledger records which migrations have run and holds nothing about anybody, and the secret key the runner uses bypasses RLS regardless. The badge on the other twelve is the thing to check &mdash; it means nothing reaches those tables except your own server.</p>
 <div class="note do">
   <h4>Safe to run twice</h4>
   <p>The whole file is written to be re-runnable: it creates nothing that already exists and replaces functions in place. If you are ever unsure whether it applied, run it again. There is a test that proves this &mdash; <em>"applies twice without error"</em>.</p>

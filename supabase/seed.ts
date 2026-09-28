@@ -39,6 +39,24 @@ async function findAuthUser(admin: SupabaseClient, email: string): Promise<User 
   }
 }
 
+/**
+ * The exam a new student is put on: the first active track, else the first.
+ *
+ * The same rule as defaultTrack() in lib/repo/tracks.ts, repeated here rather
+ * than imported because that module is server-only and this is a script.
+ *
+ * A student with no track is not broken -- viewerTrack falls back to this very
+ * track -- but it is only invisible while there is one exam. With two, a
+ * trackless student silently lands on whichever happens to be default, and the
+ * leaderboard marks the wrong one as theirs. So it is set at creation.
+ */
+async function defaultTrackId(admin: SupabaseClient): Promise<string | null> {
+  const { data, error } = await admin
+    .from('tracks').select('id, is_active').order('position')
+  if (error || !data?.length) return null
+  return (data.find((t) => t.is_active) ?? data[0])!.id as string
+}
+
 /** Signs an account out everywhere (revoke_user_sessions in supabase/migrations). */
 async function endSessions(admin: SupabaseClient, userId: string, username: string) {
   const { error } = await admin.rpc('revoke_user_sessions', { p_user: userId })
@@ -63,6 +81,14 @@ async function main() {
   const reset = process.argv.includes('--reset')
   const admin = createClient(url, secretKey, { auth: { persistSession: false } })
   const created: { username: string; password: string; role: string }[] = []
+
+  // Read once: every student created below goes on the same exam, and an admin
+  // goes on none -- they run all of them.
+  const trackId = await defaultTrackId(admin)
+  if (!trackId) {
+    console.error('  WARNING  no exam track found, so students will be created without one.')
+    console.error("           Run 'npm run migrate' first if this is a new database.")
+  }
 
   for (const person of COHORT) {
     const email = usernameToEmail(person.username)
@@ -115,6 +141,7 @@ async function main() {
       display_name: person.displayName,
       role: person.role,
       must_change_password: true,
+      track_id: person.role === 'student' ? trackId : null,
     })
     if (profileError) {
       // Leave no auth user without a profile, or login would half-work. An

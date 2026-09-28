@@ -327,14 +327,63 @@ html{scroll-behavior:smooth}
 <!-- 2 -->
 <section id="s2"><div class="col">
 <h2><i>02</i>Exam context</h2>
-<p>Preppy does not clone either target exam. It runs one custom daily pattern that drills all four in-scope sections every night.</p>
+<p>Preppy does not clone either target exam. It runs one custom daily pattern whose four sections are the four the SO preliminary now has, scaled down to something that fits a weeknight.</p>
+
+<h3>SO IT Officer &mdash; Preliminary</h3>
+<p>Four tests, each separately timed. 100 questions, 125 marks, 80 minutes.</p>
 <div class="tw"><table>
-<tr><th>Exam</th><th>Real pattern — reference only</th><th class="n">Pace</th></tr>
-<tr><td>SO IT Officer — Prelims</td><td>Reasoning 50q/40min · English 50q/40min · Quant 50q/40min</td><td class="n">48 s/q</td></tr>
-<tr><td>SO IT Officer — Mains</td><td>Professional Knowledge 60q/45min</td><td class="n">45 s/q</td></tr>
-<tr><td>RRB Officer Scale II (IT)</td><td>Six sections of 40 questions</td><td class="n">60 s/q</td></tr>
+<tr><th>Test</th><th class="n">Q</th><th class="n">Marks</th><th class="n">Time</th><th class="n">Pace</th></tr>
+<tr><td>English Language <span class="text-ink-faint">(English only)</span></td><td class="n">25</td><td class="n">25</td><td class="n">20 min</td><td class="n">48 s/q</td></tr>
+<tr><td>Reasoning</td><td class="n">25</td><td class="n">25</td><td class="n">20 min</td><td class="n">48 s/q</td></tr>
+<tr><td>Quantitative Aptitude</td><td class="n">25</td><td class="n">25</td><td class="n">20 min</td><td class="n">48 s/q</td></tr>
+<tr><td>Professional Knowledge</td><td class="n">25</td><td class="n"><strong>50</strong></td><td class="n">20 min</td><td class="n">48 s/q</td></tr>
+<tr class="tot"><td>Total</td><td class="n">100</td><td class="n">125</td><td class="n">80 min</td><td class="n">48 s/q</td></tr>
 </table></div>
-<p>Common to both, and honoured by Preppy: objective MCQs with five options, sectional time limits with no carry-over, and a 0.25-mark penalty per wrong answer.</p>
+
+<h3>SO IT Officer &mdash; Main</h3>
+<p>150 questions, 200 marks, 125 minutes. For IT Officer the Main is objective throughout &mdash; the descriptive paper belongs to Law Officer and Rajbhasha Adhikari, not this post.</p>
+<div class="tw"><table>
+<tr><th>Test</th><th class="n">Q</th><th class="n">Marks</th><th class="n">Time</th><th class="n">Pace</th></tr>
+<tr><td>English Language <span class="text-ink-faint">(English only)</span></td><td class="n">30</td><td class="n">30</td><td class="n">25 min</td><td class="n">50 s/q</td></tr>
+<tr><td>Reasoning</td><td class="n">40</td><td class="n">40</td><td class="n">35 min</td><td class="n">52.5 s/q</td></tr>
+<tr><td>Quantitative Aptitude</td><td class="n">30</td><td class="n">30</td><td class="n">25 min</td><td class="n">50 s/q</td></tr>
+<tr><td>Professional Knowledge <span class="text-ink-faint">(objective)</span></td><td class="n">50</td><td class="n"><strong>100</strong></td><td class="n">40 min</td><td class="n">48 s/q</td></tr>
+<tr class="tot"><td>Total</td><td class="n">150</td><td class="n">200</td><td class="n">125 min</td><td class="n">50 s/q</td></tr>
+</table></div>
+
+<h3>RRB Officer Scale-II (IT)</h3>
+<p>One single-level examination, no prelims. 240 questions, 200 marks, 150 minutes. The language test is English <em>or</em> Hindi, not both.</p>
+<div class="tw"><table>
+<tr><th>Test</th><th class="n">Q</th><th class="n">Marks</th><th class="n">Time</th><th class="n">Pace</th></tr>
+<tr><td>Professional Knowledge</td><td class="n">40</td><td class="n">40</td><td class="n">30 min</td><td class="n">45 s/q</td></tr>
+<tr><td>Reasoning</td><td class="n">40</td><td class="n">40</td><td class="n">30 min</td><td class="n">45 s/q</td></tr>
+<tr><td>Financial Awareness</td><td class="n">40</td><td class="n">40</td><td class="n">15 min</td><td class="n">22.5 s/q</td></tr>
+<tr><td>English <span class="text-ink-faint">or</span> Hindi Language</td><td class="n">40</td><td class="n">20</td><td class="n">30 min</td><td class="n">45 s/q</td></tr>
+<tr><td>Computer Knowledge</td><td class="n">40</td><td class="n">20</td><td class="n">15 min</td><td class="n">22.5 s/q</td></tr>
+<tr><td>Quantitative Aptitude &amp; Data Interpretation</td><td class="n">40</td><td class="n">40</td><td class="n">30 min</td><td class="n">45 s/q</td></tr>
+<tr class="tot"><td>Total</td><td class="n">240</td><td class="n">200</td><td class="n">150 min</td><td class="n">37.5 s/q</td></tr>
+</table></div>
+<p>All six fit the six section codes the format allows, which is why the ceiling
+is six and not four: Professional Knowledge, Reasoning, English and Quantitative
+Aptitude map straight across, Computer Knowledge onto <code>COMPUTER_AWARENESS</code>,
+and Financial Awareness onto <code>GENERAL_AWARENESS</code> &mdash; carried as a
+label, since a track names its own sections (FR-6.10.3) and there is no
+<code>FINANCIAL_AWARENESS</code> code. Nothing here needs a schema change to
+become a track; it needs somebody to write 240 questions a night, which is the
+actual reason it is not one.</p>
+
+<h3>What both exams do, and Preppy with them</h3>
+<ul>
+<li><strong>Five options, one correct.</strong> "Out of the five answers to a question only one will be the correct answer."</li>
+<li><strong>Tests are separately timed.</strong> The official tables head their duration column "Time allotted for each test (Separately timed)", and a candidate may attempt any question "within the given duration in each test" &mdash; that test's duration, not the paper's. Time not spent in a section is lost, which is why Preppy's timers are per section and never carry over.</li>
+<li><strong>The penalty is a quarter of what the question is worth</strong>, not a flat quarter mark: "one fourth or 0.25 of the marks assigned to that question will be deducted". Blank costs nothing.</li>
+<li><strong>Marks per question are not uniform.</strong> Professional Knowledge carries <strong>two</strong> marks a question in both the SO preliminary and the SO main, so a wrong answer there costs 0.5 while a wrong answer elsewhere costs 0.25. Preppy stores marks per section, so a pattern can say this; the shipped default does not &mdash; see the note under FR-3.3.</li>
+</ul>
+
+<div class="flag">
+  <h4>Where these numbers come from</h4>
+  <p>Read off the official documents rather than a coaching site, on 28 September 2026: <strong>CRP SPL-XVI</strong> (the detailed notification dated 30 June 2026, for 2027-28 vacancies) for both SO tables, and <strong>CRP RRBs-XIV</strong> (advertisement dated 19 September 2025) for the RRB table. The five-option and penalty wording is quoted from an IBPS <em>Information Handout</em>, which is where the per-question mechanics live &mdash; the notification does not state them. IBPS reserves the right to change any of this and says so in both documents, so re-check against the current notification before trusting the table above.</p>
+</div>
 </div></section>
 
 <!-- 3 -->
@@ -352,10 +401,17 @@ html{scroll-behavior:smooth}
 <div class="fr"><p><b class="id">FR-3.2</b>Section order, question counts and durations are stored per test and overridable in the paper file.</p></div>
 <div class="good">
   <h4>✓ Pacing is correct</h4>
-  <p><strong>48 s/q</strong> for Quant, Reasoning and PK is an exact match for IBPS SO Prelims, and more generous than SO Mains Professional Knowledge at 45 s/q. English at 54 s/q carries margin for comprehension passages.</p>
+  <p><strong>48 s/q</strong> for Quant, Reasoning and PK is an exact match for the SO preliminary, where all four tests give 25 questions 20 minutes, and an exact match for the Main's Professional Knowledge at 50 questions in 40 minutes. It is slightly tighter than the Main's other three tests, which run 50 to 52.5 s/q.</p>
+  <p>English at <strong>54 s/q</strong> carries margin for comprehension passages, which is the one place a real paper's per-question average misleads: a passage is read once and answered five times.</p>
+  <p>Against RRB Scale-II the same pace is a little tighter than its 45 s/q sections and far more generous than Financial Awareness and Computer Knowledge, which give 40 questions 15 minutes &mdash; 22.5 s/q. Nothing in Preppy's default drills at that speed, and a track that wanted to could say so in its pattern.</p>
 </div>
 <h3>Marking</h3>
 <div class="fr"><p><b class="id">FR-3.3</b>Set per section, so configurable per paper. Shipped default <strong>+1</strong> correct, <strong>−0.25</strong> wrong, <strong>0</strong> unattempted &mdash; a maximum of <strong>+55.00</strong> and a minimum of <strong>−13.75</strong> on the shipped pattern.</p></div>
+<div class="flag">
+  <h4>The shipped default marks Professional Knowledge like everything else, and the real exam does not</h4>
+  <p>In both the SO preliminary and the SO main, Professional Knowledge carries <strong>two marks a question</strong> while the other tests carry one &mdash; 25 questions for 50 marks, 50 questions for 100. Since the penalty is a quarter of what the question is worth, a wrong PK answer costs <strong>0.5</strong> there and 0.25 everywhere else. A uniform +1/−0.25, as shipped, understates PK by half.</p>
+  <p>This is a choice about the default, not a limit: marks are stored per section, so a pattern can set PK to +2/−0.5 on the Paper pattern screen and the engine, the score band and the leaderboard all follow. It is left uniform because a nightly drill is read as "how many did I get right", and doubling one section makes the headline score incomparable with the four-section papers already sat.</p>
+</div>
 <ul>
 <li>Two decimals, displayed signed when negative.</li>
 <li>A question left <strong>Marked for Review</strong> with no option selected is unattempted and scores 0.</li>
@@ -388,7 +444,7 @@ html{scroll-behavior:smooth}
 <div class="fr"><p><b class="id">FR-4.1</b><strong>Entry closes before the window does.</strong> The tail is one whole paper long, so a student starting at the last possible moment still gets every minute the paper allows. 23:15 and midnight are one example; each paper carries its own times.</p></div>
 <div class="fr"><p><b class="id">FR-4.2</b><strong>Handing the paper in settles it, for you.</strong> The result page, the answers, your rank, the comparison and the board all arrive the moment the attempt is scored. While entry is still open the cohort-derived figures are a standing among those who have finished so far, and every screen showing one says <em>so far</em>: a number that will move is never dressed up as final.</p></div>
 <div class="fr"><p><b class="id">FR-4.3</b><strong>Correct answers and solutions open to you when you hand the paper in</strong>, and to everybody once entry closes — whether or not they sat it (FR-6.3.2). They are never shown to somebody who can still take the paper, which is the property that actually matters; the gate is the viewer's own attempt, not the clock.</p></div>
-<div class="note care">
+<div class="flag">
   <h4>What this reversal costs, stated plainly</h4>
   <p>These two used to wait for the paper's hard stop, so that nobody held an answer anybody else could still use. Waiting bought one thing — a student cannot pass the answers to a friend who has not sat it yet — and cost a great deal: a paper sat at nine in the morning gave its taker nothing until midnight, which is most of what a mock test is <em>for</em>.</p>
   <p>The trade is deliberate. The cohort is small and known to each other, the leaderboard never resets, and collusion is a thing a person does, not a thing a schema prevents. What the product still refuses to do is make it easy: nothing is visible to anybody who has not finished the paper, so no one can read the answers and then decide whether to sit it.</p>
@@ -635,7 +691,7 @@ html{scroll-behavior:smooth}
 
 <div class="fr"><p><b class="id">FR-6.9.11</b><strong>Delete it.</strong> A paper nobody has sat goes whether or not it has opened. Being unable to remove a live one was the real gap: it left a broken paper on screen until midnight. One that <em>has</em> been sat needs an explicit confirmation that states how many attempts go with it, because they go with it &mdash; answers, scores, leaderboard entries and all.</p></div>
 
-<div class="note care">
+<div class="flag">
   <h4>Why this is not just &ldquo;unschedule&rdquo;</h4>
   <p>Unscheduling was already there and does none of this. It is refused the moment a paper opens, which is precisely when you need it, and it hides the paper rather than stopping the clock &mdash; a student mid-attempt would carry on. The five controls above exist because <em>hiding</em> and <em>ending</em> are different things, and only one of them was ever built.</p>
 </div>
@@ -653,7 +709,7 @@ html{scroll-behavior:smooth}
 <div class="fr"><p><b class="id">FR-6.10.7</b><strong>A track can be closed, not deleted.</strong> Its papers, attempts and board stay; no new paper can be scheduled on it. The last open track cannot be closed. This is the shape deactivating an account already has: the login stops, the history stays.</p></div>
 <div class="fr"><p><b class="id">FR-6.10.8</b><strong>With one track, nothing on screen mentions one.</strong> No switcher, no column, no picker. A choice between one thing is not a choice, and an install preparing for one exam must never be asked to think about this.</p></div>
 
-<div class="note care">
+<div class="flag">
   <h4>The constant that had to go</h4>
   <p><code>SECTION_CODES</code> was the four codes of one exam, in sequence, and the whole application read the shape of a paper off it &mdash; the validator's ordering, the pattern form, the blank template, the question bands. It is <code>ALL_SECTION_CODES</code> now and answers one question only: is this a real code. Everything that wants the <em>order</em> asks a pattern. That rename is most of what this feature was.</p>
 </div>
@@ -674,7 +730,7 @@ html{scroll-behavior:smooth}
 <div class="fr"><p><b class="id">FR-6.12.4</b><strong>Nothing else is kept.</strong> Not the dashboard, not the board, not the console, not an account page. Each of them moves through the day, and an answer that is out of date by the time it is read is worse than no answer.</p></div>
 <div class="fr"><p><b class="id">FR-6.12.5</b><strong>Signing out forgets what was kept.</strong> A cache belongs to the browser rather than to the account, and students share laptops.</p></div>
 
-<div class="note why">
+<div class="good">
   <h4>Why caching the archive gives nothing away</h4>
   <p>This looked at first like a trade against section 9: the answer key never reaches the browser, and offline reading means writing papers to a device. It is not a trade. The archive only ever renders a paper the reader has <em>finished</em>, or one that has <em>closed</em> &mdash; and for those the key is already in the HTML the server sent them. Keeping a copy leaks nothing they cannot already read. A paper that has not opened is never rendered to them at all, so it cannot enter the cache: only a 200 is stored, and a locked paper does not return one.</p>
 </div>
@@ -791,14 +847,14 @@ html{scroll-behavior:smooth}
 <p>Chosen for a builder who does not write web code. One language, one framework, one vendor, minimum moving parts.</p>
 <div class="tw"><table>
 <tr><th>Layer</th><th>Choice</th><th>Note</th></tr>
-<tr><td>Framework</td><td><strong>Next.js 15, App Router, TypeScript</strong></td><td>UI and backend in one project. TypeScript kept deliberately — it catches mistakes before they run</td></tr>
+<tr><td>Framework</td><td><strong>Next.js 16, App Router, TypeScript</strong></td><td>UI and backend in one project. TypeScript kept deliberately — it catches mistakes before they run</td></tr>
 <tr><td>Backend</td><td><strong>Route Handlers + Server Actions</strong></td><td>No separate service. All JavaScript</td></tr>
 <tr><td>Database</td><td><strong>Supabase Postgres</strong></td><td></td></tr>
 <tr><td>DB access</td><td><strong><code>supabase-js</code> + generated types</strong></td><td>No ORM. The migration runner is a hundred lines in the repo, not a framework</td></tr>
 <tr><td>Auth</td><td><strong>Supabase Auth</strong></td><td>Username → <code>&lt;username&gt;@preppy.local</code>. No custom crypto</td></tr>
 <tr><td>Storage</td><td><strong>Supabase Storage</strong></td><td>Question images</td></tr>
 <tr><td>Paper validation</td><td><strong>Hand-written validator</strong> in a Server Action</td><td>Every message names the field path; <code>format/schema.json</code> mirrors it for editors</td></tr>
-<tr><td>Styling</td><td><strong>Tailwind CSS</strong></td><td></td></tr>
+<tr><td>Styling</td><td><strong>Tailwind CSS v4</strong></td><td>Configured in CSS, in <code>app/globals.css</code>. There is no <code>tailwind.config.js</code> in this repo and v4 does not want one</td></tr>
 <tr><td>Celebration</td><td><strong><code>canvas-confetti</code></strong></td><td>CSS animations cover the rest; no animation library</td></tr>
 <tr><td>Hosting</td><td><strong>Vercel</strong></td><td></td></tr>
 <tr><td>Scheduling</td><td><strong>Vercel Cron — 1 daily job</strong></td><td>See below</td></tr>
@@ -918,7 +974,7 @@ html{scroll-behavior:smooth}
 <tr><td><strong>Optimistic locking on the answer key</strong><br><code>key_version</code> on <code>tests</code> and <code>attempts</code></td><td>An answer key corrected while somebody is mid-paper would otherwise let their submission bank against the old key. A submission carrying a stale version is detected and rescored instead</td></tr>
 <tr><td><strong>Rate limits counted in the database</strong><br>a table of their own plus three functions</td><td>Counting in server memory does not work on a serverless host: every instance keeps its own tally, so the limit is however many instances are running</td></tr>
 <tr><td><strong>Explicit session revocation</strong><br><code>revoke_user_sessions</code></td><td>FR-6.1.4 asked for one attempt in one place. Reaching into the auth schema to end the other sessions needs elevated rights, so it is a function rather than a query</td></tr>
-<tr><td><strong>Paged reads</strong><br><code>selectAll</code></td><td>PostgREST caps a response at 1,000 rows, and a capped response looks exactly like a complete one. The leaderboard would have started losing attempts silently as the history grew</td></tr>
+<tr><td><strong>Paged reads</strong><br><code>selectAll</code></td><td>A Supabase project caps an API response at 1,000 rows by default &mdash; its setting, not PostgREST's, whose own default is no limit &mdash; and a capped response looks exactly like a complete one. The leaderboard would have started losing attempts silently as the history grew</td></tr>
 <tr><td><strong>Private image storage</strong><br>plus an app route that checks permission</td><td>A diagram for a DI set is part of the question. Served straight from Storage it would leak the paper before it opened</td></tr>
 <tr><td><strong>The schema tested as SQL</strong><br><code>tests/schema.test.ts</code> on in-process Postgres</td><td>The functions that must be atomic are the ones a type system cannot check. They are now exercised as SQL rather than trusted</td></tr>
 <tr><td><strong>A window per paper</strong><br>on <code>tests</code>, with the global setting demoted to a default</td><td>The times were a constant, then a global setting, and both made a second paper in a day impossible. Each paper now carries its own window, chosen when it is scheduled. The hard stop stays derived as entry close plus one paper, so the full-attempt guarantee holds whatever is chosen, and a database constraint refuses a window running past midnight</td></tr>
