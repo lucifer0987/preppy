@@ -63,3 +63,29 @@ describe('nothing here is for a search engine', () => {
     expect(layout).toMatch(/robots:\s*\{[^}]*index:\s*false/)
   })
 })
+
+describe('performance telemetry is production-only', () => {
+  /**
+   * @vercel/speed-insights picks its script host itself: on a Vercel
+   * deployment it is same-origin, but off Vercel the library falls back to a
+   * debug script on va.vercel-scripts.com. Rendered unconditionally, that
+   * means a cross-origin request on every page load of every development day,
+   * reporting numbers nobody will read.
+   *
+   * The gate is one condition in the layout, which is exactly the kind of
+   * thing that gets "simplified" away later.
+   */
+  it('renders only in a production build', () => {
+    expect(layout).toMatch(/SpeedInsights/)
+    const gate = layout.indexOf("process.env.NODE_ENV === 'production' && <SpeedInsights />")
+    expect(gate, 'SpeedInsights is no longer gated to production').toBeGreaterThan(-1)
+  })
+
+  it('is rendered, not hand-rolled', () => {
+    // A hand-written script tag would not get the same-origin path on Vercel,
+    // and would be the version nobody updates. The host may be named in a
+    // comment -- it is -- but must not be a src anybody loads.
+    expect(layout).toMatch(/from '@vercel\/speed-insights\/next'/)
+    expect(layout).not.toMatch(/src=["'][^"']*vercel-scripts/)
+  })
+})

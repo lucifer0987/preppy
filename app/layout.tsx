@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { IBM_Plex_Mono, IBM_Plex_Sans, Nunito } from 'next/font/google'
 import './globals.css'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { ServiceWorker } from '../components/ServiceWorker'
 
 /**
@@ -109,6 +110,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-dvh antialiased">
         {children}
         <ServiceWorker />
+        {/* Real-user performance: Core Web Vitals per route, measured on the
+            devices people actually sit papers on rather than on a developer's
+            laptop. It reports timings and the route that produced them; what
+            that does and does not mean for privacy is section 9.
+
+            Production only, and for the same reason the service worker is.
+            On a Vercel deployment the script is same-origin,
+            /_vercel/speed-insights/script.js. Off Vercel the library falls
+            back to a debug script on va.vercel-scripts.com, so leaving it on
+            in development would mean a cross-origin request on every page
+            load, every day, reporting nothing anybody will ever read. */}
+        {process.env.NODE_ENV === 'production' && <SpeedInsights />}
       </body>
     </html>
   )
