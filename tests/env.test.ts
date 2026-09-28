@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
 import { firstSet, isConfigured, publicEnv, serverEnv } from '../lib/env'
 
 /**
@@ -137,5 +138,37 @@ describe('when it is not configured', () => {
     // no longer exists.
     expect(() => serverEnv.supabaseSecretKey).toThrow(/Settings -> API Keys/)
     expect(() => publicEnv.supabaseUrl).toThrow(/Connect/)
+  })
+})
+
+describe('every place a Supabase key is read', () => {
+  const sources: [string, string][] = [
+    ['proxy.ts', readFileSync('proxy.ts', 'utf8')],
+    ['lib/env.ts', readFileSync('lib/env.ts', 'utf8')],
+  ]
+
+  /**
+   * Supabase renamed the browser key from anon to publishable, and .env.example
+   * ships the new name. proxy.ts read the legacy name alone, so on a project
+   * set up from the documented steps it got undefined, returned early, and
+   * never refreshed the session -- silently, because an unrefreshed session
+   * looks exactly like a session until it expires.
+   *
+   * So: anywhere that reads one name must read the other too.
+   */
+  it('accepts both generations of the name, everywhere', () => {
+    for (const [name, src] of sources) {
+      const readsNew = src.includes('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY')
+      const readsOld = src.includes('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+      expect(readsNew, `${name} reads the legacy name only`).toBe(readsOld)
+    }
+  })
+
+  it('reads them through firstSet rather than ??', () => {
+    // `??` treats an empty string as set, and .env.example ships the unused
+    // alternative as a blank line, so `??` would pick the blank.
+    const proxy = sources[0]![1]
+    expect(proxy).toMatch(/firstSet\(/)
+    expect(proxy).not.toMatch(/NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY\s*\?\?/)
   })
 })

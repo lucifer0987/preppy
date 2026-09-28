@@ -214,7 +214,7 @@ file has to exist before anything can be written into it.</p>
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>node -v</b>            <i># needs v20.9 or newer</i>
 <b>npm install</b>
-<b>npm test</b>           <i># 475 passing means the code is sound</i></pre>
+<b>npm test</b>           <i># 477 passing means the code is sound</i></pre>
 </div>
 
 <h3>2 &middot; The Supabase project</h3>
@@ -286,11 +286,17 @@ blank until you deploy.</p>
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>npm run migrate</b>
 
-<i>  Applying 4 migrations...
+<i>  Applying 8 migrations...
     applied  0001_baseline.sql
     applied  0002_since_baseline.sql
     applied  0003_managing_a_live_paper.sql
-    applied  0004_deleting_a_paper_that_was_sat.sql</i></pre>
+    applied  0004_deleting_a_paper_that_was_sat.sql
+    applied  0005_a_paper_may_hold_more_than_55_questions.sql
+    applied  0006_an_exam_track_owns_its_pattern_and_its_papers.sql
+    applied  0007_a_pattern_is_replaced_whole_or_not_at_all.sql
+    applied  0008_a_question_carries_exactly_four_options.sql
+
+  Done. 8 migrations applied in total.</i></pre>
 </div>
 <p>No <code>DATABASE_URL</code>? <code>npm run migrate -- --print</code> prints the
 SQL to paste into <strong>SQL Editor</strong> &rarr; <strong>New query</strong>
@@ -390,7 +396,7 @@ equally fine.</p>
 <h2><i>4</i>Shipping a change</h2>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
-<pre><b>npm run build:prod</b>      <i># preflight + typecheck + 475 tests + build</i>
+<pre><b>npm run build:prod</b>      <i># preflight + typecheck + 477 tests + build</i>
 <b>git add -A &amp;&amp; git commit -m "what changed"</b>
 <b>git push</b>                 <i># Vercel deploys by itself</i></pre>
 </div>
@@ -403,35 +409,134 @@ equally fine.</p>
 <section id="c5"><div class="col">
 <h2><i>5</i>First time, production</h2>
 
-<p>A <strong>second</strong> Supabase project, <code>preppy-prod</code>. Never point your laptop at it.</p>
+<p>A <strong>second</strong> Supabase project, separate from the one you develop
+against. Never point your laptop's <code>.env.local</code> at it: the whole
+reason for two projects is that a mistake made while building cannot touch a
+night's real attempts.</p>
 
-<ol>
-<li>Repeat steps 2, 4 and 5 of section 1 in the new project &mdash; create it, apply the two migrations, turn off email confirmation. Its keys go into Vercel rather than into <code>.env.local</code>.</li>
-<li><code>npm run secret</code> &rarr; copy the value.</li>
-<li>Push to GitHub, then import the repository into Vercel.</li>
-<li>In Vercel &rarr; <strong>Environment Variables</strong>, add four, all from <strong>preppy-prod</strong>:
+<p>About thirty minutes. Do it in daylight, well before a paper night.</p>
+
+<h3>1 &middot; The production Supabase project</h3>
+<ol class="steps">
+<li>In Supabase, <strong>New project</strong>. Name it something you cannot
+confuse with the development one &mdash; <code>preppy-prod</code>.</li>
+<li>Choose the region closest to your students. For an Indian cohort that is
+<strong>ap-south-1 (Mumbai)</strong>.</li>
+<li>Set a <strong>database password</strong> and save it somewhere you will
+still have it in six months. It is shown once, it is not your Supabase account
+password, and you need it for the connection string in step 3.</li>
+<li>Wait for the project to finish provisioning &mdash; a minute or two.</li>
+</ol>
+
+<h3>2 &middot; Turn off email confirmation</h3>
+<p><strong>Authentication &rarr; Sign In / Providers &rarr; Email</strong>, and
+turn <strong>Confirm email</strong> off. Preppy's usernames map to a synthetic
+address that never receives mail, so an account awaiting confirmation can never
+be confirmed. Do this before seeding, or every account arrives unusable.</p>
+
+<h3>3 &middot; The five values, and where each one lives</h3>
+<p>Four go to Vercel. The fifth never does &mdash; see the warning below it.</p>
 <div class="tw"><table>
-<tr><th>Name</th><th>From</th></tr>
-<tr><td><code>NEXT_PUBLIC_SUPABASE_URL</code></td><td>Settings &rarr; API Keys</td></tr>
-<tr><td><code>NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY</code><br><small>or <code>..._ANON_KEY</code></small></td><td>publishable key<br><small>or legacy anon</small></td></tr>
-<tr><td><code>SUPABASE_SECRET_KEY</code><br><small>or <code>..._SERVICE_ROLE_KEY</code></small></td><td>a secret key<br><small>or legacy service_role</small></td></tr>
-<tr><td><code>CRON_SECRET</code></td><td>the value from step 2</td></tr>
+<tr><th>Name</th><th>Where in Supabase</th><th>What it looks like</th></tr>
+<tr><td><code>NEXT_PUBLIC_SUPABASE_URL</code></td>
+    <td><strong>Connect</strong> at the top of the dashboard, or <strong>Settings &rarr; API Keys</strong></td>
+    <td><code>https://<b>ref</b>.supabase.co</code></td></tr>
+<tr><td><code>NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY</code><br>
+        <small>or the legacy <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code></small></td>
+    <td><strong>Settings &rarr; API Keys</strong> &rarr; the publishable key</td>
+    <td><code>sb_publishable_&hellip;</code><br><small>legacy: a long string starting <code>eyJ</code></small></td></tr>
+<tr><td><code>SUPABASE_SECRET_KEY</code><br>
+        <small>or the legacy <code>SUPABASE_SERVICE_ROLE_KEY</code></small></td>
+    <td><strong>Settings &rarr; API Keys</strong> &rarr; create a secret key</td>
+    <td><code>sb_secret_&hellip;</code><br><small>legacy: a long string starting <code>eyJ</code></small></td></tr>
+<tr><td><code>CRON_SECRET</code></td>
+    <td>Not from Supabase. Generate one: <code>npm run secret</code></td>
+    <td>48 hex characters. At least 16 are required</td></tr>
+<tr><td><code>DATABASE_URL</code></td>
+    <td><strong>Connect</strong> &rarr; <strong>Session pooler</strong></td>
+    <td><code>postgresql://postgres.<b>ref</b>:<b>password</b>@aws-0-<b>region</b>.pooler.supabase.com:5432/postgres</code></td></tr>
 </table></div>
-</li>
-<li>Deploy. Then check <strong>Settings &rarr; Cron Jobs</strong> shows <em>two</em> entries for <code>/api/cron/finalise</code>: <code>30 7 * * *</code> and <code>30 19 * * *</code> &mdash; 07:30 and 19:30 UTC, which is 1 PM and 1 AM IST.</li>
-<li>Seed production once:
+
+<div class="note never">
+  <h4><code>DATABASE_URL</code> does not go into Vercel</h4>
+  <p>The application never opens a Postgres connection. It talks to Supabase over HTTPS, and the only thing in this repository that reads <code>DATABASE_URL</code> is the migration runner, which you run from your own machine. Putting it in Vercel adds a production database password to a place that does not need one.</p>
+  <p>Two details about that string, both of which cost an evening if you get them wrong. Use the <strong>Session pooler</strong> on port <strong>5432</strong>, not the Transaction pooler on 6543 &mdash; the latter has no prepared statements and the runner uses them. And not the Direct connection, which is IPv6-only unless you pay for the IPv4 add-on and will simply time out on most home networks. The password in it is the database password from step 1.</p>
+</div>
+
+<div class="note never">
+  <h4>The publishable key and the secret key are not interchangeable</h4>
+  <p>Anything in a <code>NEXT_PUBLIC_</code> variable is compiled into the JavaScript the browser downloads. A secret key there is published to the world. <code>npm run build:prod</code> checks for exactly this and refuses the build, and <code>scripts/check-bundle.ts</code> scans the compiled output afterwards &mdash; but if such a key has ever been in a build or a commit, rotate it in the dashboard rather than hoping.</p>
+</div>
+
+<h3>4 &middot; Apply the schema to production</h3>
+<p>From your own machine, against the production database, without changing
+<code>.env.local</code>. Put the production URL, secret key and connection string
+in a throwaway file, use it, then delete it. <code>.env*</code> is gitignored, so
+it cannot be committed by accident, but it can still sit on your disk.</p>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
-<pre><i># .env.prod.local holds the PRODUCTION url + secret key</i>
+<pre><i># .env.prod.local: the PRODUCTION url, secret key and DATABASE_URL</i>
+<b>npx tsx --env-file=.env.prod.local supabase/migrate.ts --status</b>
+<i>  8 pending  &larr; a new project should show every migration pending</i>
+
+<b>npx tsx --env-file=.env.prod.local supabase/migrate.ts</b>
+<i>  Done. 8 migrations applied in total.</i>
+
+<i># Accounts. Copy the passwords it prints; they are shown once.</i>
 <b>npx tsx --env-file=.env.prod.local supabase/seed.ts</b>
+
 <b>rm .env.prod.local</b></pre>
 </div>
-</li>
+<p>No connection string, or the pooler refuses you?
+<code>npx tsx --env-file=.env.prod.local supabase/migrate.ts -- --print</code>
+writes the SQL out instead, for pasting into <strong>SQL Editor &rarr; New
+query</strong> one file at a time, in order.</p>
+
+<h3>5 &middot; Vercel</h3>
+<ol class="steps">
+<li>Push the repository to GitHub.</li>
+<li>In Vercel, <strong>Add New &rarr; Project</strong>, and import it. The
+framework is detected; leave the build and output settings alone. The build
+command is <code>npm run build</code>, which is <code>build:prod</code>:
+preflight, typecheck, the whole test suite, then the build. <strong>A failing
+test fails the deploy</strong>, which is the point.</li>
+<li><strong>Settings &rarr; Environment Variables</strong>, add the four from
+step 3 &mdash; URL, publishable key, secret key, <code>CRON_SECRET</code>.
+Apply each to <strong>Production</strong> (and Preview, if you want preview
+deployments to work). Not <code>DATABASE_URL</code>.</li>
+<li>Deploy.</li>
 </ol>
+
+<div class="note care">
+  <h4>If the build fails on the first deploy, read the first ten lines</h4>
+  <p>Preflight runs before anything else and names the variable it is unhappy about, including when a key is the right shape but in the wrong slot. It is almost always a value pasted with a trailing space, or the publishable and secret keys swapped.</p>
+</div>
+
+<h3>6 &middot; Check the cron</h3>
+<p><strong>Settings &rarr; Cron Jobs</strong> should list <em>two</em> entries
+for <code>/api/cron/finalise</code>: <code>30 7 * * *</code> and
+<code>30 19 * * *</code>. Those are 07:30 and 19:30 UTC &mdash; 1 PM and 1 AM
+IST. They come from <code>vercel.json</code> in the repository, so you do not
+create them by hand; if they are missing, the deploy did not include that file.</p>
+<p>Vercel presents <code>CRON_SECRET</code> as a bearer token, and the endpoint
+refuses anything else. If the variable is unset the endpoint answers 500 and
+logs the reason, rather than quietly doing nothing &mdash; an unfinalised
+attempt is a student without a score.</p>
+
+<h3>7 &middot; Prove it works</h3>
+<div class="tw"><table>
+<tr><th>Check</th><th>What you should see</th></tr>
+<tr><td>Open the deployment URL</td><td>The landing page, and a <strong>Log in</strong> box</td></tr>
+<tr><td>Sign in as <code>admin</code> with the seeded password</td><td>You are made to choose a new password before anything else is reachable</td></tr>
+<tr><td><code>/robots.txt</code></td><td><code>User-Agent: *</code> and <code>Disallow: /</code></td></tr>
+<tr><td>Admin &rarr; People</td><td>Six accounts, five of them students on the exam</td></tr>
+<tr><td>Admin &rarr; Pattern</td><td>The four sections, 55 questions, 45 minutes</td></tr>
+<tr><td>Upload a paper and schedule it for tomorrow</td><td>It validates, saves as a draft, and previews with four options a question</td></tr>
+</table></div>
 
 <div class="note do">
   <h4>Before the first real paper night</h4>
-  <p><a href="architecture.html#s18">architecture.html section 18</a> is a ten-minute walkthrough that exercises nearly every database query. Do it in daylight.</p>
+  <p><a href="architecture.html#s18">architecture.html section 18</a> is a ten-minute walkthrough that exercises nearly every database query, including the ones no automated test reaches. Do it on production, in daylight.</p>
 </div>
 </div></section>
 
@@ -447,7 +552,7 @@ means "pass the rest through".</p>
 <thead><tr><th>Command</th><th>What it does</th></tr></thead>
 <tbody>
 <tr><td><code>npm run dev</code></td><td>Development server on port 3000, reloads as you edit. Restart it after editing <code>.env.local</code></td></tr>
-<tr><td><code>npm test</code></td><td>475 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm test</code></td><td>477 tests. No database needed, about a second</td></tr>
 <tr><td><code>npm run test:live</code></td><td>Every read the app makes, run against the real Supabase project in <code>.env.local</code>. Read-only, so it is safe to point anywhere. Worth running after changing a query &mdash; it catches a select that forgot a column, which nothing else does</td></tr>
 <tr><td><code>npm run typecheck</code></td><td>Types only, no build. Faster than a build when you just want to know it compiles</td></tr>
 </tbody>
@@ -481,7 +586,7 @@ means "pass the rest through".</p>
 <tbody>
 <tr><td><code>npm run build:local</code></td><td>Preflight, then a build that keeps source maps so a stack trace names real files. For reproducing something locally</td></tr>
 <tr><td><code>npm run start:local</code></td><td>Serves that build on port 3000</td></tr>
-<tr><td><code>npm run build:prod</code></td><td>Preflight, typecheck, all 475 tests, then a build with no source maps. Any failure stops it</td></tr>
+<tr><td><code>npm run build:prod</code></td><td>Preflight, typecheck, all 477 tests, then a build with no source maps. Any failure stops it</td></tr>
 <tr><td><code>npm run start:prod</code></td><td>Serves the production build</td></tr>
 <tr><td><code>npm run build</code></td><td>The same as <code>build:prod</code>. This is what Vercel runs</td></tr>
 <tr><td><code>npm run start</code></td><td>The same as <code>start:prod</code></td></tr>

@@ -218,7 +218,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <div><dt>SQL functions</dt><dd>11</dd></div>
     <div><dt>Migrations</dt><dd>8</dd></div>
     <div><dt>Modules</dt><dd>31<small>lib/</small></dd></div>
-    <div><dt>Tests</dt><dd>475</dd></div>
+    <div><dt>Tests</dt><dd>477</dd></div>
     <div><dt>Runtime deps</dt><dd>9</dd></div>
   </dl>
 </header>
@@ -551,7 +551,7 @@ whose scores are already public to everyone on it.</p>
   <rect x="20" y="160" width="470" height="76" rx="8" fill="none" stroke="#0E767F" stroke-width="2.5"/>
   <text x="38" y="184" font-size="13.5" font-weight="700" fill="currentColor">Pure domain logic</text>
   <text x="38" y="203" font-size="10.5" fill="currentColor" opacity=".7">time &middot; attempt &middot; scoring &middot; leaderboard &middot; paper &middot; csv &middot; images</text>
-  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 414 of the 475 tests live here</text>
+  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 416 of the 477 tests live here</text>
 
   <rect x="20" y="252" width="470" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
   <text x="38" y="276" font-size="13.5" font-weight="600" fill="currentColor">Repository</text>
@@ -1178,7 +1178,7 @@ of them.</p>
 
 <div class="tw"><table>
 <tr><th>Layer</th><th>Status</th></tr>
-<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 414 tests, no database needed</td></tr>
+<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 416 tests, no database needed</td></tr>
 <tr><td>The schema, its functions, triggers and indexes</td><td><strong>Tested against real Postgres.</strong> <code>tests/schema.test.ts</code> applies every migration to an in-process Postgres and exercises each function and guard. <code>tests/migrate.test.ts</code> proves the chain is ordered and that a second run changes nothing</td></tr>
 <tr><td>The queries &mdash; what <code>lib/repo/</code> actually asks PostgREST for</td><td><strong>Tested against the real project, on request.</strong> <code>npm run test:live</code> runs every read the app makes against the Supabase project in <code>.env.local</code>. Read-only, so it is safe to point at production, and skipped when there are no credentials. It exists because a select that forgets a column is invisible to both TypeScript and pglite &mdash; and had already shipped twice</td></tr>
 <tr><td>The queries in <code>lib/repo/</code></td><td><strong>Typechecked only.</strong> The PostgREST calls have never run against a live server</td></tr>
@@ -1586,7 +1586,7 @@ words.</p>
     <text x="179" y="209" text-anchor="middle" font-weight="600">typecheck</text>
     <line x1="226" y1="205" x2="238" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="238" y="186" width="94" height="38" rx="6" fill="none" stroke="#94202B" stroke-width="2"/>
-    <text x="285" y="209" text-anchor="middle" font-weight="600">475 tests</text>
+    <text x="285" y="209" text-anchor="middle" font-weight="600">477 tests</text>
     <line x1="332" y1="205" x2="344" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="344" y="186" width="84" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
     <text x="386" y="209" text-anchor="middle" font-weight="600">build</text>
@@ -1611,7 +1611,7 @@ words.</p>
 <tr><td><code>npm run start:local</code></td><td><span class="pill local">rare</span></td><td>Serves that build on port 3000</td></tr>
 <tr><td><code>npm run build:prod</code></td><td><span class="pill prod">before shipping</span></td><td>Typecheck, all tests, then build without source maps</td></tr>
 <tr><td><code>npm run start:prod</code></td><td><span class="pill prod">on the host</span></td><td>Serves the production build</td></tr>
-<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>475 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>477 tests. No database needed, about a second</td></tr>
 <tr><td><code>npm run test:live</code></td><td><span class="pill both">after touching a query</span></td><td>Runs every read <code>lib/repo/</code> makes against the real project in <code>.env.local</code>. Read-only. Skipped when there are no credentials</td></tr>
 <tr><td><code>npm run typecheck</code></td><td><span class="pill both">anytime</span></td><td>Checks types without building</td></tr>
 <tr><td><code>npm run seed</code></td><td><span class="pill both">setup</span></td><td>Creates the accounts, prints passwords once</td></tr>
@@ -1741,7 +1741,7 @@ words.</p>
 <b>npm install</b></pre>
 </div>
 <p>Downloads everything into a <code>node_modules</code> folder. Safe to re-run at any time.</p>
-<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>475 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
+<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>477 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
 </li>
 
 <li>
@@ -1859,7 +1859,7 @@ up in exactly the same place.</p>
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>npm run migrate</b>
 
-<i>  Applying 4 migrations...
+<i>  Applying 8 migrations...
     applied  0001_baseline.sql
     applied  0002_since_baseline.sql
     applied  0003_managing_a_live_paper.sql
@@ -1869,7 +1869,7 @@ up in exactly the same place.</p>
     applied  0007_a_pattern_is_replaced_whole_or_not_at_all.sql
     applied  0008_a_question_carries_exactly_four_options.sql
 
-  Done. 4 migrations applied in total.</i></pre>
+  Done. 8 migrations applied in total.</i></pre>
 </div>
 
 <p><strong>Or</strong>, if you would rather not keep a database password on your
@@ -2185,13 +2185,22 @@ landed and what has not, at any time.</p>
 
 <li>
 <h4>Create preppy-prod</h4>
-<p>Exactly as in section 14, steps 2, 3 and 4, but name it <code>preppy-prod</code>:</p>
+<p>As in section 14, but name it <code>preppy-prod</code>:</p>
 <ul>
-<li>New Supabase project, closest region.</li>
-<li>Apply the migrations: <code>npm run migrate</code> pointed at the new project, or <code>npm run migrate -- --print</code> and paste into its SQL Editor.</li>
-<li>Authentication &rarr; Email &rarr; <strong>Confirm email off</strong>.</li>
+<li>New Supabase project, closest region to your students. Set a <strong>database password</strong> and keep it &mdash; it is shown once, it is not your Supabase account password, and the connection string below needs it.</li>
+<li>Authentication &rarr; Sign In / Providers &rarr; Email &rarr; <strong>Confirm email off</strong>, before seeding. A username maps to an address that never receives mail, so an account awaiting confirmation can never be confirmed.</li>
 </ul>
-<p><strong>Check it worked:</strong> Table Editor shows ten tables with RLS badges, exactly as dev did.</p>
+<p>Then apply the schema, from your own machine, without touching <code>.env.local</code>. Put the production values in a throwaway file and use that:</p>
+<div class="term">
+  <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><i># .env.prod.local -- the PRODUCTION url, secret key and DATABASE_URL</i>
+<b>npx tsx --env-file=.env.prod.local supabase/migrate.ts --status</b>
+<i>  8 pending</i>
+<b>npx tsx --env-file=.env.prod.local supabase/migrate.ts</b>
+<i>  Done. 8 migrations applied in total.</i></pre>
+</div>
+<p>The <code>DATABASE_URL</code> in that file comes from <strong>Connect</strong> at the top of the dashboard &rarr; <strong>Session pooler</strong>, port <strong>5432</strong>. Not the Transaction pooler on 6543, which has no prepared statements, and not the Direct connection, which is IPv6-only without the paid add-on and will time out on most networks. No connection string at all? <code>-- --print</code> writes the SQL out for the SQL Editor instead.</p>
+<p><strong>Check it worked:</strong> Table Editor shows twelve tables plus <code>schema_migrations</code>, carrying RLS badges exactly as dev did.</p>
 <p>Keep its <strong>Settings &rarr; API Keys</strong> page open. You need the project URL and both keys again, and they are <em>different</em> from your dev ones &mdash; a key from one project does not work on another.</p>
 </li>
 
@@ -2224,13 +2233,19 @@ landed and what has not, at any time.</p>
 <p>At <a href="https://vercel.com">vercel.com</a>, sign in with GitHub, then <strong>Add New &rarr; Project</strong> and pick the repository. Vercel recognises Next.js by itself; leave the build settings alone.</p>
 <p><strong>Before pressing Deploy</strong>, expand <strong>Environment Variables</strong> and add four. Every one comes from <code>preppy-prod</code>, not dev &mdash; a key from one project does not work on another. Use <em>one</em> name per row, whichever generation of key you have; there is no need to add both spellings.</p>
 <div class="tw"><table>
-<tr><th>Name</th><th>Value</th></tr>
-<tr><td><code>NEXT_PUBLIC_SUPABASE_URL</code></td><td>preppy-prod &rarr; Settings &rarr; API Keys</td></tr>
-<tr><td><code>NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY</code><br><small>or <code>..._ANON_KEY</code></small></td><td>preppy-prod &rarr; publishable key<br><small>or its legacy anon key</small></td></tr>
-<tr><td><code>SUPABASE_SECRET_KEY</code><br><small>or <code>..._SERVICE_ROLE_KEY</code></small></td><td>preppy-prod &rarr; a secret key<br><small>or its legacy service_role key</small></td></tr>
-<tr><td><code>CRON_SECRET</code></td><td>The string from step 2</td></tr>
+<tr><th>Name</th><th>Where it comes from</th><th>What it looks like</th></tr>
+<tr><td><code>NEXT_PUBLIC_SUPABASE_URL</code></td><td>preppy-prod &rarr; <strong>Connect</strong>, or Settings &rarr; API Keys</td><td><code>https://<b>ref</b>.supabase.co</code></td></tr>
+<tr><td><code>NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY</code><br><small>or <code>..._ANON_KEY</code></small></td><td>preppy-prod &rarr; Settings &rarr; API Keys &rarr; publishable key</td><td><code>sb_publishable_&hellip;</code><br><small>legacy: a long string starting <code>eyJ</code></small></td></tr>
+<tr><td><code>SUPABASE_SECRET_KEY</code><br><small>or <code>..._SERVICE_ROLE_KEY</code></small></td><td>preppy-prod &rarr; Settings &rarr; API Keys &rarr; create a secret key</td><td><code>sb_secret_&hellip;</code><br><small>legacy: a long string starting <code>eyJ</code></small></td></tr>
+<tr><td><code>CRON_SECRET</code></td><td>The string from step 2. Not from Supabase</td><td>48 hex characters; 16 is the minimum</td></tr>
 </table></div>
-<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 475 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
+
+<div class="note never">
+  <h4>Four, and not <code>DATABASE_URL</code></h4>
+  <p>The application never opens a Postgres connection &mdash; it talks to Supabase over HTTPS, and the only thing in this repository that reads <code>DATABASE_URL</code> is the migration runner, which runs from your machine. Adding it to Vercel puts a production database password somewhere that has no use for one.</p>
+  <p>The other half of that rule: anything in a <code>NEXT_PUBLIC_</code> variable is compiled into the JavaScript a browser downloads, so a secret key in that slot is published. Preflight refuses the build if it sees one, and <code>check-bundle</code> scans the output afterwards &mdash; but a key that has been in a build or a commit should be rotated, not reasoned about.</p>
+</div>
+<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 477 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
 <p><strong>Check it worked:</strong> the deployment goes green and the URL shows the countdown page.</p>
 </li>
 
@@ -2246,7 +2261,7 @@ landed and what has not, at any time.</p>
 
 <li>
 <h4>Create the production accounts</h4>
-<p>The seed script talks to whichever database its environment points at, so point it at production for exactly one command. Make a temporary file <code>.env.prod.local</code> holding the <em>production</em> URL and secret key:</p>
+<p>The seed script talks to whichever database its environment points at, so point it at production for exactly one command &mdash; the same <code>.env.prod.local</code> from step 1, holding the <em>production</em> URL and secret key:</p>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>npx tsx --env-file=.env.prod.local supabase/seed.ts</b>
@@ -2353,8 +2368,8 @@ landed and what has not, at any time.</p>
 <p>Three questions answer most problems:</p>
 <ol>
 <li><strong>Which database am I talking to?</strong> Check the URL in <code>.env.local</code> against the project name in Supabase.</li>
-<li><strong>Did the schema actually apply?</strong> Table Editor, ten tables, RLS badges.</li>
-<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 475 pass, the logic is fine and the problem is configuration or a query.</li>
+<li><strong>Did the schema actually apply?</strong> Table Editor: twelve tables plus <code>schema_migrations</code>, with RLS badges. Or <code>npm run migrate -- --status</code>, which names any file that has not landed.</li>
+<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 477 pass, the logic is fine and the problem is configuration or a query.</li>
 </ol>
 
 <p class="end">
