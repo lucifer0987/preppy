@@ -86,8 +86,13 @@ export function UploadForm({ replaceId, defaultTitle, tracks, trackSlug }: {
         </label>
         <p className="mt-2 text-sm text-ink-soft">
           This is what students and the archive call it. Most files name themselves and need
-          nothing here. Type something when the file&rsquo;s own name would be confusing, such as
-          two papers called the same thing on the same day.
+          nothing here.
+        </p>
+        <p className="mt-2 text-sm text-ink-soft">
+          <strong>Putting a second paper on a night that already has one?</strong> Give it a
+          different name here. A paper is identified by its exam, its date and its name, so two
+          on one night must differ by name &mdash; then schedule them at windows that do not
+          overlap.
         </p>
         <Submit label={replaceId ? 'Check and replace' : 'Check this paper'} />
       </form>

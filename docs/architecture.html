@@ -218,7 +218,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <div><dt>SQL functions</dt><dd>11</dd></div>
     <div><dt>Migrations</dt><dd>8</dd></div>
     <div><dt>Modules</dt><dd>31<small>lib/</small></dd></div>
-    <div><dt>Tests</dt><dd>498</dd></div>
+    <div><dt>Tests</dt><dd>501</dd></div>
     <div><dt>Runtime deps</dt><dd>11</dd></div>
   </dl>
 </header>
@@ -551,7 +551,7 @@ whose scores are already public to everyone on it.</p>
   <rect x="20" y="160" width="470" height="76" rx="8" fill="none" stroke="#0E767F" stroke-width="2.5"/>
   <text x="38" y="184" font-size="13.5" font-weight="700" fill="currentColor">Pure domain logic</text>
   <text x="38" y="203" font-size="10.5" fill="currentColor" opacity=".7">time &middot; attempt &middot; scoring &middot; leaderboard &middot; paper &middot; csv &middot; images</text>
-  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 437 of the 498 tests live here</text>
+  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 438 of the 501 tests live here</text>
 
   <rect x="20" y="252" width="470" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
   <text x="38" y="276" font-size="13.5" font-weight="600" fill="currentColor">Repository</text>
@@ -1006,7 +1006,7 @@ whose scores are already public to everyone on it.</p>
 </div>
 
 <h3>What blocks publication</h3>
-<p>Wrong question count in a section &middot; sections missing, repeated, extra or out of order for the exam being uploaded against &middot; a section that exam does not have &middot; a number outside its section's band &middot; a gap or duplicate in the numbering &middot; a missing <code>answer</code>, or one naming an option that does not exist &middot; options not contiguous from <code>A</code> &middot; question text under 10 characters &middot; a <code>directions</code> range covering questions that are not there, or overlapping another &middot; a table with no headers, or a row whose width does not match them &middot; an empty <code>difficulty</code> &middot; an unknown field anywhere &middot; placeholder text left over from <code>template.json</code> &middot; an image referenced but not uploaded &middot; a date that is not a real day, or that already has a scheduled paper on the same exam &middot; sections adding up to longer than a paper may run &middot; marks with more than two decimal places, which the column cannot keep &middot; JSON that cannot be read at all.</p>
+<p>Wrong question count in a section &middot; sections missing, repeated, extra or out of order for the exam being uploaded against &middot; a section that exam does not have &middot; a number outside its section's band &middot; a gap or duplicate in the numbering &middot; a missing <code>answer</code>, or one naming an option that does not exist &middot; options not contiguous from <code>A</code> &middot; question text under 10 characters &middot; a <code>directions</code> range covering questions that are not there, or overlapping another &middot; a table with no headers, or a row whose width does not match them &middot; an empty <code>difficulty</code> &middot; an unknown field anywhere &middot; placeholder text left over from <code>template.json</code> &middot; an image referenced but not uploaded &middot; a date that is not a real day &middot; sections adding up to longer than a paper may run &middot; marks with more than two decimal places, which the column cannot keep &middot; JSON that cannot be read at all.</p>
 
 <div class="note why">
   <h4>Why a numbering gap is an error, not a warning</h4>
@@ -1014,7 +1014,13 @@ whose scores are already public to everyone on it.</p>
 </div>
 
 <h3>What is only a warning</h3>
-<p>No <code>solution</code> &middot; no <code>tag</code> &middot; no <code>difficulty</code> &middot; a very long option &middot; a date that has already passed, since you pick the day and the window again when you schedule it &middot; every answer in the paper being the same letter. These publish fine.</p>
+<p>No <code>solution</code> &middot; no <code>tag</code> &middot; no <code>difficulty</code> &middot; a very long option &middot; a date that has already passed, since you pick the day and the window again when you schedule it &middot; a date that already has a scheduled paper &middot; every answer in the paper being the same letter. These publish fine.</p>
+
+<div class="note care">
+  <h4>A night may hold more than one paper, and the checker used to say otherwise</h4>
+  <p>A paper is identified by its <strong>exam, its date and its name</strong>. The scheduler allows two on one night as long as their windows do not overlap; the unique index is on the opening time for exactly that reason; <code>save_paper</code> refuses only a paper matching a scheduled one on all three.</p>
+  <p>The upload checker knew none of that. It saw a date already in use and refused the file outright, which made a supported arrangement unreachable through the console: the only way to a second paper was to edit the date in the file, upload it, and move it back at the scheduling step. It warns now, and the database decides on the real key.</p>
+</div>
 
 <p>The option count is no longer among them. A question carries <strong>exactly
 four options, keyed A to D</strong> &mdash; three is refused and so is five, as
@@ -1230,7 +1236,7 @@ of them.</p>
 
 <div class="tw"><table>
 <tr><th>Layer</th><th>Status</th></tr>
-<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 437 tests, no database needed</td></tr>
+<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 438 tests, no database needed</td></tr>
 <tr><td>The schema, its functions, triggers and indexes</td><td><strong>Tested against real Postgres.</strong> <code>tests/schema.test.ts</code> applies every migration to an in-process Postgres and exercises each function and guard. <code>tests/migrate.test.ts</code> proves the chain is ordered and that a second run changes nothing</td></tr>
 <tr><td>The queries &mdash; what <code>lib/repo/</code> actually asks PostgREST for</td><td><strong>Tested against the real project, on request.</strong> <code>npm run test:live</code> runs every read the app makes against the Supabase project in <code>.env.local</code>. Read-only, so it is safe to point at production, and skipped when there are no credentials. It exists because a select that forgets a column is invisible to both TypeScript and pglite &mdash; and had already shipped twice</td></tr>
 <tr><td>The queries in <code>lib/repo/</code></td><td><strong>Typechecked only.</strong> The PostgREST calls have never run against a live server</td></tr>
@@ -1638,7 +1644,7 @@ words.</p>
     <text x="179" y="209" text-anchor="middle" font-weight="600">typecheck</text>
     <line x1="226" y1="205" x2="238" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="238" y="186" width="94" height="38" rx="6" fill="none" stroke="#94202B" stroke-width="2"/>
-    <text x="285" y="209" text-anchor="middle" font-weight="600">498 tests</text>
+    <text x="285" y="209" text-anchor="middle" font-weight="600">501 tests</text>
     <line x1="332" y1="205" x2="344" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="344" y="186" width="84" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
     <text x="386" y="209" text-anchor="middle" font-weight="600">build</text>
@@ -1663,7 +1669,7 @@ words.</p>
 <tr><td><code>npm run start:local</code></td><td><span class="pill local">rare</span></td><td>Serves that build on port 3000</td></tr>
 <tr><td><code>npm run build:prod</code></td><td><span class="pill prod">before shipping</span></td><td>Preflight, typecheck, all tests, a build without source maps, then the bundle scan. Any one of them failing stops the rest</td></tr>
 <tr><td><code>npm run start:prod</code></td><td><span class="pill prod">on the host</span></td><td>Serves the production build</td></tr>
-<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>498 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>501 tests. No database needed, about a second</td></tr>
 <tr><td><code>npm run test:live</code></td><td><span class="pill both">after touching a query</span></td><td>Runs every read <code>lib/repo/</code> makes against the real project in <code>.env.local</code>. Read-only. Skipped when there are no credentials</td></tr>
 <tr><td><code>npm run typecheck</code></td><td><span class="pill both">anytime</span></td><td>Checks types without building</td></tr>
 <tr><td><code>npm run seed</code></td><td><span class="pill both">setup</span></td><td>Creates the accounts, prints passwords once</td></tr>
@@ -1793,7 +1799,7 @@ words.</p>
 <b>npm install</b></pre>
 </div>
 <p>Downloads everything into a <code>node_modules</code> folder. Safe to re-run at any time.</p>
-<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>498 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
+<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>501 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
 </li>
 
 <li>
@@ -2309,7 +2315,7 @@ landed and what has not, at any time.</p>
 <tr><th>Step</th><th>What it catches</th></tr>
 <tr><td><code>preflight prod</code></td><td>A missing or malformed variable, before anything expensive runs. It names the variable and what it expected &mdash; including a secret key sitting in the publishable slot</td></tr>
 <tr><td><code>typecheck</code></td><td><code>tsc --noEmit</code> across the whole repository, tests included</td></tr>
-<tr><td><code>test</code></td><td>All 498. They need no database, so they run on the build machine exactly as they do on yours. <strong>One failure fails the deploy</strong> and nothing changes</td></tr>
+<tr><td><code>test</code></td><td>All 501. They need no database, so they run on the build machine exactly as they do on yours. <strong>One failure fails the deploy</strong> and nothing changes</td></tr>
 <tr><td><code>next build</code></td><td>The build itself, with <code>APP_ENV=production</code>, which drops browser source maps</td></tr>
 <tr><td><code>check-bundle</code></td><td>Reads everything under <code>.next/static</code> &mdash; the files a browser downloads &mdash; and fails if any of it contains the secret key's variable name, the <code>sb_secret_</code> prefix, or the key's own value. It is the last gate on the one mistake that cannot be taken back</td></tr>
 </table></div>
@@ -2437,7 +2443,7 @@ landed and what has not, at any time.</p>
 <ol>
 <li><strong>Which database am I talking to?</strong> Check the URL in <code>.env.local</code> against the project name in Supabase.</li>
 <li><strong>Did the schema actually apply?</strong> Table Editor: twelve tables plus <code>schema_migrations</code>, with RLS badges. Or <code>npm run migrate -- --status</code>, which names any file that has not landed.</li>
-<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 498 pass, the logic is fine and the problem is configuration or a query.</li>
+<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 501 pass, the logic is fine and the problem is configuration or a query.</li>
 </ol>
 
 <p class="end">

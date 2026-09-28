@@ -102,7 +102,14 @@ export async function savePaper(paper: Paper, trackId: string): Promise<SaveResu
   })
   if (error) {
     if (/DATE_SCHEDULED/.test(error.message)) {
-      throw new Error(`A paper is already scheduled for ${paper.date}. Move it back to draft first, or pick another date.`)
+      // The key is track + date + title, not the date alone: a night may hold
+      // more than one paper. So the way out is usually a different name, and
+      // saying "pick another date" sent people to the one fix that was not
+      // needed.
+      throw new Error(
+        `A scheduled paper on ${paper.date} is already called ${paper.title ?? 'this'}. `
+        + `Give this one a different name, or move that one back to draft first. `
+        + `Two papers can share a night as long as their windows do not overlap.`)
     }
     if (/DRAFT_HAS_ATTEMPTS/.test(error.message)) {
       throw new Error(`The draft for ${paper.date} already has student attempts, so it cannot be replaced. Pick another date.`)

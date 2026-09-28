@@ -754,6 +754,31 @@ describe('more than one paper a day', () => {
     expect(again.replaced_id).toBeTruthy()
   })
 
+  /**
+   * The case the console could not reach. save_paper keys on track, date AND
+   * title, so a second paper for a night that already has a scheduled one is
+   * accepted when it is a different paper -- but the upload checker refused
+   * any file whose date was taken, before the database was ever asked.
+   */
+  it('adds a second paper to a night that already has a scheduled one', async () => {
+    await scheduledPaper('2026-12-05', 6 * 60, 7 * 60)
+    const second = await savePaper('2026-12-05', 'Evening set')
+    expect(second.id).toBeTruthy()
+    expect(second.replaced_id).toBeNull()
+    const { n } = await one<{ n: number }>(
+      `select count(*)::int as n from tests where date = '2026-12-05'`)
+    expect(n).toBe(2)
+  })
+
+  it('refuses only when the scheduled paper has the same name', async () => {
+    await scheduledPaper('2026-12-06', 6 * 60, 7 * 60)
+    const payload = JSON.stringify({
+      ...savePaperPayload(paperToRows({ ...sample, date: '2026-12-06', title: 'Paper at 360' })),
+      track_id: TRACK,
+    })
+    expect(await fails('select save_paper($1)', [payload])).toMatch(/DATE_SCHEDULED/)
+  })
+
   it('schedules both, at windows that do not overlap', async () => {
     const morning = await scheduledPaper('2026-12-02', 6 * 60, 7 * 60)
     const evening = await scheduledPaper('2026-12-02', 22 * 60, 23 * 60)

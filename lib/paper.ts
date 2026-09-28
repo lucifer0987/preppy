@@ -157,7 +157,19 @@ export function readPaper(rawText: string, opts: ReadOptions = {}): ReadResult {
     err('date', 'PLACEHOLDER_TEXT',
       '"date" is still the template\'s placeholder. Set it to the day this paper is for.', date)
   } else if (opts.takenDates?.includes(date)) {
-    err('date', 'DATE_TAKEN', `A paper is already published for ${date}. Pick another date.`)
+    // A warning, not a refusal. A day may hold more than one paper: the
+    // schema keys a paper on track, date AND title, the scheduler allows two
+    // on one night as long as their windows do not overlap, and the unique
+    // index is on the opening time for that very reason.
+    //
+    // This check knows only the date, so it cannot tell a genuine clash from a
+    // second paper on a busy night -- and the one thing it must not do is
+    // refuse the second, which is what it used to do. The database decides,
+    // on the real key, and says so precisely if it says no.
+    ctx.warn('date', 'DATE_TAKEN',
+      `${date} already has a scheduled paper. That is allowed -- a night can hold more than one `
+      + `-- as long as this paper has a different name and you give it a window that does not `
+      + `overlap the other.`)
   } else if (opts.today && date < opts.today) {
     ctx.warn('date', 'DATE_PAST',
       `${date} has already passed. It can still be uploaded; choose a new night for it when you schedule it.`)

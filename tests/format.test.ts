@@ -221,8 +221,24 @@ describe('blocking errors', () => {
     expect(ok(mutate((p) => { p.date = '2028-02-29' })).codes).not.toContain('DATE_INVALID')
   })
 
-  it('rejects a date that already has a paper', () => {
-    expect(ok(sampleJson, { takenDates: [sampleDate] }).codes).toContain('DATE_TAKEN')
+  /**
+   * A day may hold more than one paper. The schema keys a paper on track, date
+   * and title; the scheduler allows two on a night whose windows do not
+   * overlap; the unique index is on the opening time for exactly that reason.
+   *
+   * This check sees only the date, so it cannot tell a real clash from a busy
+   * night -- and it used to refuse the second paper outright, which made a
+   * supported arrangement impossible to reach through the console. It warns
+   * now, and the database decides on the real key.
+   */
+  it('warns about a date that already has a paper, and does not refuse it', () => {
+    const r = ok(sampleJson, { takenDates: [sampleDate] })
+    expect(r.codes).toContain('DATE_TAKEN')
+    expect(r.errors.map((e) => e.code)).not.toContain('DATE_TAKEN')
+    expect(r.publishable).toBe(true)
+  })
+
+  it('says nothing when the date is free', () => {
     expect(ok(sampleJson, { takenDates: [shiftDay(sampleDate, 1)] }).codes).not.toContain('DATE_TAKEN')
   })
 
