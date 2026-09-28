@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { buildLeaderboard, ordinal, paperRank, rankDelta, streaks, type AttemptRecord, percentileOf, PERCENTILE_MIN_COHORT } from '../lib/leaderboard'
+import { buildLeaderboard, ordinal, paperRank, rankDelta, streaks, type AttemptRecord, percentileOf, PERCENTILE_MIN_COHORT, topPlaces
+} from '../lib/leaderboard'
 
 const rec = (
   user: string, paperKey: string, totalScore: number,
@@ -411,5 +412,49 @@ describe('percentiles, once there is a cohort to have one (PRD 6.7.10)', () => {
     const big = buildLeaderboard(many, [DATES[0]!])
     expect(big[0]!.percentile).toBe(97.5)
     expect(big.at(-1)!.percentile).toBe(0)
+  })
+})
+
+describe('the top of a rank list', () => {
+  const list = (...ranks: number[]) => ranks.map((rank, i) => ({ rank, who: `p${i}` }))
+
+  it('takes the first n places when nobody ties', () => {
+    const rows = list(1, 2, 3, 4, 5)
+    expect(topPlaces(rows, 3).map((r) => r.who)).toEqual(['p0', 'p1', 'p2'])
+  })
+
+  /**
+   * The reason this is not rows.slice(0, n). Equal scores share a place
+   * (FR-3.3), so a top ten can hold eleven people, and slicing would drop
+   * whichever of the two tenth-placed students sorted second -- invisible on
+   * the page, and impossible to argue with if you are the one cut.
+   */
+  it('keeps everybody who shares the last place', () => {
+    const rows = list(1, 2, 3, 3, 3, 6)
+    expect(topPlaces(rows, 3).map((r) => r.who)).toEqual(['p0', 'p1', 'p2', 'p3', 'p4'])
+    expect(topPlaces(rows, 3)).toHaveLength(5)
+  })
+
+  it('does not reach past the last place asked for', () => {
+    const rows = list(1, 2, 3, 4)
+    expect(topPlaces(rows, 2).every((r) => r.rank <= 2)).toBe(true)
+  })
+
+  it('returns everything when the list is shorter than n', () => {
+    const rows = list(1, 2)
+    expect(topPlaces(rows, 10)).toHaveLength(2)
+  })
+
+  it('returns nothing for a meaningless n, rather than everything', () => {
+    // A bug that passed 0 through should show an empty list, not the cohort.
+    expect(topPlaces(list(1, 2, 3), 0)).toEqual([])
+    expect(topPlaces(list(1, 2, 3), -1)).toEqual([])
+  })
+
+  it('leaves the rows and their order alone', () => {
+    const rows = list(1, 2, 3)
+    const out = topPlaces(rows, 2)
+    expect(rows).toHaveLength(3)
+    expect(out[0]).toBe(rows[0])
   })
 })

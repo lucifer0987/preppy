@@ -286,6 +286,22 @@ export function streaks(attended: Set<string>, papers: string[]): { current: num
 const round2 = (n: number) => Math.round(n * 100) / 100
 
 /** 1st, 2nd, 3rd, 4th, 11th, 12th, 13th, 21st — for "2nd of 5". */
+/**
+ * The first `n` places of a rank list, ties included.
+ *
+ * Not `rows.slice(0, n)`. Ranks share on equal scores (FR-3.3), so eleven
+ * people can be in a top ten and slicing would drop whichever of the two
+ * tenth-placed students happened to sort second -- a cut that is invisible on
+ * the page and impossible to argue with if you are the one cut.
+ *
+ * Takes the rank off the row rather than counting positions, so it agrees with
+ * whatever produced the ranking.
+ */
+export function topPlaces<T extends { rank: number }>(rows: T[], n: number): T[] {
+  if (n <= 0) return []
+  return rows.filter((r) => r.rank <= n)
+}
+
 export function ordinal(n: number): string {
   const s = ['th', 'st', 'nd', 'rd']
   const v = n % 100

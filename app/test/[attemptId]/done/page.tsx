@@ -21,6 +21,7 @@ import { SoundToggle } from '../../../../components/SoundToggle'
 import { ThemeToggle } from '../../../../components/ThemeToggle'
 import { Flash, TableShell, Th } from '../../../../components/Page'
 import { SectionShape } from '../../../../components/SectionShape'
+import { PaperRankList } from '../../../../components/PaperRankList'
 
 export const dynamic = 'force-dynamic'
 
@@ -526,6 +527,28 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
           </p>
         </section>
       </div>
+
+      {/* This paper's own top ten.
+          `standings` is already gated by getPaperStandings: a student is given
+          a rank list once they have finished the paper or it has closed, and
+          null before that, so a list of scores never tells anybody how hard a
+          paper they are about to sit turned out to be. Rendering it costs no
+          new query -- the page already reads this for the best and the average
+          beside the score. */}
+      {standings && standings.rows.length > 0 && (
+        <section className="card mt-4 p-5">
+          <PaperRankList standings={standings} meUserId={user.id} top={10}
+                         heading="Top 10 on this paper" />
+          <p className="mt-3 text-xs text-ink-faint">
+            By score alone, equal scores sharing a place.{' '}
+            <Link href={`/leaderboard?test=${testId}`}
+                  className="font-semibold text-accent hover:underline">
+              The whole list
+            </Link>{' '}
+            and every other paper are on the board.
+          </p>
+        </section>
+      )}
 
       <div className="mt-8 flex flex-wrap gap-3">
         <Link href="/dashboard" className="btn btn-primary">Back to dashboard</Link>

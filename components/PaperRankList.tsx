@@ -1,5 +1,5 @@
 import { formatIstDate } from '../lib/time'
-import { ordinal } from '../lib/leaderboard'
+import { ordinal, topPlaces } from '../lib/leaderboard'
 import type { PaperStandingRow } from '../lib/repo/leaderboard'
 import { Empty, TableShell, Th } from './Page'
 
@@ -9,10 +9,19 @@ import { Empty, TableShell, Th } from './Page'
  *
  * `meUserId` is empty on the console, where nobody is "you": an admin's
  * attempts are dry runs and are counted nowhere.
+ *
+ * `top` shows only the first n places, for the screens where this list is a
+ * glance rather than the point -- a result page, or a paper's row in the
+ * console. The reader is told how many more there are, so a short list never
+ * reads as the whole cohort.
  */
-export function PaperRankList({ standings, meUserId }: {
+export function PaperRankList({ standings, meUserId, top, heading }: {
   standings: { date: string; rows: PaperStandingRow[] } | null
   meUserId: string
+  /** Show only this many places. Omitted, the whole list. */
+  top?: number
+  /** Replaces the date as the heading, for a screen that already names the paper. */
+  heading?: string
 }) {
   if (!standings) {
     return (
@@ -25,11 +34,17 @@ export function PaperRankList({ standings, meUserId }: {
   if (!standings.rows.length) {
     return <Empty>Nobody sat the paper for {formatIstDate(standings.date)}.</Empty>
   }
+  // topPlaces, not slice: ranks share on equal scores, so eleven people can be
+  // in a top ten and cutting the eleventh would drop somebody who tied with
+  // the tenth. lib/leaderboard.ts owns that rule and tests it.
+  const shown = top ? topPlaces(standings.rows, top) : standings.rows
+  const hidden = standings.rows.length - shown.length
+
   return (
     <div>
       {/* Outside the scroll container: inside it, the date slid out of view
           with the table. */}
-      <h2 className="eyebrow">{formatIstDate(standings.date)}</h2>
+      <h2 className="eyebrow">{heading ?? formatIstDate(standings.date)}</h2>
       <div className="mt-3">
         <TableShell minWidth="26rem">
           <thead>
@@ -41,7 +56,7 @@ export function PaperRankList({ standings, meUserId }: {
             </tr>
           </thead>
           <tbody className="numeral">
-            {standings.rows.map((row) => {
+            {shown.map((row) => {
               const me = row.userId === meUserId
               return (
                 <tr key={row.userId}
@@ -66,6 +81,11 @@ export function PaperRankList({ standings, meUserId }: {
           </tbody>
         </TableShell>
       </div>
+      {hidden > 0 && (
+        <p className="mt-2 text-xs text-ink-faint">
+          {hidden} more {hidden === 1 ? 'person' : 'people'} sat this paper.
+        </p>
+      )}
     </div>
   )
 }

@@ -7,6 +7,8 @@ import { ConfirmButton } from './ConfirmButton'
 import { db } from '../../../lib/supabase/admin'
 import { Empty, PageHeader, Flash, StatusChip, TableShell, Th } from '../../../components/Page'
 import { TrackSwitcher } from '../../../components/TrackSwitcher'
+import { PaperRankList } from '../../../components/PaperRankList'
+import { getPaperStandings } from '../../../lib/repo/leaderboard'
 import { consoleTrack, listTracks } from '../../../lib/repo/tracks'
 
 export const dynamic = 'force-dynamic'
@@ -25,6 +27,24 @@ export default async function AttemptsPage({
   const { data: person } = user
     ? await db().from('profiles').select('display_name, username').eq('id', user).maybeSingle()
     : { data: null }
+
+  /**
+   * When one paper is being looked at, its rank list above the table.
+   *
+   * The table below is every attempt in the order they were sat, which answers
+   * "who has handed in" and not "how did it go". Both are wanted, and the
+   * second is one glance rather than nine columns read down.
+   *
+   * No viewer id: on the console an admin sees every paper's standings, closed
+   * or not. A failed read must not take the page down -- the attempts are the
+   * point of the screen and the ranking is an addition to it.
+   */
+  const standings = test
+    ? await getPaperStandings(test).catch((e: Error) => {
+        console.error('[admin/attempts] standings', e.message)
+        return null
+      })
+    : null
   const back = `/admin/attempts${user ? `?user=${user}` : test ? `?test=${test}` : ''}`
 
   return (
@@ -38,6 +58,17 @@ export default async function AttemptsPage({
       />
 
       {!user && <TrackSwitcher tracks={tracks} current={track} basePath="/admin/attempts" />}
+
+      {standings && standings.rows.length > 0 && (
+        <section className="card mt-4 p-5">
+          <PaperRankList standings={standings} meUserId="" top={10}
+                         heading="Top 10 on this paper" />
+          <p className="mt-3 text-xs text-ink-faint">
+            By score alone, equal scores sharing a place. Voided attempts are not on it.
+            Every attempt, in the order they were sat, is in the table below.
+          </p>
+        </section>
+      )}
 
       {error && <Flash tone="bad" className="mt-4">{error}</Flash>}
       {done && (
