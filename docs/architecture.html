@@ -216,9 +216,9 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <div><dt>Routes</dt><dd>22</dd></div>
     <div><dt>Tables</dt><dd>11</dd></div>
     <div><dt>SQL functions</dt><dd>11</dd></div>
-    <div><dt>Migrations</dt><dd>7</dd></div>
+    <div><dt>Migrations</dt><dd>8</dd></div>
     <div><dt>Modules</dt><dd>31<small>lib/</small></dd></div>
-    <div><dt>Tests</dt><dd>464</dd></div>
+    <div><dt>Tests</dt><dd>470</dd></div>
     <div><dt>Runtime deps</dt><dd>9</dd></div>
   </dl>
 </header>
@@ -551,7 +551,7 @@ whose scores are already public to everyone on it.</p>
   <rect x="20" y="160" width="470" height="76" rx="8" fill="none" stroke="#0E767F" stroke-width="2.5"/>
   <text x="38" y="184" font-size="13.5" font-weight="700" fill="currentColor">Pure domain logic</text>
   <text x="38" y="203" font-size="10.5" fill="currentColor" opacity=".7">time &middot; attempt &middot; scoring &middot; leaderboard &middot; paper &middot; csv &middot; images</text>
-  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 406 of the 464 tests live here</text>
+  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 409 of the 470 tests live here</text>
 
   <rect x="20" y="252" width="470" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
   <text x="38" y="276" font-size="13.5" font-weight="600" fill="currentColor">Repository</text>
@@ -891,11 +891,11 @@ whose scores are already public to everyone on it.</p>
           <b>"number"</b>: 1,
           <b>"text"</b>: "A train 150 m long crosses a pole in 15 seconds. Find its speed.",
           <b>"options"</b>: {
-            "A": "30 km/h", "B": "36 km/h", "C": "40 km/h",
-            "D": "45 km/h", "E": "None of these"
+            "A": "36 km/h", "B": "30 km/h",
+            "C": "40 km/h", "D": "45 km/h"
           },
-          <b>"answer"</b>: "B",
-          <b>"solution"</b>: "Speed = 150/15 = 10 m/s = 36 km/h.",
+          <b>"answer"</b>: "A",
+          <b>"solution"</b>: "Speed = 150/15 = 10 m/s = 10 x 18/5 = 36 km/h.",
           <b>"tag"</b>: "Speed-Time-Distance",
           <b>"difficulty"</b>: "Easy"
         }
@@ -1014,7 +1014,21 @@ whose scores are already public to everyone on it.</p>
 </div>
 
 <h3>What is only a warning</h3>
-<p>No <code>solution</code> &middot; no <code>tag</code> &middot; no <code>difficulty</code> &middot; fewer than five options &middot; a very long option &middot; a date that has already passed, since you pick the day and the window again when you schedule it &middot; every answer in the paper being the same letter. These publish fine.</p>
+<p>No <code>solution</code> &middot; no <code>tag</code> &middot; no <code>difficulty</code> &middot; a very long option &middot; a date that has already passed, since you pick the day and the window again when you schedule it &middot; every answer in the paper being the same letter. These publish fine.</p>
+
+<p>The option count is no longer among them. A question carries <strong>exactly
+four options, keyed A to D</strong> &mdash; three is refused and so is five, as
+an error rather than a warning, because every part of the product is built to
+that number: four shapes in the option motif, four keys under a student's
+fingers, four columns in the analysis. A range would have to be handled in all
+of them.</p>
+
+<div class="note care">
+  <h4>Four is a decision, and the real exam prints five</h4>
+  <p>IBPS's own Information Handout is unambiguous: "Out of the five answers to a question only one will be the correct answer." Preppy runs four anyway, and the reason is the cohort writing the questions rather than the exam &mdash; the fifth distractor was usually filler, and a shorter option card reads faster under a clock.</p>
+  <p>The cost is worth stating rather than discovering. A blind guess is worth 25% here against 20% on the real paper, so against &minus;0.25 marking a guess breaks even on Preppy (0.25 &times; 1 &minus; 0.75 &times; 0.25 = 0.0625 per question, in fact slightly positive) and loses on the real thing. A Preppy score is a little kinder than the exam's on that one axis, and a student who guesses freely here will find the real paper punishes it more.</p>
+  <p>Four is stated once, in <code>OPTION_LABELS</code>. The validator, the JSON schema, the blank template, the key editor and the option palette all read it from there, and migration 0008 is the floor under all of them: the table itself refuses a question whose options are not exactly A, B, C, D.</p>
+</div>
 
 <div class="note care">
   <h4>The one mistake no rule can see</h4>
@@ -1164,7 +1178,7 @@ whose scores are already public to everyone on it.</p>
 
 <div class="tw"><table>
 <tr><th>Layer</th><th>Status</th></tr>
-<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 406 tests, no database needed</td></tr>
+<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 409 tests, no database needed</td></tr>
 <tr><td>The schema, its functions, triggers and indexes</td><td><strong>Tested against real Postgres.</strong> <code>tests/schema.test.ts</code> applies every migration to an in-process Postgres and exercises each function and guard. <code>tests/migrate.test.ts</code> proves the chain is ordered and that a second run changes nothing</td></tr>
 <tr><td>The queries &mdash; what <code>lib/repo/</code> actually asks PostgREST for</td><td><strong>Tested against the real project, on request.</strong> <code>npm run test:live</code> runs every read the app makes against the Supabase project in <code>.env.local</code>. Read-only, so it is safe to point at production, and skipped when there are no credentials. It exists because a select that forgets a column is invisible to both TypeScript and pglite &mdash; and had already shipped twice</td></tr>
 <tr><td>The queries in <code>lib/repo/</code></td><td><strong>Typechecked only.</strong> The PostgREST calls have never run against a live server</td></tr>
@@ -1568,7 +1582,7 @@ words.</p>
     <text x="179" y="209" text-anchor="middle" font-weight="600">typecheck</text>
     <line x1="226" y1="205" x2="238" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="238" y="186" width="94" height="38" rx="6" fill="none" stroke="#94202B" stroke-width="2"/>
-    <text x="285" y="209" text-anchor="middle" font-weight="600">464 tests</text>
+    <text x="285" y="209" text-anchor="middle" font-weight="600">470 tests</text>
     <line x1="332" y1="205" x2="344" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="344" y="186" width="84" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
     <text x="386" y="209" text-anchor="middle" font-weight="600">build</text>
@@ -1593,7 +1607,7 @@ words.</p>
 <tr><td><code>npm run start:local</code></td><td><span class="pill local">rare</span></td><td>Serves that build on port 3000</td></tr>
 <tr><td><code>npm run build:prod</code></td><td><span class="pill prod">before shipping</span></td><td>Typecheck, all tests, then build without source maps</td></tr>
 <tr><td><code>npm run start:prod</code></td><td><span class="pill prod">on the host</span></td><td>Serves the production build</td></tr>
-<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>464 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>470 tests. No database needed, about a second</td></tr>
 <tr><td><code>npm run test:live</code></td><td><span class="pill both">after touching a query</span></td><td>Runs every read <code>lib/repo/</code> makes against the real project in <code>.env.local</code>. Read-only. Skipped when there are no credentials</td></tr>
 <tr><td><code>npm run typecheck</code></td><td><span class="pill both">anytime</span></td><td>Checks types without building</td></tr>
 <tr><td><code>npm run seed</code></td><td><span class="pill both">setup</span></td><td>Creates the accounts, prints passwords once</td></tr>
@@ -1722,7 +1736,7 @@ words.</p>
 <b>npm install</b></pre>
 </div>
 <p>Downloads everything into a <code>node_modules</code> folder. Safe to re-run at any time.</p>
-<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>464 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
+<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>470 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
 </li>
 
 <li>
@@ -1848,6 +1862,7 @@ up in exactly the same place.</p>
     applied  0005_a_paper_may_hold_more_than_55_questions.sql
     applied  0006_an_exam_track_owns_its_pattern_and_its_papers.sql
     applied  0007_a_pattern_is_replaced_whole_or_not_at_all.sql
+    applied  0008_a_question_carries_exactly_four_options.sql
 
   Done. 4 migrations applied in total.</i></pre>
 </div>
@@ -2016,6 +2031,7 @@ landed and what has not, at any time.</p>
 <tr><td><code>0005_a_paper_may_hold_more_than_55_questions.sql</code></td><td>Widens the bound on <code>questions.number</code> from 55 to 800. The 55 was one exam's pattern written into the schema, and it outlived the point where counts became configurable</td></tr>
 <tr><td><code>0006_an_exam_track_owns_its_pattern_and_its_papers.sql</code></td><td>Tracks. Adds <code>tracks</code> and <code>track_sections</code>, retires <code>default_sections</code> into it, puts a <code>track_id</code> on <code>tests</code> and <code>profiles</code>, scopes the scheduling index to the track, and adds the two Awareness section codes</td></tr>
 <tr><td><code>0007_a_pattern_is_replaced_whole_or_not_at_all.sql</code></td><td><code>save_track_pattern</code>, so replacing a track's pattern is one transaction. It was a delete and an insert as two calls, and a failure between them left a track with no sections &mdash; which reads as the shipped pattern, so nothing raised and the track had quietly become a different exam</td></tr>
+<tr><td><code>0008_a_question_carries_exactly_four_options.sql</code></td><td>Narrows <code>correct_option</code> and <code>selected_option</code> to A&ndash;D and adds a check that a question's <code>options</code> object holds exactly the four keys A, B, C, D. The validator already said so; this is the floor under <code>save_paper</code>, a key correction, and anything run by hand. It refuses to apply to a database still holding five-option questions, which is correct &mdash; those rows would be unreachable by a UI that renders four</td></tr>
 </tbody>
 </table></div>
 
@@ -2208,7 +2224,7 @@ landed and what has not, at any time.</p>
 <tr><td><code>SUPABASE_SECRET_KEY</code><br><small>or <code>..._SERVICE_ROLE_KEY</code></small></td><td>preppy-prod &rarr; a secret key<br><small>or its legacy service_role key</small></td></tr>
 <tr><td><code>CRON_SECRET</code></td><td>The string from step 2</td></tr>
 </table></div>
-<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 464 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
+<p>Then <strong>Deploy</strong>. Vercel runs <code>npm run build</code>, which is <code>build:prod</code>: preflight, typecheck, all 470 tests, then the build. <strong>If one test fails the deploy fails</strong> and nothing changes.</p>
 <p><strong>Check it worked:</strong> the deployment goes green and the URL shows the countdown page.</p>
 </li>
 
@@ -2332,7 +2348,7 @@ landed and what has not, at any time.</p>
 <ol>
 <li><strong>Which database am I talking to?</strong> Check the URL in <code>.env.local</code> against the project name in Supabase.</li>
 <li><strong>Did the schema actually apply?</strong> Table Editor, ten tables, RLS badges.</li>
-<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 464 pass, the logic is fine and the problem is configuration or a query.</li>
+<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 470 pass, the logic is fine and the problem is configuration or a query.</li>
 </ol>
 
 <p class="end">

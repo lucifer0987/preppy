@@ -79,7 +79,7 @@ export const FIELDS = {
  */
 const PLACEHOLDERS: RegExp[] = [
   /^Replace this with the text of question \d+\.$/,
-  /^Replace with option [A-E]$/,
+  /^Replace with option [A-D]$/,
   /^Replace with the worked explanation\./,
   /^Optional\. Use a directions block for anything several questions share/,
   /^Topic-Name$/,
@@ -458,21 +458,25 @@ function checkQuestion(
   if (isPlaceholder(text)) placeholders.push('text')
   const options = q['options']
   if (typeof options !== 'object' || options === null || Array.isArray(options)) {
-    err(`${qp}.options`, 'OPTIONS_MISSING', '"options" must be an object keyed A to E.')
+    err(`${qp}.options`, 'OPTIONS_MISSING', '"options" must be an object keyed A to D.')
   } else {
     const o = options as Record<string, unknown>
     const keys = Object.keys(o)
     const bad = keys.filter((k) => !OPTION_LABELS.includes(k as OptionLabel))
     if (bad.length) {
       err(`${qp}.options`, 'OPTION_LABEL_INVALID',
-        `Option key(s) ${bad.join(', ')} are not A-E.`)
+        `Option key(s) ${bad.join(', ')} are not A-D.`)
     }
     const good = keys.filter((k) => OPTION_LABELS.includes(k as OptionLabel))
     present = good
-    if (good.length < 2) {
-      err(`${qp}.options`, 'OPTION_TOO_FEW', `Only ${good.length} option(s); at least 2 are required.`)
-    } else if (good.length < 5) {
-      warn(`${qp}.options`, 'OPTION_UNDER_FIVE', `${good.length} options. Real IBPS questions carry 5.`)
+    // Exactly four, always. Not a range: every question in this product carries
+    // the same number of options, so the option card is one shape, the keyboard
+    // keys are one set, and a question with three or five is a mistake in the
+    // file rather than a variant to support.
+    if (good.length !== OPTION_LABELS.length) {
+      err(`${qp}.options`, 'OPTION_COUNT',
+        `${good.length} option(s). Every question carries exactly ${OPTION_LABELS.length}, `
+        + `keyed ${OPTION_LABELS.join(', ')}.`)
     }
     // Options must be contiguous from A, so the palette and keyboard keys line up.
     const ordered = OPTION_LABELS.slice(0, good.length)
@@ -497,7 +501,7 @@ function checkQuestion(
   const answer = q['answer']
   if (typeof answer !== 'string' || !OPTION_LABELS.includes(answer as OptionLabel)) {
     err(`${qp}.answer`, 'ANSWER_MISSING',
-      `"answer" must be one of A-E, got ${JSON.stringify(answer)}.`)
+      `"answer" must be one of A-D, got ${JSON.stringify(answer)}.`)
   } else if (present.length && !present.includes(answer)) {
     err(`${qp}.answer`, 'ANSWER_NOT_AN_OPTION',
       `"answer" is ${answer} but there is no option ${answer} (present: ${present.join(', ')}).`)

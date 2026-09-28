@@ -57,8 +57,7 @@
             "A": "36 km/h",
             "B": "30 km/h",
             "C": "40 km/h",
-            "D": "45 km/h",
-            "E": "None of these"
+            "D": "45 km/h"
           },
           "answer": "A",
           "solution": "Speed = 150/15 = 10 m/s = 10 x 18/5 = 36 km/h.",
@@ -72,8 +71,7 @@
             "A": "Rs 2,660",
             "B": "Rs 2,880",
             "C": "Rs 3,120",
-            "D": "Rs 2,400",
-            "E": "None of these"
+            "D": "Rs 2,400"
           },
           "answer": "B",
           "solution": "SI = (12000 x 8 x 3)/100 = Rs 2,880.",
@@ -87,8 +85,7 @@
             "A": "4%",
             "B": "6%",
             "C": "5%",
-            "D": "10%",
-            "E": "None of these"
+            "D": "10%"
           },
           "answer": "C",
           "solution": "Let CP = 100. MP = 140. SP = 140 x 0.75 = 105. Profit = 5%.",
@@ -102,8 +99,7 @@
             "A": "6 3/4 minutes",
             "B": "7 1/2 minutes",
             "C": "8 minutes",
-            "D": "7 1/5 minutes",
-            "E": "None of these"
+            "D": "7 1/5 minutes"
           },
           "answer": "D",
           "solution": "1/12 + 1/18 = 5/36. Time = 36/5 = 7.2 = 7 1/5 minutes.",
@@ -117,8 +113,7 @@
             "A": "40",
             "B": "38",
             "C": "42",
-            "D": "44",
-            "E": "None of these"
+            "D": "44"
           },
           "answer": "A",
           "solution": "For five consecutive even numbers the average is the middle term, so the numbers are 32, 34, 36, 38, 40.",
@@ -132,8 +127,7 @@
             "A": "6,600",
             "B": "7,200",
             "C": "7,800",
-            "D": "8,400",
-            "E": "None of these"
+            "D": "8,400"
           },
           "answer": "B",
           "solution": "(18 + 24 + 30) hundred = 72 hundred = 7,200 students.",
@@ -147,8 +141,7 @@
             "A": "50%",
             "B": "60%",
             "C": "66 2/3%",
-            "D": "75%",
-            "E": "None of these"
+            "D": "75%"
           },
           "answer": "C",
           "solution": "(15 - 9)/9 x 100 = 66 2/3%.",
@@ -162,8 +155,7 @@
             "A": "35%",
             "B": "50%",
             "C": "45%",
-            "D": "40%",
-            "E": "None of these"
+            "D": "40%"
           },
           "answer": "D",
           "solution": "Total 2024 = 15 + 24 + 12 + 9 = 60. Java + Networking = 15 + 9 = 24. 24/60 x 100 = 40%.",
@@ -177,8 +169,7 @@
             "A": "3:5",
             "B": "2:3",
             "C": "5:9",
-            "D": "4:7",
-            "E": "None of these"
+            "D": "4:7"
           },
           "answer": "A",
           "solution": "Networking = 6 + 9 + 12 = 27. Java = 12 + 15 + 18 = 45. Ratio = 27:45 = 3:5.",
@@ -192,8 +183,7 @@
             "A": "1,200",
             "B": "1,500",
             "C": "1,800",
-            "D": "2,100",
-            "E": "None of these"
+            "D": "2,100"
           },
           "answer": "B",
           "solution": "(12 + 15 + 18)/3 = 15 hundred = 1,500 students.",
@@ -207,8 +197,7 @@
             "A": "79",
             "B": "83",
             "C": "87",
-            "D": "91",
-            "E": "None of these"
+            "D": "91"
           },
           "answer": "C",
           "solution": "48 x 12 = 576. 576/8 = 72. 72 + 15 = 87.",
@@ -222,8 +211,7 @@
             "A": "148",
             "B": "151",
             "C": "157",
-            "D": "153",
-            "E": "None of these"
+            "D": "153"
           },
           "answer": "D",
           "solution": "Each term is the previous term x 2 plus an increasing counter: 3x2+1=7, 7x2+2=16, 16x2+3=35, 35x2+4=74, 74x2+5=153.",
@@ -237,8 +225,7 @@
             "A": "24 years",
             "B": "20 years",
             "C": "16 years",
-            "D": "32 years",
-            "E": "None of these"
+            "D": "32 years"
           },
           "answer": "A",
           "solution": "Interest equal to the principal accrues in 8 years. Four times requires interest of 3P, so 3 x 8 = 24 years.",
@@ -252,8 +239,7 @@
             "A": "25 years",
             "B": "30 years",
             "C": "28 years",
-            "D": "35 years",
-            "E": "None of these"
+            "D": "35 years"
           },
           "answer": "B",
           "solution": "(5x+6)/(7x+6) = 3/4 gives 20x + 24 = 21x + 18, so x = 6 and A = 30 years.",
@@ -267,8 +253,7 @@
             "A": "1 km/h",
             "B": "2.5 km/h",
             "C": "2 km/h",
-            "D": "4 km/h",
-            "E": "None of these"
+            "D": "4 km/h"
           },
           "answer": "C",
           "solution": "Downstream = 12 km/h, upstream = 8 km/h. Stream = (12 - 8)/2 = 2 km/h.",
@@ -298,8 +283,7 @@
             "A": "BGZHQ",
             "B": "DJBJS",
             "C": "DIBKS",
-            "D": "DIBJS",
-            "E": "None of these"
+            "D": "DIBJS"
           },
           "answer": "D",
           "solution": "Each letter moves one step forward, so CHAIR becomes DIBJS.",
@@ -313,8 +297,7 @@
             "A": "Uncle",
             "B": "Brother",
             "C": "Father",
-            "D": "Cousin",
-            "E": "Cannot be determined"
+            "D": "Cousin"
           },
           "answer": "A",
           "solution": "A and C are siblings, and C is D's father, so A is D's uncle.",
@@ -325,13 +308,12 @@
           "number": 18,
           "text": "Pointing to a man, a woman said, \"His mother is the only daughter of my mother.\" How is the woman related to the man?",
           "options": {
-            "A": "Mother",
-            "B": "Sister",
+            "A": "Sister",
+            "B": "Mother",
             "C": "Aunt",
-            "D": "Grandmother",
-            "E": "None of these"
+            "D": "Grandmother"
           },
-          "answer": "A",
+          "answer": "B",
           "solution": "The only daughter of the woman's mother is the woman herself, so she is the man's mother.",
           "tag": "Blood-Relations",
           "difficulty": "Medium"
@@ -341,12 +323,11 @@
           "text": "A man walks 5 km north, turns right and walks 3 km, then turns right and walks 5 km. How far is he from the starting point?",
           "options": {
             "A": "5 km",
-            "B": "3 km",
-            "C": "8 km",
-            "D": "13 km",
-            "E": "None of these"
+            "B": "8 km",
+            "C": "3 km",
+            "D": "13 km"
           },
-          "answer": "B",
+          "answer": "C",
           "solution": "He ends 3 km due east of his start, since the two 5 km legs cancel.",
           "tag": "Direction-Sense",
           "difficulty": "Easy"
@@ -358,8 +339,7 @@
             "A": "Only conclusion I follows",
             "B": "Only conclusion II follows",
             "C": "Both conclusions follow",
-            "D": "Neither conclusion follows",
-            "E": "Either I or II follows"
+            "D": "Neither conclusion follows"
           },
           "answer": "B",
           "solution": "All pens being books guarantees that some books are pens. Nothing links pens to red.",
@@ -371,12 +351,11 @@
           "text": "Who sits at the extreme left end of the row?",
           "options": {
             "A": "S",
-            "B": "V",
+            "B": "T",
             "C": "U",
-            "D": "T",
-            "E": "P"
+            "D": "V"
           },
-          "answer": "B",
+          "answer": "D",
           "solution": "The final arrangement from left to right is V, S, R, Q, U, T, P.",
           "tag": "Seating-Arrangement",
           "difficulty": "Medium"
@@ -385,13 +364,12 @@
           "number": 22,
           "text": "How many people sit between S and T?",
           "options": {
-            "A": "Two",
+            "A": "Three",
             "B": "Four",
-            "C": "Three",
-            "D": "Five",
-            "E": "None"
+            "C": "Two",
+            "D": "Five"
           },
-          "answer": "C",
+          "answer": "A",
           "solution": "S is second and T is sixth, so R, Q and U sit between them.",
           "tag": "Seating-Arrangement",
           "difficulty": "Medium"
@@ -401,12 +379,11 @@
           "text": "Who sits immediately to the left of P?",
           "options": {
             "A": "U",
-            "B": "Q",
+            "B": "T",
             "C": "R",
-            "D": "T",
-            "E": "S"
+            "D": "Q"
           },
-          "answer": "D",
+          "answer": "B",
           "solution": "P is seventh and T is sixth.",
           "tag": "Seating-Arrangement",
           "difficulty": "Easy"
@@ -417,11 +394,10 @@
           "options": {
             "A": "Second",
             "B": "Sixth",
-            "C": "Fourth",
-            "D": "Fifth",
-            "E": "Third"
+            "C": "Third",
+            "D": "Fourth"
           },
-          "answer": "E",
+          "answer": "C",
           "solution": "U is fifth from the left in a row of seven, so third from the right.",
           "tag": "Seating-Arrangement",
           "difficulty": "Medium"
@@ -432,11 +408,10 @@
           "options": {
             "A": "V and T",
             "B": "S and P",
-            "C": "V and P",
-            "D": "U and P",
-            "E": "None of these"
+            "C": "U and P",
+            "D": "V and P"
           },
-          "answer": "C",
+          "answer": "D",
           "solution": "V is first and P is seventh.",
           "tag": "Seating-Arrangement",
           "difficulty": "Easy"
@@ -445,13 +420,12 @@
           "number": 26,
           "text": "In a row of 40 students, Rahul is 12th from the left end. What is his position from the right end?",
           "options": {
-            "A": "28th",
+            "A": "29th",
             "B": "27th",
             "C": "30th",
-            "D": "29th",
-            "E": "None of these"
+            "D": "28th"
           },
-          "answer": "D",
+          "answer": "A",
           "solution": "40 - 12 + 1 = 29.",
           "tag": "Order-Ranking",
           "difficulty": "Easy"
@@ -460,13 +434,12 @@
           "number": 27,
           "text": "If '+' means divide, '/' means subtract, '-' means multiply and 'x' means add, then 16 + 4 / 5 - 3 x 2 = ?",
           "options": {
-            "A": "-9",
-            "B": "9",
+            "A": "9",
+            "B": "-9",
             "C": "-6",
-            "D": "6",
-            "E": "None of these"
+            "D": "6"
           },
-          "answer": "A",
+          "answer": "B",
           "solution": "The expression becomes 16/4 - 5x3 + 2 = 4 - 15 + 2 = -9.",
           "tag": "Symbol-Substitution",
           "difficulty": "Hard"
@@ -478,8 +451,7 @@
             "A": "Only conclusion I follows",
             "B": "Only conclusion II follows",
             "C": "Both conclusions follow",
-            "D": "Neither conclusion follows",
-            "E": "Either I or II follows"
+            "D": "Neither conclusion follows"
           },
           "answer": "C",
           "solution": "Combining gives P > Q >= R > S, so both P > S and Q >= S hold.",
@@ -490,13 +462,12 @@
           "number": 29,
           "text": "Which word comes third when the following are arranged in dictionary order? Nature, Nation, Native, Natural, Naughty",
           "options": {
-            "A": "Natural",
+            "A": "Nature",
             "B": "Native",
-            "C": "Nature",
-            "D": "Nation",
-            "E": "Naughty"
+            "C": "Natural",
+            "D": "Nation"
           },
-          "answer": "A",
+          "answer": "C",
           "solution": "The order is Nation, Native, Natural, Nature, Naughty.",
           "tag": "Alphabet-Test",
           "difficulty": "Medium"
@@ -506,12 +477,11 @@
           "text": "In a certain language MONKEY is coded as XDJMNL. How is CHAIR coded in that language?",
           "options": {
             "A": "QHZGC",
-            "B": "QHZGB",
+            "B": "QIZGB",
             "C": "BGZHQ",
-            "D": "QIZGB",
-            "E": "None of these"
+            "D": "QHZGB"
           },
-          "answer": "B",
+          "answer": "D",
           "solution": "Reverse the word and move each letter one step back: CHAIR reversed is RIAHC, which becomes QHZGB.",
           "tag": "Coding-Decoding",
           "difficulty": "Hard"
@@ -536,13 +506,12 @@
           "number": 31,
           "text": "According to the passage, the main reason many newly opened bank accounts remain dormant is:",
           "options": {
-            "A": "A shortage of bank branches in rural districts",
-            "B": "The absence of trust in a system offering no recourse when transactions fail",
+            "A": "The absence of trust in a system offering no recourse when transactions fail",
+            "B": "A shortage of bank branches in rural districts",
             "C": "High transaction fees charged on small deposits",
-            "D": "Poor mobile network coverage in remote areas",
-            "E": "A lack of government transfers into those accounts"
+            "D": "Poor mobile network coverage in remote areas"
           },
-          "answer": "B",
+          "answer": "A",
           "solution": "The second paragraph states that the binding constraint is no longer access but trust.",
           "tag": "Reading-Comprehension",
           "difficulty": "Easy"
@@ -552,12 +521,11 @@
           "text": "The phrase \"the preserve of the salaried urban household\" most nearly means:",
           "options": {
             "A": "protected by urban households",
-            "B": "a savings scheme for city workers",
-            "C": "something restricted to salaried city dwellers",
-            "D": "an obligation placed on urban families",
-            "E": "a record kept by urban banks"
+            "B": "something restricted to salaried city dwellers",
+            "C": "a savings scheme for city workers",
+            "D": "an obligation placed on urban families"
           },
-          "answer": "C",
+          "answer": "B",
           "solution": "A preserve here means an exclusive domain.",
           "tag": "Vocabulary-In-Context",
           "difficulty": "Medium"
@@ -568,11 +536,10 @@
           "options": {
             "A": "Digital payments have failed in India",
             "B": "Government transfers should be discontinued",
-            "C": "Commercial banks should be compelled to open rural branches",
-            "D": "Building infrastructure is easier than building the institutional trust needed to use it",
-            "E": "Mobile networks are the chief obstacle to financial inclusion"
+            "C": "Building infrastructure is easier than building the institutional trust needed to use it",
+            "D": "Commercial banks should be compelled to open rural branches"
           },
-          "answer": "D",
+          "answer": "C",
           "solution": "The final paragraph states that infrastructure is necessary but not sufficient and that the habit of use accrues far more slowly.",
           "tag": "Reading-Comprehension",
           "difficulty": "Medium"
@@ -584,10 +551,9 @@
             "A": "Uniformly celebratory",
             "B": "Dismissive and hostile",
             "C": "Nostalgic",
-            "D": "Indifferent and detached",
-            "E": "Appreciative but qualified"
+            "D": "Appreciative but qualified"
           },
-          "answer": "E",
+          "answer": "D",
           "solution": "The author acknowledges the achievement but immediately qualifies it as uneven.",
           "tag": "Tone",
           "difficulty": "Medium"
@@ -599,8 +565,7 @@
             "A": "Scarce",
             "B": "Widespread",
             "C": "Reliable",
-            "D": "Modern",
-            "E": "Affordable"
+            "D": "Modern"
           },
           "answer": "A",
           "solution": "Ubiquitous means present everywhere, so scarce is its opposite.",
@@ -614,8 +579,7 @@
             "A": "A",
             "B": "C",
             "C": "B",
-            "D": "D",
-            "E": "E"
+            "D": "D"
           },
           "answer": "B",
           "solution": "With neither-nor the verb agrees with the nearer subject, so it should be \"were present\".",
@@ -629,8 +593,7 @@
             "A": "and also",
             "B": "as well",
             "C": "but also",
-            "D": "but and",
-            "E": "however"
+            "D": "but and"
           },
           "answer": "C",
           "solution": "The correlative pair is \"not only ... but also\".",
@@ -644,8 +607,7 @@
             "A": "Priviledge",
             "B": "Privilage",
             "C": "Privelege",
-            "D": "Privilege",
-            "E": "Priviledg"
+            "D": "Privilege"
           },
           "answer": "D",
           "solution": "The correct spelling is privilege.",
@@ -656,13 +618,12 @@
           "number": 39,
           "text": "Choose the word most nearly SIMILAR in meaning to MITIGATE.",
           "options": {
-            "A": "Aggravate",
+            "A": "Alleviate",
             "B": "Complicate",
             "C": "Provoke",
-            "D": "Postpone",
-            "E": "Alleviate"
+            "D": "Aggravate"
           },
-          "answer": "E",
+          "answer": "A",
           "solution": "To mitigate is to make less severe, which is to alleviate.",
           "tag": "Synonyms",
           "difficulty": "Easy"
@@ -671,13 +632,12 @@
           "number": 40,
           "text": "Rearrange the parts to form a meaningful sentence: (P) the report (Q) was submitted (R) by the committee (S) last Friday",
           "options": {
-            "A": "PQRS",
-            "B": "QPRS",
+            "A": "QPRS",
+            "B": "PQRS",
             "C": "PRQS",
-            "D": "SPQR",
-            "E": "RQPS"
+            "D": "SPQR"
           },
-          "answer": "A",
+          "answer": "B",
           "solution": "The report was submitted by the committee last Friday.",
           "tag": "Sentence-Rearrangement",
           "difficulty": "Easy"
@@ -698,8 +658,7 @@
             "A": "Foreign key",
             "B": "Composite key",
             "C": "Candidate key",
-            "D": "Secondary key",
-            "E": "None of these"
+            "D": "Secondary key"
           },
           "answer": "C",
           "solution": "A candidate key is a minimal superkey, containing no redundant attributes.",
@@ -711,12 +670,11 @@
           "text": "Which normal form eliminates transitive functional dependency on the primary key?",
           "options": {
             "A": "1NF",
-            "B": "3NF",
+            "B": "BCNF",
             "C": "2NF",
-            "D": "BCNF",
-            "E": "4NF"
+            "D": "3NF"
           },
-          "answer": "B",
+          "answer": "D",
           "solution": "Third normal form removes transitive dependencies on the primary key.",
           "tag": "DBMS-Normalisation",
           "difficulty": "Easy"
@@ -725,13 +683,12 @@
           "number": 43,
           "text": "The time complexity of searching for an element in a balanced binary search tree containing n nodes is:",
           "options": {
-            "A": "O(1)",
+            "A": "O(log n)",
             "B": "O(n)",
-            "C": "O(log n)",
-            "D": "O(n log n)",
-            "E": "O(n squared)"
+            "C": "O(1)",
+            "D": "O(n log n)"
           },
-          "answer": "C",
+          "answer": "A",
           "solution": "A balanced BST has height proportional to log n, so search is O(log n).",
           "tag": "Data-Structures",
           "difficulty": "Easy"
@@ -741,12 +698,11 @@
           "text": "Which CPU scheduling algorithm can cause starvation of long processes?",
           "options": {
             "A": "First Come First Served",
-            "B": "Round Robin",
+            "B": "Shortest Job First",
             "C": "FIFO",
-            "D": "Shortest Job First",
-            "E": "None of these"
+            "D": "Round Robin"
           },
-          "answer": "D",
+          "answer": "B",
           "solution": "Shortest Job First keeps preferring short jobs, so long jobs may never run.",
           "tag": "OS-Scheduling",
           "difficulty": "Medium"
@@ -757,11 +713,10 @@
           "options": {
             "A": "Network layer",
             "B": "Data link layer",
-            "C": "Session layer",
-            "D": "Transport layer",
-            "E": "Presentation layer"
+            "C": "Transport layer",
+            "D": "Session layer"
           },
-          "answer": "D",
+          "answer": "C",
           "solution": "The transport layer provides end-to-end reliability, error recovery and flow control.",
           "tag": "Networking-OSI",
           "difficulty": "Easy"
@@ -773,10 +728,9 @@
             "A": "Atomicity",
             "B": "Consistency",
             "C": "Isolation",
-            "D": "Durability",
-            "E": "Redundancy"
+            "D": "Redundancy"
           },
-          "answer": "E",
+          "answer": "D",
           "solution": "The ACID properties are atomicity, consistency, isolation and durability.",
           "tag": "DBMS-Transactions",
           "difficulty": "Easy"
@@ -788,8 +742,7 @@
             "A": "21",
             "B": "25",
             "C": "80",
-            "D": "443",
-            "E": "8080"
+            "D": "443"
           },
           "answer": "D",
           "solution": "HTTPS uses TCP port 443 by default.",
@@ -803,8 +756,7 @@
             "A": "O(1)",
             "B": "O(log n)",
             "C": "O(n)",
-            "D": "O(n log n)",
-            "E": "O(n squared)"
+            "D": "O(n log n)"
           },
           "answer": "A",
           "solution": "Both neighbours are reachable through the node's own pointers, so the relinking is constant time.",
@@ -818,8 +770,7 @@
             "A": "WHERE",
             "B": "HAVING",
             "C": "ORDER BY",
-            "D": "DISTINCT",
-            "E": "LIMIT"
+            "D": "DISTINCT"
           },
           "answer": "B",
           "solution": "WHERE filters rows before grouping; HAVING filters groups after grouping.",
@@ -833,8 +784,7 @@
             "A": "The CPU is idle waiting for I/O",
             "B": "Two processes each hold a resource the other needs",
             "C": "The system spends more time paging than executing processes",
-            "D": "A process never gets CPU time",
-            "E": "Memory is fragmented into small blocks"
+            "D": "A process never gets CPU time"
           },
           "answer": "C",
           "solution": "Thrashing is excessive paging activity that leaves little time for useful work.",
@@ -848,8 +798,7 @@
             "A": "Queue",
             "B": "Heap",
             "C": "Linked list",
-            "D": "Stack",
-            "E": "Graph"
+            "D": "Stack"
           },
           "answer": "D",
           "solution": "Each recursive call pushes an activation record onto the call stack.",
@@ -860,13 +809,12 @@
           "number": 52,
           "text": "In object-oriented programming, the ability of different classes to respond to the same message in different ways is called:",
           "options": {
-            "A": "Encapsulation",
+            "A": "Polymorphism",
             "B": "Inheritance",
             "C": "Overloading",
-            "D": "Abstraction",
-            "E": "Polymorphism"
+            "D": "Encapsulation"
           },
-          "answer": "E",
+          "answer": "A",
           "solution": "Polymorphism lets one interface serve different underlying types.",
           "tag": "OOP",
           "difficulty": "Easy"
@@ -875,13 +823,12 @@
           "number": 53,
           "text": "Which protocol resolves an IP address to a MAC address?",
           "options": {
-            "A": "ARP",
-            "B": "DHCP",
+            "A": "DHCP",
+            "B": "ARP",
             "C": "DNS",
-            "D": "ICMP",
-            "E": "RARP"
+            "D": "ICMP"
           },
-          "answer": "A",
+          "answer": "B",
           "solution": "The Address Resolution Protocol maps an IP address to a hardware address.",
           "tag": "Networking-Protocols",
           "difficulty": "Easy"
@@ -891,12 +838,11 @@
           "text": "The worst-case time complexity of QuickSort is:",
           "options": {
             "A": "O(n)",
-            "B": "O(n squared)",
-            "C": "O(n log n)",
-            "D": "O(log n)",
-            "E": "O(n cubed)"
+            "B": "O(n log n)",
+            "C": "O(n squared)",
+            "D": "O(log n)"
           },
-          "answer": "B",
+          "answer": "C",
           "solution": "When the pivot is consistently the smallest or largest element, QuickSort degrades to O(n squared).",
           "tag": "Algorithms",
           "difficulty": "Medium"
@@ -907,11 +853,10 @@
           "options": {
             "A": "Waterfall model",
             "B": "V-model",
-            "C": "Spiral model",
-            "D": "Big Bang model",
-            "E": "Prototype model"
+            "C": "Big Bang model",
+            "D": "Spiral model"
           },
-          "answer": "C",
+          "answer": "D",
           "solution": "The spiral model places explicit risk analysis in every cycle.",
           "tag": "Software-Engineering",
           "difficulty": "Medium"

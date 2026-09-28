@@ -106,6 +106,10 @@ export function TestEngine({ snapshot, sectionLabel }: {
   const [advancing, setAdvancing] = useState(false)
 
   const question = section.questions[index]!
+  // How many number keys actually select something. Four, in every paper this
+  // product accepts -- but read off the question rather than written down, so
+  // the hint can never name a key that does nothing.
+  const optionCount = Object.keys(question.options).length
   const isLastSection = section.position === section.totalSections
 
   // ---------------------------------------------------------------- leaving
@@ -334,7 +338,9 @@ export function TestEngine({ snapshot, sectionLabel }: {
       // here too would select an option and advance in the same keystroke.
       if (e.target instanceof HTMLButtonElement && (e.key === 'Enter' || e.key === ' ')) return
       const labels = Object.keys(question.options) as OptionLabel[]
-      if (/^[1-5]$/.test(e.key)) {
+      // Bounded by how many options this question actually has, so the keys
+      // that do something are exactly the ones the hint below names.
+      if (/^[1-9]$/.test(e.key)) {
         const label = labels[Number(e.key) - 1]
         if (label) choose(label)
       } else if (e.key === 'Enter') { go(1) }
@@ -571,7 +577,7 @@ export function TestEngine({ snapshot, sectionLabel }: {
             </div>
 
             <p className="numeral mt-3 text-xs text-ink-faint">
-              <kbd>1</kbd>&ndash;<kbd>5</kbd> choose &middot; <kbd>Enter</kbd> next &middot;{' '}
+              <kbd>1</kbd>&ndash;<kbd>{optionCount}</kbd> choose &middot; <kbd>Enter</kbd> next &middot;{' '}
               <kbd>M</kbd> mark &middot; <kbd>&larr;</kbd> <kbd>&rarr;</kbd> move
             </p>
           </div>

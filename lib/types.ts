@@ -137,7 +137,25 @@ export const FORMAT_VERSION = 1
  */
 export const TEMPLATE_DATE = '9999-12-31'
 
-export const OPTION_LABELS = ['A', 'B', 'C', 'D', 'E'] as const
+/**
+ * The four option labels, and there are always four.
+ *
+ * A real IBPS paper prints five: "Out of the five answers to a question only
+ * one will be the correct answer" is the wording in their own Information
+ * Handout. Preppy deliberately runs four, which is a product decision rather
+ * than a reading of the exam -- it shortens the option card, and a cohort
+ * writing its own questions found the fifth distractor was usually filler.
+ *
+ * The cost is stated so nobody has to rediscover it: a blind guess is worth
+ * 25% here against 20% in the real thing, so with -0.25 marking a guess breaks
+ * even on Preppy and loses on the real paper. Read a Preppy score as a little
+ * kinder than the exam's on that axis.
+ *
+ * Everything derives from this array -- the validator, the schema mirror, the
+ * blank template, the key editor, the option palette in the engine -- so four
+ * is stated once.
+ */
+export const OPTION_LABELS = ['A', 'B', 'C', 'D'] as const
 export type OptionLabel = (typeof OPTION_LABELS)[number]
 export type Difficulty = 'Easy' | 'Medium' | 'Hard'
 

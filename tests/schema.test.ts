@@ -222,7 +222,7 @@ describe("a paper's own size", () => {
       `select id sid from sections where test_id = $1 and code = 'PK'`, [testId])
     return fails(
       `insert into questions (section_id, number, text, options, correct_option)
-       values ($1, $2, 'A question long enough to be real.', '{"A":"x","B":"y"}'::jsonb, 'A')`,
+       values ($1, $2, 'A question long enough to be real.', '{"A":"w","B":"x","C":"y","D":"z"}'::jsonb, 'A')`,
       [sid, number])
   }
 
@@ -244,6 +244,43 @@ describe("a paper's own size", () => {
     // that number, and this is what says so.
     const { id } = await savePaper('2027-03-03', 'The largest describable paper')
     expect(await addQuestion(id, 4 * 200)).toBeNull()
+  })
+
+  // 0008. The validator already refuses these with a message naming the
+  // question; this is the floor under it, for save_paper, a key correction, and
+  // a hand-run UPDATE, none of which go through the validator.
+  describe('exactly four options, enforced by the table', () => {
+    const withOptions = async (testId: string, number: number, options: string, key = 'A') => {
+      const { sid } = await one<{ sid: string }>(
+        `select id sid from sections where test_id = $1 and code = 'PK'`, [testId])
+      return fails(
+        `insert into questions (section_id, number, text, options, correct_option)
+         values ($1, $2, 'A question long enough to be real.', $3::jsonb, $4)`,
+        [sid, number, options, key])
+    }
+
+    it('takes four keyed A to D', async () => {
+      const { id } = await savePaper('2027-03-04', 'Four options')
+      expect(await withOptions(id, 1, '{"A":"w","B":"x","C":"y","D":"z"}')).toBeNull()
+    })
+
+    it('refuses five, three, and a gap in the middle', async () => {
+      const { id } = await savePaper('2027-03-05', 'Wrong counts')
+      expect(await withOptions(id, 1, '{"A":"v","B":"w","C":"x","D":"y","E":"z"}'))
+        .toMatch(/questions_four_options/)
+      expect(await withOptions(id, 2, '{"A":"x","B":"y","C":"z"}'))
+        .toMatch(/questions_four_options/)
+      // Four keys, but E instead of D: the count alone would have let this by,
+      // which is why the constraint names the keys as well as counting them.
+      expect(await withOptions(id, 3, '{"A":"w","B":"x","C":"y","E":"z"}'))
+        .toMatch(/questions_four_options/)
+    })
+
+    it('refuses E as the key, in the question and in a response', async () => {
+      const { id } = await savePaper('2027-03-06', 'Key out of range')
+      expect(await withOptions(id, 1, '{"A":"w","B":"x","C":"y","D":"z"}', 'E'))
+        .toMatch(/questions_correct_option_check/)
+    })
   })
 })
 

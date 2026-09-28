@@ -243,8 +243,8 @@ describe('blocking errors', () => {
 
   it('rejects an answer naming an option that does not exist', () => {
     const r = ok(mutate((p) => {
-      p.sections[0].questions[0].answer = 'E'
-      delete p.sections[0].questions[0].options.E
+      p.sections[0].questions[0].answer = 'D'
+      delete p.sections[0].questions[0].options.D
     }))
     expect(r.codes).toContain('ANSWER_NOT_AN_OPTION')
   })
@@ -457,14 +457,42 @@ describe('warnings do not block', () => {
     expect(r.publishable).toBe(true)
   })
 
-  it('allows four options with a warning', () => {
+})
+
+describe('exactly four options, never three and never five', () => {
+  it('refuses a question with three', () => {
     const r = ok(mutate((p) => {
       const q = p.sections[0].questions[0]
-      delete q.options.E
-      if (q.answer === 'E') q.answer = 'A'
+      delete q.options.D
+      if (q.answer === 'D') q.answer = 'A'
     }))
-    expect(r.codes).toContain('OPTION_UNDER_FIVE')
-    expect(r.publishable).toBe(true)
+    expect(r.codes).toContain('OPTION_COUNT')
+    expect(r.publishable).toBe(false)
+  })
+
+  it('refuses a question with five', () => {
+    const r = ok(mutate((p) => {
+      p.sections[0].questions[0].options.E = 'A fifth option'
+    }))
+    // E is not a label at all now, so it is caught twice over: as an unknown
+    // key and as the wrong number of options. Both are worth saying.
+    expect(r.codes).toContain('OPTION_LABEL_INVALID')
+    expect(r.publishable).toBe(false)
+  })
+
+  it('accepts the shipped sample, which carries four everywhere', () => {
+    const paper = ok(sampleJson).paper!
+    const counts = new Set(
+      paper.sections.flatMap((sec) => sec.questions.map((q) => Object.keys(q.options).length)))
+    expect([...counts]).toEqual([4])
+    expect(ok(sampleJson).publishable).toBe(true)
+  })
+
+  it('builds a blank template with four', () => {
+    const t = buildTemplate(DEFAULT_PATTERN) as { sections: { questions: { options: object }[] }[] }
+    const counts = new Set(
+      t.sections.flatMap((sec) => sec.questions.map((q) => Object.keys(q.options).length)))
+    expect([...counts]).toEqual([4])
   })
 })
 

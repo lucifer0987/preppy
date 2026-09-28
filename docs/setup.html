@@ -214,7 +214,7 @@ file has to exist before anything can be written into it.</p>
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
 <pre><b>node -v</b>            <i># needs v20.9 or newer</i>
 <b>npm install</b>
-<b>npm test</b>           <i># 464 passing means the code is sound</i></pre>
+<b>npm test</b>           <i># 470 passing means the code is sound</i></pre>
 </div>
 
 <h3>2 &middot; The Supabase project</h3>
@@ -388,7 +388,7 @@ ledger is meant to be the exception.</p>
 <h2><i>4</i>Shipping a change</h2>
 <div class="term">
   <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
-<pre><b>npm run build:prod</b>      <i># preflight + typecheck + 464 tests + build</i>
+<pre><b>npm run build:prod</b>      <i># preflight + typecheck + 470 tests + build</i>
 <b>git add -A &amp;&amp; git commit -m "what changed"</b>
 <b>git push</b>                 <i># Vercel deploys by itself</i></pre>
 </div>
@@ -445,7 +445,7 @@ means "pass the rest through".</p>
 <thead><tr><th>Command</th><th>What it does</th></tr></thead>
 <tbody>
 <tr><td><code>npm run dev</code></td><td>Development server on port 3000, reloads as you edit. Restart it after editing <code>.env.local</code></td></tr>
-<tr><td><code>npm test</code></td><td>464 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm test</code></td><td>470 tests. No database needed, about a second</td></tr>
 <tr><td><code>npm run test:live</code></td><td>Every read the app makes, run against the real Supabase project in <code>.env.local</code>. Read-only, so it is safe to point anywhere. Worth running after changing a query &mdash; it catches a select that forgot a column, which nothing else does</td></tr>
 <tr><td><code>npm run typecheck</code></td><td>Types only, no build. Faster than a build when you just want to know it compiles</td></tr>
 </tbody>
@@ -478,7 +478,7 @@ means "pass the rest through".</p>
 <tbody>
 <tr><td><code>npm run build:local</code></td><td>Preflight, then a build that keeps source maps so a stack trace names real files. For reproducing something locally</td></tr>
 <tr><td><code>npm run start:local</code></td><td>Serves that build on port 3000</td></tr>
-<tr><td><code>npm run build:prod</code></td><td>Preflight, typecheck, all 464 tests, then a build with no source maps. Any failure stops it</td></tr>
+<tr><td><code>npm run build:prod</code></td><td>Preflight, typecheck, all 470 tests, then a build with no source maps. Any failure stops it</td></tr>
 <tr><td><code>npm run start:prod</code></td><td>Serves the production build</td></tr>
 <tr><td><code>npm run build</code></td><td>The same as <code>build:prod</code>. This is what Vercel runs</td></tr>
 <tr><td><code>npm run start</code></td><td>The same as <code>start:prod</code></td></tr>
