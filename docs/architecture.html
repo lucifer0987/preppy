@@ -2185,10 +2185,11 @@ landed and what has not, at any time.</p>
 
 <li>
 <h4>Create preppy-prod</h4>
-<p>As in section 14, but name it <code>preppy-prod</code>:</p>
 <ul>
-<li>New Supabase project, closest region to your students. Set a <strong>database password</strong> and keep it &mdash; it is shown once, it is not your Supabase account password, and the connection string below needs it.</li>
-<li>Authentication &rarr; Sign In / Providers &rarr; Email &rarr; <strong>Confirm email off</strong>, before seeding. A username maps to an address that never receives mail, so an account awaiting confirmation can never be confirmed.</li>
+<li><strong>New project</strong> in the Supabase dashboard, named <code>preppy-prod</code> &mdash; something you cannot mistake for the development one at a glance.</li>
+<li><strong>Region</strong>: closest to your students. ap-south-1 (Mumbai) for an Indian cohort. It is the one setting that cannot be changed later without rebuilding the project.</li>
+<li><strong>Database password</strong>: set one and save it. Shown once, not recoverable, not your Supabase account password, and the connection string below needs it.</li>
+<li><strong>Authentication &rarr; Sign In / Providers &rarr; Email &rarr; Confirm email off</strong>, before seeding. A username maps to <code>name@preppy.local</code>, which receives nothing, so an account awaiting confirmation can never be confirmed and nobody can log in.</li>
 </ul>
 <p>Then apply the schema, from your own machine, without touching <code>.env.local</code>. Put the production values in a throwaway file and use that:</p>
 <div class="term">
@@ -2200,7 +2201,7 @@ landed and what has not, at any time.</p>
 <i>  Done. 8 migrations applied in total.</i></pre>
 </div>
 <p>The <code>DATABASE_URL</code> in that file comes from <strong>Connect</strong> at the top of the dashboard &rarr; <strong>Session pooler</strong>, port <strong>5432</strong>. Not the Transaction pooler on 6543, which has no prepared statements, and not the Direct connection, which is IPv6-only without the paid add-on and will time out on most networks. No connection string at all? <code>-- --print</code> writes the SQL out for the SQL Editor instead.</p>
-<p><strong>Check it worked:</strong> Table Editor shows twelve tables plus <code>schema_migrations</code>, carrying RLS badges exactly as dev did.</p>
+<p><strong>Check it worked:</strong> Table Editor shows twelve tables plus <code>schema_migrations</code>, carrying <strong>RLS enabled</strong> badges.</p>
 <p>Keep its <strong>Settings &rarr; API Keys</strong> page open. You need the project URL and both keys again, and they are <em>different</em> from your dev ones &mdash; a key from one project does not work on another.</p>
 </li>
 
