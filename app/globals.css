@@ -357,10 +357,16 @@ h1 { text-wrap: balance; }
 h2, h3 { text-wrap: balance; }
 
 /* Long-form reading: question stems, directions, solutions. */
+/* The question itself, and it fills its column.
+ *
+ * This used to cap at 68ch, the usual advice for long-form reading. A question
+ * is not long-form reading: it is two lines above a grid of options that spans
+ * the full width, and the cap made the text stop well short of them for no
+ * reason a reader could see. The passages and worked solutions keep their
+ * measures -- those really are prose. */
 .prose-question {
   font-size: 1.0625rem;
   line-height: 1.65;
-  max-width: 68ch;
 }
 
 /* Keyboard users must always see where they are (PRD section 8.4). */

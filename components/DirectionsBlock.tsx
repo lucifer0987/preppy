@@ -27,9 +27,9 @@ export function DirectionsBlock({ block, testId }: { block: PaperDirections; tes
       </p>
 
       {block.text.split('\n').filter((l) => l.trim() !== '').map((line, i) => (
-        // Wider than a question's own 68ch: a passage is the thing the pane
-        // exists for, and at the question measure it left a third of the
-        // screen empty beside it.
+        // A passage is the thing the pane exists for, and it is read down
+        // rather than glanced at, so it keeps a measure where the question
+        // above it does not.
         <p key={i} className="measure-wide mb-2.5 text-[0.9375rem] leading-relaxed last:mb-0 sm:text-base sm:leading-[1.7]">
           {line}
         </p>

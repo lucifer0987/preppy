@@ -1390,8 +1390,12 @@ text-only and already carry their deep light-mode value, so they need no pair.</
 
 <p>All three are served by <code>next/font</code> from this app, so no request
 reaches Google at run time and no text reflows while a webfont loads.
-<code>.prose-question</code> caps the question measure near 68 characters, because
-a full-width line of prose is measurably slower to read.</p>
+<code>.prose-question</code> sets the question's size and leading and caps
+nothing: a question sits above an option grid that spans the full width, so a
+measure on it only made the text stop short of the options for no visible
+reason. The measures that remain are on real prose &mdash; <code>.measure</code>
+at 68 characters for worked solutions and forms, <code>.measure-wide</code> at
+92 for a comprehension passage, which is read down rather than glanced at.</p>
 
 <h3>The mark is the option shapes</h3>
 <p>The four answer shapes &mdash; triangle, diamond, circle, square &mdash; carry

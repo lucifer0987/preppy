@@ -41,9 +41,9 @@ export function QuestionCard({
 
   return (
     <div>
-      {/* prose-question caps the measure near 68 characters: a full-width line
-          of comprehension text is measurably slower to read, and this is read
-          under a clock. */}
+      {/* Fills the column. The options below span the full width in two
+          columns, so a question stopping two thirds of the way across reads as
+          a layout fault rather than as a reading measure. */}
       <p className="prose-question text-ink sm:text-[1.0625rem] sm:leading-[1.7]">
         <span className="numeral mr-2.5 align-baseline text-sm font-bold text-accent">
           Q{question.number}
