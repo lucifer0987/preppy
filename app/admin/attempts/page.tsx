@@ -111,10 +111,23 @@ export default async function AttemptsPage({
                         </td>
                         <td className="px-3 py-2.5 text-ink-soft">{describe(a.state)}</td>
                         <td className="px-3 py-2.5 text-right">
-                          {isCounted(a) && (
-                            <ConfirmButton action={voidAttemptAction} fields={{ attemptId: a.id, back }}
-                                           label="Void" confirm="Take it off the leaderboard for good?" />
-                          )}
+                          <span className="flex flex-wrap items-center justify-end gap-2">
+                            {/* The row is nine numbers; this is the page the
+                                student actually reads. Offered for a finished
+                                attempt of any kind, voided ones included --
+                                "what did they see?" is asked most often about
+                                exactly those. */}
+                            {a.state !== 'IN_PROGRESS' && (
+                              <Link href={`/test/${a.id}/done`}
+                                    className="btn btn-quiet px-4 py-2 text-sm">
+                                See their result
+                              </Link>
+                            )}
+                            {isCounted(a) && (
+                              <ConfirmButton action={voidAttemptAction} fields={{ attemptId: a.id, back }}
+                                             label="Void" confirm="Take it off the leaderboard for good?" />
+                            )}
+                          </span>
                         </td>
                       </tr>
                     )

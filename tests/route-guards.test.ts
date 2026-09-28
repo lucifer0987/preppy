@@ -52,3 +52,39 @@ describe('every page says who may open it', () => {
     expect(readFileSync('app/admin/layout.tsx', 'utf8')).toMatch(/\brequireAdmin\s*\(/)
   })
 })
+
+describe("who may read somebody else's result", () => {
+  const done = readFileSync('app/test/[attemptId]/done/page.tsx', 'utf8')
+
+  /**
+   * The result page used to be "yours or nothing": attempt.user_id !== user.id
+   * meant a redirect, full stop. An admin now reads any of them, because the
+   * question the console cannot answer from a table of nine numbers is "what
+   * did the student actually see".
+   *
+   * That widening is the whole risk. A student reading another student's
+   * result would be a leak of the cohort's scores before a paper closes, which
+   * is the one thing FR-5.3 exists to prevent, so the role check is worth
+   * pinning in place rather than trusting to have stayed.
+   */
+  it('lets an admin through and nobody else', () => {
+    expect(done).toMatch(/const asAdmin = attempt\.user_id !== user\.id/)
+    expect(done).toMatch(/if \(asAdmin && user\.role !== 'admin'\) redirect\('\/dashboard'\)/)
+  })
+
+  it('still refuses an attempt that does not exist', () => {
+    expect(done).toMatch(/if \(!attempt\) redirect\('\/dashboard'\)/)
+  })
+
+  it("does not celebrate somebody else's score", () => {
+    // Confetti and a fanfare belong to the person who earned it, and an admin
+    // reading six results in a row wants neither.
+    expect(done).toMatch(/\{!asAdmin && \(/)
+  })
+
+  it('does not send an admin into a running test', () => {
+    // Opening the engine on another person's attempt would start a clock on
+    // their paper.
+    expect(done).toMatch(/if \(asAdmin\) redirect\(`\/admin\/attempts\?test=\$\{attempt\.test_id\}`\)/)
+  })
+})

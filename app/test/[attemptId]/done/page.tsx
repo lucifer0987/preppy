@@ -53,8 +53,36 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
     .eq('id', attemptId)
     .maybeSingle()
 
-  if (!attempt || attempt.user_id !== user.id) redirect('/dashboard')
-  if (attempt.state === 'IN_PROGRESS') redirect(`/test/${attemptId}`)
+  if (!attempt) redirect('/dashboard')
+
+  /**
+   * An admin may read any result; a student may read only their own.
+   *
+   * This is the screen an admin is asked about -- "what did they actually
+   * see?" -- and answering it from the attempts table, where the row is nine
+   * numbers, means reconstructing the page in your head. So the console links
+   * here, and here shows exactly what the student is shown, gated the same way
+   * by the paper's clock. Nothing extra is revealed by being an admin; the
+   * point is to see what they see.
+   */
+  const asAdmin = attempt.user_id !== user.id
+  if (asAdmin && user.role !== 'admin') redirect('/dashboard')
+
+  // Whose result this is, for the banner. Only looked up when it is not the
+  // reader's own, so the ordinary case pays nothing.
+  let subjectName: string | null = null
+  if (asAdmin) {
+    const { data: who } = await client
+      .from('profiles').select('display_name').eq('id', attempt.user_id).maybeSingle()
+    subjectName = (who?.display_name as string | undefined) ?? 'this student'
+  }
+
+  // An in-progress attempt is the engine's business, and sending an admin into
+  // a running test would start their own clock on somebody else's paper.
+  if (attempt.state === 'IN_PROGRESS') {
+    if (asAdmin) redirect(`/admin/attempts?test=${attempt.test_id}`)
+    redirect(`/test/${attemptId}`)
+  }
 
   const test = attempt.tests as unknown as Record<string, unknown> & { date: string; title: string | null; status: string }
   const paperWindow = paperWindowOf(test)
@@ -178,14 +206,21 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
 
   return (
     <main className="shell py-8">
-      {/* Keyed on the attempt, so the moment fires once, not on every revisit. */}
-      <Celebration level={celebration} onceKey={`result.${attemptId}`} />
-      <ResultSound
-        tune={!user.soundEnabled || celebration === 'none'
-          ? null
-          : celebration === 'good' ? 'result' : 'personal-best'}
-        onceKey={`result.${attemptId}`}
-      />
+      {/* Keyed on the attempt, so the moment fires once, not on every revisit.
+          Not for an admin reading somebody else's result: confetti and a
+          fanfare belong to the person who earned the score, and an admin
+          opening six of these in a row wants neither. */}
+      {!asAdmin && (
+        <>
+          <Celebration level={celebration} onceKey={`result.${attemptId}`} />
+          <ResultSound
+            tune={!user.soundEnabled || celebration === 'none'
+              ? null
+              : celebration === 'good' ? 'result' : 'personal-best'}
+            onceKey={`result.${attemptId}`}
+          />
+        </>
+      )}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         {/* The page's only h1. Six h2 sections followed it with nothing above
@@ -199,6 +234,20 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
           <ThemeToggle />
         </span>
       </div>
+
+      {asAdmin && (
+        <div className="card mt-4 flex flex-wrap items-center justify-between gap-3 border-accent/40 bg-accent-soft p-4">
+          <p className="text-sm">
+            <span className="font-bold">{subjectName}&rsquo;s result</span>, shown exactly as they
+            see it &mdash; including anything the paper&rsquo;s clock is still holding back from
+            them.
+          </p>
+          <Link href={`/admin/attempts?test=${attempt.test_id}`}
+                className="btn btn-quiet px-4 py-2 text-sm">
+            Back to attempts
+          </Link>
+        </div>
+      )}
 
       {attempt.rescored_at && counted && (
         <Flash tone="warn" className="mt-4 text-sm">

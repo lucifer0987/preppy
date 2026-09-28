@@ -218,7 +218,7 @@ figcaption b{color:var(--ink-2); font-weight:600}
     <div><dt>SQL functions</dt><dd>11</dd></div>
     <div><dt>Migrations</dt><dd>8</dd></div>
     <div><dt>Modules</dt><dd>31<small>lib/</small></dd></div>
-    <div><dt>Tests</dt><dd>488</dd></div>
+    <div><dt>Tests</dt><dd>492</dd></div>
     <div><dt>Runtime deps</dt><dd>11</dd></div>
   </dl>
 </header>
@@ -551,7 +551,7 @@ whose scores are already public to everyone on it.</p>
   <rect x="20" y="160" width="470" height="76" rx="8" fill="none" stroke="#0E767F" stroke-width="2.5"/>
   <text x="38" y="184" font-size="13.5" font-weight="700" fill="currentColor">Pure domain logic</text>
   <text x="38" y="203" font-size="10.5" fill="currentColor" opacity=".7">time &middot; attempt &middot; scoring &middot; leaderboard &middot; paper &middot; csv &middot; images</text>
-  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 427 of the 488 tests live here</text>
+  <text x="38" y="222" font-size="10.5" font-weight="600" fill="#0E767F">no database access &mdash; 431 of the 492 tests live here</text>
 
   <rect x="20" y="252" width="470" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
   <text x="38" y="276" font-size="13.5" font-weight="600" fill="currentColor">Repository</text>
@@ -1230,7 +1230,7 @@ of them.</p>
 
 <div class="tw"><table>
 <tr><th>Layer</th><th>Status</th></tr>
-<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 427 tests, no database needed</td></tr>
+<tr><td>Pure logic &mdash; timers, scoring, ranking, the paper format, CSV</td><td><strong>Tested.</strong> 431 tests, no database needed</td></tr>
 <tr><td>The schema, its functions, triggers and indexes</td><td><strong>Tested against real Postgres.</strong> <code>tests/schema.test.ts</code> applies every migration to an in-process Postgres and exercises each function and guard. <code>tests/migrate.test.ts</code> proves the chain is ordered and that a second run changes nothing</td></tr>
 <tr><td>The queries &mdash; what <code>lib/repo/</code> actually asks PostgREST for</td><td><strong>Tested against the real project, on request.</strong> <code>npm run test:live</code> runs every read the app makes against the Supabase project in <code>.env.local</code>. Read-only, so it is safe to point at production, and skipped when there are no credentials. It exists because a select that forgets a column is invisible to both TypeScript and pglite &mdash; and had already shipped twice</td></tr>
 <tr><td>The queries in <code>lib/repo/</code></td><td><strong>Typechecked only.</strong> The PostgREST calls have never run against a live server</td></tr>
@@ -1638,7 +1638,7 @@ words.</p>
     <text x="179" y="209" text-anchor="middle" font-weight="600">typecheck</text>
     <line x1="226" y1="205" x2="238" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="238" y="186" width="94" height="38" rx="6" fill="none" stroke="#94202B" stroke-width="2"/>
-    <text x="285" y="209" text-anchor="middle" font-weight="600">488 tests</text>
+    <text x="285" y="209" text-anchor="middle" font-weight="600">492 tests</text>
     <line x1="332" y1="205" x2="344" y2="205" stroke="currentColor" stroke-width="1.5" marker-end="url(#a7)"/>
     <rect x="344" y="186" width="84" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
     <text x="386" y="209" text-anchor="middle" font-weight="600">build</text>
@@ -1663,7 +1663,7 @@ words.</p>
 <tr><td><code>npm run start:local</code></td><td><span class="pill local">rare</span></td><td>Serves that build on port 3000</td></tr>
 <tr><td><code>npm run build:prod</code></td><td><span class="pill prod">before shipping</span></td><td>Preflight, typecheck, all tests, a build without source maps, then the bundle scan. Any one of them failing stops the rest</td></tr>
 <tr><td><code>npm run start:prod</code></td><td><span class="pill prod">on the host</span></td><td>Serves the production build</td></tr>
-<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>488 tests. No database needed, about a second</td></tr>
+<tr><td><code>npm test</code></td><td><span class="pill both">anytime</span></td><td>492 tests. No database needed, about a second</td></tr>
 <tr><td><code>npm run test:live</code></td><td><span class="pill both">after touching a query</span></td><td>Runs every read <code>lib/repo/</code> makes against the real project in <code>.env.local</code>. Read-only. Skipped when there are no credentials</td></tr>
 <tr><td><code>npm run typecheck</code></td><td><span class="pill both">anytime</span></td><td>Checks types without building</td></tr>
 <tr><td><code>npm run seed</code></td><td><span class="pill both">setup</span></td><td>Creates the accounts, prints passwords once</td></tr>
@@ -1793,7 +1793,7 @@ words.</p>
 <b>npm install</b></pre>
 </div>
 <p>Downloads everything into a <code>node_modules</code> folder. Safe to re-run at any time.</p>
-<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>488 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
+<p><strong>Check it worked:</strong> <code>npm test</code> should print <code>492 passed</code>. That needs no database, so if it passes, the code is sound and anything that breaks later is configuration.</p>
 </li>
 
 <li>
@@ -2212,7 +2212,7 @@ landed and what has not, at any time.</p>
 <tr><th>Screen</th><th>For</th></tr>
 <tr><td>Admin home</td><td>Leads with today's papers &mdash; each with its window and whether it is a draft, waiting, open, closed to entry or finished &mdash; or says there is none. Also has <strong>Finalise open attempts now</strong>, the manual run of the sweep</td></tr>
 <tr><td>Papers</td><td>Everything drafted or published, each row carrying the two things you open a paper for: <strong>See results</strong> (that paper's attempts) and <strong>Solutions</strong> (the paper itself, where you correct a key, schedule it, dry-run it or manage it). The row is not itself a link &mdash; one target that has to mean both is one target too few</td></tr>
-<tr><td>Attempts</td><td>Every attempt with score, duration and the two integrity counters. Void one here if you must. Your own dry runs are not listed: they count for nothing and each replaces the last</td></tr>
+<tr><td>Attempts</td><td>Every attempt with score, duration and the two integrity counters. <strong>See their result</strong> opens that student's own result screen, exactly as they see it, which is the question a row of nine numbers cannot answer. Void one here if you must. Your own dry runs are not listed: they count for nothing and each replaces the last</td></tr>
 <tr><td>Board</td><td>The leaderboard the students see, with the same two filters &mdash; a window in papers, or one paper's own rank list. An admin has no row on it</td></tr>
 <tr><td>People</td><td>Create accounts singly or by pasting a CSV. Rename anyone, students and admins alike, by pressing the name &mdash; though everybody can do that for themselves on <code>/account</code>. Reset passwords, in two presses because a reset ends every session the account has open. Deactivate without losing history</td></tr>
 <tr><td>Exams</td><td>The tracks this install prepares people for. Add one, name it, close one that is finished. Never needed by an install with a single exam, and nothing else in the console mentions a track until a second one exists</td></tr>
@@ -2309,7 +2309,7 @@ landed and what has not, at any time.</p>
 <tr><th>Step</th><th>What it catches</th></tr>
 <tr><td><code>preflight prod</code></td><td>A missing or malformed variable, before anything expensive runs. It names the variable and what it expected &mdash; including a secret key sitting in the publishable slot</td></tr>
 <tr><td><code>typecheck</code></td><td><code>tsc --noEmit</code> across the whole repository, tests included</td></tr>
-<tr><td><code>test</code></td><td>All 488. They need no database, so they run on the build machine exactly as they do on yours. <strong>One failure fails the deploy</strong> and nothing changes</td></tr>
+<tr><td><code>test</code></td><td>All 492. They need no database, so they run on the build machine exactly as they do on yours. <strong>One failure fails the deploy</strong> and nothing changes</td></tr>
 <tr><td><code>next build</code></td><td>The build itself, with <code>APP_ENV=production</code>, which drops browser source maps</td></tr>
 <tr><td><code>check-bundle</code></td><td>Reads everything under <code>.next/static</code> &mdash; the files a browser downloads &mdash; and fails if any of it contains the secret key's variable name, the <code>sb_secret_</code> prefix, or the key's own value. It is the last gate on the one mistake that cannot be taken back</td></tr>
 </table></div>
@@ -2437,7 +2437,7 @@ landed and what has not, at any time.</p>
 <ol>
 <li><strong>Which database am I talking to?</strong> Check the URL in <code>.env.local</code> against the project name in Supabase.</li>
 <li><strong>Did the schema actually apply?</strong> Table Editor: twelve tables plus <code>schema_migrations</code>, with RLS badges. Or <code>npm run migrate -- --status</code>, which names any file that has not landed.</li>
-<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 488 pass, the logic is fine and the problem is configuration or a query.</li>
+<li><strong>Does it fail without a database?</strong> <code>npm test</code>. If those 492 pass, the logic is fine and the problem is configuration or a query.</li>
 </ol>
 
 <p class="end">
