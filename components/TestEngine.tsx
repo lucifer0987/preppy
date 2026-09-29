@@ -506,6 +506,24 @@ export function TestEngine({ snapshot, sectionLabel }: {
               </svg>
             </button>
             <ThemeToggle tone="invert" />
+            {/* Kept away from the section controls, which is the whole point of
+                it being here, and given a word rather than an icon: the one
+                control that ends the paper should not be a symbol somebody
+                presses to find out what it does. The confirmation still
+                stands behind it. */}
+            <span aria-hidden="true" className="mx-0.5 h-5 w-px shrink-0 bg-white/20" />
+            <button
+              type="button"
+              onClick={() => setConfirming('end')}
+              disabled={advancing}
+              title="Hand the paper in now"
+              className="shrink-0 rounded-pill border border-white/25 px-3 py-1.5 text-xs
+                         font-bold uppercase tracking-widest text-white/70 transition
+                         hover:border-bad hover:bg-bad/20 hover:text-white
+                         disabled:opacity-40"
+            >
+              End test
+            </button>
           </span>
         </div>
       </header>
@@ -621,28 +639,22 @@ export function TestEngine({ snapshot, sectionLabel }: {
                 Marking does not answer a question.
               </p>
             )}
-            {!isLastSection && (
-              <Btn onClick={() => setConfirming('section')}
-                   className="mt-4 w-full" disabled={advancing}>
-                {advancing ? 'Saving…' : <>Next section &rarr;</>}
-              </Btn>
-            )}
+            {/* One button, and on the last section it is handing in -- which is
+                what moving on means there. End test used to sit directly under
+                Next section, two full-width buttons a few pixels apart, and a
+                student reaching for the next section could finish the paper
+                instead. The way out mid-test lives in the header now, away from
+                the thing pressed forty times an hour. */}
+            <Btn onClick={() => setConfirming(isLastSection ? 'end' : 'section')}
+                 tone={isLastSection ? 'primary' : undefined}
+                 className="mt-4 w-full" disabled={advancing}>
+              {advancing ? 'Saving…' : isLastSection ? 'Hand it in' : <>Next section &rarr;</>}
+            </Btn>
             <p className="mt-2.5 text-xs text-ink-faint">
               {isLastSection
-                ? 'This is the last section.'
-                : 'Sections run forward only, so this one closes for good.'}
+                ? 'This is the last section, so this hands the paper in.'
+                : 'Sections run forward only, so this one closes for good. To finish early, use End test in the top right.'}
             </p>
-            {/* Always reachable. A student who is finished should not have to walk
-                through the remaining sections to hand the paper in. */}
-            <button
-              type="button"
-              onClick={() => setConfirming('end')}
-              disabled={advancing}
-              className="btn btn-quiet mt-3 w-full border-bad/40 text-bad-ink
-                         hover:border-bad hover:bg-bad/10 hover:text-bad-ink"
-            >
-              End test
-            </button>
           </div>
         </aside>
       </div>
