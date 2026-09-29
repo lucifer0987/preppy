@@ -41,8 +41,14 @@ export function PatternForm({ trackId, current, latestEntryClose }: {
     Number.isInteger(s.minutes) && s.minutes > 0 && s.marksCorrect > 0 && s.marksNegative >= 0)
 
   // The hard stop is entry close plus the paper's length, so a longer pattern
-  // can push the finish past midnight. Allowed since 0010, and worth saying
-  // here rather than letting an admin discover it on the night.
+  // can push the finish past midnight. Allowed since 0010, so this is a remark
+  // and never a refusal -- worth saying here rather than letting an admin
+  // discover it on the night.
+  //
+  // Measured against the *default* last-entry time, which is only the time a
+  // new paper is offered: any paper may be given a different window, and a
+  // window may now run for days. So it is a fair warning about the usual case
+  // and nothing more.
   const overrunsTheDay = latestEntryClose + totals.minutes > 24 * 60
   const tooLong = totals.minutes > 8 * 60
   const unused = ALL_SECTION_CODES.filter((c) => !draft.some((s) => s.code === c))
@@ -182,10 +188,10 @@ export function PatternForm({ trackId, current, latestEntryClose }: {
             )}
             {!tooLong && overrunsTheDay && (
               <p className="mt-3 text-sm text-ink-soft">
-                With the current last entry time, a {totals.minutes}-minute paper finishes after
-                midnight, on the following morning. That is allowed &mdash; it still belongs to the
-                day it opened &mdash; but move the last entry time earlier on the window screen if
-                you would rather it did not.
+                With the default last entry time, a {totals.minutes}-minute paper finishes after
+                midnight, on the following morning. That is allowed and saves fine &mdash; the paper
+                still belongs to the day it opened. Move the last entry time earlier on the window
+                screen, or give a paper its own window, if you would rather it did not.
               </p>
             )}
           </>
@@ -213,7 +219,13 @@ export function PatternForm({ trackId, current, latestEntryClose }: {
       </p>
       {/* Disabled for the same reasons the server refuses, so the button never
           promises something that will come back as an error. */}
-      <Save disabled={!numbers || !sane || tooLong || overrunsTheDay} />
+      {/* overrunsTheDay is not in here, and must not be.
+          It says the paper would finish after midnight, which has been allowed
+          since 0010 -- the note above says so in as many words. Disabling Save
+          on it meant the screen told an admin their pattern was fine and then
+          refused to accept it. tooLong stays: eight hours is a real rule
+          (tests_attempt_sec_sane), not a preference. */}
+      <Save disabled={!numbers || !sane || tooLong} />
     </form>
   )
 }
