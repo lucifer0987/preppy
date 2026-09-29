@@ -102,7 +102,7 @@ export function LeaderboardTable({
                         {row.displayName}
                       </span>
                       {me && (
-                        <span className="ml-2 rounded-full bg-accent px-1.5 py-0.5 text-[0.5625rem]
+                        <span className="ml-2 rounded-full bg-accent px-1.5 py-0.5 text-[0.6875rem] sm:text-[0.5625rem]
                                          font-bold uppercase tracking-widest text-white align-middle">
                           you
                         </span>
@@ -151,7 +151,7 @@ function Th({ children, align = 'left', className = '' }: {
 }) {
   return (
     <th scope="col"
-        className={`px-2 py-2.5 text-[0.625rem] font-bold uppercase tracking-[0.12em] text-ink-faint
+        className={`px-2 py-2.5 text-[0.6875rem] font-bold uppercase tracking-[0.12em] text-ink-faint sm:text-[0.625rem]
                     ${align === 'right' ? 'text-right' : 'text-left'} ${className}`}>
       {children}
     </th>
@@ -248,7 +248,7 @@ function Podium({ row, delay, me }: { row: LeaderboardRow; delay: number; me: bo
 
 function Movement({ value }: { value: number | null }) {
   if (value === null) {
-    return <span className="text-[0.625rem] font-bold uppercase tracking-widest text-ink-faint">new</span>
+    return <span className="text-[0.6875rem] font-bold uppercase tracking-widest text-ink-faint sm:text-[0.625rem]">new</span>
   }
   if (value === 0) return <span className="text-ink-faint">—</span>
   const up = value > 0

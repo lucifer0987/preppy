@@ -115,7 +115,7 @@ export function Th({ children, align = 'left', className = '' }: {
 }) {
   return (
     <th scope="col"
-        className={`px-3 py-2.5 text-[0.625rem] font-bold uppercase tracking-[0.12em] text-ink-faint
+        className={`px-3 py-2.5 text-[0.6875rem] font-bold uppercase tracking-[0.12em] text-ink-faint sm:text-[0.625rem]
                     ${align === 'right' ? 'text-right' : 'text-left'} ${className}`}>
       {children}
     </th>

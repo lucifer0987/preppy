@@ -72,10 +72,31 @@ function Section({ section, today }: { section: ScheduleSection; today: string }
         </div>
       </div>
 
-      {/* The phone reading of the same days. */}
-      <ul className="mt-3 space-y-2 md:hidden">
-        {section.days.map((day) => <Card key={day.day} day={day} today={today} />)}
-      </ul>
+      {/* The phone reading of the same days, folded away.
+          Eighty-four cards stacked made this page 43,770px tall -- about a
+          hundred screens of scrolling to reach December, and the jump links
+          only helped if you already knew which week you wanted. Closed, a week
+          costs one line; the week you are in opens itself, which is the one
+          almost everybody came for. The table above is untouched: on a laptop
+          a week is seven rows and folding it would be hiding something that
+          already fits. */}
+      <details open={live} className="group mt-3 md:hidden">
+        <summary className="tap-target flex cursor-pointer list-none items-center gap-2
+                            rounded-control border border-line bg-surface px-4 py-2.5
+                            text-sm font-bold text-ink-soft">
+          <svg viewBox="0 0 20 20" aria-hidden="true"
+               className="h-4 w-4 shrink-0 fill-current transition group-open:rotate-180">
+            <path d="M5.3 7.3a1 1 0 0 1 1.4 0L10 10.6l3.3-3.3a1 1 0 1 1 1.4 1.4l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 0-1.4z" />
+          </svg>
+          {section.days.length} days
+          <span className="numeral ml-auto text-xs font-semibold text-ink-faint">
+            {section.dates}
+          </span>
+        </summary>
+        <ul className="mt-2 space-y-2">
+          {section.days.map((day) => <Card key={day.day} day={day} today={today} />)}
+        </ul>
+      </details>
     </section>
   )
 }

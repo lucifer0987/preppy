@@ -48,7 +48,14 @@ function PaperImage({ testId, name }: { testId: string; name: string }) {
       src={src}
       alt={`Figure ${name}`}
       onError={() => setFailed(true)}
-      className="max-h-96 max-w-full rounded-xl border border-line bg-surface object-contain"
+      /* min(24rem, 55vh) rather than a flat 24rem: the cap was 384px on every
+         screen, which is most of a small phone's height, and a figure that
+         tall pushes the options off the bottom of a question the student is
+         being timed on. On a normal phone the two are close enough that
+         nothing changes; on a short one the viewport wins. It can only ever
+         make a figure smaller than the old rule, never larger. */
+      className="max-h-[min(24rem,55vh)] max-w-full rounded-xl border border-line
+                 bg-surface object-contain"
     />
   )
 }

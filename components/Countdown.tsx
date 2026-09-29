@@ -108,7 +108,7 @@ function Cell({ value, label, tone }: {
       <span className="numeral text-3xl font-black leading-none" suppressHydrationWarning>
         {String(value).padStart(2, '0')}
       </span>
-      <span className="mt-1 text-[10px] font-bold uppercase tracking-widest opacity-70">{label}</span>
+      <span className="mt-1 text-[11px] font-bold uppercase tracking-widest opacity-70 sm:text-[10px]">{label}</span>
     </div>
   )
 }

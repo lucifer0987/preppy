@@ -386,7 +386,8 @@ export default async function Dashboard({
                     </>
                   ) : (
                     <span className="rounded-full border border-line bg-surface-sunken px-2 py-0.5
-                                     text-[10px] font-bold uppercase tracking-widest text-ink-soft">
+                                     text-[11px] font-bold uppercase tracking-widest text-ink-soft
+                                     sm:text-[10px]">
                       Not attempted
                     </span>
                   )}
