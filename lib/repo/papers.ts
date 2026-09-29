@@ -977,21 +977,24 @@ export async function upcomingPapers(now = new Date(), trackId?: string): Promis
   /**
    * Yesterday and later, not today and later.
    *
-   * This used to start at today, and said so: the old constraint forced entry
-   * close plus the paper's length inside its own IST day, so nothing dated
-   * earlier could still be running. A window may cross midnight now, so a
-   * paper dated yesterday and still running at ten past twelve is real -- and
-   * starting at today would have dropped it from the dashboard mid-attempt,
-   * for everyone who had not started it and everyone who had.
+   * No date floor, and that is the point.
    *
-   * One day back is enough: a paper cannot run for 24 hours, because
-   * tests_attempt_sec_sane caps it at eight.
+   * This started at today, then moved to one day back when a window gained the
+   * right to cross midnight -- with the reasoning that a paper could not
+   * outlive its date by more than a day, because entry close stopped at 2879.
+   * That ceiling is gone (0013): a paper may take entry for a week, so a paper
+   * dated the 1st can be the one open on the 7th, and any floor picked here
+   * would be a guess that silently drops it off every dashboard.
+   *
+   * So the window decides, as it does everywhere else. The rows are filtered
+   * by windowState below and the cost is one cohort's papers -- a few hundred
+   * at most, paged -- which is cheaper than being wrong about which paper is
+   * open.
    */
   const rows = await selectAll<Record<string, unknown>>('papers', (from, to) => {
     let q = db().from('tests')
       .select(`id, title, ${PAPER_WINDOW_COLUMNS}, sections(question_count, marks_correct, marks_negative)`)
       .eq('status', 'SCHEDULED')
-      .gte('date', addDays(today, -1))
     if (trackId) q = q.eq('track_id', trackId)
     return q.order('date').range(from, to)
   })

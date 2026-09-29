@@ -8,6 +8,10 @@ import { addDays, daysBetween, entryCloseOffset } from '../lib/time'
 /**
  * The four controls that say when a paper runs, kept consistent with each other.
  *
+ * "Last entry on" is bounded below by the opening day and not at all above: a
+ * window runs for as long as its admin says, and the offset between the two
+ * dates is what gets stored (minutes from the paper's own midnight).
+ *
  * They used to be four independent fields, and the two dates disagreed the
  * moment you touched the first one. "Last entry on" may only be the opening
  * day or the one after it, so its calendar is bounded -- but those bounds were
@@ -60,8 +64,11 @@ export function ScheduleDates({
           name="entryClosesOn"
           label="Last entry on"
           defaultValue={closesOn}
+          // A floor and no ceiling. It used to stop at the day after the
+          // opening one, because the column did; an admin wanting a paper open
+          // all week met a calendar with two days on it and no explanation.
+          // How long a paper takes entry for is that paper's business now.
           min={opensOn}
-          max={addDays(opensOn, 1)}
           onChange={(v) => setOffset(daysBetween(opensOn, v))}
         />
         <TimeField name="entryClosesAt" label="Last moment to start"

@@ -177,14 +177,17 @@ export function defaultPaperWindow(
 }
 
 /**
- * How late entry may close, as minutes from midnight of the paper's own date.
+ * There is no ceiling on how late entry may close.
  *
- * One full day past its own midnight: entry opening on the 28th may close at
- * any time up to 23:59 on the 29th. Beyond that the window stops describing a
- * night and starts describing a holiday, and the date field is the honest way
- * to say so.
+ * It is minutes from midnight of the paper's own date, and that is the whole
+ * rule: 1500 is 1 AM the next morning, 4320 is 23:59 two days on, 14400 is ten
+ * days on. How long a paper takes entry for is a property of that paper and
+ * the admin setting it is the one who knows -- a group wanting a paper open
+ * all week so everyone can sit it around their own work is not a misuse.
+ *
+ * MAX_ENTRY_CLOSE_MIN used to live here at 2879 and is gone. What replaced it
+ * is nothing: the floor and `opens < closes` are the only rules a window has.
  */
-export const MAX_ENTRY_CLOSE_MIN = 2 * 24 * 60 - 1
 
 /** Whole days between two YYYY-MM-DD dates, b minus a. */
 export function daysBetween(a: string, b: string): number {
@@ -193,15 +196,17 @@ export function daysBetween(a: string, b: string): number {
 }
 
 /**
- * Which day entry closes on, relative to the day the paper opens: 0 for the
- * same night, 1 for the following morning. Never anything else -- a window
- * that took entry for two days would be two papers.
+ * How many days after the opening day entry closes: 0 for the same night, 1
+ * for the following morning, and as many as the admin asked for beyond that.
  *
- * Clamped rather than trusted, because it is also read off a form mid-edit,
- * where the two dates can briefly disagree.
+ * It used to clamp at 1, on the same reasoning the schema used -- "a window
+ * that took entry for two days would be two papers" -- and that reasoning is
+ * gone. Only the floor is kept, and only because this is also read off a form
+ * mid-edit, where the two dates can briefly disagree and a negative offset is
+ * not a window.
  */
 export function entryCloseOffset(date: string, closesOn: string): number {
-  return Math.min(1, Math.max(0, daysBetween(date, closesOn)))
+  return Math.max(0, daysBetween(date, closesOn))
 }
 
 /** The date entry closes on, which is the paper's own unless it runs past midnight. */
@@ -258,20 +263,31 @@ export function paperClosed(p: PaperWindow, at: Date = new Date()): boolean {
 /** The times a paper shows, for display. */
 export function paperLabels(p: PaperWindow): { opens: string; closes: string; hardStop: string } {
   const stop = p.entryClosesAtMin + p.attemptMinutes
+  /**
+   * A minute offset from the paper's own midnight, said the way a reader
+   * would say it.
+   *
+   * Same day, just the time. The next morning, "next day" -- short, and the
+   * phrase everyone already reads on a paper that crosses midnight. Beyond
+   * that, the date itself: a window may now run for a week, and "next day" on
+   * something three days out was the label quietly going wrong the moment the
+   * ceiling came off.
+   */
+  const at = (minutes: number) => {
+    const days = Math.floor(minutes / (24 * 60))
+    const time = formatIstTime(Math.floor((minutes % (24 * 60)) / 60), minutes % 60)
+    if (days === 0) return time
+    if (days === 1) return `${time} next day`
+    return `${time} on ${formatIstDate(addDays(p.date, days))}`
+  }
   return {
-    opens: formatIstTime(Math.floor(p.opensAtMin / 60), p.opensAtMin % 60),
-    closes: p.entryClosesAtMin >= 24 * 60
-      ? `${formatIstTime(Math.floor((p.entryClosesAtMin - 24 * 60) / 60), p.entryClosesAtMin % 60)} next day`
-      : formatIstTime(Math.floor(p.entryClosesAtMin / 60), p.entryClosesAtMin % 60),
+    opens: at(p.opensAtMin),
+    closes: at(p.entryClosesAtMin),
     // 24:00 is midnight at the end of the paper's date, not the start of it.
-    // Exactly 24:00 is midnight. Past it the time belongs to the next morning,
-    // and calling that "midnight" would be out by however long it runs -- on
-    // the one figure an admin reads to check the window is what they meant.
-    hardStop: stop === 24 * 60
-      ? 'midnight'
-      : stop > 24 * 60
-        ? `${formatIstTime(Math.floor((stop - 24 * 60) / 60), stop % 60)} next day`
-        : formatIstTime(Math.floor(stop / 60), stop % 60),
+    // Exactly 24:00 is midnight; past it the time belongs to a later day, and
+    // calling that "midnight" would be out by however long it runs -- on the
+    // one figure an admin reads to check the window is what they meant.
+    hardStop: stop === 24 * 60 ? 'midnight' : at(stop),
   }
 }
 
@@ -293,8 +309,7 @@ export function paperWindowProblem(
   // past 1440 -- the same arithmetic the hard stop has always used. 1500 is
   // 1 AM the next morning, which is a window an admin may reasonably want and
   // could not previously express.
-  if (!Number.isInteger(p.entryClosesAtMin) || p.entryClosesAtMin < 0
-      || p.entryClosesAtMin > MAX_ENTRY_CLOSE_MIN) {
+  if (!Number.isInteger(p.entryClosesAtMin) || p.entryClosesAtMin < 0) {
     return 'The closing time is not a time of day.'
   }
   if (p.opensAtMin >= p.entryClosesAtMin) return 'Entry must open before it closes.'

@@ -4,7 +4,7 @@ import { requireAdmin } from '../../../../../lib/guard'
 import { getPaperById, paperLock } from '../../../../../lib/repo/papers'
 import { countRunningAttempts } from '../../../../../lib/repo/attempt-admin'
 import {
-  addDays, entryClosesOn, formatIstDate, formatIstMoment, istDate, paperLabels,
+  entryClosesOn, formatIstDate, formatIstMoment, istDate, paperLabels,
 } from '../../../../../lib/time'
 import { sectionName, type SectionCode } from '../../../../../lib/types'
 import { patternForPaper } from '../../../../../lib/repo/tracks'
@@ -206,15 +206,16 @@ export default async function ManagePaper({ params, searchParams }: {
                   <p className="numeral mt-1.5 py-2 text-lg font-bold">{l.opens}</p>
                 </div>
               )}
-              {/* A day as well as a time: entry may close on the morning after
+              {/* A day as well as a time: entry may close well after the day
                    the paper opens, and a time on its own cannot say which day
-                   it means. */}
+                   it means. Bounded below by the opening day and not above --
+                   how long this paper takes entry for is this paper's
+                   business, not a rule the product gets to keep (0013). */}
               <DateField
                 name="entryClosesOn"
                 label="Last entry on"
                 defaultValue={entryClosesOn(lock.window)}
                 min={lock.window.date}
-                max={addDays(lock.window.date, 1)}
               />
               <TimeField
                 name="entryClosesAt"

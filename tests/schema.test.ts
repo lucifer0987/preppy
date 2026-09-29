@@ -337,16 +337,17 @@ describe('a window has to be a time of day', () => {
       expect(await fails('update tests set opens_at_min = $2 where id = $1', [id, bad]), String(bad))
         .toMatch(/tests_window_is_a_time_of_day/)
     }
-    // Entry close counts from the paper's own midnight and may reach the next
-    // day (0011), so 1440 is 00:00 tomorrow rather than nonsense. 2880 is the
-    // day after that, which is two papers rather than one window.
-    for (const bad of [-100, 2880, 9999]) {
-      expect(await fails('update tests set entry_closes_at_min = $2 where id = $1', [id, bad]), String(bad))
-        .toMatch(/tests_window_is_a_time_of_day/)
-    }
+    // Entry close counts from the paper's own midnight and has no ceiling
+    // (0013): 1440 is 00:00 tomorrow, 2880 the day after, 10080 a week on.
+    // How long a paper takes entry for is the admin's to decide, so only a
+    // negative offset is refused.
+    expect(await fails('update tests set entry_closes_at_min = -100 where id = $1', [id]))
+      .toMatch(/tests_window_is_a_time_of_day/)
     expect(await fails('update tests set opens_at_min = 0 where id = $1', [id])).toBeNull()
-    expect(await fails('update tests set entry_closes_at_min = 1439 where id = $1', [id])).toBeNull()
-    expect(await fails('update tests set entry_closes_at_min = 2879 where id = $1', [id])).toBeNull()
+    for (const ok of [1439, 2879, 2880, 7 * 24 * 60, 30 * 24 * 60]) {
+      expect(await fails('update tests set entry_closes_at_min = $2 where id = $1', [id, ok]), String(ok))
+        .toBeNull()
+    }
   })
 })
 

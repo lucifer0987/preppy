@@ -232,14 +232,39 @@ describe('which windows are allowed', () => {
 
   /**
    * Entry close is minutes from midnight of the paper's own date, so it may
-   * run past 1440 and mean the following day: 1500 is 1 AM tomorrow. That is
-   * how "opens 10 PM, last entry 1 AM" is expressed, which a time alone could
-   * not say.
+   * run past 1440 and mean a later day: 1500 is 1 AM tomorrow, 4320 is 23:59
+   * two days on. There is no ceiling. It used to stop at 2879 on the grounds
+   * that "past that a window stops describing a night" -- a product opinion
+   * dressed as a constraint, and the wrong one: how long a paper takes entry
+   * for belongs to that paper and to the admin setting it.
    */
-  it('lets entry close on the following day, but not the one after', () => {
-    expect(paperWindowProblem(win(22 * 60, 24 * 60 + 60))).toBeNull()
-    expect(paperWindowProblem(win(22 * 60, 2 * 24 * 60 - 1))).toBeNull()
-    expect(paperWindowProblem(win(22 * 60, 2 * 24 * 60))).toMatch(/closing time is not a time of day/)
+  it('puts no ceiling on how late entry closes', () => {
+    expect(paperWindowProblem(win(22 * 60, 24 * 60 + 60))).toBeNull()        // 1 AM next day
+    expect(paperWindowProblem(win(22 * 60, 2 * 24 * 60 - 1))).toBeNull()     // the old ceiling
+    expect(paperWindowProblem(win(22 * 60, 2 * 24 * 60))).toBeNull()         // one past it
+    expect(paperWindowProblem(win(9 * 60, 7 * 24 * 60))).toBeNull()          // open all week
+    expect(paperWindowProblem(win(9 * 60, 30 * 24 * 60))).toBeNull()         // open all month
+  })
+
+  it('still refuses a close that is not a number of minutes, or is before the open', () => {
+    expect(paperWindowProblem(win(22 * 60, -1))).toMatch(/closing time is not a time of day/)
+    expect(paperWindowProblem(win(22 * 60, 22 * 60))).toMatch(/open before it closes/)
+  })
+
+  /**
+   * "next day" was right while a window could only reach tomorrow, and became
+   * a lie the moment it could reach next week. Past one day the label names
+   * the date instead.
+   */
+  it('names the day a long window closes on, rather than calling it next day', () => {
+    const w = (closes: number) => paperLabels({
+      date: '2026-09-28', opensAtMin: 22 * 60, entryClosesAtMin: closes,
+      attemptMinutes: 45, endedAt: null,
+    }).closes
+    expect(w(23 * 60)).toBe('11:00 PM')
+    expect(w(25 * 60)).toBe('1:00 AM next day')
+    expect(w(2 * 24 * 60 + 13 * 60)).toBe('1:00 PM on 30 September 2026')
+    expect(w(7 * 24 * 60 + 9 * 60)).toBe('9:00 AM on 5 October 2026')
   })
 
   it('names which day entry closes on, and which date the close belongs to', () => {
@@ -387,12 +412,14 @@ describe('how far after the opening day entry closes', () => {
   })
 
   /**
-   * Both ends are clamped because this is also read off a form being edited,
-   * where the two dates can briefly disagree -- and a window taking entry for
-   * two days would be two papers, not one.
+   * Only the floor is clamped now, and only because this is read off a form
+   * being edited, where the two dates can briefly disagree. A window may run
+   * for as many days as the admin chose, so the top is not this function's to
+   * decide.
    */
-  it('clamps anything wider, and anything backwards', () => {
-    expect(entryCloseOffset('2026-09-29', '2026-10-05')).toBe(1)
+  it('counts however many days it is, and refuses to go backwards', () => {
+    expect(entryCloseOffset('2026-09-29', '2026-10-05')).toBe(6)
+    expect(entryCloseOffset('2026-09-29', '2026-10-29')).toBe(30)
     expect(entryCloseOffset('2026-09-29', '2026-09-28')).toBe(0)
     expect(entryCloseOffset('2026-09-29', '2020-01-01')).toBe(0)
   })
