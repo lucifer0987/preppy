@@ -251,7 +251,14 @@ export function ScheduleIntro({ today }: { today: string }) {
         ))}
       </div>
 
-      <nav aria-label="Jump to a week" className="flex flex-wrap gap-1.5">
+      {/* The row gap is a tap-target decision, not a spacing one.
+          These pills are 26px tall and .tap-target centres a 44px hit box on
+          each, so two wrapped rows 32px apart have overlapping hit boxes and
+          each pill ends up with 32px of the 44. Twenty pixels between rows
+          separates them, and only on a coarse pointer: a mouse needs no help
+          and the desktop spacing was chosen deliberately. */}
+      <nav aria-label="Jump to a week"
+           className="flex flex-wrap gap-1.5 pointer-coarse:gap-y-5">
         {SCHEDULE.map((s) => {
           const here = s.days.some((d) => d.date === today)
           return (
