@@ -63,7 +63,7 @@ export default async function ArchivePage() {
       <main className="shell pt-6">
         <PageHeader
           title="All papers"
-          lede="What is open now, what is still to come, and every paper that has closed \u2014 with its answers and worked solutions."
+          lede="What is open now, what is still to come, and every paper that has closed — with its answers and worked solutions."
         />
 
         {!failure && rows.length > 0 && (
