@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { actionAdmin } from '../../../../lib/guard'
 import {
   deletePaper, endPaperNow, renamePaper, retimePaper, schedulePaper, unschedulePaper,
-  updateQuestionContent, paperLock,
+  updateQuestionContent, paperLock, reopenPaper,
 } from '../../../../lib/repo/papers'
 import { daysBetween } from '../../../../lib/time'
 import { correctAnswerKey, setSectionMarks } from '../../../../lib/repo/rescore'
@@ -148,6 +148,32 @@ export async function retimeAction(formData: FormData) {
     () => retimePaper(id, { entryClosesAtMin, ...(opensAtMin === null ? {} : { opensAtMin }) }),
     `/admin/papers/${id}/manage?done=retimed`,
     `/admin/papers/${id}/manage`,
+  )
+}
+
+/**
+ * Reopening a finished paper on a new window.
+ *
+ * Unlike retiming, the date comes from the form: reopening is the one case
+ * where a paper moves day, because entry close only ever reaches the morning
+ * after the paper's own date and a paper from last week needs to be told when
+ * it now runs.
+ */
+export async function reopenAction(formData: FormData) {
+  if (!(await actionAdmin())) redirect('/login')
+  const id = String(formData.get('id'))
+  const date = String(formData.get('date') ?? '')
+  const opensAtMin = minutesOf(formData, 'opensAt')
+  const entryClosesAtMin = entryCloseMinutes(formData, date)
+  const back = `/admin/papers/${id}/manage`
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || opensAtMin === null || entryClosesAtMin === null) {
+    redirect(`${back}?error=${encodeURIComponent('Pick a day, an unlock time and a last moment to start.')}`)
+  }
+  await run(
+    id,
+    () => reopenPaper(id, { date, opensAtMin, entryClosesAtMin }),
+    `${back}?done=reopened`,
+    back,
   )
 }
 

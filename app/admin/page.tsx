@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { db } from '../../lib/supabase/admin'
-import { formatIstDate, istDate, paperLabels, windowState } from '../../lib/time'
+import { addDays, formatIstDate, istDate, paperLabels, windowState } from '../../lib/time'
 import { paperWindowOf } from '../../lib/repo/papers'
 import { requireAdmin } from '../../lib/guard'
 import { Flash, StatusChip } from '../../components/Page'
@@ -25,9 +25,19 @@ export default async function AdminHome({
   const today = istDate()
 
   const [todayRes, students, scheduled, drafts, attempts] = await Promise.all([
+    /**
+     * Yesterday and later, not today alone.
+     *
+     * A window may end after midnight (migration 0011), so at half past twelve
+     * the paper that is running carries yesterday's date. Matching the date
+     * exactly left this screen saying nothing was on while students were
+     * sitting one -- on the page whose whole job is "what is happening now".
+     * The rows are narrowed below to today's papers plus anything from
+     * yesterday that has not closed.
+     */
     db().from('tests')
       .select('id, date, title, status, track_id, opens_at_min, entry_closes_at_min, attempt_sec, ended_at, tracks(name)')
-      .eq('date', today),
+      .gte('date', addDays(today, -1)),
     db().from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student'),
     db().from('tests').select('*', { count: 'exact', head: true }).eq('status', 'SCHEDULED'),
     db().from('tests').select('*', { count: 'exact', head: true }).eq('status', 'DRAFT'),
@@ -47,7 +57,12 @@ export default async function AdminHome({
       trackName: (t.tracks as unknown as { name: string } | null)?.name ?? null,
       window: paperWindowOf(t),
     }))
-    .sort((a, b) => a.window.opensAtMin - b.window.opensAtMin)
+    // Today's, and yesterday's only while it is still going. A paper cannot
+    // run 24 hours (tests_attempt_sec_sane caps it at eight), so one day back
+    // is as far as this has to look.
+    .filter((p) => p.window.date === today || windowState(p.window, now) !== 'CLOSED')
+    .sort((a, b) => a.window.date.localeCompare(b.window.date)
+      || a.window.opensAtMin - b.window.opensAtMin)
   const manyTracks = new Set(papers.map((p) => p.trackName)).size > 1
 
   return (

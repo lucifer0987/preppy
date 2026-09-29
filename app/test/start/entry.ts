@@ -1,5 +1,5 @@
 import {
-  canStartAttempt, istDate, paperClosed, paperLabels, windowState, type PaperWindow,
+  canStartAttempt, paperClosed, paperLabels, windowState, type PaperWindow,
 } from '../../../lib/time'
 
 /**
@@ -12,7 +12,24 @@ export function entryRefusal(
   status: string, w: PaperWindow, now: Date = new Date(),
 ): string | null {
   if (status !== 'SCHEDULED') return 'That paper is not scheduled.'
-  if (w.date !== istDate(now)) return 'That is not today\'s paper. A paper can only be taken on its own day.'
+  /**
+   * There is no date check here, and there must not be one.
+   *
+   * It used to read `w.date !== istDate(now)` and refuse with "A paper can
+   * only be taken on its own day". That was true when a window had to finish
+   * inside its own IST day, and stopped being true at migration 0011: entry
+   * close may now run to 2879 minutes, so "opens 10 PM Monday, last entry 1 AM
+   * Tuesday" is a window an admin can set on purpose. At 00:30 on the Tuesday
+   * the paper is genuinely open, and the check refused it -- quoting a rule
+   * the product had already dropped, to a student who could see the countdown
+   * still running.
+   *
+   * The window already carries the whole answer. canStartAttempt compares now
+   * against opensAt and entryClosesAt, and both are computed from this paper's
+   * own date plus its minute offsets, so a paper can never be started outside
+   * its window whatever day it is read on. The date comparison added nothing
+   * correct on top of that -- only a second, older opinion.
+   */
   if (canStartAttempt(w, now)) return null
   const { opens, closes } = paperLabels(w)
   if (windowState(w, now) === 'BEFORE_OPEN') return `This paper unlocks at ${opens}.`

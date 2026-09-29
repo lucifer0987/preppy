@@ -370,6 +370,8 @@ export interface PaperLock {
   canDelete: boolean
   /** The window can still be moved: scheduled, not ended, not finished. */
   canRetime: boolean
+  /** It is over, and can be given a new window -- a new day, if need be. */
+  canReopen: boolean
   /** It is running (or finishing) and can be stopped for everybody. */
   canEndNow: boolean
   /** Its questions can be swapped: nobody has sat it. */
@@ -419,6 +421,10 @@ export async function paperLock(id: string): Promise<PaperLock | null> {
     // admin to leave a broken paper live until midnight.
     canDelete: realAttempts === 0,
     canRetime: status === 'SCHEDULED' && !ended && state !== 'CLOSED',
+    // A finished paper can be given a new window instead: closed on its own
+    // clock, or stopped early. Both are "over", and over is the only state
+    // reopening applies to.
+    canReopen: status === 'SCHEDULED' && state === 'CLOSED',
     canEndNow: status === 'SCHEDULED' && !ended && (state === 'OPEN' || state === 'ENTRY_CLOSED'),
     canReplace: realAttempts === 0,
     needsForceToDelete: realAttempts > 0,
@@ -610,6 +616,84 @@ export async function retimePaper(
       throw new Error('Another paper already opens at that exact time on this day. Pick a different time.')
     }
     throw new Error(`Could not move the window: ${error.message}`)
+  }
+  if (!data?.length) throw new Error('The paper changed while you were looking at it. Reload and try again.')
+}
+
+/**
+ * Give a finished paper a new window, so it can be sat again.
+ *
+ * Separate from retimePaper, which moves the window of a paper that is still
+ * going. This one is for a paper that is over -- closed on its own clock, or
+ * stopped early by an admin -- and it does two things retiming must never do:
+ * it moves the date, and it clears an early end.
+ *
+ * The date has to move or the feature does not work. Entry close counts
+ * minutes from the paper's own midnight and stops at 2879, so extending it
+ * only ever reaches the morning after the paper's date. A paper from last week
+ * cannot be reopened by its times alone; it needs to be told which day it now
+ * runs on.
+ *
+ * What that costs, and it is worth being plain about it. The archive, the
+ * leaderboard and the streak all group by a paper's date, so moving the date
+ * moves the paper -- and the attempts already on it go too. The paper does not
+ * acquire a second history; it has one, on whichever day it now belongs to.
+ *
+ * The other cost is not this function's to prevent: a finished paper has
+ * already published its answers (FR-4.3), and reopening does not un-publish
+ * them. Whoever sits it now may have read the solutions. The console says so
+ * on the button; the decision is the admin's.
+ *
+ * Students who already sat it still cannot sit it again -- one counted attempt
+ * per paper stands -- so reopening is usually paired with Allow retake on the
+ * attempts screen.
+ */
+export async function reopenPaper(
+  id: string, window: { date: string; opensAtMin: number; entryClosesAtMin: number },
+): Promise<void> {
+  const lock = await lockOrThrow(id)
+  if (lock.status !== 'SCHEDULED') throw new Error('Only a scheduled paper can be reopened.')
+  const finished = lock.state === 'CLOSED'
+  if (!finished) {
+    throw new Error('This paper has not finished, so it does not need reopening. Move its window instead.')
+  }
+
+  const next: PaperWindow = {
+    date: window.date,
+    opensAtMin: window.opensAtMin,
+    entryClosesAtMin: window.entryClosesAtMin,
+    attemptMinutes: lock.window.attemptMinutes,
+    endedAt: null,
+  }
+
+  const problem = paperWindowProblem(next)
+  if (problem) throw new Error(problem)
+  // The point of reopening is that it is open afterwards. A window wholly in
+  // the past would leave the paper exactly as finished as it was, with its
+  // date quietly rewritten for nothing.
+  if (windowState(next) === 'CLOSED') {
+    throw new Error('That window is already over. Pick a day and time still to come.')
+  }
+
+  const { data, error } = await db()
+    .from('tests')
+    .update({
+      date: next.date,
+      opens_at_min: next.opensAtMin,
+      entry_closes_at_min: next.entryClosesAtMin,
+      // Without this the paper reads CLOSED the moment it is read back,
+      // whatever its times now say: an early end outranks them.
+      ended_at: null,
+    })
+    .eq('id', id).eq('status', 'SCHEDULED')
+    .select('id')
+  if (error) {
+    if (error.code === '23505') {
+      throw new Error(
+        `A scheduled paper on ${next.date} already has this one's name. `
+        + 'Rename one of them, or pick another day.')
+    }
+    throw new Error(`Could not reopen it: ${error.message}`)
   }
   if (!data?.length) throw new Error('The paper changed while you were looking at it. Reload and try again.')
 }

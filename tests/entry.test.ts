@@ -29,9 +29,39 @@ describe('who may begin tonight\'s paper (FR-4.1)', () => {
     expect(entryRefusal('SCHEDULED', ended, at(21, 0))).toBe('This paper unlocks at 10:00 PM.')
   })
 
-  it('refuses a draft, and any other night\'s paper', () => {
+  it('refuses a draft', () => {
     expect(entryRefusal('DRAFT', W, at(22, 30))).toMatch(/not scheduled/)
-    expect(entryRefusal('SCHEDULED', { ...W, date: '2026-09-27' }, at(22, 30))).toMatch(/not today/)
+  })
+
+  /**
+   * Another night's paper is refused by its own window, not by a date check.
+   * Tomorrow's paper has not opened yet; yesterday's closed hours ago. Said
+   * here because the date check that used to do this was removed, and the
+   * window has to be shown doing the job on its own.
+   */
+  it('refuses another night\'s paper through the window, saying which way', () => {
+    expect(entryRefusal('SCHEDULED', { ...W, date: '2026-09-27' }, at(22, 30)))
+      .toBe('This paper unlocks at 10:00 PM.')
+    expect(entryRefusal('SCHEDULED', { ...W, date: '2026-09-25' }, at(22, 30)))
+      .toBe('Entry for this paper closed at 11:15 PM.')
+  })
+
+  /**
+   * The bug this file exists to stop coming back.
+   *
+   * A window may cross midnight since migration 0011 -- entry close counts
+   * minutes from the paper's own midnight and may reach 2879. A student at
+   * 00:30 on the following morning was told "A paper can only be taken on its
+   * own day" while the countdown on their dashboard was still running.
+   */
+  it('lets a student in after midnight when the window says so', () => {
+    const crosses = { ...W, opensAtMin: 22 * 60, entryClosesAtMin: 25 * 60 }  // 10 PM -> 1 AM
+    expect(entryRefusal('SCHEDULED', crosses, at(23, 30))).toBeNull()
+    // 00:30 the next morning: a different IST date, the same open window.
+    expect(entryRefusal('SCHEDULED', crosses, at(24, 30))).toBeNull()
+    // And it still shuts at 1 AM, on the window rather than on the date.
+    expect(entryRefusal('SCHEDULED', crosses, at(25, 0)))
+      .toBe('Entry for this paper closed at 1:00 AM next day.')
   })
 })
 

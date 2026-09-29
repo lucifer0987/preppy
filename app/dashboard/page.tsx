@@ -238,7 +238,12 @@ export default async function Dashboard({
         ) : live && openNow && openPaper && canStartAttempt(openPaper.window, now) ? (
           <>
             <p className="mt-2 text-2xl font-black">{openNow.title ?? 'Daily mock'}</p>
-            <p className="mt-1 text-white/70">{formatIstDate(today)}</p>
+            {/* The paper's own day, not today's.
+                A window may run past midnight, so at half past twelve the open
+                paper belongs to yesterday -- and this line said today, naming a
+                date the paper has nothing to do with. Its date is what the
+                archive, the board and the streak file it under. */}
+            <p className="mt-1 text-white/70">{formatIstDate(openPaper.window.date)}</p>
             <p className="mt-3 text-sm font-semibold tabular-nums">
               {openPaper.shape.questions} questions &middot; {openPaper.shape.minutes} minutes
               {openPaper.shape.marking

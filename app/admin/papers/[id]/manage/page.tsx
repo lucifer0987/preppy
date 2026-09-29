@@ -3,14 +3,17 @@ import { notFound } from 'next/navigation'
 import { requireAdmin } from '../../../../../lib/guard'
 import { getPaperById, paperLock } from '../../../../../lib/repo/papers'
 import { countRunningAttempts } from '../../../../../lib/repo/attempt-admin'
-import { addDays, entryClosesOn, formatIstDate, formatIstMoment, paperLabels } from '../../../../../lib/time'
+import {
+  addDays, entryClosesOn, formatIstDate, formatIstMoment, istDate, paperLabels,
+} from '../../../../../lib/time'
 import { sectionName, type SectionCode } from '../../../../../lib/types'
 import { patternForPaper } from '../../../../../lib/repo/tracks'
 import { BackLink, Flash, PageHeader, StatusChip, Th } from '../../../../../components/Page'
 import { SectionShape } from '../../../../../components/SectionShape'
 import { TimeField } from '../../../../../components/TimeField'
 import { DateField } from '../../../../../components/DateField'
-import { endNowAction, renamePaperAction, retimeAction, setMarksAction } from '../actions'
+import { ScheduleDates } from '../../../../../components/ScheduleDates'
+import { endNowAction, renamePaperAction, reopenAction, retimeAction, setMarksAction } from '../actions'
 import { EndNowButton } from './EndNowButton'
 import { DeleteButton } from '../DeleteButton'
 
@@ -81,6 +84,12 @@ export default async function ManagePaper({ params, searchParams }: {
           Window moved. It now runs {l.opens} to {l.closes}, and everyone is finished by {l.hardStop}.
         </Flash>
       )}
+      {q['done'] === 'reopened' && (
+        <Flash tone="good" className="mt-4">
+          Reopened for {formatIstDate(lock.date)}, {l.opens} to {l.closes}. Anyone who has not sat
+          it can now; clear an attempt on the attempts screen to let somebody sit it again.
+        </Flash>
+      )}
       {q['done'] === 'ended' && (
         <Flash tone="good" className="mt-4">
           Ended. {q['closed'] === '0'
@@ -139,12 +148,49 @@ export default async function ManagePaper({ params, searchParams }: {
             ? lock.state === 'BEFORE_OPEN'
               ? 'It has not opened yet, so both times can still move.'
               : 'It is already open, so the opening time is fixed. Moving the last moment to start also moves the finish, because whoever starts last still gets the whole paper.'
-            : ended
-              ? 'This paper was ended early, so its times no longer decide anything.'
-              : lock.status === 'DRAFT'
-                ? 'A draft has no window yet. It gets one when you schedule it, on the paper screen.'
-                : 'This paper has finished. Its window can no longer be moved.'}
+            : lock.status === 'DRAFT'
+              ? 'A draft has no window yet. It gets one when you schedule it, on the paper screen.'
+              : ended
+                ? 'This paper was ended early. Give it a new window below and it runs again.'
+                : 'This paper has finished. Give it a new window below and it runs again.'}
         </p>
+
+        {lock.canReopen && (
+          <>
+            {/* Said before the form, not after it: a paper that has finished
+                has already published its answers (FR-4.3), and reopening does
+                not take them back. Whoever sits it now may have read the
+                solutions, and that is the admin's call to make knowingly. */}
+            <div className="mt-4 rounded-control border border-warn/35 bg-warn/10 p-4 text-sm">
+              <p className="font-bold text-warn-ink">Its answers are already out.</p>
+              <p className="mt-1 text-ink-soft">
+                This paper has closed, so every question, key and worked solution is in the
+                archive for the whole cohort. Anyone sitting it now may have read them.
+              </p>
+              <p className="mt-2 text-ink-soft">
+                The date moves with the window, and the {lock.realAttempts} attempt
+                {lock.realAttempts === 1 ? '' : 's'} already on it move too &mdash; the paper
+                belongs to whichever day it now runs on. Somebody who has already sat it still
+                cannot sit it again until you clear their attempt on{' '}
+                <Link href={`/admin/attempts?test=${id}`} className="font-bold text-accent underline">
+                  the attempts screen
+                </Link>.
+              </p>
+            </div>
+
+            <form action={reopenAction} className="mt-4">
+              <input type="hidden" name="id" value={id} />
+              <ScheduleDates
+                defaultDate={istDate()}
+                minDate={istDate()}
+                defaultOpensAt={hhmm(lock.window.opensAtMin)}
+                defaultEntryClosesOn={istDate()}
+                defaultEntryClosesAt={hhmm(lock.window.entryClosesAtMin % (24 * 60))}
+              />
+              <button className="btn btn-primary mt-5 px-6">Reopen it</button>
+            </form>
+          </>
+        )}
 
         {lock.canRetime ? (
           <form action={retimeAction} className="mt-5">
