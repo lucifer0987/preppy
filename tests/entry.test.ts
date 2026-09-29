@@ -35,10 +35,10 @@ describe('who may begin tonight\'s paper (FR-4.1)', () => {
   })
 })
 
-describe('who may practise a paper (PRD 6.11)', () => {
+describe('who may practice a paper (PRD 6.11)', () => {
   // A practice run is the archive made sittable, so it opens on exactly the
   // gate the archive opens on: you have finished it, or it has closed.
-  it('lets somebody who has finished it practise while it is still open', () => {
+  it('lets somebody who has finished it practice while it is still open', () => {
     expect(practiceRefusal('SCHEDULED', W, true, at(22, 30))).toBeNull()
   })
 

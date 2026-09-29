@@ -31,7 +31,7 @@ export default async function LeaderboardPage({
   // difference is worth being exact about. A board never *mixes* two exams --
   // that would rank people against papers they were never offered, and it is
   // still impossible. Paper content is still locked to your own exam: the
-  // archive, the images, sitting one, practising one. What is allowed here is
+  // archive, the images, sitting one, practicing one. What is allowed here is
   // looking at another exam's scoreboard, which gives away no question, no
   // key and no solution.
   const tracks = await listTracks()

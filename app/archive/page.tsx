@@ -139,7 +139,7 @@ export default async function ArchivePage() {
                   {user.role === 'student' && (
                     <Link href={`/test/start?test=${r.testId}&practice=1`}
                           className="btn btn-quiet px-4 py-2 text-sm">
-                      Practise
+                      Practice
                     </Link>
                   )}
                   <Link href={`/archive/${r.testId}`}

@@ -26,14 +26,14 @@ export function entryRefusal(
 }
 
 /**
- * Why a student may not practise this paper, or null if they may (PRD 6.11).
+ * Why a student may not practice this paper, or null if they may (PRD 6.11).
  *
  * A practice run is the archive made sittable: the same engine, the same
  * timers, no rank and no row on the board. It is offered on a paper that is
  * already open to you and on no other, which is the same gate the archive
  * itself uses -- you have finished it, or it has closed.
  *
- * That gate is the whole of the safety here. Practising a paper you can still
+ * That gate is the whole of the safety here. Practicing a paper you can still
  * sit for real would be sitting it twice, the second time knowing the
  * questions, and the counted attempt is the one that would be worth less for
  * it.
@@ -44,6 +44,6 @@ export function practiceRefusal(
   if (status !== 'SCHEDULED') return 'That paper is not scheduled.'
   if (finished || paperClosed(w, now)) return null
   return canStartAttempt(w, now)
-    ? 'You can still sit this paper for real, so there is nothing to practise yet.'
+    ? 'You can still sit this paper for real, so there is nothing to practice yet.'
     : 'This paper has not closed yet, so its questions are not open to you.'
 }

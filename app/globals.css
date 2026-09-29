@@ -731,7 +731,7 @@ h2, h3 { text-wrap: balance; }
  * A thumb needs about 44px; a line of 14px text gives it 20.
  *
  * Several controls here are drawn small on purpose -- a back link above a
- * title, the week pills on the timetable, "Practise" at the end of a row --
+ * title, the week pills on the timetable, "Practice" at the end of a row --
  * and growing them to 44px would rewrite the spacing of every screen they sit
  * on. So this grows the *hit box* instead, with an overlay that is centred on
  * the control and invisible: the layout is untouched and the target is a

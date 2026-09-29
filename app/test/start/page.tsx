@@ -85,7 +85,7 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
         <Flash tone="warn" className="mt-4 text-sm">
           This is practice. The engine, the timers and the marking are the real ones; the result is
           yours alone. Nothing here reaches the leaderboard, and your counted score on this paper
-          does not move. Practising again replaces the practice result before it.
+          does not move. Practicing again replaces the practice result before it.
         </Flash>
       ) : isDryRun && (
         <Flash tone="warn" className="mt-4 text-sm">
@@ -186,7 +186,7 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
               <form action={beginAction}>
                 <input type="hidden" name="testId" value={String(test.id)} />
                 {practice && <input type="hidden" name="practice" value="1" />}
-                <BeginButton label={practice ? 'Start practising' : 'Begin'} />
+                <BeginButton label={practice ? 'Start practicing' : 'Begin'} />
               </form>
               <p className="mt-3 text-center text-sm text-ink-soft">
                 {practice

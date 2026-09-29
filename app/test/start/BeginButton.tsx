@@ -24,7 +24,7 @@ import { fullscreenSupported } from '../../../lib/fullscreen'
  * already copes -- it only counts exits from a full screen it actually entered.
  */
 export function BeginButton({ label = 'Begin' }: {
-  /** "Begin" for the real thing, "Start practising" for a practice run. */
+  /** "Begin" for the real thing, "Start practicing" for a practice run. */
   label?: string
 }) {
   const { pending } = useFormStatus()

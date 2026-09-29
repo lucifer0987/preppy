@@ -172,7 +172,7 @@ export const getPattern = cache(async (trackId?: string): Promise<Pattern> => {
  *
  * An admin runs every track, so always. A student follows one, and a paper on
  * another exam does not exist for them: not to sit, not to read, not to
- * practise, not even to load an image from.
+ * practice, not even to load an image from.
  *
  * Every route that addresses a paper by an id out of the URL has to ask this,
  * and that is the whole point of it being a function rather than a line

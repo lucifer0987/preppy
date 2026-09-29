@@ -556,7 +556,7 @@ export default async function DonePage({ params }: { params: Promise<{ attemptId
           <>
             <Link href={`/archive/${testId}`} className="btn btn-quiet">Read the solutions</Link>
             <Link href={`/test/start?test=${testId}&practice=1`} className="btn btn-quiet">
-              Practise it again
+              Practice it again
             </Link>
           </>
         )}

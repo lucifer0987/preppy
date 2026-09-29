@@ -407,7 +407,7 @@ export default async function Dashboard({
                   {user.role === 'student' && (
                     <Link href={`/test/start?test=${a.testId}&practice=1`}
                           className="tap-target btn btn-quiet px-3 py-1 text-xs">
-                      Practise
+                      Practice
                     </Link>
                   )}
                   <Link href={`/archive/${a.testId}`} className="tap-target btn btn-quiet px-3 py-1 text-xs">
