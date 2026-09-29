@@ -152,7 +152,9 @@ export default async function ManagePaper({ params, searchParams }: {
               ? 'A draft has no window yet. It gets one when you schedule it, on the paper screen.'
               : ended
                 ? 'This paper was ended early. Give it a new window below and it runs again.'
-                : 'This paper has finished. Give it a new window below and it runs again.'}
+                : lock.state === 'ENTRY_CLOSED'
+                  ? 'Entry has closed, but somebody is still writing. Once they finish you can give it a new window here. Moving the window is the thing to do if you want to let more people in now.'
+                  : 'This paper has finished. Give it a new window below and it runs again.'}
         </p>
 
         {lock.canReopen && (

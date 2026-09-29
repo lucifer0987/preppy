@@ -421,9 +421,18 @@ export async function paperLock(id: string): Promise<PaperLock | null> {
     // admin to leave a broken paper live until midnight.
     canDelete: realAttempts === 0,
     canRetime: status === 'SCHEDULED' && !ended && state !== 'CLOSED',
-    // A finished paper can be given a new window instead: closed on its own
-    // clock, or stopped early. Both are "over", and over is the only state
-    // reopening applies to.
+    /**
+     * Over, and only over: closed on its own clock, or stopped early.
+     *
+     * Deliberately not ENTRY_CLOSED. Entry has shut there but somebody may
+     * still be writing, and reopening finalises whatever is running before it
+     * moves the window -- so offering it a minute early would cut a student
+     * off mid-paper to make room for a new one. Waiting costs the admin the
+     * tail of one attempt; not waiting costs a student their paper.
+     *
+     * The refusal says so, and points at retiming, which is what an admin in
+     * that state usually wants: the window can still be moved while it runs.
+     */
     canReopen: status === 'SCHEDULED' && state === 'CLOSED',
     canEndNow: status === 'SCHEDULED' && !ended && (state === 'OPEN' || state === 'ENTRY_CLOSED'),
     canReplace: realAttempts === 0,
@@ -653,9 +662,14 @@ export async function reopenPaper(
 ): Promise<void> {
   const lock = await lockOrThrow(id)
   if (lock.status !== 'SCHEDULED') throw new Error('Only a scheduled paper can be reopened.')
-  const finished = lock.state === 'CLOSED'
-  if (!finished) {
-    throw new Error('This paper has not finished, so it does not need reopening. Move its window instead.')
+  if (lock.state !== 'CLOSED') {
+    // ENTRY_CLOSED is the one worth naming: somebody is still in there, and
+    // reopening would finalise them to clear the way.
+    throw new Error(
+      lock.state === 'ENTRY_CLOSED'
+        ? 'Somebody is still sitting this paper. Wait for them to finish, then reopen it '
+          + '-- or move its window instead, which does not cut anyone off.'
+        : 'This paper has not finished, so it does not need reopening. Move its window instead.')
   }
 
   const next: PaperWindow = {
