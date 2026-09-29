@@ -675,6 +675,29 @@ export async function reopenPaper(
     throw new Error('That window is already over. Pick a day and time still to come.')
   }
 
+  /**
+   * Close anything still running, against the window it was sat under, before
+   * that window is replaced.
+   *
+   * A counted attempt takes its hard stop from the paper (attemptHardStop ->
+   * hardStopAt(window)), so moving the window moves every open attempt's
+   * deadline with it. An attempt left in progress when the paper closed --
+   * the student who walked away, before the sweep reached them -- would come
+   * back to life on the new window with a fresh clock, and its owner would go
+   * on answering a paper they had already sat. That is the one thing
+   * reopening must not do.
+   *
+   * Order is the whole of it. Finalising after the update would measure those
+   * attempts against the new window, find them not yet overdue, and leave them
+   * open. So they are scored here, exactly as the nightly sweep would have
+   * scored them, while the old times still apply.
+   *
+   * Imported here rather than at the top: finalise.ts reads papers, and a
+   * static import both ways is a cycle.
+   */
+  const { finaliseOverdueForTest } = await import('./finalise')
+  await finaliseOverdueForTest(id)
+
   const { data, error } = await db()
     .from('tests')
     .update({

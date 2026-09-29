@@ -216,6 +216,26 @@ describe('dry runs are not bound to the paper\'s date', () => {
     expect(attemptHardStop({ isDryRun: false, window: W, startedAt: at(22, 0), sections })).toEqual(hardStopAt(W))
   })
 
+  /**
+   * Why reopening a paper has to finalise before it moves the window.
+   *
+   * A counted attempt reads its deadline off the paper, not off its own start,
+   * so moving the window moves every open attempt's deadline with it. An
+   * attempt left in progress when the paper closed -- the student who walked
+   * away before the sweep reached them -- would come back to life on the new
+   * window and its owner could go on answering a paper they had already sat.
+   *
+   * reopenPaper closes them against the old window first, in that order, and
+   * this is the property that makes the order matter.
+   */
+  it('follows its paper when the window moves, which is the hazard reopening handles', () => {
+    const moved = { ...W, date: '2026-10-05' }
+    const before = attemptHardStop({ isDryRun: false, window: W, startedAt: at(22, 0), sections })
+    const after = attemptHardStop({ isDryRun: false, window: moved, startedAt: at(22, 0), sections })
+    expect(after.getTime()).toBeGreaterThan(before.getTime())
+    expect(after).toEqual(hardStopAt(moved))
+  })
+
   it('a dry run stops its own 45 minutes after Begin', () => {
     // A paper from days ago, rehearsed today: long past its own hard stop.
     const begin = new Date(HARD_STOP.getTime() + 3 * 86_400_000)
