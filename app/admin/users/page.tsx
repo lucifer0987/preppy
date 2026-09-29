@@ -67,7 +67,7 @@ export default async function UsersPage() {
                 )}
                 <td className="px-3 py-3 text-right tabular-nums">
                   {u.role === 'admin' ? '—' : (
-                    <Link href={`/admin/attempts?user=${u.id}`} className="font-bold text-accent underline"
+                    <Link href={`/admin/attempts?user=${u.id}`} className="tap-target font-bold text-accent underline"
                           aria-label={`${u.attemptCount} papers: see ${u.displayName}'s attempts`}>
                       {u.attemptCount}
                     </Link>
@@ -93,7 +93,7 @@ export default async function UsersPage() {
                       <form action={toggleActiveAction}>
                         <input type="hidden" name="userId" value={u.id} />
                         <input type="hidden" name="isActive" value={String(!u.isActive)} />
-                        <button className="btn btn-quiet px-3 py-1.5 text-xs">
+                        <button className="tap-target btn btn-quiet px-3 py-1.5 text-xs">
                           {u.isActive ? 'Deactivate' : 'Reactivate'}
                         </button>
                       </form>

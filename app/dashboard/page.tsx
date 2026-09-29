@@ -355,7 +355,7 @@ export default async function Dashboard({
       <section className="card min-w-0 p-5" aria-labelledby="archive-panel">
         <div className="flex items-baseline justify-between gap-4">
           <h2 id="archive-panel" className="eyebrow">Past papers</h2>
-          <Link href="/archive" className="text-sm font-bold text-accent">All papers &rarr;</Link>
+          <Link href="/archive" className="tap-target text-sm font-bold text-accent">All papers &rarr;</Link>
         </div>
         {archive === null ? (
           <p className="mt-3 text-sm text-ink-soft">Past papers would not load. Nothing is lost. Try again in a moment.</p>
@@ -406,11 +406,11 @@ export default async function Dashboard({
                       so practice is a thing they cannot meaningfully do. */}
                   {user.role === 'student' && (
                     <Link href={`/test/start?test=${a.testId}&practice=1`}
-                          className="btn btn-quiet px-3 py-1 text-xs">
+                          className="tap-target btn btn-quiet px-3 py-1 text-xs">
                       Practise
                     </Link>
                   )}
-                  <Link href={`/archive/${a.testId}`} className="btn btn-quiet px-3 py-1 text-xs">
+                  <Link href={`/archive/${a.testId}`} className="tap-target btn btn-quiet px-3 py-1 text-xs">
                     Solutions
                   </Link>
                 </span>
@@ -426,7 +426,7 @@ export default async function Dashboard({
             Leaderboard <span className="font-normal normal-case tracking-normal text-ink-faint">
               &middot; last {DEFAULT_BOARD_PAPERS} papers</span>
           </h2>
-          <Link href="/leaderboard" className="text-sm font-bold text-accent">Full board &rarr;</Link>
+          <Link href="/leaderboard" className="tap-target text-sm font-bold text-accent">Full board &rarr;</Link>
         </div>
         <div className="mt-3">
           {board === null

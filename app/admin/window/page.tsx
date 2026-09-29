@@ -43,7 +43,7 @@ export default async function WindowPage() {
       <WindowForm current={current} attemptMinutes={attemptMinutes} />
 
       <p className="mt-6 text-sm">
-        <Link href="/admin/pattern" className="font-bold text-accent underline">
+        <Link href="/admin/pattern" className="tap-target font-bold text-accent underline">
           Paper pattern &rarr;
         </Link>{' '}
         <span className="text-ink-soft">

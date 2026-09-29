@@ -35,7 +35,7 @@ export function QuestionEditor({
       <span className="inline-flex items-center gap-3">
         {state.saved && <span className="text-xs font-semibold text-good-ink">Saved.</span>}
         <button type="button" onClick={() => setOpen(true)}
-                className="text-xs font-bold text-accent underline">
+                className="tap-target text-xs font-bold text-accent underline">
           Edit wording
         </button>
       </span>

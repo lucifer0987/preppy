@@ -62,7 +62,7 @@ export function BoardFilters({ basePath, window: win, test, papers, track }: {
           <label htmlFor="paper" className="text-sm font-bold text-ink-soft">One paper</label>
           <select
             id="paper" name="test" defaultValue={test ?? ''}
-            className="field select-field w-auto rounded-full py-1.5 text-sm font-semibold"
+            className="field select-field w-auto rounded-full py-1.5 text-base font-semibold sm:text-sm"
           >
             <option value="" disabled>Choose&hellip;</option>
             {papers.map((p) => (

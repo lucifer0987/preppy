@@ -726,6 +726,62 @@ h2, h3 { text-wrap: balance; }
 }
 
 /* ------------------------------------------------------- behaviour */
+
+/**
+ * A thumb needs about 44px; a line of 14px text gives it 20.
+ *
+ * Several controls here are drawn small on purpose -- a back link above a
+ * title, the week pills on the timetable, "Practise" at the end of a row --
+ * and growing them to 44px would rewrite the spacing of every screen they sit
+ * on. So this grows the *hit box* instead, with an overlay that is centred on
+ * the control and invisible: the layout is untouched and the target is a
+ * thumb's worth.
+ *
+ * Only on a coarse pointer. A mouse is precise, and on a desktop this would
+ * put a 44px click region over whatever sits next to the link.
+ *
+ * WCAG 2.2 wants 24px as its floor (2.5.8 AA) and exempts links inline in a
+ * sentence; these are standalone controls, so the floor applies to all of them
+ * and 44 is the comfortable answer rather than the minimum one.
+ */
+@media (pointer: coarse) {
+  .tap-target { position: relative; }
+  .tap-target::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    width: 100%;
+    min-width: 2.75rem;
+    height: 2.75rem;
+  }
+}
+
+/**
+ * iOS zooms the page in when a form control smaller than 16px takes focus, and
+ * does not zoom back out when it loses focus. The reader is left on a page
+ * 1.3x too wide with a horizontal scrollbar they did not ask for, part way
+ * through filling in a form.
+ *
+ * Every field here inherits its size from its context, and most contexts are
+ * text-sm, so nearly every input in the admin console did it. Raising the
+ * floor once is better than finding them one screen at a time.
+ *
+ * max(16px, 1em) rather than a flat 16px: inside font-size, 1em is the
+ * *parent's* size, so a field that is deliberately larger keeps its size and
+ * only the small ones are lifted. Unlayered, so it beats the utility class
+ * that set the small size, and only on a coarse pointer, because a mouse does
+ * not trigger any of this.
+ */
+@media (pointer: coarse) {
+  input:not([type='checkbox']):not([type='radio']),
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+}
+
 /* FR-6.5.7: printing a test prints a note, not the paper. Friction, not security. */
 .exam-print-note { display: none; }
 @media print {

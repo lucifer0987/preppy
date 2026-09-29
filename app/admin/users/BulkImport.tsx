@@ -20,7 +20,7 @@ export function BulkImport({ tracks = [] }: {
 
   if (!open) {
     return (
-      <button onClick={() => setOpen(true)} className="mt-3 text-sm font-bold text-accent underline">
+      <button onClick={() => setOpen(true)} className="tap-target mt-3 text-sm font-bold text-accent underline">
         Add several at once from a CSV
       </button>
     )

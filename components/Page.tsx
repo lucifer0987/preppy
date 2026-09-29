@@ -14,8 +14,8 @@ export function BackLink({ href, children }: { href: string; children: React.Rea
   return (
     <Link
       href={href}
-      className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft
-                 transition hover:text-accent"
+      className="tap-target inline-flex items-center gap-1.5 text-sm font-semibold
+                 text-ink-soft transition hover:text-accent"
     >
       <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3.5 w-3.5 fill-current">
         <path d="M7.7 2.3a1 1 0 010 1.4L4.4 7H14a1 1 0 110 2H4.4l3.3 3.3a1 1 0 11-1.4 1.4l-5-5a1 1 0 010-1.4l5-5a1 1 0 011.4 0z" />

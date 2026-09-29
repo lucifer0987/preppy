@@ -109,8 +109,8 @@ export function RenameForm({ userId, displayName }: { userId: string; displayNam
         <button
           type="button" onClick={() => setEditing(true)}
           title={`Rename ${name}`}
-          className="group inline-flex min-w-0 items-center gap-1.5 rounded-control px-1.5 py-1 -mx-1.5
-                     text-left transition hover:bg-surface-sunken"
+          className="tap-target group inline-flex min-w-0 items-center gap-1.5 rounded-control
+                     px-1.5 py-1 -mx-1.5 text-left transition hover:bg-surface-sunken"
         >
           <span className="truncate">{name}</span>
           <svg viewBox="0 0 16 16" aria-hidden="true"
@@ -182,7 +182,7 @@ export function ResetPasswordForm({ userId, username }: { userId: string; userna
         </form>
       ) : (
         <button type="button" onClick={() => setArmed(true)}
-                className="btn btn-quiet px-3 py-1.5 text-xs">
+                className="tap-target btn btn-quiet px-3 py-1.5 text-xs">
           Reset password
         </button>
       )}

@@ -9,13 +9,37 @@
   "background_color": "#f6f2fe",
   "theme_color": "#46178f",
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ],
   "shortcuts": [
-    { "name": "Today's paper", "url": "/dashboard" },
-    { "name": "Past papers", "url": "/archive" },
-    { "name": "Leaderboard", "url": "/leaderboard" }
+    {
+      "name": "Today's paper",
+      "url": "/dashboard"
+    },
+    {
+      "name": "All papers",
+      "url": "/archive"
+    },
+    {
+      "name": "Leaderboard",
+      "url": "/leaderboard"
+    }
   ]
 }

@@ -86,12 +86,12 @@ export default async function AccountPage() {
         </p>
         <div className="flex items-center gap-4 text-sm font-semibold">
           {!forced && (
-            <Link href={home.href} className="text-accent underline underline-offset-4">
+            <Link href={home.href} className="tap-target text-accent underline underline-offset-4">
               {home.label}
             </Link>
           )}
           <form action={logoutAction}>
-            <button className="text-ink-soft underline underline-offset-4 transition hover:text-bad-ink">
+            <button className="tap-target text-ink-soft underline underline-offset-4 transition hover:text-bad-ink">
               Log out
             </button>
           </form>

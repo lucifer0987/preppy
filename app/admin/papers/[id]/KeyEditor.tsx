@@ -26,7 +26,7 @@ export function KeyEditor({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="text-xs font-bold text-accent underline"
+        className="tap-target text-xs font-bold text-accent underline"
       >
         Correct this key
       </button>

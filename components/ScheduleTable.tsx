@@ -257,7 +257,7 @@ export function ScheduleIntro({ today }: { today: string }) {
           return (
             <a key={s.name} href={`#${anchorOf(s)}`}
                className={[
-                 'rounded-pill border px-3 py-1 text-xs font-bold transition',
+                 'tap-target rounded-pill border px-3 py-1 text-xs font-bold transition',
                  here
                    ? 'border-accent/40 bg-accent-soft text-accent'
                    : 'border-line-strong text-ink-soft hover:border-accent hover:text-accent',

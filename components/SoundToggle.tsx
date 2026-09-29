@@ -28,7 +28,7 @@ export function SoundToggle({ initial, compact = false }: { initial: boolean; co
       onClick={toggle}
       aria-pressed={on}
       className={[
-        'inline-flex items-center gap-1.5 rounded-full font-bold transition',
+        'tap-target inline-flex items-center gap-1.5 rounded-full font-bold transition',
         compact ? 'px-2.5 py-1 text-[11px]' : 'px-3 py-1.5 text-xs',
         on ? 'bg-surface-invert text-white' : 'bg-surface-sunken text-ink-soft hover:bg-line',
       ].join(' ')}
