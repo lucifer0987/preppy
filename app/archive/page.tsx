@@ -2,13 +2,16 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { requireUser } from '../../lib/guard'
 import { getArchive } from '../../lib/repo/leaderboard'
+import { upcomingPapers } from '../../lib/repo/papers'
+import { viewerStateFor } from '../../lib/repo/attempts'
+import { OpenPaperList, UpcomingPaperList } from '../../components/PaperLists'
 import { viewerTrack } from '../../lib/repo/tracks'
 import { formatIstDate } from '../../lib/time'
 import { ordinal } from '../../lib/leaderboard'
 import { AppShell } from '../../components/AppShell'
 import { Empty, PageHeader, Stat, StatRow, StatusChip } from '../../components/Page'
 
-export const metadata: Metadata = { title: 'Past papers' }
+export const metadata: Metadata = { title: 'All papers' }
 export const dynamic = 'force-dynamic'
 
 /**
@@ -27,8 +30,27 @@ export default async function ArchivePage() {
     failure = (e as Error).message
   }
 
-  // Worth stating at the top: the gap between what has run and what you sat is
-  // the whole point of this page.
+  /**
+   * Papers running right now, which this page used to leave out entirely.
+   *
+   * It listed what had finished, so a student who came here to find a paper
+   * found yesterday's. The one they could actually sit was on the dashboard
+   * and nowhere else, and "all papers" that omits the open one is the least
+   * useful omission available.
+   *
+   * Only the ones they have not handed in: a finished paper is already below
+   * with its score and rank, and getArchive counts it from the moment it is
+   * submitted. So the two lists cannot show the same paper twice.
+   */
+  const now = new Date()
+  const scheduled = track ? await upcomingPapers(now, track.id) : null
+  const live = scheduled
+    ? (await viewerStateFor(scheduled.open, user.id, now)).filter((r) => !r.finished)
+    : []
+  const later = scheduled?.later ?? []
+
+  // The figures below the title are about what has finished: the gap between
+  // what has run and what this student sat.
   const sat = rows.filter((r) => r.attemptId)
   const best = sat.reduce<number | null>((m, r) => {
     const s = r.score ?? null
@@ -40,13 +62,13 @@ export default async function ArchivePage() {
     <AppShell user={user} current="archive" examName={track?.name}>
       <main className="shell pt-6">
         <PageHeader
-          title="Past papers"
-          lede="Every paper you have sat, and every paper that has closed, with its answers and worked solutions."
+          title="All papers"
+          lede="What is open now, what is still to come, and every paper that has closed \u2014 with its answers and worked solutions."
         />
 
         {!failure && rows.length > 0 && (
           <StatRow>
-            <Stat label="Papers here" value={rows.length} />
+            <Stat label="Papers finished" value={rows.length} />
             <Stat label="You sat" value={sat.length}
                   hint={rows.length > sat.length ? `${rows.length - sat.length} you did not` : 'every one'} />
             <Stat label="Best score" value={best === null ? '—' : best.toFixed(2)} tone="zap" />
@@ -54,16 +76,19 @@ export default async function ArchivePage() {
           </StatRow>
         )}
 
+        {live.length > 0 && <OpenPaperList rows={live} />}
+        {later.length > 0 && <UpcomingPaperList papers={later} />}
+
         {failure ? (
           <p role="alert" className="mt-6 rounded-card border border-bad/30 bg-bad/10 p-5 font-semibold text-bad-ink">
-            Past papers would not load. Nothing is lost. Try again in a moment.
+            The finished papers would not load. Nothing is lost, and anything open is still above. Try again in a moment.
             <span className="mt-1 block text-sm font-normal text-ink-soft">{failure}</span>
           </p>
         ) : rows.length === 0 ? (
           <div className="mt-6">
             <Empty>
-              Nothing here yet. Hand a paper in and it turns up here straight away, with every
-              question, its key and a worked solution. Once it closes everybody sees it,
+              Nothing finished yet. Hand a paper in and it turns up here straight away, with
+              every question, its key and a worked solution. Once it closes everybody sees it,
               whether they sat it or not.
             </Empty>
           </div>

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { AppShell } from '../../components/AppShell'
 import { requireUser } from '../../lib/guard'
-import { findAttempt, loadAttempt } from '../../lib/repo/attempts'
+import { findAttempt, loadAttempt, viewerStateFor } from '../../lib/repo/attempts'
 import { DEFAULT_BOARD_PAPERS, getArchive, getLeaderboard } from '../../lib/repo/leaderboard'
 import { ordinal } from '../../lib/leaderboard'
 import { LeaderboardTable } from '../../components/LeaderboardTable'
@@ -69,17 +69,7 @@ export default async function Dashboard({
    * than one, so the ordinary night does no extra work.
    */
   const openList = openPapers.length > 1
-    ? await Promise.all(openPapers.map(async (p) => {
-        const own = await findAttempt(p.id, user.id, false)
-        const state = (own?.state as string | undefined) ?? null
-        return {
-          paper: p,
-          attemptId: (own?.id as string | undefined) ?? null,
-          running: state === 'IN_PROGRESS',
-          finished: Boolean(state && state !== 'IN_PROGRESS' && state !== 'VOIDED'),
-          canStart: !own && canStartAttempt(p.window, now),
-        }
-      }))
+    ? await viewerStateFor(openPapers, user.id, now)
     : []
 
   // Rows of 6.3 that point at a later paper need the next one actually

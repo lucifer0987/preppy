@@ -30,7 +30,7 @@ export default function OfflinePage() {
             because the answer would be out of date by the time you saw it.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
-            <Link href="/archive" className="btn btn-primary px-6 py-3">Past papers</Link>
+            <Link href="/archive" className="btn btn-primary px-6 py-3">All papers</Link>
             <Link href="/dashboard" className="btn btn-quiet px-6 py-3">Try again</Link>
           </div>
           <p className="mt-8 measure text-sm text-ink-faint">

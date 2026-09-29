@@ -587,6 +587,8 @@ whose scores are already public to everyone on it.</p>
 <tr><td>Marks, or how skipped differs from not-reached</td><td><code>lib/scoring.ts</code></td></tr>
 <tr><td>Which section is open and how long is left</td><td><code>lib/attempt.ts</code></td></tr>
 <tr><td>Ranking, tie-breaks, streaks</td><td><code>lib/leaderboard.ts</code></td></tr>
+<tr><td>What is open, what is next, and everything still to open</td><td><code>upcomingPapers</code> in <code>lib/repo/papers.ts</code> &mdash; <code>open</code>, <code>next</code> and <code>later</code></td></tr>
+<tr><td>Whether this student may start a given open paper</td><td><code>viewerStateFor</code> in <code>lib/repo/attempts.ts</code>. The dashboard and the list of all papers both ask it, so they cannot disagree</td></tr>
 <tr><td>How a question went on review, and which keys stay sealed</td><td><code>lib/review.ts</code>. Pure, so the rule about what is hidden is checked rather than read off a JSX expression</td></tr>
 <tr><td>The paper format and its validation</td><td><code>lib/paper.ts</code>, and section 7 here</td></tr>
 <tr><td>The topic plan &mdash; which day covers what</td><td><code>lib/schedule.ts</code>. It is a module, not a table: the plan changes in a commit, where the change is visible in a diff, and nothing in the database refers to it</td></tr>

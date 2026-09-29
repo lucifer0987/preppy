@@ -37,7 +37,7 @@ export function AppShell({ user, current, examName, children }: {
             <Tab href="/dashboard" active={current === 'dashboard'}>Today</Tab>
             <Tab href="/leaderboard" active={current === 'leaderboard'}>Leaderboard</Tab>
             <Tab href="/timetable" active={current === 'timetable'}>Timetable</Tab>
-            <Tab href="/archive" active={current === 'archive'}>Past papers</Tab>
+            <Tab href="/archive" active={current === 'archive'}>All papers</Tab>
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
@@ -61,7 +61,7 @@ export function AppShell({ user, current, examName, children }: {
           <Tab href="/dashboard" active={current === 'dashboard'}>Today</Tab>
           <Tab href="/leaderboard" active={current === 'leaderboard'}>Leaderboard</Tab>
           <Tab href="/timetable" active={current === 'timetable'}>Timetable</Tab>
-          <Tab href="/archive" active={current === 'archive'}>Past papers</Tab>
+          <Tab href="/archive" active={current === 'archive'}>All papers</Tab>
         </nav>
       </header>
 

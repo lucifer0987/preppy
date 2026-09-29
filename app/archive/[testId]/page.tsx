@@ -70,7 +70,7 @@ export default async function ArchiveDetail({
             everybody, whether they sat it or not.
           </p>
           <Link href="/archive" className="btn btn-quiet mt-6 inline-flex">
-            Back to past papers
+            Back to all papers
           </Link>
         </div>
       </main>
@@ -119,7 +119,7 @@ export default async function ArchiveDetail({
   return (
     <AppShell user={user} current="archive" examName={examName}>
     <main className="shell pt-6">
-      <BackLink href="/archive">Past papers</BackLink>
+      <BackLink href="/archive">All papers</BackLink>
       <PageHeader
         title={paper.title ?? 'Daily mock'}
         meta={<span className="numeral">{formatIstDate(paper.date)}</span>}

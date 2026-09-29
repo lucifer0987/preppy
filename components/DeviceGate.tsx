@@ -38,7 +38,7 @@ export function DeviceGate({ children }: { children: React.ReactNode }) {
             timer. The real exam is desktop-only too.
           </p>
           <p className="max-w-sm text-sm text-white/50">
-            Your dashboard, past papers and the leaderboard all work fine on a phone.
+            Your dashboard, the leaderboard and all papers read fine on a phone.
           </p>
         </main>
       )}

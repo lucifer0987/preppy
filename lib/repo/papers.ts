@@ -823,6 +823,16 @@ export interface UpcomingPapers {
    * draw it.
    */
   open: (UpcomingPaper & { state: WindowState })[]
+  /**
+   * Every paper still to open, soonest first. `next` is its first element, or
+   * null when it is empty.
+   *
+   * `next` alone answers "what happens to me next", which is the dashboard's
+   * question. It is not the question the list of all papers asks -- a page
+   * that claims to hold all of them and shows one of the scheduled ones is
+   * simply wrong about its own name.
+   */
+  later: UpcomingPaper[]
 }
 
 /** The totals a paper actually carries, from its own section rows. */
@@ -878,14 +888,14 @@ export async function upcomingPapers(now = new Date(), trackId?: string): Promis
     .sort((a, b) => opensAt(a.window).getTime() - opensAt(b.window).getTime())
 
   const open: UpcomingPapers['open'] = []
-  let next: UpcomingPapers['next'] = null
+  const later: UpcomingPapers['later'] = []
 
   for (const p of papers) {
     const state = windowState(p.window, now)
     if (state === 'OPEN' || state === 'ENTRY_CLOSED') open.push({ ...p, state })
-    if (state === 'BEFORE_OPEN' && !next) next = p
+    if (state === 'BEFORE_OPEN') later.push(p)
   }
-  // Already sorted by opening time, so the first is the one that opened
-  // soonest -- which is what `live` has always meant.
-  return { live: open[0] ?? null, next, open }
+  // Already sorted by opening time, so the first of each is the soonest --
+  // which is what `live` and `next` have always meant.
+  return { live: open[0] ?? null, next: later[0] ?? null, open, later }
 }

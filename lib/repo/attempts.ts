@@ -5,6 +5,7 @@ import {
   type AttemptStatus, type SectionEndReason, type SectionProgress,
 } from '../attempt'
 import { scoreAttempt, type ResponseInput } from '../scoring'
+import { canStartAttempt, type PaperWindow } from '../time'
 import { getPaperById, paperWindowOf } from './papers'
 import type { OptionLabel, PaperQuestion, SectionCode } from '../types'
 
@@ -230,6 +231,46 @@ export async function startAttempt(testId: string, userId: string, isDryRun: boo
   }
 
   throw new Error(`Could not start the attempt: ${error.message}`)
+}
+
+/** One open paper, and what this student may do with it. */
+export interface ViewerPaper<P extends { id: string; window: PaperWindow }> {
+  paper: P
+  attemptId: string | null
+  running: boolean
+  finished: boolean
+  /** Entry is still open and they have not started. */
+  canStart: boolean
+}
+
+/**
+ * What each open paper offers this student.
+ *
+ * Two screens ask it -- the dashboard, and the list of all papers -- and they
+ * draw the answer differently: one as a row in a panel, the other as a card
+ * with a chip. What must not differ is the answer itself, because "may I start
+ * this" decided two ways is the kind of disagreement a student meets as a
+ * button that does nothing.
+ *
+ * Takes the papers rather than fetching them, so a caller that already has the
+ * list does not go back for it.
+ */
+export async function viewerStateFor<P extends { id: string; window: PaperWindow }>(
+  papers: readonly P[], userId: string, now = new Date(),
+): Promise<ViewerPaper<P>[]> {
+  return Promise.all(papers.map(async (paper) => {
+    const own = await findAttempt(paper.id, userId, false)
+    const state = (own?.state as string | undefined) ?? null
+    return {
+      paper,
+      attemptId: (own?.id as string | undefined) ?? null,
+      running: state === 'IN_PROGRESS',
+      // VOIDED does not count: a voided attempt is one that never happened,
+      // and the student is back to not having sat the paper.
+      finished: Boolean(state && state !== 'IN_PROGRESS' && state !== 'VOIDED'),
+      canStart: !own && canStartAttempt(paper.window, now),
+    }
+  }))
 }
 
 export async function findAttempt(testId: string, userId: string, isDryRun: boolean) {
