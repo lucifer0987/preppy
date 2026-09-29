@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import { getAttemptsByTest, isCounted } from '../../../lib/repo/attempt-admin'
 import { requireAdmin } from '../../../lib/guard'
-import { formatIstDate } from '../../../lib/time'
-import { voidAttemptAction } from './actions'
+import { canStartAttempt, formatIstDate, paperLabels } from '../../../lib/time'
+import { clearAttemptAction, voidAttemptAction } from './actions'
 import { ConfirmButton } from './ConfirmButton'
 import { db } from '../../../lib/supabase/admin'
 import { Empty, PageHeader, Flash, StatusChip, TableShell, Th } from '../../../components/Page'
@@ -73,7 +73,9 @@ export default async function AttemptsPage({
       {error && <Flash tone="bad" className="mt-4">{error}</Flash>}
       {done && (
         <Flash tone="good" className="mt-4">
-          Voided. It no longer counts on the leaderboard.
+          {done === 'cleared'
+            ? 'Cleared. Their answers are gone and they can sit it again while entry is open.'
+            : 'Voided. It no longer counts on the leaderboard.'}
         </Flash>
       )}
 
@@ -117,6 +119,10 @@ export default async function AttemptsPage({
                 <tbody className="numeral">
                   {group.attempts.map((a) => {
                     const noisy = a.fullscreenExits + a.tabSwitches >= 5
+                    // Clearing the row frees the slot, but a student can only
+                    // use it while entry is still open on this paper.
+                    const retakeable = canStartAttempt(group.window)
+                    const labels = paperLabels(group.window)
                     return (
                       <tr key={a.id} className={`border-b border-line last:border-0 ${a.state === 'VOIDED' ? 'opacity-50' : ''}`}>
                         <td className="px-3 py-2.5">
@@ -158,6 +164,21 @@ export default async function AttemptsPage({
                               <ConfirmButton action={voidAttemptAction} fields={{ attemptId: a.id, back }}
                                              label="Void" confirm="Take it off the leaderboard for good?" />
                             )}
+                            {/* Voiding keeps the row, and the row is what holds
+                                the one-attempt-per-paper slot -- so "it does not
+                                count" and "have another go" needed separate
+                                buttons. This is the second. The label says which
+                                of the two it actually is here: with entry closed
+                                there is no again to have, and offering one would
+                                be a lie told by a button. */}
+                            <ConfirmButton
+                              action={clearAttemptAction}
+                              fields={{ attemptId: a.id, back }}
+                              label={retakeable ? 'Allow retake' : 'Delete attempt'}
+                              confirm={retakeable
+                                ? `Delete ${a.displayName}'s answers and score so they can sit it again before ${labels.closes}? This cannot be undone.`
+                                : `Entry closed at ${labels.closes}, so they cannot sit it again. Delete their answers and score anyway? This cannot be undone.`}
+                            />
                           </span>
                         </td>
                       </tr>

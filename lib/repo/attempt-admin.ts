@@ -1,6 +1,7 @@
 import 'server-only'
 import { db } from '../supabase/admin'
-import { istDate } from '../time'
+import { istDate, type PaperWindow } from '../time'
+import { PAPER_WINDOW_COLUMNS, paperWindowOf } from './papers'
 
 /**
  * What the admin sees about attempts (PRD 6.9.4).
@@ -32,6 +33,12 @@ export interface AdminTestAttempts {
   testId: string
   date: string
   title: string | null
+  /**
+   * Needed to say whether clearing an attempt would actually let the student
+   * sit the paper again. Without it the console can only offer the action and
+   * hope.
+   */
+  window: PaperWindow
   attempts: AdminAttemptRow[]
 }
 
@@ -65,7 +72,8 @@ export async function getAttemptsByTest(
 ): Promise<AdminTestAttempts[]> {
   const client = db()
 
-  let testQuery = client.from('tests').select('id, date, title').order('date', { ascending: false })
+  let testQuery = client.from('tests').select(`id, title, ${PAPER_WINDOW_COLUMNS}`)
+    .order('date', { ascending: false })
   if (testId) testQuery = testQuery.eq('id', testId)
   else if (!userId) testQuery = testQuery.lte('date', istDate()).limit(30)
   // Scoped like every other console screen. Without it two exams' papers sit
@@ -118,6 +126,7 @@ export async function getAttemptsByTest(
       testId: t.id as string,
       date: t.date as string,
       title: (t.title as string | null) ?? null,
+      window: paperWindowOf(t as Record<string, unknown>),
       attempts: byTest.get(t.id as string) ?? [],
     }))
     .filter((t) => t.attempts.length > 0)
@@ -140,4 +149,39 @@ export async function voidAttempt(attemptId: string): Promise<void> {
     .select('id')
   if (error) throw new Error(`Could not void that attempt: ${error.message}`)
   if (!data?.length) throw new Error('Only a finished, counted attempt can be voided.')
+}
+
+/**
+ * Remove one student's attempt so they can sit the paper again.
+ *
+ * Voiding does not free the slot and was never meant to: a voided row stays
+ * for the record, and `attempts_one_real_per_user_per_test` has no state
+ * predicate, so the student is still redirected to their result page and
+ * start_attempt still raises ALREADY_TAKEN. "It does not count" and "have
+ * another go" are different requests, and until now only the first had a
+ * button.
+ *
+ * This is the second, and it is a deletion rather than a flag: the answers,
+ * the per-question timings and the score go with the row (they cascade), and
+ * the leaderboard loses it because there is nothing left to count. There is no
+ * undo. The console asks twice and names what goes.
+ *
+ * Dry runs are excluded because they never blocked anything -- the engine
+ * clears the previous one itself when a new rehearsal starts.
+ *
+ * An attempt still in progress may be cleared too. That is deliberate: a
+ * student stuck in one cannot start any paper at all
+ * (`attempts_one_live_per_user`), and freeing them is exactly what this is
+ * for. Their engine finds the attempt gone on its next write and returns them
+ * to the dashboard.
+ */
+export async function clearAttempt(attemptId: string): Promise<void> {
+  const { data, error } = await db()
+    .from('attempts')
+    .delete()
+    .eq('id', attemptId)
+    .eq('is_dry_run', false)
+    .select('id')
+  if (error) throw new Error(`Could not clear that attempt: ${error.message}`)
+  if (!data?.length) throw new Error('That attempt is not there, or it is a dry run.')
 }

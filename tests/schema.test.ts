@@ -537,6 +537,50 @@ describe('one paper at a time', () => {
     expect(await fails('select start_attempt($1, $2, false)', [paper, STUDENT])).toMatch(/ALREADY_TAKEN/)
   })
 
+  /**
+   * What "Allow retake" rests on, and why voiding could never do the job.
+   *
+   * attempts_one_real_per_user_per_test has no state predicate, so the row
+   * holds the slot whatever state it is in. Voiding leaves the row, so the
+   * student is still refused; removing it is what frees them.
+   */
+  it('still refuses after the attempt is voided, and allows it once the row is gone', async () => {
+    const paper = await scheduledPaper('2026-11-04', 22 * 60, 23 * 60)
+    await db.query('select start_attempt($1, $2, false)', [paper, STUDENT])
+    await closeOpenAttempts()
+
+    await db.query(
+      `update attempts set state = 'VOIDED' where test_id = $1 and user_id = $2`, [paper, STUDENT])
+    expect(await fails('select start_attempt($1, $2, false)', [paper, STUDENT]))
+      .toMatch(/ALREADY_TAKEN/)
+
+    await db.query('delete from attempts where test_id = $1 and user_id = $2', [paper, STUDENT])
+    expect(await fails('select start_attempt($1, $2, false)', [paper, STUDENT])).toBeNull()
+    await closeOpenAttempts()
+  })
+
+  /** Clearing takes the answers with it; nothing is left to score. */
+  it('takes the responses with the attempt', async () => {
+    const paper = await scheduledPaper('2026-11-05', 22 * 60, 23 * 60)
+    const { id: attemptId } = await one<{ id: string }>(
+      'select start_attempt($1, $2, false) as id', [paper, STUDENT])
+    const { id: questionId } = await one<{ id: string }>(
+      `select q.id from questions q join sections s on s.id = q.section_id
+       where s.test_id = $1 order by q.number limit 1`, [paper])
+    await db.query(
+      `insert into responses (attempt_id, question_id, selected_option, was_visited)
+       values ($1, $2, 'A', true)`, [attemptId, questionId])
+
+    const before = await one<{ n: number }>(
+      'select count(*)::int n from responses where attempt_id = $1', [attemptId])
+    expect(before.n).toBe(1)
+
+    await db.query('delete from attempts where id = $1', [attemptId])
+    const after = await one<{ n: number }>(
+      'select count(*)::int n from responses where attempt_id = $1', [attemptId])
+    expect(after.n).toBe(0)
+  })
+
   it('lets a dry run sit alongside a counted attempt', async () => {
     // The admin rehearsing a paper must not be blocked by their own history.
     const paper = await scheduledPaper('2026-11-03', 22 * 60, 23 * 60)
