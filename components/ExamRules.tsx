@@ -23,13 +23,16 @@ export function ExamRules({ compact = false }: { compact?: boolean }) {
         question still scores as blank unless an option is also chosen.
       </li>
       <li>
-        <strong>Full screen is required.</strong> Esc always works, and no page can take that
-        away. But the question is covered until you come back, the exit is counted on your
-        result, and <strong>the clock keeps running</strong>. It never ends your test.
+        <strong>Full screen, where your browser offers it.</strong> Esc always works, and no page
+        can take that away. But the question is covered until you come back, the exit is counted
+        on your result, and <strong>the clock keeps running</strong>. It never ends your test.
+        On a browser with no full-screen mode &mdash; an iPhone, mostly &mdash; the paper simply
+        runs without it.
       </li>
       <li>
         <strong>Two numbers are recorded:</strong> how many times you left full screen, and how
-        many times you switched away. Your admin sees them too. Nothing else is logged.
+        many times you switched away. Switching away is counted on every device. Your admin sees
+        them too. Nothing else is logged.
       </li>
       <li>
         <strong>One device at a time.</strong> Beginning signs your account out everywhere else.

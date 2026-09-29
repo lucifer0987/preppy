@@ -8,6 +8,7 @@ import { QuestionPalette, paletteState, type PaletteState } from './QuestionPale
 import { SectionTimer } from './SectionTimer'
 import { ExamRules } from './ExamRules'
 import { ThemeToggle } from './ThemeToggle'
+import { fullscreenState, fullscreenSupported } from '../lib/fullscreen'
 import type { OptionLabel } from '../lib/types'
 import type { AttemptSnapshot } from '../lib/repo/attempts'
 import {
@@ -275,8 +276,25 @@ export function TestEngine({ snapshot, sectionLabel }: {
 
   // ---------------------------------------------------------------- full screen
   useEffect(() => {
-    // Begin entered full screen (FR-6.5.1); a reload or a direct visit did not.
-    setFullscreen(Boolean(document.fullscreenElement))
+    /**
+     * Three states, not two, and the third is the one that matters on a phone.
+     *
+     * null is "does not apply here": iPhone Safari has no
+     * Element.requestFullscreen, so the paper was never asked to go full
+     * screen and cannot have left it. Left as false, the engine would have
+     * raised its "Return to full screen to continue" wall the moment the paper
+     * opened, over a button that could do nothing, and blocked every key
+     * behind it -- a paper no phone could sit even once it had started.
+     *
+     * Where the API exists, this reads exactly as it always did: Begin entered
+     * full screen (FR-6.5.1), a reload or a direct visit did not, and leaving
+     * is counted.
+     */
+    const supported = fullscreenSupported(document)
+    // Switching away is still worth counting on a phone -- arguably more, since
+    // everything else on it is one swipe away -- so that listener is attached
+    // either way. Only the full-screen half is conditional.
+    setFullscreen(fullscreenState(document))
     const onChange = () => {
       const active = Boolean(document.fullscreenElement)
       setFullscreen(active)
@@ -291,10 +309,10 @@ export function TestEngine({ snapshot, sectionLabel }: {
         void bumpCounterAction(attemptId, 'tab_switches').catch(() => {})
       }
     }
-    document.addEventListener('fullscreenchange', onChange)
+    if (supported) document.addEventListener('fullscreenchange', onChange)
     document.addEventListener('visibilitychange', onHidden)
     return () => {
-      document.removeEventListener('fullscreenchange', onChange)
+      if (supported) document.removeEventListener('fullscreenchange', onChange)
       document.removeEventListener('visibilitychange', onHidden)
     }
   }, [attemptId])
@@ -458,19 +476,34 @@ export function TestEngine({ snapshot, sectionLabel }: {
           the question counter shrinks rather than wraps. The inner shell is what
           lines the header up with the content underneath it. */}
       <header className="sticky top-0 z-30 border-b border-chrome-line bg-chrome text-chrome-text">
-        <div className="shell flex items-center gap-x-3 gap-y-1 py-2.5">
+        <div className="shell flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5">
           {/* The section name is this screen's title, and it was a span, so a
               45-minute exam had no heading structure at all. TestEngine remounts
               per section, so this correctly changes as the student moves on. */}
-          <h1 className="truncate font-black">{sectionLabel}</h1>
-          <span className="numeral shrink-0 text-sm text-white/70">
+          {/* flex-1 min-w-0, so the name is what *has* the room rather than
+              what is left of it. Everything to the right is shrink-0, so with
+              a truncate and no basis the section name was squeezed to nothing
+              on a phone: the header read "1/15" and a student could not see
+              which section they were sitting. */}
+          <h1 className="min-w-0 flex-1 truncate font-black">{sectionLabel}</h1>
+          {/* The question number is on the question itself ("Q1", in the card),
+              so on a phone this is the same fact twice and the section name is
+              worth more than a repeat of it. */}
+          <span className="numeral hidden shrink-0 text-sm text-white/70 sm:inline">
             <span className="hidden sm:inline">Question </span>
             {index + 1}/{section.questions.length}
           </span>
           <span className="numeral hidden shrink-0 text-xs text-white/50 md:inline">
             Section {section.position} of {section.totalSections}
           </span>
-          <span className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
+          {/* Two rows on a phone, one from sm up.
+              The timer, the two icon buttons and End test need about 320px
+              between them; a 390px screen has 358 after the shell's gutters,
+              which left the section name 38px and rendered it "Qu... Ap...".
+              basis-full drops the whole cluster onto its own line instead, so
+              the name keeps a full row and every control keeps its label. */}
+          <span className="ml-auto flex shrink-0 basis-full items-center justify-end gap-1.5
+                           sm:basis-auto sm:gap-2">
             {snapshot.isDryRun && (
               <span className="hidden rounded-full bg-white/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest sm:inline">
                 Dry run
@@ -573,28 +606,71 @@ export function TestEngine({ snapshot, sectionLabel }: {
 
           </div>
 
+          {/* The palette, where a phone can reach it.
+              Below lg the sidebar stacks under the question, so jumping to
+              question 12 meant scrolling past a reading passage to find the
+              grid and scrolling back. This sits directly on top of the
+              controls instead, shut by default so it costs no height, and it
+              is a details element rather than state: the engine has enough of
+              that, and a disclosure is what the browser already does well. */}
+          <details className="group shrink-0 border-t border-line px-4 py-2 lg:hidden">
+            <summary className="flex cursor-pointer list-none items-center gap-2 py-1
+                                text-sm font-bold text-ink-soft">
+              <svg viewBox="0 0 20 20" aria-hidden="true"
+                   className="h-4 w-4 fill-current transition group-open:rotate-180">
+                <path d="M5.3 7.3a1 1 0 0 1 1.4 0L10 10.6l3.3-3.3a1 1 0 1 1 1.4 1.4l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 0-1.4z" />
+              </svg>
+              All {section.questions.length} questions
+              <span className="numeral ml-auto text-xs font-semibold text-ink-faint">
+                {tally.answered} answered &middot; {tally.marked} marked
+              </span>
+            </summary>
+            <div className="pb-2 pt-2">
+              <QuestionPalette
+                compact
+                states={states}
+                current={question.number}
+                onJump={(n) => {
+                  const i = section.questions.findIndex((q) => q.number === n)
+                  if (i >= 0) setIndex(i)
+                }}
+              />
+            </div>
+          </details>
+
           {/* Question-level controls only. Leaving the section is a decision
               about the whole section, so it lives in the section panel rather
               than one keystroke away from Save & next. */}
-          <div className="shrink-0 border-t border-line px-6 py-4 sm:px-8 lg:px-9">
-            <div className="flex flex-wrap items-center gap-2">
+          <div className="sticky bottom-0 shrink-0 border-t border-line bg-surface px-4 py-3
+                          sm:px-8 sm:py-4 lg:static lg:px-9">
+            {/* A grid on a phone, a row from sm up. Four controls of different
+                widths in one wrapping flex row put "Save & next" wherever the
+                text happened to leave room -- and on a phone the thing you
+                press after every question should be in the same place every
+                time. Sticky to the bottom of the card for the same reason:
+                below lg the card is as tall as its question, so the controls
+                would otherwise sit under a screenful of reading passage. */}
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
               <Btn onClick={() => go(-1)} disabled={index === 0}>Previous</Btn>
               <Btn onClick={clearResponse} disabled={!current.selected}>Clear</Btn>
               {/* One button, not two. Two that both said "mark" left the difference
                    between them to be guessed at; this one flags the question and moves
                    on, which is what either of them was for. */}
               <Btn onClick={current.marked ? toggleMark : markAndNext} tone="mark"
+                   className="col-span-2 sm:col-auto"
                    title={current.marked
                      ? 'Remove the flag from this question'
                      : 'Flag this question for review and move to the next one'}>
                 {current.marked ? 'Unmark' : <>Mark for review &amp; next &rarr;</>}
               </Btn>
-              <Btn onClick={() => go(1)} tone="primary" className="ml-auto" disabled={atEnd}>
+              <Btn onClick={() => go(1)} tone="primary"
+                   className="col-span-2 sm:col-auto sm:ml-auto" disabled={atEnd}>
                 Save &amp; next
               </Btn>
             </div>
 
-            <p className="numeral mt-3 text-xs text-ink-faint">
+            {/* Nothing to press on a touch screen, so it is not said there. */}
+            <p className="numeral mt-3 hidden text-xs text-ink-faint sm:block">
               <kbd>1</kbd>&ndash;<kbd>{optionCount}</kbd> choose &middot; <kbd>Enter</kbd> next &middot;{' '}
               <kbd>M</kbd> mark &middot; <kbd>&larr;</kbd> <kbd>&rarr;</kbd> move
             </p>
@@ -602,7 +678,9 @@ export function TestEngine({ snapshot, sectionLabel }: {
         </main>
 
         <aside className="flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start">
-          <div className="card p-5">
+          {/* The wide reading of the palette. Below lg the compact one above
+              the controls is the only copy, so this does not repeat it. */}
+          <div className="hidden card p-5 lg:block">
             <QuestionPalette
               states={states}
               current={question.number}

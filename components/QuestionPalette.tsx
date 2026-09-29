@@ -73,17 +73,32 @@ function Cell({ state, children }: { state: PaletteState; children?: React.React
 }
 
 export function QuestionPalette({
-  states, current, onJump,
+  states, current, onJump, compact = false,
 }: {
   states: { number: number; state: PaletteState }[]
   current: number
   onJump: (number: number) => void
+  /**
+   * The grid alone: no heading, no legend.
+   *
+   * On a phone the palette is tucked above the controls rather than given a
+   * column of its own, and there the legend is five rows of prose between a
+   * student and the button they meant to press.
+   *
+   * What is lost, said plainly: on a small screen the legend is not shown at
+   * all. The shapes and colours are unchanged and each cell still reads out
+   * its own state to a screen reader ("Question 7, seen but left blank"), so
+   * nothing is unreachable -- but a student meeting the shapes for the first
+   * time on a phone has to infer them, and the briefing is where they are
+   * explained.
+   */
+  compact?: boolean
 }) {
   return (
     <div>
-      <h2 className="eyebrow">Questions</h2>
+      {!compact && <h2 className="eyebrow">Questions</h2>}
 
-      <div className="mt-3 grid grid-cols-5 gap-1.5">
+      <div className={`grid gap-1.5 ${compact ? 'grid-cols-8' : 'mt-3 grid-cols-5'}`}>
         {states.map(({ number, state }) => (
           <button
             key={number}
@@ -111,6 +126,7 @@ export function QuestionPalette({
         ))}
       </div>
 
+      {!compact && (
       <ul className="mt-4 space-y-1.5" aria-label="Palette legend">
         {(['answered', 'not-answered', 'marked', 'answered-marked', 'not-visited'] as PaletteState[]).map((s) => (
           <li key={s} className="flex items-center gap-2 text-[11px] text-ink-soft">
@@ -127,6 +143,7 @@ export function QuestionPalette({
           </li>
         ))}
       </ul>
+      )}
     </div>
   )
 }

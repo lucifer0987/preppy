@@ -4,7 +4,6 @@ import { db } from '../../../lib/supabase/admin'
 import { loadAttempt } from '../../../lib/repo/attempts'
 import { currentSessionId, revokeSessions } from '../../../lib/auth'
 import { TestEngine } from '../../../components/TestEngine'
-import { DeviceGate } from '../../../components/DeviceGate'
 import { patternForPaper } from '../../../lib/repo/tracks'
 import { sectionName } from '../../../lib/types'
 
@@ -41,10 +40,14 @@ export default async function TestPage({ params }: { params: Promise<{ attemptId
   // Keyed on the section so moving on mounts a fresh engine: the question
   // index, the responses and the queue all belong to one section, and carrying
   // them into the next would point past the end of a shorter one.
+  //
+  // No device gate. A paper used to be refused below 1024px -- FR-6.5.8, on the
+  // grounds that the real exam is desktop-only -- which made the product
+  // narrower than the thing it prepares people for: a student with a phone and
+  // no laptop could not sit a single paper. The engine lays out for a phone
+  // now, so the answer to a small screen is a smaller layout rather than a wall.
   return (
-    <DeviceGate>
-      <TestEngine key={snapshot.section.position} snapshot={snapshot}
-                  sectionLabel={sectionName(pattern, snapshot.section.code)} />
-    </DeviceGate>
+    <TestEngine key={snapshot.section.position} snapshot={snapshot}
+                sectionLabel={sectionName(pattern, snapshot.section.code)} />
   )
 }

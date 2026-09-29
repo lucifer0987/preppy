@@ -2,15 +2,26 @@
 
 import { useState } from 'react'
 import { useFormStatus } from 'react-dom'
+import { fullscreenSupported } from '../../../lib/fullscreen'
 
 /**
- * FR-6.5.1: Begin requests full screen, and if the browser denies it the test
- * does not start.
+ * FR-6.5.1: Begin asks for full screen, and a browser that *refuses* it stops
+ * the test from starting. A browser that cannot offer it at all does not.
  *
- * requestFullscreen needs a user gesture, so it is called here, in the click,
- * before the form is submitted. The server action's redirect is a client-side
- * navigation, so the document — and full screen with it — carries straight
- * into the engine.
+ * That distinction is the whole of this. requestFullscreen needs a user
+ * gesture, so it is called here, in the click, before the form is submitted;
+ * the server action's redirect is a client-side navigation, so the document --
+ * and full screen with it -- carries straight into the engine.
+ *
+ * But iPhone Safari has no Element.requestFullscreen at all: only video can go
+ * full screen there. Calling it threw, the catch treated that as a refusal,
+ * and the form was never submitted -- so on an iPhone Begin could not start a
+ * paper, ever, and no attempt row was written. The student was told their
+ * browser had denied a permission it was never asked for.
+ *
+ * So: where the API exists, a refusal is still a refusal and still stops the
+ * start. Where it does not exist, the paper begins without it. The engine
+ * already copes -- it only counts exits from a full screen it actually entered.
  */
 export function BeginButton({ label = 'Begin' }: {
   /** "Begin" for the real thing, "Start practising" for a practice run. */
@@ -27,12 +38,14 @@ export function BeginButton({ label = 'Begin' }: {
     const form = e.currentTarget.form
     setDenied(false)
     setRequesting(true)
-    try {
-      if (!document.fullscreenElement) await document.documentElement.requestFullscreen()
-    } catch {
-      setRequesting(false)
-      setDenied(true)
-      return
+    if (fullscreenSupported(document)) {
+      try {
+        if (!document.fullscreenElement) await document.documentElement.requestFullscreen()
+      } catch {
+        setRequesting(false)
+        setDenied(true)
+        return
+      }
     }
     form?.requestSubmit()
     setRequesting(false)
